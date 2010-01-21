@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-8A5054C9-7556-5153-8CEE-FA8E5F4155AE" xml:lang="en"><title>How
+to Create an Explicitly Bound Socket</title><shortdesc>This topic describes how create an explicitly bound socket. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>Start the network interface connection with <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita#GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD/GUID-CB62E838-A380-309C-8B08-1F804EDB4387"><apiname>RConnection::Start()</apiname></xref> to
+create an explicitly bound socket. </p> <p><b>Creating an explicitly bound
+socket</b></p><p>  Explicitly bound sockets can be created in two ways: </p> </context>
+<steps id="GUID-46A5DC4D-4DF0-400D-ACA1-D34F7DC7D2AD">
+<step id="GUID-AF44E5D1-D088-4F16-A801-129E443B52F2"><cmd>Open a socket and bind the socket to a network interface connection.</cmd>
+<stepxmp><ul>
+<li><p>  Call <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-3491CE2A-A94D-34E0-B0DD-D476EE3334D7"><apiname>RSocket::Open()</apiname></xref> and pass an  <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref>. </p> <p>  <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> binds
+to an interface  corresponding to the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref>. </p> <p> 
+In the following example code, if <codeph>iConn</codeph> corresponds  to a
+WiFi <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> then, after a calling  <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-3491CE2A-A94D-34E0-B0DD-D476EE3334D7"><apiname>RSocket::Open()</apiname></xref> the
+socket is explicitly bound to WiFi. </p> <codeblock xml:space="preserve">iRecvSock.Open( ss, KAfInet, KSockStream, KProtocolInetTcp, iConn );</codeblock> </li>
+</ul></stepxmp>
+</step>
+<step id="GUID-8F737ED5-AEE8-4E3F-BBBF-F5EB4B05F815"><cmd>Open a socket and bind the socket to an IP address of the network
+interface connection.</cmd>
+<stepxmp><ul>
+<li><p>  Call <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-5550C9E4-2A1B-3F52-A6CF-F5822AB9DBC9"><apiname>RSocket::Bind()</apiname></xref> and bind the socket to  an
+IP address of the network interface connection. </p> <p>  <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-5550C9E4-2A1B-3F52-A6CF-F5822AB9DBC9"><apiname>RSocket::Bind()</apiname></xref> binds
+the socket to a unique  IP address of the network interface connection. </p> <p> 
+The following example code shows how to open a socket and bind  the socket
+to a unique IP address of the WiFi connection. </p>  <codeblock xml:space="preserve">// open an implicit socket
+TInt err = iRecvSock.Open( iSs, KAfInet, KSockDatagram, KProtocolInetUdp); 
+User::LeaveIfError( err );
+// This IP address maps to WiFi in the ced.cfg file
+_LIT(KRasAddr,"192.168.220.4");
+const TInt KPort = 7000;
+TInetAddr addr;
+err = addr.Input( KRasAddr ); 
+User::LeaveIfError( err );
+addr.SetPort( KPort );
+// Now the socket is explicitly bound to WiFi  
+err = iRecvSock.Bind( addr ); 
+RDebug::Print( _L("testapp: ETH Bind() = %d"), err ); 
+User::LeaveIfError( err );
+</codeblock> </li>
+</ul><p> The following code block shows an extract from the <filepath>ced.cfg</filepath> file.
+ </p><codeblock xml:space="preserve">
+## 
+[LANService]
+ADD_SECTION
+# COMMDB_ID = 1
+Name=Ethernet
+IfNetworks=ip
+IpNetMask=255.0.0.0
+IpGateway=0.0.0.0
+IpAddrFromServer=FALSE
+IpAddr=192.168.1.1
+IpDNSAddrFromServer=FALSE
+ConfigDaemonManagerName=NetCfgExtnDhcp
+ConfigDaemonName=!DhcpServ
+FIELD_COUNT=9
+END_ADD
+
+ADD_SECTION
+# COMMDB_ID = 2
+Name=Ethernet WiFi
+IfNetworks=ip
+IpNetMask=255.0.0.0
+IpGateway=0.0.0.0
+IpAddrFromServer=FALSE
+-// This IP address maps to WiFi
+IpAddr=192.168.220.4
+IpDNSAddrFromServer=FALSE
+IpNameServer1=194.72.6.51
+IpNameServer2=194.72.6.52
+ConfigDaemonManagerName=NetCfgExtnDhcp
+ConfigDaemonName=!DhcpServ
+LanServiceExtensionTableName=WLANServiceExtensionTable
+LanServiceExtensionTableRecordId=4
+FIELD_COUNT=13
+END_ADD
+</codeblock></stepxmp>
+</step>
+</steps>
+<result><p>The socket is explicitly bound to the specific IP address of the
+network interface connection. </p> </result>
+<example><title>Explicit binding example</title> <p>Client A creates a socket
+with explicit binding using the specified interface connection. </p> <codeblock id="GUID-8CE9B83F-0091-5230-8F80-C27793E86437" xml:space="preserve">sock1 = RSocket.Open(srv,conn);</codeblock> <p>ESock
+creates the socket within the default connection and subconnection. </p> <fig id="GUID-BE26EF30-B103-5C3B-95A8-7ED66ECFE44C">
+<image href="GUID-B21A4858-162A-50F1-8F88-4259B7F7238E_d0e99068_href.png" placement="inline"/>
+</fig> </example>
+<postreq><p>A socket can also be opened over a sub-connection using <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>.
+When the socket is opened, a new Service Access Point (SAP) is created for
+the socket in <xref href="GUID-BE7D196E-357B-36BE-80BB-CCBBE00DFA90.dita"><apiname>ESock</apiname></xref>. The SAP is used to handle inbound
+and outbound data. </p> </postreq>
+</taskbody></task>

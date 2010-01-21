@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-05759C1B-6731-52A1-8EC0-2570E01FC7BC"><title>Dial a Call Tutorial </title><shortdesc>This tutorial describes how to dial a call with the telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps id="GUID-2F1A2A69-B31A-52E1-AC45-2466E9A0F373"> <step id="GUID-3813B8DE-531C-5103-AA0D-D5DC352F442D"><cmd/><info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info> </step> <step id="GUID-5168AF6C-BB5B-5A9F-81A4-2BDA74B810BB"><cmd/><info>dial a call with <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::DialNewCall()</apiname></xref>  </info> <info>pass the number to dial in a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TTelNumber</apiname></xref>.<codeph>CTelephony::DialNewCall()</codeph> returns a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TCallId</apiname></xref> that identifies the call. This will be either <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EISVCall1</apiname></xref> or <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EISVCall2</apiname></xref>. You need this ID to place a call on hold and terminate a call. </info> </step> <step id="GUID-AB6F0698-70C8-5B1E-84B6-BEF9D8C0CFE9"><cmd/><info>pass <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::DialNewCall()</apiname></xref> a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TCallParamsV1</apiname></xref> object to specify an option for your identity. You have three options: </info> <substeps id="GUID-382BCFFE-5EF4-5EB7-B07E-FD6C5E049CB1"><substep id="GUID-40C52D42-0FBA-57AD-BF6C-75BA26ECD933"><cmd/><info>hide your identity </info> </substep> <substep id="GUID-C9A2E428-A7C1-5654-AFC2-358C91D4BA3E"><cmd/><info>display your identity </info> </substep> <substep id="GUID-08814A8F-806A-56F2-9A4D-7FA4B66151BA"><cmd/><info>use default setting </info> </substep> </substeps> </step> <step id="GUID-082D70CE-00A9-56E0-880E-9E634935A3F7"><cmd/><info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EDialNewCallCancel</apiname></xref> to cancel the dial request. </info> </step> </steps> <example id="GUID-32181D81-A35C-5EB9-9FBE-7601A63B7378"><title>Dial a call example</title> <p>This example dials the number <codeph>123456789</codeph> and allows the remote party to see the phone's number: </p> <codeblock id="GUID-9E980E83-B70E-560C-8C83-934D490ABACE" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+_LIT(KTheNumber, "123456789");
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TCallId iCallId;
+
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    CTelephony::TTelNumber telNumber(KTheNumber);
+
+    CTelephony::TCallParamsV1 callParams;
+    callParams.iIdRestrict = CTelephony::ESendMyId;
+    CTelephony::TCallParamsV1Pckg callParamsPckg(callParams);
+
+    iTelephony-&gt;DialNewCall(iStatus, callParamsPckg, telNumber, iCallId);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {} // The call has been dialled successfully;
+          // iCallId contains the call's ID, needed when controlling the call.
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EDialNewCallCancel);
+    }
+</codeblock> </example> <postreq id="GUID-8A1C0CE1-31F8-5B78-9FDC-D2BF46B2924F"><p>This describes how to dial a second call while another is in progress. </p> <ol id="GUID-4A03E748-F7D6-56AF-89C6-51D2D440994D"><li id="GUID-A9B4B84F-10B9-5709-AA88-FFACCC93815E"><p>Put the first call on hold. </p> <p>For more information. See <xref href="GUID-1907CF0B-2F4B-50F6-B676-7B7059B7FF74.dita">Call Hold Tutorial</xref>. </p> <p>If the first call was not dialled or answered by you then you cannot control it, and so you cannot put it on hold. If it is not on hold already then you will have to wait until the it is put on hold. The <xref href="GUID-0DA6722B-0700-5612-884A-F3B7733E5252.dita">Voice line status</xref> changes to <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EStatusHold</apiname></xref>. </p> </li> <li id="GUID-5613B91D-7C01-54D1-9F78-ADDE9455FA71"><p>Dial the second call. </p> <p>This is the same as dialling a call in the <xref href="GUID-05759C1B-6731-52A1-8EC0-2570E01FC7BC.dita">Dial a Call Tutorial</xref>. <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::AnswerIncomingCall()</apiname></xref> will return a different call ID to the first call. </p> <p>Remember that to dial a call is an asynchronous operation. </p> </li> <li id="GUID-CC8C65D1-1C89-591B-B540-376C388CD4AA"><p>If the operation fails, remember to resume the first call, see <xref href="GUID-FFBD95C6-0B12-5FD7-BA69-89BBFB97F0A1.dita">Call Resume Tutorial</xref>. </p> </li> </ol> <p>As a result, the first call is on hold, and the phone user is connected to the second caller. </p> </postreq> </taskbody></task>

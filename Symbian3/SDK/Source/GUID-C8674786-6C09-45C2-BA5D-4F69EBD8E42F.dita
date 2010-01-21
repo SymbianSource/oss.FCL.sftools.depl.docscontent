@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C8674786-6C09-45C2-BA5D-4F69EBD8E42F" xml:lang="en"><title>Creating
+the MMP File</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Add needed libraries used by the MMP file structure:</b></p>
+<p>If developers want to use any of the P.I.P.S. libraries, they need to link
+to the corresponding library in the MMP file using the <codeph>LIBRARY</codeph> keyword.</p>
+<p>If the application has <codeph>main()</codeph> as the entry point, the
+library <filepath>libcrt0.lib</filepath> must be specified as the first library
+otherwise, it will result in linker errors. The user must link to the Symbian
+platform <filepath>euser.dll</filepath>. This is required since the static
+library uses some of the services of the Symbian platform such as creating
+cleanup stack, and having a top level TRAP. All these details are hidden from
+the developer. The developer will write the application as if it were for
+the UNIX environment.</p>
+<codeblock xml:space="preserve">STATICLIBRARY  libcrt0.lib
+LIBRARY        libc.lib 
+LIBRARY        euser.lib  // Needed in order to use Symbian services
+// and whatever Open C libraries are needed…
+</codeblock>
+<p>The <filepath>libcrt0.lib</filepath> library is required if the user is
+not going to write <codeph>E32Main</codeph> within the application (EXE).
+This static library has an implementation of <codeph>E32Main</codeph> within
+which it calls the library initialization method followed by calling main
+written by the developer. This static library also gets command-line arguments
+and passes the same to main. </p>
+<p>If the application has <codeph>E32Main()</codeph> as an entry point, there
+is no need to link to <filepath>libcrt0.lib</filepath> like in the example
+below.  </p>
+<codeblock xml:space="preserve">LIBRARY         libc.lib 
+LIBRARY         libm.lib libpthread.lib 
+LIBRARY         euser.lib</codeblock>
+<p><b>Add needed include paths</b></p>
+<codeblock xml:space="preserve">SYSTEMINCLUDE   \epoc32\include\stdapis 
+</codeblock>
+<note>Some of the SSL/cryptography functions need more than the default available
+stack. The recommended stack size is 10K. To set the stack size to 10K add
+in the MMP file.</note>
+<codeblock xml:space="preserve">EPOCSTACKSIZE 0x10000</codeblock>
+</conbody></concept>

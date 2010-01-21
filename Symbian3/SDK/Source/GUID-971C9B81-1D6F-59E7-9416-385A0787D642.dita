@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-971C9B81-1D6F-59E7-9416-385A0787D642" xml:lang="en"><title>The
+control stack</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The control stack is a mechanism provided by the control framework for
+handling key press events. The Window Server, which generates events for control
+framework applications, channels all key press events to the application that
+currently has keyboard focus (Strictly speaking it channels key press events
+to the <keyword>window group</keyword> ). It is up to the application itself
+to channel the event to the correct destination as the Window Server does
+not associate a key press event with a particular control. </p>
+<p>In control framework applications using the <keyword>standard app     
+   UI</keyword> the control stack contains a list of controls that wish to
+receive keyboard events. Controls are added to the stack using <codeph>CCoeAppUi::AddToStackL()</codeph> and
+their ordering on the stack determines their priority in receiving key events:
+The one with the lowest position on the stack receiving key events first.
+When a key press event occurs, it is offered to each control on the stack
+in turn until it is consumed (i.e. used by that control). </p>
+<p>The ordering of controls on the stack is determined by their priority,
+a value passed to <codeph>CCoeAppUi::AddToStackL()</codeph>. If several controls
+on the stack have the same priority, their ordering is determined by the order
+in which they were added to the stack. </p>
+<codeblock id="GUID-02BC135C-66C4-5FBD-9085-2F6946A24660" xml:space="preserve">enum
+    {
+    ECoeStackPriorityDefault=0,  // Low Priority
+    ECoeStackPriorityMenu=10,
+    ECoeStackPriorityDialog=50,
+    ECoeStackPriorityCba=60,
+    ECoeStackPriorityAlert=200,
+    ECoeStackPriorityFep=250,
+    ECoeStackPriorityEnvironmentFilter=300  // High Priority
+    };
+</codeblock>
+<p>The diagram below shows a hypothetical stack containing 4 controls added
+in the following order: control A (priority <codeph>ECoeStackPriorityDialog</codeph>),
+control B (<codeph>ECoeStackPriorityMenu</codeph>), control C (<codeph>ECoeStackPriorityDefault</codeph> —
+used for application views) and control D (<codeph>ECoeStackPriorityDialog</codeph>). </p>
+<fig id="GUID-02308139-5BC5-5098-BE15-178434158843">
+<title>           Example showing the order and priority of controls on the
+control stack                    </title>
+<image href="GUID-7AC4C1C2-D796-508F-93CF-21F061F49A30_d0e13258_href.png" placement="inline"/>
+</fig>
+<p>On the stack shown in the diagram key-press events will be offered first
+to control D, followed by A, B and C in that order. A control on the stack
+can refuse key press events by setting a flag. This might be done by a dialogs
+when it is not visible. </p>
+<p>Applications use the control stack to channel key press events to destinations
+in decreasing order of priority, such as: </p>
+<ul>
+<li id="GUID-EA1211C7-F2F1-5469-8EEB-66D44BC7542D"><p>debug keys </p> </li>
+<li id="GUID-D4063EC0-102F-563D-9D56-84760F447F7A"><p>any active dialog </p> </li>
+<li id="GUID-1ABFD001-B3A4-55C1-9D6A-F268457B8619"><p>any menu bar (i.e.,
+its <keyword>hot-keys</keyword>) </p> </li>
+<li id="GUID-DAD2BC72-CC2A-501A-BD40-E2234D4AE1F2"><p>the application view </p> </li>
+</ul>
+</conbody></concept>

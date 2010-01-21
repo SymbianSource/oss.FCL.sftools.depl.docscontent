@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-77AC5975-D36F-585F-BC0B-DC1C2357BBF2"><title>Detecting a Character Set (Converter)</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>When the encoding of a piece of text is not provided you can use the <codeph>CCnvCharacterSetConverter::AutoDetectCharSetL()</codeph> function to analyse the text. The function returns the UID for the best available character set (converter). </p> <section><title>Introduction</title> <p> <codeph>AutoDetectCharSetL() </codeph> loops through the available character sets and checks whether each character set is a plug-in. If it is, it calls the <codeph>IsInThisCharacterSetL()</codeph> function of the plug-in to get a confidence level. </p> <p>Confidence levels are in the range 0 to 100 (inclusive) where 0 means "I have no idea” and 100 means "I have total confidence that this is the correct character set”. If the confidence level is 0 the character set identifier is not defined. </p> <p>Once the entire array of character sets has been tested, the character set with the highest confidence level is returned as the character set encoding for the sample text. </p> </section> <section><title>Procedure</title> <ol id="GUID-CE269E17-F3F0-5175-BC71-C301C5D718C7"><li id="GUID-F762CFDB-62A7-57FC-BC5D-5D2B3F6A9D10"><p>Create and populate an array of available character sets. </p> <codeblock id="GUID-F7383F74-2C69-597C-8DC4-0D524734FE4A" xml:space="preserve">RFs fileServerSession;
+
+CleanupClosePushL(fileServerSession);
+
+User::LeaveIfError(fileServerSession.Connect());
+
+CCnvCharacterSetConverter* characterSetConverter=CCnvCharacterSetConverter::NewLC();
+
+CArrayFix&lt;CCnvCharacterSetConverter::SCharacterSet&gt;* arrayOfCharacterSetsAvailable = 
+    characterSetConverter-&gt; CreateArrayOfCharacterSetsAvailableLC(fileServerSession);
+...
+</codeblock> </li> <li id="GUID-8AE5385C-87CD-55CC-9F98-48060AB86425"><p>Call the <codeph>AutoDetectCharSetL()</codeph> function to get the character converter information. </p> <p>The sample text is ASCII encoded plain text. The confidence level–100 and the characterSetID are returned. </p> <codeblock id="GUID-9E8B04B3-30B6-5806-8A0E-EEBECB72E6CC" xml:space="preserve">_LIT8(KASCII, “The result I am expecting is that this is recognised as ASCII!");
+
+TInt confidenceLevel = 0;
+
+TUint characterSetID = 0;
+
+characterSetConverter-&gt;AutoDetectCharSetL (
+                                 confidenceLevel,
+                                 characterSetID,
+                                 *arrayOfCharacterSetsAvailable,
+                                 KASCII);
+...
+</codeblock> </li> </ol> <p>The value in <codeph>characterSetID</codeph> can then be passed to the <xref href="GUID-A03A0ACA-00B2-350E-8ED7-DB8C9B0D83CC.dita"><apiname>CCnvCharacterSetConverter</apiname></xref> to do the conversion. </p> </section> </conbody></concept>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FFA5956E-0632-42F5-A2F9-0503888EF72B" xml:lang="en"><title>EGL
+Reference Implementation Component</title><shortdesc>The EGL Reference Implementation component implements the minimum
+EGL functionality to support OpenWF composition. It does not implement the
+EGL functionality required to support the use of the Khronos rendering APIs,
+such as OpenGL ES and OpenVG. Typically device creators replace the reference
+implementation with a fully functional implementation of their own. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<section id="GUID-3400F826-F4A6-4BCA-BF98-9CD941532B8A"><title>Implemented
+APIs</title><p>The EGL Reference Implementation implements the following EGL
+1.4 APIs: </p><ul>
+<li><p><codeph>eglGetError()</codeph></p></li>
+<li><p><codeph>eglGetDisplay()</codeph></p></li>
+<li><p><codeph>eglInitialize()</codeph></p></li>
+<li><p><codeph>eglTerminate()</codeph></p></li>
+<li><p><codeph>eglReleaseThread()</codeph></p></li>
+<li><p><codeph>eglQueryString()</codeph></p></li>
+<li><p><codeph>eglGetProcAddress()</codeph></p></li>
+</ul><p>The EGL Reference Implementation also implements the following reusable
+sync extension functions:</p><ul>
+<li><p><codeph>eglCreateSyncKHR()</codeph></p></li>
+<li><p><codeph>eglDestroySyncKHR()</codeph></p></li>
+<li><p><codeph>eglClientWaitSyncKHR()</codeph></p></li>
+<li><p><codeph>eglSignalSyncKHR()</codeph></p></li>
+<li><p><codeph>eglGetSyncAttribKHR()</codeph></p></li>
+</ul><p>The Reference Implementation implements <codeph>eglGetProcAddress()</codeph> ,
+which supports retrieving OpenWF-C extension functions. </p><p>Calling any
+of the unsupported APIs panics the client with the <codeph>EEglPanicNotSupported</codeph> panic
+code and the return value and EGL error code are undefined. This behavior
+deliberately does not conform to the EGL specification. It is intended to
+make it easy to detect errors in the platform configuration—for example, where
+the intention was to use a fully-functional EGL implementation instead of
+the Reference Implementation.</p></section>
+<section id="GUID-264ED891-CB0A-4D6D-8640-8A11A9BD79A5"><title>Implementation-specific
+information</title><p>The Reference Implementation returns the following implementation-specific
+strings: </p><table id="GUID-EAEA383C-E4ED-4C11-A957-6EFFEECDE6BD">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">String</entry>
+<entry valign="top">Value</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>EGL_CLIENT_APIS</entry>
+<entry>“”</entry>
+</row>
+<row>
+<entry>EGL_EXTENSIONS</entry>
+<entry>“EGL_KHR_reusable_sync”</entry>
+</row>
+<row>
+<entry>EGL_VENDOR</entry>
+<entry>“Nokia”</entry>
+</row>
+<row>
+<entry>EGL_VERSION</entry>
+<entry>“1.4 Reference EGL”</entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+
+<section id="GUID-8ED3006D-56A3-4512-A1A8-0E88149C236B"><title>Thread handling</title><p>The
+Reference Implementation allows the supported EGL APIs to be used from multiple
+threads within the same process. The Reference Implementation maintains the
+process and thread state in order to conform to the correct behavior described
+in the EGL specification. Access to process-wide objects is serialized and
+protected by mutex to prevent race conditions.</p><p>The Reference Implementation
+uses its own heap to allow the creation, access and destruction of process-wide
+objects from any thread. This includes the <codeph>EGLDisplay</codeph> and <codeph>EGLSync</codeph> objects.
+ The heap is created in a local chunk.</p><p>For simplicity, the Reference
+Implementation supports only one display: <codeph>EGL_DEFAULT_DISPLAY</codeph>.
+ A request to obtain any other <codeph>EGLDisplay</codeph> returns <codeph>EGL_NO_DISPLAY</codeph>. <codeph>EGLDisplay</codeph> is
+a process-wide resource that can be accessed from any thread. Its behavior
+follows the EGL specification for <codeph>eglGetDisplay()</codeph>, <codeph>eglInitialize()</codeph> and <codeph>eglTerminate()</codeph>.</p><p>Each
+client thread can have its own EGL error. Error handling and thread state
+management follows the EGL specification for <codeph>eglGetError()</codeph> and <codeph>eglReleaseThread()</codeph>.</p></section>
+<section id="GUID-8B9FB71D-8DC8-4944-9DA8-AEC821C1041D"><title>DLL summary</title><table id="GUID-80E05C78-5FD4-5489-A1DA-A759EB7F9530">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>DLL</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <filepath>libegl_ref.dll</filepath>  </p> </entry>
+<entry><p>The EGL reference implementation.</p> </entry>
+</row>
+<row>
+<entry><p><filepath>libEGL.dll</filepath></p></entry>
+<entry><p>In the emulator, this provides a mechanism that switches among different
+EGL implementation DLLs used in different scenarios, including the Reference
+Implementation mentioned above. For ARM builds, the file above is renamed
+to this during the ROM build process. This is controlled by IBY files. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>To allow different EGL implementations to be used on a platform,
+the Reference Implementation is built with a target name of <filepath>libegl_ref.dll</filepath>.
+However, EGL Clients should link their code against <filepath>libEGL.lib</filepath>.</p></section>
+<section id="GUID-0685C8AA-5F35-49B7-BF02-C147BCDCCE89"><title>Enabling the
+EGL Reference Implementation</title><p><b>Emulator</b></p><p>To enable the
+ScreenPlay OpenWF-C components and the EGL Reference Implementation in the
+emulator, add the following lines to the <filepath>\epoc32\data\epoc.ini</filepath> file:</p><codeblock xml:space="preserve">SYMBIAN_GRAPHICS_USE_OPENWF
+SYMBIAN_GRAPHICS_USE_EGL_REF</codeblock></section>
+</conbody><related-links>
+
+<link href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita"><linktext>EGL Interface
+Overview</linktext></link>
+</related-links></concept>

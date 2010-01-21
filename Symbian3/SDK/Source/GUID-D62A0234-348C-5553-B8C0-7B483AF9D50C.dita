@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D62A0234-348C-5553-B8C0-7B483AF9D50C" xml:lang="en"><title>Thread-relative
+and Process-relative handles</title><shortdesc>This document describes the difference between thread-relative
+and process-relative handles.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This is the issue of handle ownership.</p>
+<p>Threads and processes each maintain a list of objects to which they refer.
+This list is an object index and is the way in which handle-numbers representing
+these objects are generated.</p>
+<p>When user code causes a Kernel object (e.g. a mutex) to be created, ownership
+of the handle which is opened on that object may be vested either in the thread
+or the process. If ownership is vested in the thread, the handle associated
+with that object is said to be <i>thread-relative</i>, conversely, if ownership
+is vested in the process, the handle associated with that object is said to
+be<i>process-relative</i>.</p>
+<p>The following diagram shows the case where code belonging to thread A creates
+a mutex and vests ownership of the handle in the thread. </p>
+<fig id="GUID-5A22F71B-C146-53A9-B8A4-51D79D4EF668">
+<title>Thread-relative handle</title>
+<image href="GUID-7B589949-2784-5B77-959E-99F8733A8853_d0e205732_href.png" placement="inline"/>
+</fig>
+<p>Compare with the following case where ownership of the mutex handle is
+vested in the process.</p>
+<fig id="GUID-6C60BB64-AE7B-5B46-983B-D6D65D8AB41C">
+<title>Process-relative handle</title>
+<image href="GUID-47511301-DFF9-52B0-9602-DD9D293D3044_d0e205743_href.png" placement="inline"/>
+</fig>
+<p>In both cases, the mutex object is added to the appropriate Kernel container
+which can be considered as the owner of the object.</p>
+<p>The significance of a process-relative handle is that any thread in the
+process can use that handle to access the Kernel side object that the handle
+represents. In contrast, a thread-relative handle can only be used by the
+thread creating it; other threads in that process can only access the Kernel
+side object by <xref href="GUID-A4799558-AF8C-5E97-9B03-7D1C04FEC243.dita">duplicating</xref> that
+handle.</p>
+<p>For a thread-relative handle, the associated Kernel side object is closed
+if the thread dies. For a process-relative handle, the Kernel side object
+is closed if the process dies. Such an object is not closed if any thread
+belonging to that process dies; the object remains in existence for the lifetime
+of the process, or until all references to it have been explicitly closed.</p>
+<p>See also:</p>
+<ul>
+<li id="GUID-7355DCEE-85E8-58C6-9102-CBCE93251098"><p><xref href="GUID-A95CDFDE-285F-5DE2-AADE-29B2B9663757.dita">The
+object index</xref> </p> </li>
+</ul>
+</conbody></concept>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-2610E11C-26FA-538E-A3E1-34AADA35F20B"><title>Querying Databases: Basic</title><shortdesc>This tutorial shows you how to create a simple SQL database query. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section id="GUID-BEB231F7-8A23-5650-9933-EC3D030ABA32"><title>Introduction</title> <p>This tutorial shows you how to wrap a SQL query statement into an <xref href="GUID-0176BF07-DF94-3259-8F90-DE030E35CE9A.dita"><apiname>RSqlStatement</apiname></xref> object to query a database. </p> <p>This tutorial uses code from the <xref href="GUID-C2FCE726-FD87-52BF-8AF8-7F54FB6D6CB1.dita">Basic SQL example application</xref>. </p> <p><b>Assumptions </b> </p> <p>You have a database. The database has no tables and therefore no data. </p> <p><b>SQL statements </b> </p> <p>The following SQL statements are used for this example: </p> <p><userinput><cmdname>SELECT</cmdname> <parmname>person</parmname>  <cmdname>FROM</cmdname> <parmname>Pets</parmname>  <cmdname>WHERE</cmdname>  <parmname>cat
+          &gt;= 1</parmname>  </userinput> </p> <p>The (<codeph>SELECT</codeph>) results of the query will be the value in the '<codeph>name</codeph>' column <codeph>FROM</codeph> the '<codeph>countries</codeph>' table <codeph>WHERE</codeph> the value of the '<codeph>population</codeph>' column of the same record is <codeph>&gt;</codeph> the value specified. </p> </section> <section><title>Procedure</title> <ol id="GUID-457AA35E-0A23-5FAE-B69E-10D31F40F153"><li id="GUID-6C096309-F5A5-53AB-81E1-2E319D784FEF"><p>Prepare the statement: </p> <p>The steps to prepare a SQL statement are shown here. </p> <ol id="GUID-6E19F9B5-92DC-50C4-9A93-1DC9E10EFECB"><li id="GUID-F28F700F-1D43-5A44-8C01-A117048A6372"><p>Set up some constants used by the SQL statement object to define the SQL query: </p> <p><codeblock id="GUID-55464913-80C8-57C1-9973-34F11ED2CFF3" xml:space="preserve">_LIT(KSelect1,"SELECT person FROM Pets WHERE cat &gt;= 1;");</codeblock> </p> <p>This defines the query parameters. </p> </li> <li id="GUID-5B15A001-4355-5422-88D5-DF457B3F069C"><p>Instantiate the <xref href="GUID-0176BF07-DF94-3259-8F90-DE030E35CE9A.dita"><apiname>RSqlStatement</apiname></xref> SQL statement: </p> <p><codeblock id="GUID-B1C94AEC-EF3B-5447-9D75-5C382EB19302" xml:space="preserve">RSqlStatement stmt;</codeblock> </p> </li> <li id="GUID-A8E185AC-0402-5B62-ABDE-7667E7396621"><p>Prepare the statement: </p> <p><codeblock id="GUID-20A9CAD8-5015-5404-864B-4BF471284D44" xml:space="preserve">User::LeaveIfError(stmt.Prepare(iPetDb, aStatement));</codeblock> </p> <p>Creates a parameterised SQL statement executable. </p> </li> <li id="GUID-28D8E6CC-5A85-5422-9F6E-F4EAA5D80491"><p>Define the indices to be used in the search: </p> <p><codeblock id="GUID-ECF6DD48-2E8B-5A70-B712-2465E2132A20" xml:space="preserve">    TInt personIndex = stmt.ColumnIndex(KPerson);</codeblock> </p> </li> </ol> </li> <li id="GUID-7D9C68FB-A9A3-5FBF-A1F4-B2C900680E62"><p>Execute the SQL query: </p> <p>The Symbian SQL statement is executed by <xref href="GUID-0176BF07-DF94-3259-8F90-DE030E35CE9A.dita"><apiname>RSqlStatement::Next()</apiname></xref>. </p> <ol id="GUID-FD6241DB-56D3-5F28-8CA7-ECC8A527F3F8"><li id="GUID-71EC4F86-F462-5C20-82FA-331FF215A25C"><p>Search the records until a match is found: </p> <p><codeblock id="GUID-4617F6D8-D138-5123-8E61-ADC0B9CF1DDA" xml:space="preserve">TInt rc = KErrNone;
+while ((rc = stmt.Next()) == KSqlAtRow)</codeblock> </p> <p> <codeph>Next()</codeph> fires the executable SQL statement and stops at and returns the matched record. </p> </li> </ol> </li> <li id="GUID-D142E6BD-1FF7-514E-A33E-DA87112AABC6"><p>Do something with the results: </p> <p>The query is done and you have the results. In this section we look at a simple way to do something with the results and we close the SQL statement object. </p> <ol id="GUID-19CF868B-5957-5D68-8E7F-352F924C0426"><li id="GUID-21B13AF8-6052-55B1-9CD0-E0BD8783473A"><p>Get and use the results of the search: </p> <p><codeblock id="GUID-8A2DFE0B-78AB-5D90-B175-05DCAD3965D2" xml:space="preserve">...
+{
+TPtrC myData = stmt.ColumnTextL(personIndex);
+iConsole-&gt;Printf(_L("Person=%S\n"), &amp;myData);
+}</codeblock> </p> </li> <li id="GUID-9EECD8B4-F9D2-5D27-A1C3-32C7337AF8E0"><p>Close the SQL search statement: </p> <p><codeblock id="GUID-121F21FE-0D85-5F13-8D57-0D9B84ECA22E" xml:space="preserve">err = myStatement.Close(); </codeblock> </p> <p>When the database search is finished the object should be closed to free up resources. </p> </li> </ol> </li> </ol> </section> <section id="GUID-CDF77F9C-9ACB-529B-B902-0548E91A026E"><title>Results</title> <p>The tutorial has demonstrated how to query a Symbian SQL database. Looking through the example application you can work out how easily the query can be changed to meet specific requirements and how the results can be used in different ways. </p> </section> <example id="GUID-8DB8048D-082A-51C2-882E-6250D5B3B2D0"><title>Querying example</title> <p>The following code snippet is from the basic example application. </p> <codeblock id="GUID-D2EE1100-6199-5313-B8C5-49CA1AC9C2FD" xml:space="preserve">...
+...
+RSqlStatement stmt;
+iConsole-&gt;Printf(_L("Running Query:\n%S\n"), &amp;aStatement);
+user::LeaveIfError(stmt.Prepare(iPetDb, aStatement));
+CleanupClosePushL(stmt);
+TInt personIndex = stmt.ColumnIndex(KPerson);
+TInt rc = KErrNone;
+while ((rc = stmt.Next()) == KSqlAtRow)
+  {
+  // Do something with the results 
+  TPtrC myData = stmt.ColumnTextL(personIndex); // read return data
+  iConsole-&gt;Printf(_L("Person=%S\n"), &amp;myData);
+  }
+if (rc != KSqlAtEnd)
+  {
+  _LIT(KErrSQLError, "Error %d returned from RSqlStatement::Next().");
+  iConsole-&gt;Printf(KErrSQLError, rc);
+  }
+  ...
+  CleanupStack::PopAndDestroy(1);
+}</codeblock> </example> <section id="GUID-8F3A39B6-6514-5A48-BE2E-7893D7625A9C-GENID-1-6-1-20-1-1-6-1-1-10-1-8-1-6-1-3-5"><p>Now that you have performed a basic database query you can start thinking about more advanced querying options. The following will show you how: </p> <ul><li id="GUID-D2CD5BB5-C085-56F0-B834-7515447CD661"><p> <xref href="GUID-72511204-FC90-54AA-9E2E-833318020318.dita">Reading to a buffer</xref>  </p> </li> <li id="GUID-B147074E-B791-592E-99C3-474AA5D217F6"><p> <xref href="GUID-3CCA6503-54DA-5558-85DC-93A22A81F565.dita">Reading to memory</xref>  </p> </li> <li id="GUID-029878E1-AAD9-5E1A-B696-67BD3C0D905F"><p> <xref href="GUID-183280EE-0C57-54FE-8ABB-E1CC3BDE525B.dita">Reading to a data stream</xref>  </p> </li> </ul> </section> </conbody><related-links><link href="GUID-22844C28-AB5B-5A6F-8863-7269464684B4.dita"><linktext>SQL Overview</linktext> </link> <link href="GUID-C2FCE726-FD87-52BF-8AF8-7F54FB6D6CB1.dita"><linktext>Basic SQL Example
+                Application</linktext> </link> </related-links></concept>

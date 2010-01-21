@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B5F98445-3CFF-5067-B89A-AC80F56C40C3" xml:lang="en"><title>Porting
+Data Recognizers to Secure Platform</title><shortdesc>This page describes how to migrate data recognizers to the secure
+version of Symbian platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Procedure</title> <p id="GUID-37D4A6C5-1A14-5CE3-A852-1AAD412C57DA"><b>Converting
+data recognizers into ECOM plugins</b> </p> <ol id="GUID-56EF676C-103E-5B68-85A1-D6A66B9EC046">
+<li id="GUID-18ED65F4-B508-5DC7-8869-A5035C7922B3"><b>Changing the project
+specification (.mmp) file</b> - Change the project specification (<filepath>.mmp</filepath>)
+file to specify an ECOM plug-in. For example: <p><codeblock id="GUID-8AD243FE-63AE-5971-98BA-D105E2756FCA" xml:space="preserve">target            EXAMPLEREC.DLL 
+targettype        PLUGIN 
+UID                0x10009D8D &lt;DLLUID&gt; 
+capability        ProtServ 
+sourcepath        ..\path 
+systeminclude    ..\inc 
+systeminclude    ..\inc\ecom  
+source            EXAMPLEREC.CPP 
+start resource    &lt;DLLUID&gt;.RSC  
+TARGET            examplerec.rsc  
+library            EUSER.LIB APMIME.LIB</codeblock> </p> </li>
+<li id="GUID-202CFB50-4DE2-5BD5-8F3B-03C3305DD992"><p><b>Changing the ECOM
+resource file</b> - Change the ECOM resource file to specify:</p> <ul>
+<li id="GUID-E0038901-3017-5B9D-9F2E-4ACC3877AEE6"><p>interface UID. This
+identifies the plugin scheme, and should be <codeph>0x101F7D87</codeph> for
+data recognizers </p> </li>
+<li id="GUID-C4D4DAB8-DD0B-597D-A9A8-E3A202A15688"><p>implementation UID.
+This uniquely identifies the plugin. </p> </li>
+</ul><p>For example: </p> <codeblock id="GUID-47351321-C97D-553C-8E32-6D3F9D08C380" xml:space="preserve">#include &lt;RegistryInfo.rh&gt; 
+RESOURCE REGISTRY_INFO r_registry
+{ 
+dll_uid = &lt;DLLUID&gt;;  // Should match the name of this file 
+                    // The name of the resource file is &lt;DLLUID&gt;.rss 
+interfaces =  
+    { 
+    INTERFACE_INFO 
+        { 
+        interface_uid = 0x101F7D87; // Const for all data recognizers 
+        implementations = 
+            { 
+            IMPLEMENTATION_INFO 
+                { 
+                implementation_uid = &lt;Unique Implementation Uid&gt;;  
+                version_no = 1; 
+                display_name = "DataRecName"; 
+                default_data = "";  
+                opaque_data = ""; 
+                } 
+            }; 
+        } 
+    }; 
+}</codeblock></li>
+<li id="GUID-0C63777C-524D-55F3-9C17-34D2FB26A1E3"><p><b>Changing the source
+code</b> - </p> Both the data recognizer's <filepath>.h</filepath> and <filepath>.cpp</filepath> files
+need code adding to create the data recognizer. For example: <p><b>example.h</b> </p> <codeblock id="GUID-7571422C-2A48-53D6-8385-6F3AAA07BC3F" xml:space="preserve">
+class CExampleDataRecognizer : public CApaDataRecognizerType
+     {
+     public:
+         static CApaDataRecognizerType* CreateRecognizerL();
+     };</codeblock> <p><b>example.cpp</b> </p> <codeblock id="GUID-CC663D38-25C1-58D9-8E27-054AEC4C08F4" xml:space="preserve">
+CApaDataRecognizerType* CExampleDataRecognizer::CreateRecognizerL()
+    {
+    return new (ELeave) CExampleDataRecognizer ();
+    }
+
+const TImplementationProxy ImplementationTable[] =
+    { 
+    IMPLEMENTATION_PROXY_ENTRY(UNIQUE IMPLEMENTATION UID, CExampleDataRecognizer::CreateRecognizerL)
+    };
+
+EXPORT_C const TImplementationProxy* ImplementationGroupProxy(TInt&amp; aTableCount)
+    {
+    aTableCount = sizeof(ImplementationTable) / sizeof(TImplementationProxy);
+    return ImplementationTable;
+    }
+
+// Remove the previously EXPORTED function
+EXPORT_C CApaDataRecognizerType* CreateRecognizer ()
+    {
+    }</codeblock></li>
+</ol> <p id="GUID-7AA2AA79-4CD2-5C44-BE9B-66051E22514F"><b>Converting data
+recognizers into pre-platform security style plugins</b> </p> <p>You can convert
+data recognizers into plug-ins of the sort used before Platform Security was
+introduced by: </p> <ol id="GUID-BC2F8B96-B270-58A2-A4BD-D09EDB7F7A7A">
+<li id="GUID-BA29280D-2CE5-5E8C-8805-8D841EB364C7"><b>Changing the project
+specification (.mmp) file</b> - Change the project specification (<filepath>.mmp</filepath>)
+file to specify a plug-in of the style used before Platform Security was introduced.
+For example: <p><codeblock id="GUID-521E33C5-9A00-5C8A-AC4A-E1D509F82DAA" xml:space="preserve">
+target            EXAMPLEREC.MDL 
+targettype        DLL 
+UID                0x10003A37 &lt;DLLUID&gt; 
+capability        TrustedUI ProtServ 
+sourcepath        ..\path 
+systeminclude    ..\inc 
+source            EXAMPLEREC.CPP 
+library            EUSER.LIB APMIME.LIB</codeblock> </p> </li>
+<li id="GUID-757324F0-742B-5FC7-A809-DBAC0ECFA5F9"><p><b>Changing the source
+code</b> - The data recognizer's <filepath>.cpp</filepath> file needs code
+adding to create the data recognizer. For example:</p>  <p><b>example.cpp</b> </p> <codeblock id="GUID-A16D2566-2C14-5015-AB9B-D54FE96DB906" xml:space="preserve">EXPORT_C CApaDataRecognizerType* CreateRecognizer() 
+    { 
+    CExampleDataRecognizer * thing=NULL; 
+    thing = new CExampleDataRecognizer(); 
+    return thing; // null if new failed 
+    }</codeblock></li>
+</ol> </section>
+<section><title>See also</title> <p><xref href="GUID-1AAA88BB-19AD-5B8E-993C-11F4B7CD90EB.dita">Writing
+a MIME Recognizer</xref>. </p> </section>
+</conbody></concept>

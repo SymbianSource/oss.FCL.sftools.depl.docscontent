@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-FF82B80D-18CA-5333-83EB-3AB94F696016" xml:lang="en"><title>Options-List</title><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section><p>Options-List can be specified within a PKG file to display a list
+of options to the Symbian device user during installation. The options that
+are selected, control the installation of optional components. </p> </section>
+<section><title>Syntax</title><codeblock id="GUID-8E47AFB4-B035-599F-8B9F-1B7729228BA4" xml:space="preserve">!({"Option string language 1",...},...)
+</codeblock> <p>For example, </p> <codeblock id="GUID-4DFE5803-1442-51E8-BC6B-B7CE84586B03" xml:space="preserve">
+
+!({"Add-on 1 (20KB)"},{"Add-on 2 (75KB)"},
+  {"Add-on 3 (80KB)"},{"Add-on 4 (20KB)"}) 
+</codeblock> <p>Each string corresponds to a PKG file variable called <codeph>option1</codeph>, <codeph>option2</codeph> and
+so on. The following are the values of these options: </p> <ul>
+<li id="GUID-36EAB6F5-6019-56B0-B63A-3D31FF2EADF1"><p>Value <codeph>0</codeph> signifies
+that the option is not selected. </p> </li>
+<li id="GUID-8364E286-AF83-5528-8DFC-553C7B4AC18E"><p>Value <codeph>1</codeph> signifies
+that the option is selected. </p> </li>
+</ul> <p>The selection affects the values of option attributes (<codeph>option1,
+option2, option3, ...</codeph>). In the preceding example, if option1 (<codeph>Add-on
+1 (20KB)</codeph>) is selected, then the value of the <codeph>option1</codeph> attribute
+changes from <codeph>0</codeph> to <codeph>1</codeph>. </p> <p>You can test
+these values by specifying the optional components within conditional blocks
+as shown in the following example: </p> <codeblock id="GUID-75DAA0F6-48CE-5274-9762-4481CDB26FFA" xml:space="preserve">If option1 = 1
+; install optional file 1 to the private directory
+    "sample.txt"-"!:\private\E800005A\sample.txt";
+endif
+
+If option2 = 1
+; install optional file 2 to the private directory
+    "sample2.txt"-"!:\private\E800005A\sample2.txt";
+endif</codeblock> </section>
+<section><p> <b>Note:</b> The<codeph> option&lt;n&gt;</codeph> attributes behave
+as global variables. </p> </section>
+<example id="GUID-4A2F5CA7-6571-5B53-86B7-FB77F3AB6CDA"><title>Examples</title> <ul>
+<li id="GUID-D326F784-0D83-59DC-B30B-9AFDB0B009B2"><p>The following example
+package file illustrates the usage of a basic options list. </p> <codeblock id="GUID-BDBD6AD9-C795-5448-87D5-B9B4E6CE9011" xml:space="preserve">;Languages
+&amp;EN
+
+%{"Nokia Corporation"}
+
+:"Nokia Corporation"
+
+;Header
+#{"Options"}, (0x81111107), 1, 2, 3,TYPE=SA
+
+;Display 3 options to the user
+!({"Install document (1KB)"},{"Install document2 (1KB)"},{"Install document3 (1KB)"})
+
+if option1 = 1
+    "files\option1.txt"-"!:\private\81111108\option1.txt";
+endif
+
+if option2 = 1
+    "files\option2.txt"-"!:\private\81111108\option2.txt";
+endif
+
+if option3 = 1
+    "files\option3.txt"-"!:\private\81111108\option3.txt";
+endif</codeblock> </li>
+<li id="GUID-ABF7F8B9-2788-505D-B276-CF75368CD497"><p>The following example
+package file demonstrates an option list that supports multiple languages. </p> <codeblock id="GUID-08E54984-A832-533B-AB6E-7107874F19E0" xml:space="preserve">;Languages
+&amp;EN,FR
+
+;Header
+#{"MultiLanguageOption-EN", "MultiLanguageOption-FR"}, (0x81111107), 1, 2, 3
+
+%{"Vendor","Vendeur"}
+:"Vendor"
+
+!({"ENOption1", "FROption1"},{"ENOption2","FROption2"},{"ENOption3","FROption3"})
+
+if option1 = 1
+    {"text\englishfile1.txt" "text\frenchfile1.txt"}-"!:\private\81111108\import\file1.txt";
+endif
+
+if option2 = 1
+    {"text\englishfile2.txt" "text\frenchfile2.txt"}-"!:\private\81111108\import\file2.txt";
+endif
+
+if option3 = 1
+    {"text\englishfile3.txt" "text\frenchfile3.txt"}-"!:\private\81111108\import\file3.txt";
+endif
+        </codeblock> </li>
+</ul> </example>
+</refbody></reference>

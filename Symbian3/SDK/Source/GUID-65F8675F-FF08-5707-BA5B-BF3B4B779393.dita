@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-65F8675F-FF08-5707-BA5B-BF3B4B779393" xml:lang="en"><title>Handling
+SDP results</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Clients that make service and attribute queries through <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>CSdpAgent</apiname></xref> must
+implement the <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>MSdpAgentNotifier</apiname></xref> interface
+to handle the responses. </p>
+<section><title>How to create an object to handle inquiry results</title> <p>There
+are two kinds of results that require handling, they are: </p> <ul>
+<li id="GUID-5D797F13-A380-5286-905F-9DCB374224B7"><p>Service Search Results,
+and </p> </li>
+<li id="GUID-49BAAE50-2EB9-5A64-910A-5C95CED036DE"><p>Attribute Read Results </p> </li>
+</ul> <p>We will examine a simple handling example for both kinds below. </p><p>Note: 
+Queries are asynchronous. </p> </section>
+<section><title>Handling service search results</title> <p>When a service
+search request completes, it calls the <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>NextRecordRequestComplete()</apiname></xref>: </p> <codeblock id="GUID-00FBBFCE-2C58-5D79-9C24-D0BC796BE1D3" xml:space="preserve">virtual void NextRecordRequestComplete(TInt aError, TSdpServRecordHandle aHandle, TInt aTotalRecordsCount)</codeblock> <p> <codeph>aHandle</codeph> gives the service record handle of the matching
+service, and can be used in a subsequent attribute query. <codeph>aTotalRecordsCount</codeph> gives
+the total number of matching records. </p> </section>
+<section><title>Handling attribute read results</title> <p>When an attribute
+request completes, each single attribute is returned with its attribute ID
+using <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>AttributeRequestResult()</apiname></xref>. </p> <codeblock id="GUID-B13E900D-9D1A-5FA4-9063-FA830B86218E" xml:space="preserve">virtual void AttributeRequestResult(TSdpServRecordHandle aHandle, TSdpAttributeID aAttrID, CSdpAttrValue* aAttrValue)</codeblock> <p>The ID of the attribute is given in <codeph>aAttrID</codeph>, and the
+attribute value itself in <codeph>aAttrValue</codeph>. You can find the type
+of the attribute through <codeph>aAttrValue-&gt;Type()</codeph>, cast <codeph>aAttrValue</codeph> on
+this base to the correct subclass of <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>CSdpAttrValue</apiname></xref>:
+for example, if the type is <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>ETypeBoolean</apiname></xref>,
+you can cast <codeph>aAttrValue</codeph> to a <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>CSdpAttrValueBoolean</apiname></xref>. </p> <p>When
+there are no more attributes to be returned, <xref href="GUID-AD76DB7F-CD45-3903-A07A-E94BE583CDB0.dita"><apiname>AttributeRequestComplete()</apiname></xref> is
+called. </p> </section>
+<section><title>Where Next?</title> <p>The complete set of Service Discovery
+Agent tutorials are shown below: </p> <ul>
+<li id="GUID-7461DF52-06B4-55BE-B176-7F1F88851B7C"><p> <xref href="GUID-275D7892-EEBD-5DBD-A9D7-F6A715B79659.dita">Querying
+the SDP database</xref>  </p> </li>
+<li id="GUID-2C509727-D129-5DC6-8761-1975151FBA6C"><p> <xref href="GUID-1EA7B3A5-7A94-5E8F-A0A8-9CA417E14032.dita">Reading
+remote SDP service attributes</xref>  </p> </li>
+<li id="GUID-93251739-F226-5398-9F7B-A3BC599AB40F"><p> <b>Handling SDP query
+results</b> - This document </p> </li>
+</ul> <p>Also refer to the <xref href="GUID-2F1C6B4C-2C23-5A35-A0D2-223EC6238F7D.dita">Bluetooth
+Service Discovery Agent Overview</xref> and the <xref href="GUID-8451102A-8E68-5C86-9E40-D53183E32261.dita">Bluetooth
+SDP Overview</xref> for additional background information. </p> </section>
+</conbody></concept>

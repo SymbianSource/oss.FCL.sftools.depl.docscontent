@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-39B5850D-EAAD-56BC-B75A-2104033814E6" xml:lang="en"><title>Audio
+Component Framework Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This document provides an overview of the Audio Component Framework (ACF)
+API. </p>
+<section><title>Purpose</title> <p>In the Advanced Audio Adaptation Framework
+(A3F) architecture, the client defines the required audio functionality by
+grouping several audio processing units together. Audio processing units are
+logical entities, not directly related to any specific audio hardware, that
+represent basic audio functions. Examples of audio processing units include: </p> <ul>
+<li id="GUID-847A0149-C870-58CD-8E13-E5072E12A3E4"><p>Source - a source of
+multimedia data. </p> </li>
+<li id="GUID-E22F1EEC-4E5F-51BD-89FC-D066485CA144"><p>CODEC - an encoder or
+decoder of multimedia data. </p> </li>
+<li id="GUID-782A83BA-A95A-55B7-955C-9F0440698D67"><p>Sink - a consumer of
+multimedia data. </p> </li>
+</ul> <p>ACF provides a collective notion for the audio processing units being
+grouped together so that they can be considered as a single entity. Audio
+processing units are grouped into audio streams. An audio stream consists
+of at least a source, a codec and a sink. The audio stream allows control
+of the audio processing units connected to the stream, for example, starting
+or pausing, and also provides information about the state of the audio processing
+units connected to it, for example, uninitialized or active. </p> <p>Furthermore,
+one or more audio streams can be grouped into a logical unit called a context.
+The following diagram shows a context which contains two audio streams: </p> <fig id="GUID-3E0CDA7E-7B25-5407-9276-8397C4FFEAFE">
+<title>              Audio streams in a context            </title>
+<image href="GUID-5673347B-DA7B-563A-AB2B-615BF7C19F92_d0e305304_href.png" placement="inline"/>
+</fig> <p>Using a context means that, for the purposes of pre-emption, all
+audio streams in the context can be controlled as a single unit. For example,
+if an audio stream needs to be stopped because it uses a resource that is
+required by another higher priority audio stream, then all the other audio
+streams in the context can be stopped at the same time. </p></section>
+<section><title>Audio Component Framework API Library Details</title><p>The
+DLL that provides the functionality and the library to which your code must
+link is identified below. </p><table id="GUID-254DCB0A-F62E-558C-97D2-1A9141AA4AB6">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>DLL</entry>
+<entry>LIB</entry>
+<entry>Short Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <filepath> audiocontextfactory.dll</filepath>  </p> </entry>
+<entry><p> <filepath> audiocontextfactory.lib</filepath>  </p> </entry>
+<entry><p>These files are used for implementing the ACF API. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+<section><title>Architectural Relationship</title> <p>This API is part of
+the Advanced Audio Adaptation Framework (A3F). A3F provides a new standardised
+implementation of DevSound which is configured by default from Symbian OS
+v9.5 onwards. A3F interacts with a specially customised DevSound (configured
+as optional) through the <xref href="GUID-06A43E09-CC6D-5799-A0F7-68B5696F4ADB.dita">Audio
+Component Library (ACL) API</xref> and the ACF API. </p> </section>
+<section><title>Description</title> <p>ACF is responsible for delivering transactional
+behaviour. This means ensuring that when a change is applied to one audio
+processing unit in a context, the same change is applied to all the audio
+processing units in the context and if any fail then no change is made. </p> <p>In
+order to apply changes to the audio processing units in a context, the client
+must call the asynchronous <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>Commit()</apiname></xref> method.
+On success, event callbacks are sent to the client to state that the <codeph>Commit()</codeph> was
+properly received and processed. If the <codeph>Commit()</codeph> fails, then
+the implementation is "rolled-back". Alternatively, the client may receive
+an event callback stating that audio resources were lost due to pre-emption
+by a higher priority audio client. </p> </section>
+<section><title>Key Audio Component Framework API Classes</title> <p>ACF comprises
+the following key classes: </p> <ul>
+<li id="GUID-4A037A0A-A46D-518F-99B3-AE3D92BCC871"><p> <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>MAudioSource</apiname></xref> -
+generic interface for different types of audio sources. </p> </li>
+<li id="GUID-8C469302-B029-52BB-A1F0-F1E1923DBE47"><p> <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>MAudioCodec</apiname></xref> -
+the generic abstract interface for codecs. </p> </li>
+<li id="GUID-2D73E73F-F3F4-5E5E-9A0D-ACEDD7B2572A"><p> <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname> MAudioSink</apiname></xref> -
+generic interface for different types of audio sinks. </p> </li>
+<li id="GUID-40072A7A-5964-5117-8664-866B03A31B90"><p> <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>MAudioStream</apiname></xref> -
+the main control interface for the state of an audio stream. </p> </li>
+<li id="GUID-253D92F4-5280-5A3A-8836-F4DA90394901"><p> <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>MAudioContext</apiname></xref> -
+the interface to an audio context. The client can use <codeph>MAudioContext</codeph> to
+manage the audio streams and audio processing units contained in a context. </p> </li>
+</ul> </section>
+<section><title>Using Audio Component Framework API</title> <p>ACF can be
+used to: </p> <ul>
+<li id="GUID-1A8CAC71-EB84-5DA6-8A0E-070207721372"><p>Apply changes made to
+the audio processing units in a context. </p> <p>Pending changes are applied
+using the asynchronous <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>Commit()</apiname></xref> call.
+When a <codeph>Commit()</codeph> has been completed, the client is informed
+by the appropriate <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>ContextEvent()</apiname></xref> callback
+of <xref href="GUID-67BE95B2-BE4A-32AF-8BDF-92FD8FBE6DC3.dita"><apiname>MAudioContextObserver</apiname></xref>. </p> </li>
+</ul> </section>
+<section><title>See Also</title> <p><xref href="GUID-931207BE-3561-562D-8F67-0FB52CFF83CD.dita">Audio
+Component Framework Tutorial</xref>  </p> <p><xref href="GUID-2A543E1C-F3DE-59EF-8A43-1B655F367FBC.dita">Audio
+Processing Tutorial</xref>  </p> </section>
+</conbody></concept>

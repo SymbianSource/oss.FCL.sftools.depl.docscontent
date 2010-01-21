@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+	Nokia Corporation - initial contribution.
+Contributors: 
+-->  <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd"><concept id="GUID-581A8E4B-12BE-41C0-A20E-3087A80FEECF" xml:lang="en"><title>Tactile
+feedback</title><prolog><metadata><keywords></keywords></metadata></prolog><conbody>
+<p>There are two types of cases where vibration or audio of the
+device is used as an output method when the user is interacting with the device
+touch screen:</p>
+<ul>
+<li><p>When the user has touched an active area of the screen, and an action
+will be triggered on touch release</p></li>
+<li><p>Interaction with given components has been successful</p></li>
+</ul>
+<p>As with sounds, tactile feedback must be used carefully so as not to desensitize
+the user to the vibration: the attention grabbing quality remains and functions
+so long as the feedback is not too frequent.</p>
+<p>Tactile feedback is included in those common UI components, where seen
+as beneficial. When new components are designed, tactile feedback is to be
+included in those if seen beneficial usability-wise. For example, in any button
+type of UI component the tactile feedback is natural. Application can disable
+tactile feedback from the common UI components it uses, if seen necessary.
+This is acceptable only in cases, where tactile feedback would cause interference,
+like during a phone call or when giving audio commands to the system.</p>
+<p>The user can choose whether tactile feedback is on or off.</p>
+<section id="GUID-6F2398F3-DA71-4330-A63A-15F02D7533DF"><title>Characteristics
+of haptics related  APIs</title><p>You can use the following APIs to create
+haptic effects:</p><ul>
+<li><p>Tactile
+Feedback Client API</p><ul>
+<li><p>available from S60 5.0 onwards</p></li>
+<li><p>can be used on all S60 5.0 or later mobile devices but the feedback
+is played only on touch enabled layouts</p></li>
+<li><p>provides simple functions for triggering various predefined tactile
+feedback (vibration or audio) effects</p></li>
+<li><p>enables a consistent user experience in all applications of the mobile
+device (an application gives a logical feedback type as an input and the actual
+physical effect depends on the mobile device configuration and end user settings)</p></li>
+<li><p>when the area feedback is used, latency  is the smallest for the feedback
+triggering (tactile feedback can be triggered at the window server level before
+the corresponding pointer event is delivered to the visible application)</p></li>
+<li><p>direct feedback is easy to integrate into <codeph>HandlePointerEventL</codeph> code </p></li>
+<li><p>an application can select the logical tactile feedback from certain
+types and the produced effect may be different on various mobile devices</p></li>
+</ul></li>
+<li><p>Vibra
+API</p><ul>
+<li><p>available from S60 3.0 onwards</p></li>
+<li><p>can be used for running device vibrator with given intensity for given
+period of time</p></li>
+<li><p>a privileged client application can use this for playing pulse effects
+which have a really short duration (as the ones used for tactile feedback)</p></li>
+</ul></li>
+</ul></section>
+<section id="GUID-8D08AB75-2E24-44B6-88B6-4AE1CEBD70F7"><title>When to use
+Tactile Feedback Client API and Vibra API</title><p>You should use<ul>
+<li><p>Tactile Feedback Client API for providing tactile feedback in custom
+controls (grids, lists, etc.) which comply with the style of the Core UI components
+to ensure a uniform user experience among applications</p></li>
+<li><p>Vibra API to produce haptic effects such as ringing tone vibration</p></li>
+</ul></p></section>
+<section id="GUID-4003A7DC-0208-4436-B9A1-688D57149F6A"><title>Using
+tactile feedback in C++ applications</title><p>The API to use for tactile
+feedback is the <xref href="GUID-8661A7E0-F19A-41F8-9062-FBFAE70CF658.dita">Tactile
+feedback client API</xref>.</p><p>The Symbian platform includes a tactile
+feedback interface to add, modify and remove feedback areas in the registry.
+There is also an option to trigger direct feedback and bypass the registry.
+ <parmname>MTouchFeedback::Instance()</parmname> is used for acquiring a pointer
+to a touch feedback instance. When touch feedback is activated, the mobile
+device users get a slight vibration when the control with the feedback interface
+is touched. </p><note><p>Tactile feedback can be set be disabled in a client
+application or a mobile device in some situations, for example, during phone
+calls.</p></note><p>Client applications cannot determine the actual physical
+feedback that is generated. It depends on device configuration and current
+settings. In current devices, the user changeable settings include vibration
+and audio feedback intensity level.</p><p>In your application, you can use
+the following feedback types, defined in <codeph>TTouchLogicalFeedback</codeph>:</p><table id="GUID-6FF24F72-C352-4027-AA5D-2D34EBFA00F4">
+<tgroup cols="2"><colspec colname="col1"></colspec><colspec colname="col2"></colspec>
+<tbody>
+<row>
+<entry><p><codeph>ETouchFeedbackNone</codeph></p></entry>
+<entry><p>Use for disabling feedback for some areas of the application window
+when using the area registry.</p></entry>
+</row>
+<row>
+<entry><p><codeph>ETouchFeedbackBasic</codeph></p></entry>
+<entry><p>Use as default feedback for stylus down events, for example, when
+the mobile device user taps a button or tab.</p></entry>
+</row>
+<row>
+<entry><p><codeph>ETouchFeedbackSensitive</codeph></p></entry>
+<entry><p>Sensitive feedback for situations where the triggering action is
+not very  important (e.g. change of focus in a list), or when there can be
+a large number of feedback instances within a short time (e.g. text selection
+which gives feedback on every new selected character). Also used for scrolling
+and dragging.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>To use vibration or audio feedback in your application:</p><ol>
+<li id="GUID-791E80D6-6935-4202-81E0-BA7392A9E1B3"><p>Include <codeph>touchfeedback.lib</codeph> in
+your <codeph>.mmp</codeph> file.</p></li>
+<li id="GUID-A185188F-F37B-440B-8213-214D77CF3B8B"><p>Include <parmname>touchfeedback.h</parmname>.</p></li>
+<li id="GUID-6455F4C1-AEA6-4C30-8E9B-DF9950558E17"><itemgroup><p>To enable
+tactile feedback for your application, add the following code.</p><codeblock xml:space="preserve">MTouchFeedback* feedback = MTouchFeedback::Instance();
+feedback-&gt;SetFeedbackEnabledForThisApp(ETrue); // enabling feedback is optional  </codeblock><p>Do
+not delete the pointer in the controller destructor.</p></itemgroup></li>
+<li id="GUID-FC1B810B-99F4-44E5-82DC-46686D6D4198"><itemgroup><p>To use tactile
+feedback when a mobile device user points at a control, add the following
+code.</p><codeblock xml:space="preserve">void CMyContainerControl::HandlePointerEventL(const TPointerEvent&amp; aPointerEvent)
+    {
+    // Feedback is always played at pointer down event
+    if(aPointerEvent.iType == TPointerEvent::EButton1Down)
+        {
+        MTouchFeedback* feedback = MTouchFeedback::Instance();  
+        if (feedback) 
+             { 
+             feedback-&gt;InstantFeedback(ETouchFeedbackBasic);  
+             }  
+        }
+   
+    // Your other pointer event handling code here
+</codeblock></itemgroup></li>
+<li id="GUID-A26D8717-1839-4132-98C4-5C09086BB361"><itemgroup><p>To enable
+automatic feedback triggering in a specific area of a UI component, add</p><codeblock xml:space="preserve">feedback-&gt;SetFeedbackArea(this, 
+                              1, // area Id
+                              TRect(0,0,20,20), 
+                              ETouchFeedbackBasic, 
+                              ETouchEventStylusDown);
+</codeblock></itemgroup></li>
+</ol><note><p>Using tactile feedback does not require additional platform
+security capabilities for your application.</p></note></section>
+</conbody></concept>

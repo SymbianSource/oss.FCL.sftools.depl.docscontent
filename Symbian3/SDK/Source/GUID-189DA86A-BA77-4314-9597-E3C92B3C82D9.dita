@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-189DA86A-BA77-4314-9597-E3C92B3C82D9" xml:lang="en"><title>Promoting <codeph>char</codeph> in
+comparison with RVCT</title><shortdesc>The default <codeph>char</codeph> will be promoted to <codeph>int</codeph> on <codeph>WINSCW</codeph> and <codeph>unsigned</codeph> on
+the RVCT compiler. Due to this promotion, comparison c != EOF will not become
+true on hardware and it will loop infinite. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>RVCT treats plain <codeph>char</codeph> type as <codeph>unsigned</codeph> by
+default. There is a command line option "<codeph>--signed_chars</codeph>"
+that forces RVCT to treat plain char type as a signed char. Using this option,
+the example will compile and run the way it is expected to. But
+this option must be applied with care, since using the switch universally
+may have other ramifications elsewhere in the source base.</p>
+<p>The MMP file can be modified as: </p>
+<codeblock xml:space="preserve">OPTION armcc  --signed_chars</codeblock>
+<p>Example: </p>
+<codeblock xml:space="preserve">#include &lt;stdio.h&gt;
+int main()
+{
+  FILE *fp;
+  char c;
+  fp=fopen("test.txt","w"); 
+  fprintf(fp,"%s","ab");
+  fclose(fp);
+  fp=fopen("test.txt","r"); 
+  c=getc(fp);
+  while(c != EOF)
+  {
+     c = getc(fp);
+  }
+  printf("\nOut of loop");
+  fclose(fp);
+  getchar();
+}
+</codeblock>
+</conbody></concept>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-457628C5-2972-4432-A03F-CD8CC0E1B60A" xml:lang="en"><title>Initializing
+a Library</title><shortdesc>Sometimes, a library needs to be initialized before it can provide
+any services to client of the library. This can be done in several ways. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A4E1C734-DF38-4AA7-8FDB-4FF97706F005">       <title>Export
+functions for initializing and closing the library</title>       <p>The library
+can export more than one function for initializing and closing the library.</p><p>The
+client of the library calls the initialization function before requesting
+any services and calls close when the client does not use the library. </p><p><b>Example:</b></p><p>There
+is a DLL called <filepath>xxx.dll</filepath>. Two functions <codeph>InitXXX()</codeph> and <codeph>CloseXXX()</codeph> are
+exported from this DLL. The library code can look like the following:</p><p>Library
+header file <filepath>xxx_init.h</filepath>:</p><codeblock xml:space="preserve">....
+IMPORT_C void InitXXX();
+IMPORT_C CloseXXX();
+....
+</codeblock><p>Library source file <filepath>xxx_init.cpp</filepath>:</p><codeblock xml:space="preserve">static int _InitCount = 0;
+EXPORT_C void InitXXX()
+{
+   if(_InitCount++ &lt;= 0)
+   {
+   // initialize xxx.dll
+   }
+}
+EXPORT_C CloseXXX()
+{
+   if(--_InitCount &lt;= 0)
+   {
+   // free all the resources
+   }
+}
+</codeblock><p>User code looks like the following:</p><codeblock xml:space="preserve">#include &lt;xxx_init.h&gt;
+...
+int main()
+{
+   InitXXX();
+   ....
+   ....
+   CloseXXX();
+   return 0;
+}
+</codeblock>     </section>
+<section id="GUID-ADE950F6-8C93-4080-86A1-91C5F92D254D"><title>Exported functions
+check whether the library is initialized</title><p>Every exported function
+can check whether the library has been initialized. The library can export
+one function (for example, <codeph>CloseLib()</codeph>) and this can be called
+before exiting <codeph>main()</codeph>.</p><p><b>Example:</b></p><p>Library
+header file <filepath>xxx.h</filepath>: </p><codeblock xml:space="preserve">....
+IMPORT_C void X_Export_Api1();
+IMPORT_C void X_Export_Api2();
+....
+</codeblock><p>Library source file <filepath>xxx.cpp</filepath>: </p><codeblock xml:space="preserve">static int _InitCount = 0;
+#define INIT_LIB if(_InitCount == 0) \
+           {\
+               _InitCount++; \
+               InitXXX(); \
+           }
+LOCAL_C void InitXXX()
+{
+   // initialize xxx.dll
+}
+LOCAL_C CloseXXX()
+{
+   // free all the resources
+}
+EXPORT_C void X_Export_Api1()
+{
+   INIT_LIB;
+   ...
+   ...
+}
+</codeblock><p>User code looks like the following:</p><codeblock xml:space="preserve">#include &lt;xxx.h&gt;
+...
+int main()
+{
+   ....
+   ....
+   X_Export_Api1();
+   ....
+   ....
+   X_Export_Api2();
+   ....
+   ....
+   return 0;
+}
+</codeblock></section>
+<section id="GUID-F387926E-A6D2-439C-9EEA-A3751E38DFBE"><title>Library defines
+a static object</title><p>The library can define static objects and call the
+initialization code from the constructor of these static objects so that before
+calling, the application entry point library will be initialized.</p><p><b>Example:</b></p><p>Library
+header file <filepath>xxx.h</filepath>: </p><codeblock xml:space="preserve">....
+IMPORT_C void X_Export_Api1();
+IMPORT_C void X_Export_Api2();
+....</codeblock><p>Library source file <filepath>xxx.cpp</filepath>: </p><codeblock xml:space="preserve">LOCAL_C void InitXXX()
+{
+   // initialize xxx.dll
+}
+LOCAL_C CloseXXX()
+{
+   // free all the resources
+}
+class LibInit
+{
+   LibInit();
+   ~LibInit();
+};
+LibInit::LibInit()
+{
+   // put all library initialization code here.
+   InitXXX();
+}
+LibInit::~LibInit()
+{
+   // free all resources
+   CloseXXX();
+}
+static LibInit _libInit;
+</codeblock><p>User code looks like the following:</p><codeblock xml:space="preserve">#include &lt;xxx.h&gt;
+int main()
+{
+   ....
+   ....
+   X_Export_Api1();
+   ....
+   ....
+   X_Export_Api2();
+   ....
+   ....
+   return 0;
+}
+</codeblock></section>
+</conbody></concept>

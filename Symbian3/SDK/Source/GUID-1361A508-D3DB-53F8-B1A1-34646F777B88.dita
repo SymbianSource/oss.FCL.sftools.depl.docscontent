@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-1361A508-D3DB-53F8-B1A1-34646F777B88"><title>How to Add Email Type Values</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Purpose and Scope</title> <p>This document describes how to use the contact model for adding an Email field to a contact item using the Contacts API. The Email field can be further described through the use of field types. This document shows how to add the field types representing CELL, HOME and WORK. It also describes the role of the INTERNET type in the Email field. </p> </section> <section><title>Overview</title> <p>The cntmodel provides the data engine for creating contact items that can contain fields. New fields can be added which can have fieldtypes and a mapping. The contact items can be import vCards and also export vCards. The cntvcard library provides the functionality to import and export vCards. The contact item mapping is associated with the properties of a vCard. The field type is typically associated with the type parameters of the property. </p> </section> <section><title>How to add an Email field with a CELL type</title> <p>The following code snippet describes how to add a contact item with an email field and a CELL field type. The corresponding EMAIL property, if the contact item is exported, is also shown. </p> </section> <section><title>Add contact item</title> <codeblock id="GUID-1D5D17AB-B3F0-5B53-BDD4-F030625C7C36" xml:space="preserve">// Adds a contact item to the contact database. The important lines are in bold.
+
+LOCAL_C void AddEntryL()
+    {
+    _LIT(KForename,"John"); 
+    _LIT(KSurname,"Smith"); 
+    _LIT(KPhoneNumber,"+441617779700"); 
+    _LIT(KEmailAddress,"john.smith@symbian.com"); 
+    
+    // Create a  contact card to contain the data
+    CContactCard* newCard = CContactCard::NewLC();
+    
+    // Create the firstName field and add the data to it
+    CContactItemField* firstName = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldGivenName);
+    firstName-&gt;TextStorage()-&gt;SetTextL(KForename);
+    newCard-&gt;AddFieldL(*firstName);
+      CleanupStack::Pop(firstName);
+      
+    // Create the lastName field and add the data to it
+     CContactItemField* lastName= CContactItemField::NewLC(KStorageTypeText, KUidContactFieldFamilyName);
+      lastName -&gt;TextStorage()-&gt;SetTextL(KSurname);
+      newCard-&gt;AddFieldL(*lastName);
+      CleanupStack::Pop(lastName);
+      
+    // Create the emailAddress field and add the data to it
+    +++CContactItemField* emailAddr = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldEMail);
+    +++emailAddr-&gt; AddFieldTypeL(KUidContactFieldVCardMapCELL);
+    +++emailAddr-&gt;SetMapping(KUidContactFieldVCardMapEMAILINTERNET);
+      emailAddr -&gt;TextStorage()-&gt;SetTextL(KEmailAddress);
+      newCard-&gt;AddFieldL(*emailAddr);
+      CleanupStack::Pop(emailAddr);
+        
+    // Create the phoneNo field and add the data to it
+      CContactItemField* phoneNumber = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldPhoneNumber);
+    phoneNumber-&gt;SetMapping(KUidContactFieldVCardMapTEL);
+    phoneNumber -&gt;TextStorage()-&gt;SetTextL(KPhoneNumber);
+    newCard-&gt;AddFieldL(*phoneNumber);
+      CleanupStack::Pop(phoneNumber);
+    
+    // Add newCard to the database
+    const TContactItemId contactId = db-&gt;AddNewContactL(*newCard);
+      CleanupStack::PopAndDestroy(newCard);
+    }
+</codeblock> </section> <section><title>Exported EMAIL property</title> <p>EMAIL;CELL;ENCODING=QUOTED-PRINTABLE:john.smith=40symbian.com </p> </section> <section><title>Add a contact item with an email field and HOME type</title> <p>The following code snippet describes how to add an email field and a HOME field type. The corresponding EMAIL property, if the contact item is exported, is also shown. </p> </section> <section><title>Creating an email field</title> <codeblock id="GUID-6C8B889D-8C34-5B38-8DDA-79D2388CCF6E" xml:space="preserve">// Create the emailAddress field and add the data to it
+    CContactItemField* emailAddr = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldEMail);
+    emailAddr-&gt; AddFieldTypeL(KUidContactFieldVCardMapHOME);
+    emailAddr-&gt;SetMapping(KUidContactFieldVCardMapEMAILINTERNET);
+    emailAddr -&gt;TextStorage()-&gt;SetTextL(KEmailAddress);
+    newCard-&gt;AddFieldL(*emailAddr);
+    CleanupStack::Pop(emailAddr);
+</codeblock> </section> <section><title>Exported EMAIL property</title> <p>EMAIL;HOME;ENCODING=QUOTED-PRINTABLE:john.smith=40symbian.com </p> </section> <section><title>Add a contact item with an email field and WORK type</title> <p>The following code snippet describes how to add an email field and a WORK field type. The corresponding EMAIL property, if the contact item is exported, is also shown. </p> </section> <section><title>Creating an email field</title> <codeblock id="GUID-8A7F81A1-9EF1-5854-8A99-39C1372EFA78" xml:space="preserve"> // Create the emailAddress field and add the data to it
+    CContactItemField* emailAddr = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldEMail);
+    emailAddr-&gt; AddFieldTypeL(KUidContactFieldVCardMapWORK);
+    emailAddr-&gt;SetMapping(KUidContactFieldVCardMapEMAILINTERNET);
+    emailAddr -&gt;TextStorage()-&gt;SetTextL(KEmailAddress);
+    newCard-&gt;AddFieldL(*emailAddr);
+    CleanupStack::Pop(emailAddr);
+</codeblock> </section> <section><title>Exported EMAIL property</title> <p>EMAIL;WORK;ENCODING=QUOTED-PRINTABLE:john.smith=40symbian.com </p> </section> <section><title>Add a contact item with an email field and INTERNET type</title> <p>The following code snippet describes how to add an email field and an INTERNET field type. The corresponding EMAIL property, if the contact item is exported, is also shown. There are two ways of creating an email field with an internet type. </p> </section> <section><title> Creating an email field</title> <codeblock id="GUID-C44C4639-655E-5EE8-8149-4B7D7C519F33" xml:space="preserve">The first one is:
+// Create the emailAddress field and add the data to it
+    CContactItemField* emailAddr = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldEMail);
+    // Do not add another fieldtype!
+    emailAddr-&gt;SetMapping(KUidContactFieldVCardMapEMAILINTERNET);
+    emailAddr -&gt;TextStorage()-&gt;SetTextL(KEmailAddress);
+    newCard-&gt;AddFieldL(*emailAddr);
+    CleanupStack::Pop(emailAddr);
+This would have the effect of adding an INTERNET field type by default. 
+
+The second method is to explicitly add:
+// Create the emailAddress field and add the data to it
+    CContactItemField* emailAddr = CContactItemField::NewLC(KStorageTypeText, KUidContactFieldEMail);
+    emailAddr-&gt; AddFieldTypeL(KUidContactFieldVCardMapINTERNET);
+    emailAddr-&gt;SetMapping(KUidContactFieldVCardMapEMAILINTERNET);
+    emailAddr -&gt;TextStorage()-&gt;SetTextL(KEmailAddress);
+    newCard-&gt;AddFieldL(*emailAddr);
+    CleanupStack::Pop(emailAddr);
+</codeblock> </section> <section><title>Exported EMAIL property</title> <p>EMAIL;INTERNET;ENCODING=QUOTED-PRINTABLE:john.smith=40symbian.com </p> </section> </conbody></concept>

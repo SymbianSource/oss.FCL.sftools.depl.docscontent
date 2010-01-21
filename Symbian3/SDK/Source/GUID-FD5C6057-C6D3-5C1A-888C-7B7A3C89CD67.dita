@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FD5C6057-C6D3-5C1A-888C-7B7A3C89CD67" xml:lang="en"><title>How to
+use the range checking wrapper</title><shortdesc>Symbian platform provides range checking for arrays.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Instead of declaring a C++ array directly:</p>
+<codeblock id="GUID-C8272886-3CA2-57BE-AD57-DE04E44A77B7" xml:space="preserve">TTest array[4];</codeblock>
+<p>use:</p>
+<codeblock id="GUID-9D4D6074-62B3-5975-871E-892574CA0216" xml:space="preserve">TFixedArray&lt;TTest,4&gt; array;</codeblock>
+<section id="GUID-FC3EF1EB-1889-462F-B284-14B1D1C878B0"><title>Initialise array</title> <p>The array can be initialised either
+at construction time or by using the <codeph>Copy()</codeph> member function
+after construction.</p> <codeblock id="GUID-32051B94-5E15-5BDC-8055-D9A572B6FC82" xml:space="preserve">...
+const TTest data[] = {TTest(1),TTest(2),TTest(3),TTest(4)};
+...
+ // initialise at construction time
+TFixedArray&lt;TTest,4&gt; array(&amp;data[0],4);
+...
+ // or later using Copy()
+TFixedArray&lt;TTest,4&gt; array;
+array.Copy(&amp;data[0],4);
+...</codeblock> </section>
+<section id="GUID-159797CF-ED84-4402-B635-F5CD82B8A0D3"><title>Check accesses for legality</title> <p>Accesses can be checked
+for legality using the <codeph>At()</codeph> function or the <codeph>operator[]</codeph>.</p> <p>The <codeph>At()</codeph> function
+checks for a legal access in both a release build and a debug build while
+the <codeph>operator[]</codeph> only checks for a legal access in a debug
+build.</p> <p>Assuming that the <codeph>TTest</codeph> class has a public
+member function called <codeph>SetValue()</codeph>, then a call to this function
+on the second element of the array is legal:</p> <codeblock id="GUID-FC4295A4-92EA-56DD-BFE6-99E41DD79D0E" xml:space="preserve">array.At(1).SetValue(100);</codeblock> <p>but an attempt to call this function on the fifth element raises a panic;
+in this example, there are only four elements:</p> <codeblock id="GUID-84CF63A2-4D7F-5340-B63E-3081305C7DD9" xml:space="preserve">array.At(5).SetValue(100); // panics</codeblock> </section>
+</conbody></concept>

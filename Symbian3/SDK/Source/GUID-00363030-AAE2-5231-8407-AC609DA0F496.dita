@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-00363030-AAE2-5231-8407-AC609DA0F496" xml:lang="en"><title>Backup
+and Restore on Scheduled Tasks in Persistent Schedules</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>When scheduling tasks in persistent schedules, special consideration must
+be given to the effects of backup and restore operations. Persistent schedules
+and tasks associated with them are backed up during a backup operation. This
+results in the storage of their status at the time of backup. When the data
+is restored on the same phone or another phone, the persistent scheduled tasks
+are recreated. This results in the overwrite of any existing persistent schedule
+and task on the phone. </p>
+<p> <b>Note:</b> Transient schedule and tasks are affected by the backup or
+restore process. </p>
+<section><title>Impact of backup and restore on persistent schedules and tasks</title> <p>State
+information associated with a phone, such as date, time and conditions are
+not backed up with schedules and tasks, during a phone backup. The date or
+time of a phone at the time of a backup is always likely to be different from
+the date or time of the target phone during restore. The conditions that are
+based on <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita"><apiname>RProperty</apiname></xref> values that indicate the various states
+of a phone might also be different between the time of backup and the time
+of restore. One example is the network status, which may be unavailable at
+the time of backup, but available at the time of restore. </p> <p><b>Possible
+problems</b> </p> <p>When a task is scheduled in a persistent schedule, its
+execution depends on a specific time or condition to become due. If the phone
+is backed up before the schedule is due, the schedule information is also
+part of the backup. Later, when the time or condition is satisfied, the task
+is executed on the phone. But, when a phone restore is done after the task
+is executed on the phone, the schedule may be due again and the task may get
+executed, if the same time or condition is satisfied again. </p> <p>For example,
+assume that a condition-based task is created to send an SMS when the network
+is available. In addition, assume that when this task is created the network
+is unavailable and a phone backup is taken. After the backup, the phone network
+may become available and the SMS may be sent. In this scenario, when a phone
+restore is done the SMS may be sent again when the network is available, which
+can result in additional SMS costs. </p> <p><b>Recommended alternatives</b> </p> <p>The
+non-repeatable nature of the tasks cannot be determined by the task scheduler
+automatically, and there is no mechanism for setting per-schedule backup options.
+For this reason, clients that create non-repeatable tasks must be aware of
+backup and restore implications and consider this fact in their designs. </p> <p>Clients
+can use transient schedules for non-repeatable tasks, which eliminates this
+problem because transient schedules are not backed up or restored. If the
+use of a persistent schedule is necessary, clients can choose to become backup-aware
+by registering for notifications through <xref href="GUID-DC57CA2E-0EDF-3AF2-BC65-50D71665333B.dita"><apiname>CBaBackupSessionWrapper</apiname></xref> or
+using the <xref href="GUID-0FE60A65-6CB6-50AB-B85F-2B60FE96ECFE.dita">Secure Backup
+Engine</xref> APIs, and taking appropriate actions. These actions might be
+to delete the non-repeatable task before backup or after restore, or rescheduling
+it after restore to a different time for time-based schedules. </p> <p> <b>Note:</b> Any
+schedule that expires or becomes ready to execute when a backup or restore
+is in progress is delayed, and is only executed when the backup or restore
+process is completed. </p> </section>
+</conbody><related-links>
+<link href="GUID-3CDCE4E0-E29D-5782-8053-B386A9E34BCC.dita"><linktext>Task Scheduler
+Overview</linktext></link>
+<link href="GUID-74C1C345-823C-5CD5-8FC5-214A55734E94.dita"><linktext>Developing
+Programs with Task Scheduling Capabilities</linktext></link>
+</related-links></concept>

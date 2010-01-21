@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FF410602-8408-555E-B918-C0CF484535E7" xml:lang="en"><title>Writing
+Interface Definitions</title><abstract><p>To use a plug-in, the client of the plug-in framework needs to
+instantiate an object through the interface definition, use the object and
+delete the object when the scope of the object usage is complete. Client calls
+to the interface definition for construction and destruction translate directly
+through REComSession into loading and unloading of the correct implementation. </p><p>The <xref href="GUID-9E0CBB66-A573-5BBE-9788-95B313325C7E.dita">interface definition</xref> defines
+functions that offer services to the clients and enable object instantiation.
+The object instantiation functions uses the plug-in framework to create an
+instance of an appropriate implementation, and returns the instance to the
+client. </p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>A function in the interface definition delegates the object instantiation
+to a static function <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref> .
+The <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref> is an overloaded
+function and offers many input parameter options. The appropriate <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref> function
+is called for object instantiation. If the client passes input data then this
+data must be wrapped in a <codeph>TEComResolverParams</codeph> object. </p> <p> </p> </context>
+<steps id="GUID-B502261A-48DA-5EC1-82F9-6136CF5A2C50">
+<step id="GUID-D9F104A5-4D58-5488-AB0A-C90C26A40C28"><cmd>Derive an interface
+definition class from <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> or <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> based
+class. The class must always declare a private UID member. </cmd>
+<info>The following shows an example segment of an interface definition class
+that derives from CActive. </info>
+<stepxmp><codeblock id="GUID-2D4E24B1-0463-5970-B0FD-321FC599E1CB" xml:space="preserve">class CExampleInterfaceDefinition : public CActive
+    {
+public:
+    // Wraps ECom object instantiation
+    static CExampleInterfaceDefinition* NewL();
+     static CExampleInterfaceDefinition* NewL(const TDesC&amp; aMatchString);
+    // Wraps ECom object destruction 
+    virtual ~CExampleInterfaceDefinition();
+    // Interface service 
+    virtual void DoMethodL() = 0;
+...
+private:
+    // Instance identifier key or UID.
+    TUid iDtor_ID_Key;
+    };</codeblock> </stepxmp>
+</step>
+<step id="GUID-82F4FEE2-22B9-51E7-96CD-2CAA7FBF78C2"><cmd>Implement the object
+creation function NewL() for the derived class. </cmd>
+<info>Call the appropriate <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref> function
+if the implementation is to receive data from the client. </info>
+<stepxmp><codeblock id="GUID-4447C35F-1001-57FB-941F-441E0A2C4799" xml:space="preserve">    // The NewL() function accepts client resolution string as input
+inline CExampleInterfaceDefinition* CExampleInterfaceDefinition::NewL(const TDesC&amp; aMatchString)
+    {
+    const TUid KExampleInterfaceDefinitionUid = {0x10009DC0};
+    // The client resolution string is wrapped in TEComResolverParams object for resolution. 
+             TEComResolverParams resolverParams; 
+       resolverParams.SetDataType(aMatchString);
+       TAny* ptr = REComSession::CreateImplementationL(
+          KExampleInterfaceDefinitionUid,
+         _FOFF(CExampleInterfaceDefinition,iDtor_ID_Key),
+         resolverParams);
+
+      return REINTERPRET_CAST &lt;CExampleInterfaceDefinition*&gt;(ptr);
+      }</codeblock> </stepxmp>
+<stepxmp><codeblock id="GUID-7F634037-2D79-53E0-B132-B9E963603B69" xml:space="preserve"/></stepxmp>
+</step>
+</steps>
+<postreq><p>The interface definition needs to define a destructor function
+to destroy the object after use. The interface destructor notifies the plug-in
+framework about the object destruction. </p> <p>The destructor of the interface
+definition must call the static function <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-8BA69111-0451-34CA-A1E8-C83513C4D29D"><apiname>REComSession::DestroyedImplementation()</apiname></xref> to
+signal the object destruction to plug-in framework. The instance identifier
+key is passed as a input parameter to <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-8BA69111-0451-34CA-A1E8-C83513C4D29D"><apiname>REComSession::DestroyedImplementation()</apiname></xref> to
+identify the instance. </p> <codeblock id="GUID-1E935BFD-D485-5F4D-9569-D34FEC1D90DC" xml:space="preserve">inline CExampleInterfaceDefinition::~CExampleInterfaceDefinition()
+    {
+    REComSession::DestroyedImplementation(iDtor_ID_Key);
+}</codeblock> <p> <b>Note</b>: The memory clean-up function<xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-1AACEF53-2CAD-34EC-A485-CE49BC8B9BD8"><apiname>REComSession::FinalClose()</apiname></xref> should
+not be invoked inside the destructor, or elsewhere in the interface. For more
+details refer the topic <xref href="GUID-E3A80D62-09A5-502D-AB55-6AB2A5623465.dita">Cleaning-up
+Memory</xref>. </p> </postreq>
+</taskbody></task>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-32F00078-6084-5288-9D3F-9F8D70514799" xml:lang="en"><title>RESOURCE
+statement</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<codeblock xml:space="preserve">&lt;resource-statement&gt;
+resource-statement ::= 
+RESOURCE &lt;struct-name&gt; [ &lt;resource-name&gt; ] { &lt;resource-initialiser-list&gt; } </codeblock>
+<p>The <codeph>RESOURCE</codeph> statement is used to generate a resource
+in the resource file. The statement specifies three things:</p>
+<ul>
+<li id="GUID-F51FD208-5879-57EF-9E16-914A1F4F1FE7"><p>a <varname>struct-name</varname> which
+denotes the structure that will be used for the resource</p> <p>It must have
+been defined in a previous <codeph>STRUCT</codeph> statement and must be in
+upper case.</p> </li>
+<li id="GUID-1EE96D74-26D0-5BC3-8EDC-19CD924515D0"><p>an optional <varname>resource-name</varname> which
+identifies the resource</p> <p>The <codeph>resource-name</codeph> must be
+in lower case.</p> <p>The <codeph>resource-name</codeph> causes a symbolic
+constant to be generated in the resource compiler’s output header file, so
+that a resource</p> <codeblock id="GUID-505C63EA-20A4-5019-BA34-FEAED516E037" xml:space="preserve">RESOURCE TEST my_test { /* etc */ }</codeblock> <p>will
+result in a definition of the form</p> <codeblock id="GUID-4FBB0DF1-09D6-54CA-AAD4-F29BFCC27A42" xml:space="preserve">#define MY_TEST 1</codeblock> <p>in
+the generated header file.</p> <p>The default ID for the first resource defined
+in the file is one with subsequent resources’ IDs generated in ascending sequence.
+See <xref href="GUID-F9605837-2209-500D-AB62-48A433489C5E.dita">Resource file definition</xref> for
+more information on how resource IDs are generated.</p> <p>If no resource
+name is specified then the resource is generated in the object file and assigned
+a resource ID as usual, but will not be published in the header file. Anonymous
+resources are used mainly for playback scripts where the resources are read
+in sequentially by default, so that assigning names to them would be superfluous.</p> <p>The <codeph>resource-name</codeph> may
+also be used by the resource compiler for <codeph>LINK</codeph> and <codeph>LLINK</codeph> members
+— see <xref href="GUID-FFD56DA3-9301-5679-9209-A70CE63A34A2.dita">Resource identifiers
+for LINKs and LLINKs</xref>.</p> </li>
+<li id="GUID-4F0ED7DA-1A16-53FE-A1E0-98298A9B2BB0"><p>initialisation for members
+of the resource struct, where their default values are not appropriate</p> </li>
+</ul>
+<example><p>As an example, given the struct definition</p><codeblock id="GUID-D2FBD433-0A85-5C0C-9CD2-CFC08F20E14E" xml:space="preserve">STRUCT NCEDIT
+ {
+ WORD current;
+ WORD low;
+ WORD high=65535;
+ }</codeblock><p>you could define a resource:</p><codeblock id="GUID-4B005C45-B0EF-542D-BD63-0D2E02186FFA" xml:space="preserve">RESOURCE NCEDIT memory_size
+ {
+ low=640;
+ high=1024;
+ }</codeblock><p>Thus, in the resource file, <codeph>current</codeph> has
+the value compiler default value of 0, <codeph>low</codeph> has the value
+640 (specified in the resource definition) and <codeph>high</codeph> has the
+value 1024 (specified in the resource definition, overriding the default for
+the struct type).</p></example>
+</conbody></concept>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-07DD47FD-86B7-4AFD-BEDB-DF6EA12DFC6C" xml:lang="en"><title>Using
+button states</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The states can also be added to button dynamically. To add button states
+as required, use the method <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknButton.html#656fd550a246e6c2b77bf96939dad6d2" format="application/java-archive"><codeph>AddStateL()</codeph></xref> in the class <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknButton.html" format="application/java-archive"><codeph>CAknButton</codeph></xref>. </p>
+<codeblock xml:space="preserve">// Add state with button text and help text 
+HBufC* stateText = StringLoader::LoadLC( R_MYAPP_BUTTON_TEXT );    
+HBufC* stateHelpText = StringLoader::LoadLC( R_MYAPP_BUTTON_TEXT ); 
+button-&gt;AddStateL( 0, 0, 0, 0, *stateText, *stateHelpText, 0 ); 
+CleanupStack::PopAndDestroy( 2 ); // stateText, stateHelpText 
+
+// Add state with icon 
+… 
+#include &lt;avkon.mbg&gt; 
+… 
+TPtrC8 pathPtr( ( TUint8* ) AVKON_BITMAP_FILE ); 
+HBufC *filePath = HBufC::NewLC( pathPtr.Length() ); 
+filePath-&gt;Des().Copy( pathPtr ); 
+button-&gt;AddStateL( *filePath, 
+                   EMbmAvkonQgn_indi_volume_arrow_down, 
+                   EMbmAvkonQgn_indi_volume_arrow_down_mask, 
+                   0, 0, 
+                   EMbmAvkonQgn_indi_volume_arrow_down, 
+                   EMbmAvkonQgn_indi_volume_arrow_down_mask, 
+                   0, 0, 
+                   KNullDesC, KNullDesC, 0, 
+                   KAknsIIDQgnIndiVolumeArrowDown, 
+                   KAknsIIDQgnIndiVolumeArrowDownInactive, 
+                   KAknsIIDQgnIndiVolumeArrowDownSelected, 
+                   KAknsIIDDefault ); 
+CleanupStack::PopAndDestroy( filePath ); 
+</codeblock>
+<p>The following sample code defines three different kinds of buttons with
+button states in a resource file.</p>
+<codeblock xml:space="preserve">#include &lt;avkon.mbg&gt; 
+#include &lt;aknsconstants.hrh&gt; 
+
+… 
+
+RESOURCE AVKON_BUTTON r_myapp_command_button 
+    { 
+    flags  = 0; 
+    states = 
+        { 
+        AVKON_BUTTON_STATE 
+            { 
+            bmpfile = AVKON_BITMAP_FILE; 
+            bmpid = EMbmAvkonQgn_indi_volume_arrow_down; 
+            bmpmask = EMbmAvkonQgn_indi_volume_arrow_down_mask; 
+            press_bmpid = EMbmAvkonQgn_indi_volume_arrow_down; 
+            press_bmpmask = EMbmAvkonQgn_indi_volume_arrow_down_mask; 
+            helptxt = "Volume down"; 
+            // Skinning support for state icon 
+            extension = r_myapp_command_button_extension; 
+            } 
+        }; 
+    } 
+
+RESOURCE AVKON_BUTTON_STATE_EXTENSION r_myapp_command_button_extension 
+    { 
+    bmbSkinIdMajor = EAknsMajorGeneric; 
+    bmbSkinIdMinor = EAknsMinorGenericQgnIndiVolumeArrowDown; 
+    } 
+
+RESOURCE AVKON_BUTTON r_myapp_onoff_button 
+    { 
+    flags  = 0; 
+    states = 
+        { 
+        AVKON_BUTTON_STATE 
+            { 
+            txt = "Off"; 
+            helptxt = "Turn on"; 
+            }, 
+            AVKON_BUTTON_STATE 
+            { 
+            flags = KAknButtonStateHasLatchedFrame; 
+            txt = "On"; 
+            helptxt = "Turn off"; 
+            } 
+        }; 
+    } 
+
+RESOURCE AVKON_BUTTON r_myapp_mode_button 
+    { 
+    flags  = 0; 
+    states = 
+        { 
+        AVKON_BUTTON_STATE 
+            { 
+            txt = "Mode 1"; 
+            helptxt = "Switch to 2"; 
+            }, 
+        AVKON_BUTTON_STATE 
+            { 
+            txt = "Mode 2"; 
+            helptxt = "Switch to 3"; 
+            }, 
+        AVKON_BUTTON_STATE 
+            { 
+            txt = "Mode 3"; 
+            helptxt = "Switch to 1"; 
+            } 
+        }; 
+    } 
+
+</codeblock>
+<p>To set current state for the button, use the method <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknButton.html#19d9e952ed9002fcb6fc3f15dfe5583a" format="application/java-archive"><codeph>SetCurrentState()</codeph></xref> in the class <codeph>CAknButton</codeph>.
+To get a pointer to the current state of the button, use <codeph>State()</codeph> method.
+The index of the current state can be acquired with the method <codeph>CAknButton::StateIndex()</codeph>.</p>
+<codeblock xml:space="preserve">if ( button-&gt;StateIndex() == 0 ) 
+{ 
+      button-&gt;SetCurrentState( 1, ETrue ); 
+}</codeblock>
+</conbody></concept>

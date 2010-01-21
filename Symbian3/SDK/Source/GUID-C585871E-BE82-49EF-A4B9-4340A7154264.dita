@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C585871E-BE82-49EF-A4B9-4340A7154264" xml:lang="en"><title>Limitations</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Some APIs of the Standard C Library are not implemented because of the
+constraints or limitations of Symbian platform:</p>
+<ul>
+<li><p><codeph>AF_LOCAL</codeph> sockets only support <codeph>SO_SNDBUF</codeph> and <codeph>SO_RCVBUF</codeph> in <codeph>setsockopt</codeph> and <codeph>SO_TYPE</codeph>, <codeph>SO_SNDBUF</codeph> and <codeph>SO_RCVBUF</codeph> in <codeph>getsockopt</codeph>.
+No <codeph>ioctl</codeph> commands are available.</p></li>
+<li><p><codeph>AF_LOCAL</codeph> sockets do not support <xref href="GUID-45E5490B-7951-395D-9B88-0A95ACB50C73.dita"><apiname>shutdown()</apiname></xref>.</p></li>
+<li><p>The <codeph>stdioserver</codeph> does not support per-process configurations.</p></li>
+<li><p>Signals cannot be directed at an individual thread.</p></li>
+<li><p><codeph>kill(self)</codeph>/<codeph>sigqueue(self)</codeph>/<codeph>raise()</codeph> is
+not synchronous in the current implementation.</p></li>
+<li><p>Semantics of signal delivery is different from that of *nix OSes.</p></li>
+<li><p>The <codeph>tm_tzname</codeph> in the <codeph>struct tm</codeph> is
+not updated by <xref href="GUID-C0143331-6DC4-3FEA-8BD3-5D6C2A24FD73.dita"><apiname>localtime()</apiname></xref> and <xref href="GUID-CAA7C4BC-6C35-3AAE-AD4E-B11C9B58A605.dita"><apiname>mktime()</apiname></xref>.
+This is owing to a limitation of localisation resource files in these platforms.
+The field will always be set to "UTC".</p></li>
+<li><p>On S60 emulators started in <codeph>textshell</codeph> mode, the time
+zone offset returns the wrong value. In GUI mode, the offset is set correctly.</p></li>
+<li><p>The <codeph>tm_isdst</codeph> field in the struct tm (used in <xref href="GUID-C0143331-6DC4-3FEA-8BD3-5D6C2A24FD73.dita"><apiname>localtime()</apiname></xref> and <xref href="GUID-CAA7C4BC-6C35-3AAE-AD4E-B11C9B58A605.dita"><apiname>mktime()</apiname></xref>)
+is not updated properly on the S60 3rd Edition SDK and devices; the field
+is simply set to -1.</p></li>
+<li><p><xref href="GUID-CAA7C4BC-6C35-3AAE-AD4E-B11C9B58A605.dita"><apiname>mktime()</apiname></xref> and <xref href="GUID-C0143331-6DC4-3FEA-8BD3-5D6C2A24FD73.dita"><apiname>localtime()</apiname></xref> APIs
+are about 3 times slower on the S60 3rd Edition SDK and devices, because of
+lack of native support for more efficient code that is used for S60 3rd Edition,
+Feature Pack 1 and later SDKs.</p></li>
+<li><p>In text mode <codeph>stdio</codeph>, <xref href="GUID-10B78898-E3AF-371B-A280-6F33CEDAB864.dita"><apiname>fseek()</apiname></xref> to
+the return value of <xref href="GUID-BC4F6F39-1894-329E-8157-871B841E705A.dita"><apiname>ftell()</apiname></xref> does not behave as expected.</p></li>
+<li><p>In text-mode, <xref href="GUID-7ECDC892-F515-3DF3-BCBB-00E9C639E537.dita"><apiname>fread()</apiname></xref>, <xref href="GUID-56F38DFC-0A8D-3891-9B5F-86FD2AA6729C.dita"><apiname>fwrite()</apiname></xref> and
+their siblings will take approximately twice the time compared to binary mode.
+This is because of extra code required to perform newline-translations in
+text-mode.</p></li>
+<li><p>P.I.P.S. applications built using the plug-in with this SDK, will not
+run on earlier versions of runtimes.</p></li>
+<li><p><xref href="GUID-A89FA772-80F2-39E8-AEFB-B9B4E833A1FA.dita"><apiname>stat()</apiname></xref> retrieves the modification time of a directory
+incorrectly, if it was set (by <xref href="GUID-234DE8F8-1D41-3BE0-980B-37ACF281DDA6.dita"><apiname>utime()</apiname></xref>) to an odd value.</p></li>
+<li><p>Owing to the difference in the Symbian platform model (when compared
+to UNIX -like OS), <xref href="GUID-432C9AA0-A698-3A62-95D8-CB010965F92C.dita"><apiname>fork()</apiname></xref> and <xref href="GUID-1F3AB7F6-B354-36DB-AA0C-D8F2DC89A6DD.dita"><apiname>exec()</apiname></xref> functions
+are not supported.</p></li>
+<li><p>Since <xref href="GUID-432C9AA0-A698-3A62-95D8-CB010965F92C.dita"><apiname>fork()</apiname></xref> and <xref href="GUID-1F3AB7F6-B354-36DB-AA0C-D8F2DC89A6DD.dita"><apiname>exec()</apiname></xref> are not
+supported, <xref href="GUID-A9DB6E7C-B8D6-377A-BBE6-39E0A7A09E5D.dita"><apiname>popen()</apiname></xref> is not complete. It will create a child
+process and open a pipe between a parent and a child process either in read
+or write mode. It does not copy the address space to a child.</p></li>
+<li><p>The following are the limitations with <codeph>waitpid(pid_t waitpid(pid_t
+pid, int *stat_loc, int options);</codeph></p><ul>
+<li><p>On OpenC there is no process group Ids. So, passing pid as <codeph>0</codeph> and
+less than <codeph>-1</codeph> does not work as intended.</p></li>
+<li><p>On OpenC, support is provided only for options - <codeph>WNOHANG</codeph>.
+Others are not supported.</p></li>
+<li><p>The macros which related to job control which work on the <codeph>stat_loc</codeph> do
+not work:</p><ul>
+<li><p> <codeph>WIFSIGNALED</codeph></p></li>
+<li><p><codeph>WTERMSIG</codeph></p></li>
+<li><p><codeph>WIFSTOPPED</codeph></p></li>
+<li><p><codeph>WSTOPSIG</codeph></p></li>
+<li><p><codeph>WIFCONTINUED</codeph>.</p></li>
+</ul></li>
+<li><p>On Symbian, the following additional macros that work on the <codeph>stat_loc</codeph> are
+provided:</p><ul>
+<li><p><codeph>WIFTERMINATED</codeph></p></li>
+<li><p><codeph>WTERMINATESTATUS</codeph></p></li>
+<li><p><codeph>WIFPANICED</codeph></p></li>
+<li><p><codeph>WPANICCODE</codeph></p></li>
+</ul></li>
+</ul></li>
+<li><p>For <codeph>int dup2(int oldfd, int newfd);</codeph>, the return value
+of <codeph>dup2</codeph> can be different from the one the developer expected
+it to be (<codeph>newfd</codeph>). So, the developer of <codeph>dup2</codeph> should
+use the return value of <codeph>dup2</codeph> as the new allocated fd rather
+than the one passed to <codeph>dup2 (newfd)</codeph>. According to the standard, <codeph>newfd</codeph> and
+return values are the same, if <codeph>dup2</codeph> is successful.</p></li>
+<li><p>Some of the APIs of Open C assume that a cleanup stack is created and
+there is a top-level TRAP for the current thread. All the threads created
+using <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-6C840907-C3F7-34B7-97DB-CEDBA68EA277"><apiname>RThread::Create()</apiname></xref> should create them explicitly.</p></li>
+<li><p>In case of Open C, <codeph>libc</codeph> will have its own console
+object maintained and all threads console I/O will be routed to the console.
+In case of a hybrid application, if the application creates one more console,
+then switching between these consoles will be a problem. The user may not
+be aware of this problem.</p></li>
+<li><p>In case of an emulator, the developer can configure the window size
+dynamically. But the console maintained by Open C <codeph>libc</codeph> will
+remain the same. So, if the configuration is changed, data displayed on the
+console may not be aligned properly. </p></li>
+</ul>
+<p>More detailed information about the limitations can be found in the P.I.P.S.
+API reference documentation.</p>
+</conbody></concept>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-00025EAD-C4B6-5408-96A3-FFDBBBDC7CAB"><title>How to read and write a file</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Reading transfers data from a file to a descriptor, and writing transfers data from a descriptor to a file. </p> <p>Use <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-94CCC141-8E26-3FA3-A222-D9A658AEA8A9"><apiname>RFile::Read()</apiname></xref> to read, and <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-325997F1-3252-358E-B278-44D3A5418FAC"><apiname>RFile::Write()</apiname></xref> to write. </p> <codeblock id="GUID-28737C7A-70BA-5AA8-A4DC-0075A59CCB59" xml:space="preserve">// Open file1
+_LIT(KMyFile,"c:\\documents\\file1");
+RFile myFile;
+User::LeaveIfError(myFile.Open(fs,KMyFile,EFileShareExclusive|EFileWrite
+));
+
+// Write to current file position: start of file
+_LIT8(KWriteBuf,"write data");
+myFile.Write(KWriteBuf);
+
+// Read from position 0: start of file
+TBuf8&lt;6&gt; readBuf1;
+myFile.Read(0,readBuf1); // readBuf1 is now "write "
+
+// Read from current position
+TBuf8&lt;4&gt; readBuf2;
+myFile.Read(readBuf2);      // readBuf2 is now "data"
+
+</codeblock> <section><title>Notes</title> <ul><li id="GUID-3F823A12-E192-5381-B8CC-FF377B1CEC0D"><p>In all cases, the file data is treated as binary and byte descriptors are used (TDes8, TDesC8). Thus, file operations are not dependent on the Unicode/non-Unicode build variant. </p> </li> <li id="GUID-0A6255A4-12EC-5F60-9071-E001EA137585"><p>There are several variants of both <codeph>Read()</codeph> and <codeph>Write()</codeph>. The basic <codeph>Read(TDes8&amp; aDes)</codeph> and <codeph>Write(const TDesC8&amp; aDes)</codeph> are supplemented by variants allowing the descriptor length to be overridden, or the seek position of the first byte to be specified, or asynchronous completion, or any combination. </p> </li> </ul> </section> </conbody></concept>

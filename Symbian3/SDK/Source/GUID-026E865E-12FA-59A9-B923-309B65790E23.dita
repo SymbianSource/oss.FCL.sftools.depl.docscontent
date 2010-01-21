@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-026E865E-12FA-59A9-B923-309B65790E23" xml:lang="en"><title>Creating
+a FAT Filename Conversion Plug-in</title><shortdesc>This section describes how to create a FAT Filename Conversion
+plug-in DLL. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>This tutorial assumes that you have an understanding of the following: </p> <ul>
+<li id="GUID-09E0AD13-A9EA-5A1B-956F-2AC4812F99FC"><p><xref href="GUID-66231EA2-BDEF-582D-A4B9-F356B590038D.dita">FAT
+Filename Conversion Plug-ins Overview</xref> introduces Windows code page
+and the main purpose of the Plug-ins component. </p> </li>
+</ul> </prereq>
+<context><p>The flowchart below shows the steps to create a Fat Filename Conversion
+plug-in DLL. </p> <fig id="GUID-B3799729-B2DB-55E3-AE09-E045A9E1AE8B">
+<image href="GUID-9482CC98-2600-539D-A243-639CF11A2599_d0e399939_href.jpg" placement="inline"/>
+</fig> <p> <b>Note</b>: To create the plug-in DLL, the <filepath>unicodeconv.cpp</filepath> file
+is needed. It provides the functions to convert text between Unicode and a
+foreign encoding. It is available on the <xref href="https://developer.symbian.org/xref/sfl/xref/MCL/sf/os/kernelhwsrv/userlibandfileserver/fatfilenameconversionplugins/src/" scope="external">Symbian Foundation</xref> web site. </p><p>This tutorial
+uses the example of <codeph>CP1250</codeph> to explain the process of creating
+a plug-in DLL. </p> </context>
+<steps id="GUID-8037DE6A-A5AB-575A-A9F5-0A6CB42651D4">
+<step id="GUID-21741F55-882F-51B9-BA77-EBFFED6B7D5E"><cmd>Create a source
+file using a text editor and save it as, for example <filepath>d:\charconvfiles\data\cp1250.txt</filepath>.
+This file contains pairs of hexadecimal numbers. The first number in each
+pair is the encoding of a character in CP1250 and the second is the Unicode
+encoding of the same character. </cmd>
+<stepxmp><codeblock id="GUID-D6C46177-19BC-5AB6-9E0D-FEC339F71948" xml:space="preserve">...
+0x00    0x0000    #NULL
+0x01    0x0001    #START OF HEADING
+0x02    0x0002    #START OF TEXT
+0x03    0x0003    #END OF TEXT
+0x04    0x0004    #END OF TRANSMISSION
+0x05    0x0005    #ENQUIRY
+0x06    0x0006    #ACKNOWLEDGE
+...</codeblock> </stepxmp>
+<info>The source file has the same syntax as a cnvtool source file. For more
+information about the syntax, refer to <xref href="GUID-6796BA71-47A7-5465-89F2-BD0AEF2E4EE7.dita">Cnvtool
+Source File</xref>. </info>
+</step>
+<step id="GUID-10B9D3BB-7B21-5AC0-89B0-5E89C5796F11"><cmd/>
+<info>Start a command prompt to run the ConversionTable tool on the source
+as follows:<p><userinput><cmdname>cd </cmdname><parmname>d:\Symbian\epoc32\tools</parmname></userinput></p><p><userinput><cmdname>ConversionTable.pl </cmdname><parmname>d:\charconvfiles\data\cp1250.txt</parmname></userinput></p> </info>
+<info>This process generates a C++ source code file called <filepath>cp1250.cpp</filepath>.
+It is referred to as the ConversionTableTool-generated cpp file, which contains
+the data structure. The data structure is used by <filepath>unicodeconv.cpp</filepath> for
+the encoding conversion. </info>
+</step>
+<step id="GUID-D4F5D984-62E2-53F2-944E-E6E387ACA697"><cmd/>
+<info>Create an mmp file which is used to build the plug-in DLL. </info>
+<stepxmp><codeblock id="GUID-468B6E29-27BB-547B-A00A-5FF05D0A6E2C" xml:space="preserve">TARGET            cp1250.dll
+CAPABILITY            All
+TARGETTYPE            dll
+
+UID        0x100039e6 0x10206A9C
+VENDORID     0x70000001
+
+OS_LAYER_SYSTEMINCLUDE
+USERINCLUDE            ../inc
+
+SOURCEPATH            ../src
+SOURCE            unicodeconv.cpp
+
+SOURCEPATH            +/build/generated/fatcharsetconv
+SOURCE            cp1250.cpp
+
+DEFFILE             fatCnv.def
+
+LIBRARY            euser.lib
+
+SMPSAFE</codeblock> </stepxmp>
+</step>
+</steps>
+<postreq><p>Build the plug-in DLL and install it into the <filepath>\sys\bin\</filepath> directory.
+The DLL is then available to be loaded and called by the File Server.</p></postreq>
+</taskbody><related-links>
+<link href="GUID-2068DA42-AE77-5213-B3CF-C3AB7F2188BE.dita"><linktext>Using a FAT
+Filename Conversion Plug-in</linktext></link>
+</related-links></task>

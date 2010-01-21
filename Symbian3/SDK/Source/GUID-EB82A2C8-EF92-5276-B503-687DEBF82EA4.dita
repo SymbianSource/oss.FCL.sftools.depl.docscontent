@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-EB82A2C8-EF92-5276-B503-687DEBF82EA4"><title>Creating an Animation Object</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>In order to create new instances of animation objects of type <xref href="GUID-029C644B-BE0F-37C6-95E2-D27F974E6AD3.dita"><apiname>CAnim</apiname></xref> in the DLL, you need to implement the <codeph>CAnimDll::CreateInstanceL()</codeph> pure virtual factory function in the derived class. </p> <p>Declare your <xref href="GUID-9E598CDA-6483-3AE3-ABFF-0F701A47AB84.dita"><apiname>CAnimDll</apiname></xref> derived class in a header file as follows: </p> <codeblock id="GUID-6F7DE31B-0CCB-59D3-82BA-3D1AB6AE571F" xml:space="preserve">class CExampleAnimDll : public CAnimDll
+    {
+public:
+    virtual CAnim* CreateInstanceL(TInt aType);
+    };</codeblock> <p>A convenient way to implement <codeph>CreateInstanceL()</codeph> is to switch on the <codeph>TInt aType</codeph> argument, with each switch constructing a different <codeph>CAnim</codeph> derived animation class identified by an <codeph>aType</codeph> enum. For example. if <codeph>CShapesAnims</codeph> is one of those classes: </p> <codeblock id="GUID-BDFD1962-5845-5605-9915-C6E1A40EDAC4" xml:space="preserve">switch(aType)
+    {
+    // cases
+    case EShapesAnims:
+        return new(ELeave) CShapesAnims;
+    ...
+    default:
+        iFunctions -&gt; Panic();
+        return NULL; // dummy return to prevent compiler error
+    }</codeblock> <p>It is up to the implementer to decide whether receiving a bad parameter should cause a panic, as here, or a leave. The approach shown is recommended. </p> <p>The <codeph>Panic()</codeph> function is an <xref href="GUID-FFE76181-A701-374B-82AA-CEACC5856E91.dita"><apiname>MAnimGeneralFunctions</apiname></xref> helper function, to which <codeph>CAnim</codeph> provides the <codeph>iFunctions</codeph> pointer. These functions are implemented by the Window Server and are available to any <codeph>CAnim</codeph> derived class. </p> <p>The animation class's <codeph>ConstructL()</codeph> function is called after <codeph>CreateInstanceL()</codeph>. </p> </conbody><related-links><link href="GUID-FAF1B60A-A4B5-5E45-B9B9-84DA982F2E2B.dita"><linktext>Animations</linktext> </link> </related-links></concept>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-25F853BF-BA95-5348-809E-670C04734AB7" xml:lang="en"><title>How
+to Choose a Real-time Thread Priority</title><shortdesc>Explains the factors to consider when choosing real time thread
+priority.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<ul>
+<li id="GUID-5CF494FB-C569-5B38-AB43-23F489C6F41F"><p> <xref href="GUID-25F853BF-BA95-5348-809E-670C04734AB7.dita#GUID-25F853BF-BA95-5348-809E-670C04734AB7/GUID-80550A0E-CB7D-5988-B07D-4A1542501EF2">Real-time categories</xref> </p> </li>
+<li id="GUID-A81CB275-5C5B-5155-821A-ED6E803FC322"><p> <xref href="GUID-25F853BF-BA95-5348-809E-670C04734AB7.dita#GUID-25F853BF-BA95-5348-809E-670C04734AB7/GUID-AEE56C03-9346-54AF-9E80-A00F5856663D">Guidelines for writing real-time code</xref> </p> </li>
+</ul>
+<section id="GUID-80550A0E-CB7D-5988-B07D-4A1542501EF2"><title>Real-time categories</title> <p>Real-time
+tasks divide into two categories: </p> <ul>
+<li id="GUID-C773539E-F061-59A0-9777-D41175DF2475"><p> Hard real-time </p> </li>
+<li id="GUID-8340689D-F9AB-561F-BAA1-C966EB07F352"><p> Soft real-time </p> </li>
+</ul> </section>
+<section id="GUID-13F43E08-7E46-4A66-BF36-7516399838DC"><title>Hard real-time</title><p>Hard real-time tasks <i>must</i> complete
+within a fixed amount of time otherwise they fail. </p> <p>Audio playback
+provides a good example of a hard real-time task. During audio playback the
+soundcard driver reads data from an audio buffer to transfer to the soundcard.
+The audio application uses a thread to re-fill this buffer before it empties,
+and failure to do this before the deadline causes an audible break in the
+sound. </p> <p>Telephony applications are another example of hard real-time
+tasks. </p> <p>Symbian platform gives no real-time scheduling guarantees to
+user processes. Instead, system threads such as those running device drivers
+are designed to be efficient and well behaved for their priorities. The following
+list gives the estimated deadline ranges other threads are likely to meet
+reliably for a given priority on a busy system: </p> <table id="GUID-86D3C2BE-C5B4-5926-91C3-712E37C91968">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b> Deadline range </b>  </p> </entry>
+<entry><p> <b> True thread priority value</b>  </p> </entry>
+</row>
+<row>
+<entry><p>&gt; 100ms </p> </entry>
+<entry><p>24-26 </p> </entry>
+</row>
+<row>
+<entry><p>&gt; 20ms </p> </entry>
+<entry><p>27 </p> </entry>
+</row>
+<row>
+<entry><p>2-20ms </p> </entry>
+<entry><p>28-31 </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>These figures rely on real-time threads completing their work
+in less time than the deadline itself, otherwise other threads may fail to
+meet their deadlines. These deadline ranges appear conservative because they
+are based on what is a achievable on a busy system. Use of lower <i>true</i> priorities
+than those in the above table are recommended whenever the implications of
+failing to meet a deadline are not very serious and the incidence of failure
+is acceptably low in practical testing. </p> </section>
+<section id="GUID-AB70E058-6910-4ECB-A84C-1639D56381C9"><title>Soft real-time</title><p>Soft real-time tasks <i>try</i> to
+complete within a fixed amount of time. In contrast to hard real-time, exceeding
+this time is not considered a failure, although it may affect the user experience
+in some way. </p> <p>Soft real-time tasks generally have a quality of service
+target expressed as a percentage that is less than 100% (where 100% represents
+hard real-time). This value is the percentage of tasks that must complete
+within the deadline to satisfy the expected service levels. Usually the programmer
+implements a recovery strategy to cope with a thread missing the deadline. </p> <p>Examples
+of soft real-time tasks include the responsiveness of the system to user events
+and communications protocols. In the case of responsiveness to user events,
+an arbitrary deadline is aimed for that is ‘close enough to instantaneous’;
+in the case of communication protocols, failure to process data in time causes
+it to be retransmitted – possibly at extra cost to the user – but is otherwise
+not a catastrophic failure. </p> </section>
+<section id="GUID-AEE56C03-9346-54AF-9E80-A00F5856663D"><title>Guidelines
+for writing real-time code</title> <p>When developing real-time code follow
+these rules: </p> <ul>
+<li id="GUID-23007425-8BA8-5AD3-B7CE-7EEB56FDA701"><p>Do the minimum amount
+of work required to meet your deadline at the required priority. </p> </li>
+<li id="GUID-DDB7AF0E-9245-5511-A6C0-FCA5B6928E9E"><p>For hard real-time tasks,
+use the lowest priority you can to achieve your goals within the task deadline. </p> </li>
+<li id="GUID-2732E0E6-5CAA-502A-882D-195F497019BF"><p>Avoid using lower priority,
+non real-time services, for example file I/O in high priority threads. This
+sacrifices the benefit of using a high priority real-time thread. </p> </li>
+<li id="GUID-6EC4A4CB-4EBE-5F5B-BC42-C6A926181FAC"><p>For soft real-time tasks
+choose a priority above which no significant performance differences are observed
+once the required service level is met. </p> </li>
+<li id="GUID-329AD22C-052C-5E81-A79B-8747E2D4586E"><p>For typical applications
+that respond to user interaction, soft real-time priorities start at values
+based on the <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref> process
+priority, but are more often based on the <xref href="GUID-8995D880-69B7-3C31-891B-7A2C57E372FE.dita"><apiname>EPriorityHigh</apiname></xref> process
+priority. </p> </li>
+<li id="GUID-EC60209A-BFCF-58E2-BD80-8A1DA754CA96"><p>For tasks that will
+use all available CPU by the sheer frequency that the thread is scheduled
+(for example, using a very high bandwidth communication channel, or achieving
+high/maximum frame rates in an action game), lower priorities should be used;
+this includes priorities based on the <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref> process
+priority. </p> </li>
+<li id="GUID-8C832884-41EF-5F80-8EAA-347A320D9015"><p>Escalating priorities
+for soft real-time tasks into the levels normally used for hard real-time
+tasks is dangerous. </p> </li>
+</ul> </section>
+</conbody></concept>

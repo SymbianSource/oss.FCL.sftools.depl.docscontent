@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4E838A77-C7B5-5B1F-93F5-F3577901914B" xml:lang="en"><title>Policy
+Resource </title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Policies resource structure</title> <p>A policy resource is
+made up of the following; a header, followed by any number of policies. Policies
+need to be ordered from most specific to least specific. </p> <p>There are
+two ways to control whether prompts are generated for system servers: </p> <ul>
+<li id="GUID-99E2B7E8-5FA0-5A55-ADE9-D832C4A6CF3C"><p>Using the <codeph>authorisationpolicy</codeph> setting
+in the header. If <codeph>authorisationpolicy</codeph> is set to anything
+except <codeph>EAlwaysCheck</codeph>, prompts will not be generated for Messaging
+Server, Java VM etc because these components are in the ROM, have the appropriate
+capabilities and have protected secure ids. </p> </li>
+<li id="GUID-E8B43077-ECC9-5D4F-A613-B168058E0162"><p>Using the <codeph>SID_LIST</codeph> setting
+in the policy. The <codeph>SID_LIST</codeph> can be used to create a very
+specific policy that always allows requests from trusted components as in
+the example policy below. </p> </li>
+</ul> </section>
+<section><title>Header </title> <p>The header includes the following possible
+fields: <codeph>majorversion</codeph>, <codeph>minorversion</codeph>, <codeph>authorisationpolicy</codeph>, <codeph>dialogcreator</codeph> and <codeph>policyevaluator</codeph>. </p> <p>The major version number controls whether
+existing decision records for services corresponding to the policy file are
+deleted or preserved when the policy file is upgraded. </p> <p>The <codeph>authorisationpolicy</codeph> field
+determines whether a system server must request authorisation from the User
+Prompt Service even if the client application passed the system server's security
+check. The value for <codeph>authorisationpolicy</codeph> can be one of the
+following: </p> <table id="GUID-45D126E1-1CF1-59AF-A438-AB252BC49A4D">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>EAlwaysCheck</codeph>  </p> </entry>
+<entry><p>Ignore the system server (platsec) checks and always ask the UPS
+what to do. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ECheckPostManufacture </codeph>  </p> </entry>
+<entry><p>For application executables with a protected SID launched from the
+Z drive, where the system server checks have passed, allow the request. Otherwise
+call the UPS which may still choose to allow the request. For all other executables,
+ignore the system server (platsec) checks and always ask the UPS what to do. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ECheckUnprotectedSids</codeph>  </p> </entry>
+<entry><p>For application executables with a protected SID (regardless of
+drive), where the system server checks have passed, allow the request. Otherwise
+call the UPS which may still choose to allow the request. For all other executables,
+ignore the system server (platsec) checks, and always ask the UPS what to
+do. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> ECheckIfFailed</codeph>  </p> </entry>
+<entry><p>If the system server checks passed, allow the request. If they failed,
+call the UPS which may still choose to allow the request. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> ENeverCheck</codeph>  </p> </entry>
+<entry><p>If the system server checks passed, allow the request. If the system
+server checks failed, reject the request. Never query the UPS – just use existing
+security check result implemented by system server. (This is the legacy pre-UPS
+behaviour.) </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>If no <codeph>authorisationpolicy</codeph> is provided, the default
+is <codeph>ECheckPostManufacture</codeph>. </p> <p> <b>Note</b>: If a policy
+file is not defined for a system server or service then a default value of <codeph>ENeverCheck</codeph> is
+used. </p> <p>The <codeph>dialogcreator</codeph> must be provided and must
+not be zero. In the policy file it is the only field that is actually required.
+The <codeph>policyevaluator</codeph> can be specified here, but if one is
+not specified, a default policy evaluator is called. The <codeph>dialogcreator</codeph> and <codeph>policyevaluator</codeph> UIDs
+are allocated by Symbian Signed. They are the implementation UIDs of the relevant
+ECOM plugins. </p> <p>The following shows an example header: </p> <codeblock id="GUID-C626C28A-9121-5AC6-B075-C3EE939C3DC1" xml:space="preserve">header = POLICY_HEADER
+ {
+ // The major version number of THIS policy file.
+ // When policy files are upgraded or eclipsed the UPS deletes all decision
+ // records for the system server server SID and service ID where the major
+ // version in the decision record is not equal to the major version
+ // number in the policy file.
+ majorversion = 0;
+ // The minor version number of THIS policy file.
+ minorversion = 0; 
+
+ // Built-in (protected SID and loaded from Z drive) client applications
+ // do not require authorisation from the UPS if the client has the correct
+ // capabilities.
+ authorisationpolicy = ECheckPostManufacture;
+ //dialogcreator and policyevaluator UIDs
+ dialogcreator = 0x10283694;
+ policyevaluator = 0x10283698;
+ };
+</codeblock> </section>
+<section><title> Policies</title> <p>Policies can have the following optional
+fields: </p> <table id="GUID-5CB991E2-1268-5D07-BF99-585F6DC2C5A3">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b> Field</b>  </p> </entry>
+<entry><p> <b>Description</b>  </p> </entry>
+<entry><p> <b>Possible values </b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>sid_classes </codeph>  </p> </entry>
+<entry><p>A bitmask that defines the set of SID classes that this policy applies
+to. It is ignored if a <codeph>sid_list[]</codeph> field is provided. </p> </entry>
+<entry><p> <codeph>KProtectedSids</codeph> (All clients with a protected SID) <codeph>KUnprotectedSids</codeph> (All
+clients with an unprotected SID) <codeph>KAllSids</codeph> (All clients) </p> <p>(Defined
+in ups/policies.rh.) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> sid_list[] </codeph>  </p> </entry>
+<entry><p>An array of LONGs that defines a set of specific client application
+SIDs that this policy applies to. </p> </entry>
+<entry><p>&lt;Application SID&gt;, &lt;Application SID&gt;, … </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>systemserversecurity</codeph>  </p> </entry>
+<entry><p>Allows policies to be matched according to whether the client process
+passed the security check defined by the system server. Typically, this corresponds
+to whether the client has the correct capabilities for the requested service.
+However, system servers are free to use features other than capabilities in
+their security check. </p> </entry>
+<entry><p> <codeph> ESystemServerSecurityPassedOrFailed</codeph> (The policy
+applies regardless of whether the client process passed the system server's
+security check.) </p> <p> <codeph>ESystemServerSecurityFailed</codeph> (The
+policy only applies if the client process failed the system server's security
+check.) </p> <p> <codeph>ESystemServerSecurityPassed</codeph> (The policy
+only applies if the client process passed the system server's security check.) </p> <p>(Defined
+in ups/policies.rh.) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> destination</codeph>  </p> </entry>
+<entry><p>A string to match against the destination supplied by system server. </p> </entry>
+<entry><p>“&lt;STRING&gt;” (e.g. telephone number) or “*” for all (The default
+value is "*" and the matching rules are those of <codeph>TDesC::MatchF</codeph>,
+so it is a case-insensitive wildcard match.) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> options</codeph>  </p> </entry>
+<entry><p>A bit field to control which buttons to display on the dialog. </p> </entry>
+<entry><p> <codeph>KYes</codeph>, <codeph>KNo</codeph>, <codeph>KSessionYes</codeph>, <codeph>KAlways</codeph>, <codeph>KNever</codeph>, <codeph>KSessionNo</codeph>  </p> <p> <codeph>KSessionNo</codeph> should be used with care because it
+is likely that a system server will define a session to be the life-time of
+the client process. Consequently, the client application would have to be
+restarted in order to gain access to the service. This makes it difficult
+to write a well-behaved application that switches between on-line and off-line
+modes. </p> <p>(Defined in ups/policies.rh.) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>policyevaluator </codeph>  </p> </entry>
+<entry><p>If non-zero, overrides the implementation UID of the policy evaluator
+defined in the header. </p> </entry>
+<entry><p>&lt;UID&gt; </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> dialogcreator </codeph>  </p> </entry>
+<entry><p>If non-zero, overrides the implementation UID of the dialog creator
+defined in the header. </p> </entry>
+<entry><p>&lt;UID&gt; </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> flags</codeph>  </p> </entry>
+<entry><p>Flags specific to the policy evaluator. Can be used to trigger specific
+behaviour. </p> </entry>
+<entry><p>&lt;16-bit number&gt; </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p> <b>Note</b>: If the matched policy defines only positive <codeph>options</codeph> (Yes,
+Session or Always), the UPS silently instructs the system server to allow
+the request. If the matched policy defines only negative <codeph>options</codeph> (No
+or Never), the UPS silently instructs the system server to reject the request.
+It is usually better not to configure UPS policies to silently reject requests
+because it is likely to cause the client application to fail without warning.
+Instead, the policy could restrict requests to one-shot permissions (Yes or
+No). </p> </section>
+<section><title>Matching policies </title> <p>The UPS compares each policy
+within a file in order, starting with the first policy in the file, against
+the incoming request until a match is found. The match is based on the secure
+id of the client application, the destination of the request (e.g. Phone number,
+Access Point) and whether the client passed the system server's platform security
+check. All three elements must match (wildcards are supported) the data in
+the request before the policy is considered a match. </p> <p>You can use the <codeph>sid_list</codeph> and <codeph>destination</codeph> fields
+to fine-tune your policies, by providing specific application UIDs in <codeph>sid_list</codeph> and
+specific destinations, such as one telephone number, in <codeph>destination</codeph>. </p> <p>Because
+the UPS compares incoming requests against policies in order, the UPS requires
+that all of the policies for a given service are ordered from most specific
+to least specific in a single policy file. Only the first policy that matches
+is evaluated. So if, for example, you need to provide specific behaviour for
+one application that falls into the category <codeph>KProtectedSids</codeph> as
+well as providing more general behaviour for all other applications falling
+into the <codeph>KProtectedSids</codeph> category, you need to define the
+policy for the individual application first. Likewise, if you need to provide
+behaviour for one particular destination but another behaviour for all other
+destinations, you need to specify the policy for the specific destination
+first. </p></section>
+<section><title>Default policies</title> <p>If a UPS policy
+file exists for a system server/service but no policy matches the request,
+the UPS internally creates a default policy object that is passed to the Policy
+Evaluator and Dialog Creator. This policy object allows one-shot permissions
+for applications, which will already have got past the platform security check.
+Policy file authors may override this by defining a generic policy to match
+all requests at the end of the policy file. </p></section>
+<section><title>See also</title> <p> <xref href="GUID-DB827750-6057-537E-8FE1-8F68BF2E9F99.dita">Writing
+the UPS Policy File</xref>  </p> </section>
+</conbody></concept>

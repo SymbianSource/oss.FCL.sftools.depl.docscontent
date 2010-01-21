@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A3EE649B-FF95-539F-8037-54706E4702D5" xml:lang="en"><title>How
+to Choose Thread Priority</title><shortdesc>Explains the factors to consider when choosing a thread priority.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The two main considerations when choosing the priority of a thread are:
+the timing requirements of the task that the thread must accomplish, and the
+other tasks that are likely to be running at the same time. </p>
+<ul>
+<li id="GUID-53666CA1-A159-595C-A077-418C161670CB"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-1E013283-E81C-5144-8055-5667215A3D00">Choosing a process priority</xref> </p> </li>
+<li id="GUID-D592C147-7A98-5722-B345-7DECC98F0B94"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-4248FC3D-8901-5B16-9ACB-9F96830875A6">Choosing the priority of a thread relative to a process</xref> </p> </li>
+<li id="GUID-B11798AA-E313-5E1F-94A9-F15729744DFC"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-255A62AC-AE94-5296-9B23-87414F68BC0D">Choosing a process-independent thread priority</xref> </p> </li>
+<li id="GUID-133625B3-1DBB-5937-908B-1FEDDD99C79A"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-D11BCB87-CC0F-50EF-AB81-F3E46C6C4081">Guideline summary</xref> </p> </li>
+<li id="GUID-389CD1F8-D39D-599E-9582-AA052DA99AC3"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-357FC034-EEB4-5D9F-B51A-E6A1400247AD">Long running background tasks</xref> </p> </li>
+<li id="GUID-21950134-8365-576C-AC8F-FD1BE93EB8DF"><p> <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-86CD6AE8-33E2-549D-8B51-DE705CE017E7">Special timing requirements</xref> </p> </li>
+</ul>
+<section id="GUID-1E013283-E81C-5144-8055-5667215A3D00"><title>Choosing a
+process priority</title> <p>Choose one of the four standard process priorities
+listed below as the <i>basis</i> for a <i>range of relative priorities</i>: </p> <ol id="GUID-D1020288-02AD-5BDD-A3EA-F7716EB7A941">
+<li id="GUID-D87CB980-CBAC-5302-AB28-92ACBED89A8C"><p> <codeph>EPriorityForeground</codeph>  </p> <p>This
+is the default process priority. Use this priority for: </p> <ul>
+<li id="GUID-4354C28F-9929-5CEA-B515-E235CD90C961"><p>The currently selected
+user interface application which appears in the foreground on the device screen.
+This application is said to have the <i>focus</i>. </p> </li>
+<li id="GUID-8EE56372-79AB-5841-A2FC-B87282F61CD3"><p>Servers that do not
+have specific timing or response requirements. </p> </li>
+</ul> <p>The UIKON framework calls <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-B5FBAB15-4946-3F3F-B03B-C66D6DF573CE"><apiname>User::SetPriorityControl</apiname></xref> <codeph>(ETrue)</codeph> so
+that the window server can switch applications to background when not in focus.
+This is known as <i>priority control</i>. The application can further specify
+how the window server makes the priority change using <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-E940B930-A882-3624-B8FF-D11626B6EA95"><apiname>RWsSession::ComputeMode()</apiname></xref>.
+However, applications should not disable <i>priority control</i> to run permanently
+at <codeph>EPriorityForeground</codeph> process priority without strong justification. <i>Priority
+control</i> is irrelevant to processes without a user interface, for which
+it should remain disabled. </p> </li>
+<li id="GUID-CF0DAC60-5149-56BE-A5DF-F9A86C5037B8"><p> <codeph>EPriorityBackground</codeph>  </p> <p>Use
+this process priority for: </p> <ul>
+<li id="GUID-8B43DFDD-9B1A-52A3-A2B0-C4D4C3067D46"><p>all running user interface
+applications except the currently selected application. These applications
+appear in the background on the device screen. </p> </li>
+<li id="GUID-AA41948D-6929-5C67-A501-3612AF76F750"><p>applications which do
+not need to respond rapidly to user actions. For example applications that
+do not have a graphical user interface. </p> </li>
+</ul> </li>
+<li id="GUID-6AF283AE-E3B9-558A-A526-4CFCA79E77C7"><p> <codeph>EPriorityHigh</codeph>  </p> <p>Use
+this process priority for system servers which should respond quickly to client
+requests. These servers must do minimal work at this priority level before
+quitting to allow other threads to run. </p> </li>
+<li id="GUID-5C69DA26-9106-50A7-B4C4-55940BFB071B"><p> <codeph>EPriorityLow</codeph>  </p> <p>Use
+this priority for processes which can run in the background. </p> </li>
+<li id="GUID-4B16E703-2EA0-526D-89A1-D0F59C06BAC1"><p>The remaining priority
+values:<codeph>EPriorityWindowServer</codeph>,<codeph>EPriorityFileServer</codeph>, <codeph>EPrioritySupervisor</codeph> and <codeph>EPriorityRealTimeServer</codeph> can only be used by processes with <codeph>ProtServ</codeph> (Protected
+Server) Security Capability. </p> </li>
+</ol> <p>See <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-B9022468-F4E7-536B-B1D4-58DAA9EA5914">Process-relative
+scheme</xref> in <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-0194B574-806B-5BA3-B65C-6DC5A80CAB86">Priority
+scheme for general user-side threads</xref> in <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita">Thread
+priority scheme</xref>. </p> </section>
+<section id="GUID-4248FC3D-8901-5B16-9ACB-9F96830875A6"><title>Choosing the
+priority of a thread relative to a process</title> <p> <codeph>EPriorityNormal</codeph> is
+the default <i>relative</i> thread priority. Choose <codeph>EPriorityLess</codeph> and <codeph>EPriorityMuchLess</codeph> to
+set a lower priority than the owning process. Choose <codeph>EPriorityMore</codeph> and <codeph>EPriorityMuchMore</codeph> to
+set a higher priority than the owning process. </p> <p>Application programs
+and system servers with no <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-86CD6AE8-33E2-549D-8B51-DE705CE017E7">special
+timing requirements</xref> running with a <i>process</i> priority of <codeph>EPriorityForeground</codeph> or <codeph>EPriorityBackground</codeph> should
+use the default <i>relative</i> priority <codeph>EPriorityNormal</codeph> for
+their main thread. </p> </section>
+<section id="GUID-255A62AC-AE94-5296-9B23-87414F68BC0D"><title>Choosing a
+process-independent thread priority</title> <p>Use process-independent thread
+priorities only when <i>strictly</i> required. Typically, this is when the
+thread's behaviour means that its priority must lie outside the range of relative
+priorities available with a chosen process priority. Such threads are used
+for tasks with <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-86CD6AE8-33E2-549D-8B51-DE705CE017E7">special
+timing requirements</xref>, such as long running background tasks or time
+critical tasks. </p> <p>Avoid "absolute" priorities in the middle of the range
+of relative priorities available with the chosen process priority. For example,
+consider what happens if you use <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref>.
+This is in the middle of the range of priorities relative to the <codeph>EPriorityForeground</codeph> process
+priority. If the process priority is changed to <codeph>EPriorityBackground</codeph>,
+then the thread will now pre-empt all threads that have been assigned process-relative
+priorities. </p> <p>Time critical tasks can be divided into those that must
+complete as quickly as possible and those that need to complete within a fixed
+time interval. The former are simply high priority tasks, the latter are known
+as real-time tasks. See <xref href="GUID-25F853BF-BA95-5348-809E-670C04734AB7.dita">How
+to choose a real-time thread priority</xref>. </p> </section>
+<section id="GUID-D11BCB87-CC0F-50EF-AB81-F3E46C6C4081"><title>Guideline summary</title> <ul>
+<li id="GUID-988EA6D9-3534-565B-80CB-C63B7F808E88"><p>Use process-relative
+thread priorities instead of process-independent thread priorities whenever
+possible. </p> </li>
+<li id="GUID-F5CCDDE0-BB38-5043-87FC-ED7D41826E11"><p>Only use process-independent
+thread priorities for threads that need to run at particularly high or low
+priorities compared to other threads running on the system. Examples of these
+two extremes are short term, time critical tasks or <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-357FC034-EEB4-5D9F-B51A-E6A1400247AD">long running background tasks</xref>. </p> </li>
+<li id="GUID-BC583446-B98E-5D47-910C-5D4E0037D39B"><p>Ensure that threads
+with priorities above <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref> such
+as the GUI foreground application and system servers do not perform long-running
+tasks. </p> </li>
+<li id="GUID-8166180C-05CA-5514-B6D1-7D21DF9B9C57"><p>Ensure that threads
+with priorities in the range above <xref href="GUID-CD20880F-21EB-389C-A0A4-8DFFE714B102.dita"><apiname>EPriorityAbsoluteBackgroundNormal</apiname></xref>,
+and below or equal to <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref> do
+not perform long-running tasks. </p> </li>
+<li id="GUID-697D648E-FE24-5F18-8622-1BAEEDEBB9F9"><p>Threads can have equal
+priorities. Higher or lower priorities are only needed if one thread must
+pre-empt another. </p> </li>
+<li id="GUID-D4753029-3139-59B6-8C29-BFF9FEADB003"><p>GUI applications must
+not disable <i>priority control</i> to run permanently at <codeph>EPriorityForeground</codeph> process
+priority without very good reason. See also <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-1E013283-E81C-5144-8055-5667215A3D00">choosing
+a process priority</xref> for a description of <i>priority control</i>. </p> </li>
+<li id="GUID-56084ABD-AF39-5EB9-8AFE-145CCD2EF55B"><p>Unless there is a specific
+requirement, disable priority control for processes without a user interface. </p> </li>
+<li id="GUID-4B743232-CFD3-5CEC-9B9D-FDC99CB194A0"><p>Avoid adding unnecessary
+extra functionality to high priority threads. Instead, create a new lower
+priority thread for this code. Always perform the minimum work at a given
+priority to meet a task deadline. </p> </li>
+<li id="GUID-3C3C4B91-28DC-5083-B80C-77F54C06B7E3"><p>Never assume a higher
+priority thread will run before a lower priority thread. The scheduling algorithm
+and the <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread
+priority value mapping table</xref> might change. Use a synchronization mechanism
+such as a semaphore or mutex to guarantee that a thread is not interrupted. </p> </li>
+<li id="GUID-5FFBE78D-511C-5DAF-A410-BDCC4F8AC57B"><p>Always avoid unnecessary <xref href="GUID-A3EE649B-FF95-539F-8037-54706E4702D5.dita#GUID-A3EE649B-FF95-539F-8037-54706E4702D5/GUID-357FC034-EEB4-5D9F-B51A-E6A1400247AD">long
+running background tasks</xref> as this reduces battery performance. </p> </li>
+<li id="GUID-60AA26FC-A170-50B1-8F7E-27FC4718220A"><p>Devices only have a
+finite amount of processing power. The full impact of choosing a particular
+thread priority is often only observed when the system is under stress, causing
+some tasks to succeed at the expense of others. This can only be discovered
+through appropriate stress testing. </p> </li>
+<li id="GUID-324C10ED-218D-51C9-88E5-C23913C54D0A"><p>When testing new software
+use realistic scenarios. Run applications which are likely to be used at the
+same time as the new code, for example making and receiving calls at the same
+time as sending a text message. Adjust thread priorities as necessary to ensure
+a good end-user experience. Choosing too high a priority for your software
+can adversely effect the end-user's experience just as severely as using a
+priority which is too low. </p> </li>
+</ul> </section>
+<section id="GUID-357FC034-EEB4-5D9F-B51A-E6A1400247AD"><title>Long running
+background tasks</title> <p>Long running tasks usually run in the background.
+They use a low priority thread and do not directly respond to user interaction.
+They generally use all the CPU time available to them and run for a period
+of a fraction of a second to a few seconds. Occasionally long running tasks,
+critical to the currently selected UI application, run at a higher priority
+for a few seconds. </p> </section>
+<section id="GUID-86CD6AE8-33E2-549D-8B51-DE705CE017E7"><title>Special timing
+requirements</title> <p>Tasks with special timing requirements fall into two
+distinct categories: </p> <ul>
+<li id="GUID-DD200274-40B1-5009-8BC9-86C35565B423"><p>Short term, time critical
+tasks. </p> <p>These use high priority or real-time threads. </p> </li>
+<li id="GUID-26F57B7B-F75E-5E8E-A40F-8A97BF08E1B2"><p>Long running background
+tasks such as garbage collection and other cleanup tasks. </p> <p>These use
+low priority threads. </p> </li>
+</ul> </section>
+</conbody></concept>

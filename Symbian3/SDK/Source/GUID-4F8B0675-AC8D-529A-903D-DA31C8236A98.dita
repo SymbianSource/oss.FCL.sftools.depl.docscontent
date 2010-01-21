@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4F8B0675-AC8D-529A-903D-DA31C8236A98" xml:lang="en"><title>Using
+TArray&lt;class T&gt;</title><shortdesc>This document covers important issues in using TArray</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-658749FD-5BE8-4233-B107-DA466FB662CF"><title>Using TArray to avoid the need for overloaded variants</title> <p>The
+use of a <codeph>TArray</codeph> object can avoid the need for the member
+function of an end-user class to have overloaded variants to handle all possible
+types of arrays of <codeph>&lt;class T&gt;</codeph> elements.</p> <p>The following
+example illustrates the point. It constructs a fixed flat array, a variable
+flat array and a packed array of <codeph>&lt;TElement&gt;</codeph> objects.</p> <p>By
+taking a <codeph>TArray&lt;TElement&gt;</codeph> argument, the <codeph>CTot::Total()</codeph> member
+function can access array elements regardless of the type of array containing
+them.</p> <codeblock id="GUID-C5A09CDE-7923-5427-9BB9-0BB518597E0B" xml:space="preserve">class TElement                 // array elements
+ {
+ public:
+  TElement();
+  inline TInt GetValue() const;
+  void SetValue(TInt aVal);
+ private :
+  TInt iValue;
+ };
+</codeblock> <codeblock id="GUID-6FB0C2E8-1548-5723-A82A-DDB62124A869" xml:space="preserve">class CTot : public CBase           
+ {
+ public :
+  void Total(const TArray&lt;TElement&gt;&amp; anArray);
+ private :
+  TInt iTotalElements;
+  TInt iTotalValue;
+ };
+</codeblock> <codeblock id="GUID-9A356EEC-985D-5BA0-90BE-4C5DFBC536D5" xml:space="preserve">TElement::TElement()
+ : iValue(0)
+ {}
+
+</codeblock> <codeblock id="GUID-D0614571-E2BB-5DB4-A31F-82273D3745E3" xml:space="preserve">inline TInt TElement::GetValue() const
+ {
+ return iValue;
+ }
+
+</codeblock> <codeblock id="GUID-81D89E93-39DC-5FAF-AD45-D345824B7BA5" xml:space="preserve">void TElement::SetValue(TInt aVal)
+ {
+ iValue = aVal;
+ }
+
+</codeblock> <codeblock id="GUID-0336D0FB-E543-54BC-9A12-77D16340163F" xml:space="preserve">void CTot::Total(const TArray&lt;TElement&gt;&amp; anArray)
+ {
+ TInt count = anArray.Count();
+ 
+ for (TInt jj = 0; jj &lt; count; jj++)
+  iTotalValue += anArray[jj].GetValue();
+ 
+ iTotalElements += count;
+ }
+
+</codeblock> <p>Then some code using these could be:</p> <codeblock id="GUID-CF9EDB28-FC0F-5F5A-907A-55DA637BF82F" xml:space="preserve">//           main body
+
+CArrayFixFlat&lt;TElement&gt;* fix;
+CArrayVarFlat&lt;TElement&gt;* var;
+CArrayPakFlat&lt;TElement&gt;* pak;
+TElement x;
+CTot* ptr;
+
+ptr = new CTot;
+
+fix = new CArrayFixFlat&lt;TElement&gt;(2);
+var = new CArrayVarFlat&lt;TElement&gt;(2);
+pak = new CArrayPakFlat&lt;TElement&gt;(2);
+
+x.SetValue(1);
+fix-&gt;AppendL(x);
+x.SetValue(2);
+var-&gt;AppendL(x,sizeof(x));
+x.SetValue(3);
+pak-&gt;AppendL(x,sizeof(x));
+
+ptr-&gt;Total(fix-&gt;Array());
+ptr-&gt;Total(var-&gt;Array());
+ptr-&gt;Total(pak-&gt;Array());</codeblock> <p>Without the use of <codeph>TArray</codeph>,
+the <codeph>Total()</codeph> member function would need overloaded variants
+to handle all the possible array types which it might expect. The <codeph>CTot</codeph> class
+would need redefining as:</p> <codeblock id="GUID-54155741-69E5-5B1B-A1DD-A1A701806BDF" xml:space="preserve">class CTot : public CBase           
+ {
+ public :
+  void Total(const CArrayFixFlat&lt;TElement&gt;&amp; anArray);
+  void Total(const CArrayFixSeg&lt;TElement&gt;&amp; anArray);
+  void Total(const CArrayVarFlat&lt;TElement&gt;&amp; anArray);
+  void Total(const CArrayVarSeg&lt;TElement&gt;&amp; anArray);
+  void Total(const CArrayPakFlat&lt;TElement&gt;&amp; anArray);
+ private :
+  TInt iTotalElements;
+  TInt iTotalValue;
+ };</codeblock> <p>To allow the <codeph>Total()</codeph> function to handle
+arrays composed of different types of element, (i.e. arrays constructed with
+different template values), then a separate variant of <codeph>Total()</codeph> is
+required for each element type. For example, to handle arrays of <codeph>&lt;TElement1&gt;</codeph> elements
+and arrays of <codeph>&lt;TElement2&gt;</codeph> elements, the <codeph>CTot</codeph> class
+might be defined as:</p> <codeblock id="GUID-AD19E818-0B43-5C78-88B6-D8E7B82A914B" xml:space="preserve">class CTot : public CBase           
+ {
+ public :
+  void TotalA(const TArray&lt;TElement1&gt;&amp; anArray);
+  void TotalB(const TArray&lt;TElement2&gt;&amp; anArray);
+ private :
+  TInt iTotalElements;
+  TInt iTotalValue;
+ };</codeblock> <p>One important point to note; the referenced <codeph>TElement</codeph> returned
+by <codeph>operator[]</codeph> is declared as <codeph>const</codeph>. This
+means that any member function of <codeph>TElement</codeph> must also be declared
+as <codeph>const</codeph>, as shown in this example.</p> </section>
+</conbody></concept>

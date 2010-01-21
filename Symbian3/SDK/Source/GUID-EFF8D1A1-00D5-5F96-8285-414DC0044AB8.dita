@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-EFF8D1A1-00D5-5F96-8285-414DC0044AB8" xml:lang="en"><title>Setting
+Use Policies</title><shortdesc>A use policy denotes the security check required to use the key.
+The use policy associated with the key is of type <apiname>TSecurityPolicy</apiname>.
+The policy can be set to check capabilities or the Secure ID associated with
+the calling process. The calling process should have a <codeph>WriteUserData</codeph> capability. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The following steps explain the process of setting a use policy
+for a key:</p></context>
+<steps id="GUID-16DDA72F-9BC5-52FB-A3C6-874815ABF9FC-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-2">
+<step id="GUID-89755D62-9A44-5F07-9035-6AA97F701C0C-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-2-1"><cmd>Create a file system
+session using an <codeph>RFs</codeph> object. </cmd>
+</step>
+<step id="GUID-6A14EBD6-AF2D-5CE8-A232-F04B717CA0B3-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-2-2"><cmd/>
+<info>Create an object of type CUnifiedKeyStore using <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-C7A96153-4179-3B3F-878D-1EAA64A98D39"><apiname>CUnifiedKeyStore::NewL()</apiname></xref> or <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-217FBB3B-CEF5-36F2-A612-EDDA0982053C"><apiname>CUnifiedKeyStore::NewLC()</apiname></xref>. </info>
+</step>
+<step id="GUID-C8F104CE-E857-5615-B847-E3A33EAF7481-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-2-3"><cmd/>
+<info>Initialise the member functions and keystore using the asynchronous
+function <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-6C5D732C-1FD1-3EF0-AC90-87690F891B8D"><apiname>CUnifiedKeyStore::Initialize()</apiname></xref>. </info>
+</step>
+<step id="GUID-B1DD3DB8-90D9-52F7-96B5-B2AD5AE3E1F8"><cmd/>
+<info>List all keys in the keystore using the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-8B22E1BC-D779-32DC-9C0A-CA37E4C0A81B"><apiname>CUnifiedKeyStore::List()</apiname></xref> function.
+Retrieve the handle of the key for which the use policy needs to be set. </info>
+</step>
+<step id="GUID-6CF7703F-8CAC-5DC6-9F43-7E2EE3F39895-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-2-5"><cmd/>
+<info>Set the use policy for the key using the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-CC8814B6-569C-3426-A319-BFB631211B07"><apiname>CUnifiedKeyStore::SetUsePolicy()</apiname></xref> function. </info>
+</step>
+</steps>
+<result><p>Use policy is set for the selected key. </p> </result>
+<example id="GUID-C2150584-293D-50CE-8DDC-19B4D55D8B0B-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-4"><title>Example</title> <p>The
+following code snippet shows how to set use policy for a key. </p> <codeblock id="GUID-FAD1C292-8E42-5348-B975-3CBA7E8D2820-GENID-1-6-1-22-1-1-8-1-5-1-5-1-5-1-4-1-12-1-3-4-3" xml:space="preserve">// Create a file system session object
+RFs iFs;
+CleanupClosePushL(&amp;iFs);
+
+
+...
+
+
+// Initialise the keystore and member functions
+CUnifiedKeyStore* keyStore = CUnifiedKeyStore::NewL(fs);
+keyStore-&gt;Initialize(iStatus); //iStatus is a TRequestStatus object
+
+
+...
+
+
+
+// Retrieve the handle of the key for which use policy has to be set
+TCTKeyAttributeFilter  filter.iUsage = EPKCS15UsageAll;
+RPointerArray&lt;CCTKeyInfo&gt; iKeys; // This variable will contain the result of the set use policy operation
+keyStore-&gt;List(iKeys, filter, iStatus);
+
+
+...
+
+
+
+// Retrieve the key handle of the appropriate key
+_LIT(KLabel,”keylabel”);
+
+// Select the key with the label you are looking for
+TInt keyIndex;
+for (TInt j = 0; j &lt; iKeys.Count(); j++)
+    {
+    if (iKeys[j]-&gt;Label() == KLabel) 
+        {
+        keyIndex = j;
+        break;
+        }
+    }
+
+
+...
+
+
+
+// Set the use policy
+
+TSecurityPolicy usePolicy;
+TUint secureId = 0x101FFFFF;
+TCapability caps[3];
+caps[0] = ECapabilityWriteUserData;
+caps[1] = ECapabilityDRM;
+caps[2] = ECapabilityReadUserData;
+
+usePolicy = TSecurityPolicy(TSecureId(secureId), caps[0], caps[1], caps[2]);
+keyStore-&gt;SetUsePolicy(*iKeys, usePolicy, iStatus);
+
+
+// Clean up
+CleanupStack::PopAndDestroy(); // iFs</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-60141F31-6061-5C65-809D-FE7A4F8414F7.dita"><linktext>Set Management
+Policies</linktext></link>
+</related-links></task>

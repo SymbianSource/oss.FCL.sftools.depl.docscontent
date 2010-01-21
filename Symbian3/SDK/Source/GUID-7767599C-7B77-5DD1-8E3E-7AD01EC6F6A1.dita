@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-7767599C-7B77-5DD1-8E3E-7AD01EC6F6A1"><title>How to store a compound object</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The protocol for storing a compound object follows a standard pattern. However, the design of some compound objects may force deviations from this.</p> <p>A compound object can be stored either in-line or out-of-line.</p> <p>The basic protocol for storing is the <codeph>StoreL()</codeph> function. This is true whether the object is stored in-line or out-of-line and should be prototyped as:</p> <codeblock id="GUID-CDFAF7E5-5B4A-538F-B5C9-C90474D61A3A" xml:space="preserve">TStreamId StoreL(CStreamStore&amp; aStore) const;</codeblock> <p>The function takes a reference to the store in which the stream or stream network is to be stored and returns the stream ID through which the object can be restored later.</p> <section><title>Storing components in-line</title> <p>Storing a compound object’s component objects in-line means writing all of these components to the same stream.</p> <p>In general, this is achieved by defining and implementing a <codeph>StoreL()</codeph> member function for the compound object's class.</p> <p>For example, for a class <codeph>CCompound</codeph> defined as:</p> <codeblock id="GUID-A469CECC-7125-5A84-A23A-75EABBBA88F2" xml:space="preserve">CCompound class : public CBase
+    {
+    ...
+    TInt         iDdata;
+    CComponentA* iCompA;
+    CComponentB* iCompB;
+    ...
+    }</codeblock> <p>where <codeph>CComponentA</codeph> and <codeph>CComponentB</codeph> are classes, the object's component objects can be stored in the same stream as the remainder of the component's data. The <codeph>StoreL()</codeph> implementation is:</p> <codeblock id="GUID-8FCF485C-7160-5EFE-BF41-58066948E4A9" xml:space="preserve">TStreamId CCompound::StoreL(CStreamStore&amp; aStore)
+    { 
+    RStoreWriteStream outstream;
+    TStreamId id = outstream.CreateLC(aStore); // Creates the write stream
+    ExternalizeL(outstream);                   // Externalises the object and all of its components
+    outstream.CommitL();                       // Commits the stream
+    CleanupStack::PopAndDestroy();             // Performs cleanup on the write stream object
+    return id;                                 // Returns the stream ID 
+    }</codeblock> <p><codeph>ExternalizeL()</codeph> externalises <codeph>CCompound</codeph> ’s data members and components; the implementation is:</p> <codeblock id="GUID-CB8D162A-D3D9-5055-9D39-2944FEFD86F5" xml:space="preserve">void CCompound::ExternalizeL(RWriteStream&amp; aStream) const
+    {
+    aStream &lt;&lt; iData;
+    aStream &lt;&lt; *iCompA;
+    aStream &lt;&lt; *iCompB;
+    }</codeblock> <p>The stream can be visualised as:</p> <fig id="GUID-5B3BAB7B-5CF2-5E1F-8A7D-A3A375E53EC8"><image href="GUID-9E3D71A2-34FA-5A66-B0B9-550816021D79_d0e336549_href.png" placement="inline"/></fig> </section> <section><title>Storing components out-of-line</title> <p>Storing a compound object’s component objects out-of-line means writing all of its component objects to a different stream from that to which it, itself, is written. Each component may be written to its own stream or to its own network of streams. The main advantage of this is that it allows for deferred loading of streams.</p> <p>It is important to note that components are stored <i>before</i> the containing object.</p> <p> The following code fragment defines an example class, CCompound, having two components, <codeph>CComponentA</codeph> and <codeph>CComponentB</codeph>. The components are defined as instances of the templated class TSwizzle.</p> <codeblock id="GUID-B690B024-A3A0-57AC-B36B-4A7B2F3EAF39" xml:space="preserve">CCompound class : public CBase
+    {
+    ...
+    TInt                  iDdata;
+    TSwizzle&lt;CComponentA&gt; iCompA;
+    TSwizzle&lt;CComponentB&gt; iCompB;
+    ...
+    }</codeblock> <p>Storing is achieved by defining and implementing a <codeph>StoreL()</codeph> member function for the compound object's class. In this example, the <codeph>StoreL()</codeph> implementation is:</p> <codeblock id="GUID-E59D8C65-8AD5-55BF-B996-1D91D62F5836" xml:space="preserve">TStreamId CCompound::StoreL(CStreamStore&amp; aStore)
+    {
+    CStoreMap* map=CStoreMap::NewLC(aStore);
+    StoreComponentsL(*map);
+    RStoreWriteStream stream(*map);
+    TStreamId id=stream.CreateLC(aStore);
+    ExternalizeL(stream);
+    stream.CommitL();
+    map-&gt;Reset();
+    CleanupStack::PopAndDestroy(2);
+    return id;
+    }</codeblock> <p>The <codeph>StoreL()</codeph> function:</p> <ul><li id="GUID-0C8A4FE4-7D5E-5876-A65E-885AD0E5F76D"><p>writes the <codeph>CCompound</codeph> components to their own streams.</p> </li> <li id="GUID-0DFAD43D-8C0A-5B70-A087-13871A326317"><p>writes <codeph>CCompound</codeph> itself and its components’ stream IDs to a single stream.</p> </li> <li id="GUID-CB63A225-714E-549C-B5DD-51A41B080EB5"><p>returns the ID of the top-level stream.</p> </li> </ul> <p>This can be visualised as:</p> <fig id="GUID-038EC5C3-6C97-5B8B-A495-3C39EC459039"><image href="GUID-B12AAA82-0534-5FBB-B9BA-33056B988575_d0e336622_href.png" placement="inline"/></fig> <p><codeph>CCompound</codeph> ’s components are stored to their own streams by defining and implementing a <codeph>StoreComponentsL()</codeph> member function; this is prototyped as:</p> <codeblock id="GUID-CF751ACF-736F-5A04-A275-8FA3D16A9F27" xml:space="preserve">void StoreComponentsL(CStreamStore&amp; aStore,CStoreMap&amp; aMap)</codeblock> <p>and implemented as:</p> <codeblock id="GUID-69BE7DCB-6861-5BB3-84E4-CBCFFEF9C0B3" xml:space="preserve">void CCompound::StoreComponentsL(CStreamStore&amp; aStore,CStoreMap&amp; aMap)
+    {
+    TStreamId id;
+        
+    if (iCompA)
+          {
+          id = iCompA-&gt;StoreL(aStore); // store component
+          aMap.BindL(iCompA,id);       // connect the resulting stream id and component
+          }
+    if (iCompB)
+          {
+          id = iCompB-&gt;StoreL(aStore); // store component
+          aMap.BindL(iCompB,id);       // connect the resulting stream id and component
+          }
+    }</codeblock> <p>The condition: <codeph>if (iCompA)</codeph> is equivalent to: <codeph>if
+  (iCompA.IsPtr())</codeph>, and returns true only if the Swizzle represents the <codeph>CComponentA</codeph> object as a pointer. In an application where deferred loading is important, this allows for the possibility that the <codeph>CComponentA</codeph> object is not loaded when the attempt to store the <codeph>CCompound</codeph> object is made.</p> <p>Although each of <codeph>CCompound</codeph>'s components are shown stored in their own respective single streams, they may be stored into their own respective network of streams and the resulting stream IDs may be the IDs of head streams. A component can consist of further components.</p> <p><codeph>StoreComponentsL()</codeph> takes a reference to a store map, as well as the store. The store map is constructed by <codeph>StoreL()</codeph> and is used to contain the association between internal objects and stored components (represented in the store by their stream IDs). These IDs are written by <codeph>CCompound</codeph>'s <codeph>ExternalizeL()</codeph> function and is implemented:</p> <codeblock id="GUID-0ECDEF61-6CAC-5F6C-8326-53E902E5EECE" xml:space="preserve">void CCompound::ExternalizeL(RWriteStream&amp; aStream) const
+    {
+    aStream &lt;&lt; iDdata;
+    aStream &lt;&lt; iCompA;
+    aStream &lt;&lt; iCompB;
+    }</codeblock> <p>This simplicity is due to <codeph>RStoreWriteStream</codeph> behaviour. The pointers are automatically looked up in the map associated with the stream, as they are being externalised.</p> <p>The store map must be reset before destroying it because the store map’s destructor deletes any streams from the store that are still referenced in the map. This means that, should a leave occur during the storing operation, any streams that have been written are automatically cleaned up.</p> <p>It is legitimate to define the <codeph>CCompound</codeph> class without using Swizzles. If the class is defined as:</p> <codeblock id="GUID-B2185546-B4D2-5554-9FF2-37E9F7369EB4" xml:space="preserve">CCompound class : public CBase
+    {
+    ...
+    TInt         iDdata;
+    CComponentA* iCompA;
+    CComponentB* iCompB;
+    ...
+    }</codeblock> <p> then the implementations of <codeph>CCompound::StoreL()</codeph>, <codeph>CCompound::StoreComponentsL()</codeph> remain the same, but <codeph>CCompound::ExternalizeL()</codeph> has to change to:</p> <codeblock id="GUID-A8B102F4-B893-54CA-A052-0ABEBCC0240A" xml:space="preserve">void CCompound::ExternalizeL(RWriteStream&amp; aStream) const
+    {
+    aStream &lt;&lt; iDdata;
+    aStream &lt;&lt; *iCompA;
+    aStream &lt;&lt; *iCompB;
+    }</codeblock> <p> However, this makes it more difficult to implement deferred loading.</p> <p><b>See also</b> </p> <p><xref href="GUID-C1AA34CB-D63D-57E3-87F6-28AD22537D21.dita">Store map</xref> </p> <p><xref href="GUID-53112730-5871-5920-8861-D2F6BF1595BC.dita">Swizzles and deferred loading</xref> </p> </section> </conbody></concept>

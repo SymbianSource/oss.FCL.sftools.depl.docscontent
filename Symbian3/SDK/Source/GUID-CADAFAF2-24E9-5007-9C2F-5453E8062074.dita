@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CADAFAF2-24E9-5007-9C2F-5453E8062074" xml:lang="en"><title>Initializing
+DevSound Functionality Tutorial</title><shortdesc>DevSound provides a common interface to the audio hardware for
+all audio functionality. DevSound is responsible for providing access to available
+audio resources, initialization and configuration of hardware devices, and
+playing and recording audio. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+<section id="GUID-5364D394-21F7-5327-BCD3-8F91DB5EEC8D-GENID-1-6-1-17-1-1-11-1-5-1-4-1-5-1-4-1-3-1"><title>Required background</title> <p>Before
+you start, you must: </p> <ul>
+<li id="GUID-67BD381F-4B0B-5B87-9439-7B72DBF29AFD"><p>Understand the <xref href="GUID-170A1D9C-12CB-502A-BCB3-9E2AEBB207FA.dita">A3F DevSound Component</xref> to
+which the DevSound library belongs. </p> </li>
+<li id="GUID-1E1F544F-06EF-5EFD-981B-8B179E37136E"><p>Understand the architectural
+relationship of the DevSound. For information see <xref href="GUID-2D3F7471-9B92-5E49-B8BC-E0FA7AA709D7.dita">DevSound
+Overview</xref>. </p> </li>
+</ul> </section>
+<section><title>Introduction</title> <p>DevSound's functionality is provided
+by the <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita"><apiname>CMMFDevSound</apiname></xref> class. </p> <p><b>Construction
+and initialization</b> </p> <p>Each client using audio resources must have
+an instance of the <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita"><apiname>CMMFDevSound</apiname></xref> class associated with it.
+The <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-088CC167-C46D-3A2B-BE00-D7AEB98254AE"><apiname>CMMFDevSound::NewL()</apiname></xref> method is used to construct a
+new instance of DevSound. </p> <codeblock id="GUID-7E5C8C3A-B09B-5CC3-870E-1A28C75C50CF" xml:space="preserve">static IMPORT_C CMMFDevSound *NewL();</codeblock> <p>Once
+created, the <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> method is used
+to initialize DevSound to play and record. There are three versions of the <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> method,
+differing in type and number of parameters. The three versions are: </p> <ul>
+<li id="GUID-5492383B-33F4-5884-A926-567B49C44948"><p> <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> -
+initializes CMMFDevSound object to play and record PCM16 raw audio data with
+sampling rate of 8 KHz. </p> <codeblock id="GUID-3FC67F03-CE07-5174-B70A-82C3AC55AC4C" xml:space="preserve">IMPORT_C void InitializeL(MDevSoundObserver &amp;aDevSoundObserver, TMMFState
+aMode);</codeblock> <p>This method has two parameters: </p> <ul>
+<li id="GUID-84931A64-8268-5E15-9FD1-0D8F33CD243B"><p> <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> -
+a reference to a DevSound Observer instance. </p> </li>
+<li id="GUID-AE152880-C8E8-5923-97C6-A3D44B65515B"><p> <xref href="GUID-66044171-C6DA-305C-97D2-181311F9D839.dita"><apiname>TMMFState</apiname></xref> -
+the mode for which this object is to be used, for example, <codeph>EMMFStatePlaying</codeph>. </p> </li>
+</ul> </li>
+<li id="GUID-67B42425-FBD1-5FFA-8382-68E0CD4D2EA8"><p> <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> -
+initializes DevSound object for the mode <codeph>aMode</codeph> for processing
+audio data with hardware device <codeph>aHWDev</codeph>. </p> <codeblock id="GUID-168BD108-045C-52E9-BB97-BDA05643022F" xml:space="preserve">IMPORT_C void InitializeL(MDevSoundObserver &amp;aDevSoundObserver, TUid aHWDev,
+TMMFState aMode);</codeblock> <p>This method has three parameters: </p> <ul>
+<li id="GUID-917DF4D4-FD55-59EA-B0E8-64A7B5F5F35B"><p> <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> -
+a reference to a DevSound Observer instance. </p> </li>
+<li id="GUID-760E73CF-E957-57B2-9F7B-9C2AACA7B3F3"><p> <xref href="GUID-530281E6-29FC-33F2-BC9B-610FBA389444.dita"><apiname>TUid</apiname></xref> -
+the <xref href="GUID-E18CF25C-82DE-3C69-BD86-5DF67579C1A6.dita"><apiname>CMMFHwDevice</apiname></xref> implementation identifier. </p> </li>
+<li id="GUID-33E8A5C9-4609-5B4B-8050-438DF9317BAA"><p> <xref href="GUID-66044171-C6DA-305C-97D2-181311F9D839.dita"><apiname>TMMFState</apiname></xref> -
+the mode for which this object is to be used, for example, <codeph>EMMFStatePlaying</codeph>. </p> </li>
+</ul> </li>
+<li id="GUID-A88F2138-5F4E-527D-8BEA-B27F2D330B83"><p> <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> -
+initializes DevSound object for the mode <codeph>aMode</codeph> for processing
+audio data with hardware device supporting FourCC <codeph>aDesiredFourCC</codeph>. </p> <codeblock id="GUID-415E6B82-08A9-5CB8-BA49-F4FA6005E529" xml:space="preserve">IMPORT_C void InitializeL(MDevSoundObserver &amp;aDevSoundObserver, TFourCC
+aDesiredFourCC, TMMFState aMode);</codeblock> <p>This method has three parameters: </p> <ul>
+<li id="GUID-6C1B960C-4455-504A-B115-7FB416D7A288"><p> <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> -
+a reference to a DevSound Observer instance. </p> </li>
+<li id="GUID-7D427CCC-6248-5C79-BB21-8D0E2C43C633"><p> <xref href="GUID-691F7FFC-D026-30D5-B08D-A06915272C92.dita"><apiname>TFourCC</apiname></xref> -
+the <xref href="GUID-E18CF25C-82DE-3C69-BD86-5DF67579C1A6.dita"><apiname>CMMFHwDevice</apiname></xref> implementation FourCC code. </p> </li>
+<li id="GUID-D459814C-4892-5A30-B86A-AC125BC9B0F7"><p> <xref href="GUID-66044171-C6DA-305C-97D2-181311F9D839.dita"><apiname>TMMFState</apiname></xref> -
+the mode for which this object is to be used, for example, <codeph>EMMFStatePlaying</codeph>. </p> </li>
+</ul> </li>
+</ul> <p>All versions of <xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita#GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD/GUID-CBBB4A4E-0705-37E2-9832-A55861ACF299"><apiname>CMMFDevSound::InitializeL()</apiname></xref> require
+a reference to a DevSound Observer instance. As soon as initialization of
+DevSound has completed, successfully or otherwise, the callback function <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita#GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD/GUID-089CF9C1-92EF-3F40-8669-A5EF5C064AD4"><apiname>MDevSoundObserver::InitializeComplete()</apiname></xref> is
+called. </p> <p><b>The
+DevSound Observer</b> </p> <p>Most methods in the CMMFDevSound class are asynchronous.
+Callbacks occur through the <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> class. <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> is
+an interface to a set of DevSound callback functions. It serves as the method
+of communication between the client and the DevSound. A class that uses DevSound
+will typically inherit from <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref>. </p> <p> <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita"><apiname>MDevSoundObserver</apiname></xref> handles
+the <xref href="GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD.dita#GUID-D0F3F385-68C9-331D-865F-DA36589BE9FD/GUID-089CF9C1-92EF-3F40-8669-A5EF5C064AD4"><apiname>MDevSoundObserver::InitializeComplete()</apiname></xref> initialization
+completion event. </p> </section>
+<section><title>Purpose</title> <p>Refer to the following sections for detailed
+information on how to use the main features of DevSound: </p> <ul>
+<li id="GUID-5FC7D66B-50C0-5229-A343-80FA4E865828"><p><xref href="GUID-53A5AC8D-8A43-505F-A0B6-9E34F3CF23BE.dita">Playing
+Audio</xref>  </p> </li>
+<li id="GUID-E5B271E4-F39B-5E75-BEEA-34AF087B8DDF"><p><xref href="GUID-3FC6342D-D09C-5C7F-8E03-3DA7B29D2CC8.dita">Recording
+Audio</xref>  </p> </li>
+<li id="GUID-BCC46964-D281-50B3-82E6-1A3CDC025455"><p><xref href="GUID-14BAAB7C-35CD-5A43-B362-79F88C7712DE.dita">Playing
+Tones</xref>  </p> </li>
+</ul> </section>
+<section><title>Example uses</title> <p>These examples describe some different
+uses of DevSound: </p> <p><b>Recording
+a WAV file</b> </p> <p>In this example, a client application wants to record
+a WAV file. As WAV is a standard file format supported by the MMF controller
+framework, the <xref href="GUID-29FB1DE6-D00C-3E6B-A8AA-476FAFD7F26C.dita"><apiname>CMdaAudioRecorderUtility</apiname></xref> client API is used
+to interact with DevSound. </p> <p>The main steps in recording the WAV file
+are: </p> <ol id="GUID-24DBEAE0-D054-53CD-965E-A89B7F66410C">
+<li id="GUID-0A785BE2-5896-5490-9C6D-7C66BB575BF5"><p>The client application
+gives a request to record to the MMF <xref href="GUID-29FB1DE6-D00C-3E6B-A8AA-476FAFD7F26C.dita"><apiname>CMdaAudioRecorderUtility</apiname></xref> client
+API. </p> </li>
+<li id="GUID-14622FA3-A7FD-5DDD-9BD6-AD7B4CB9F04C"><p>The MMF <xref href="GUID-29FB1DE6-D00C-3E6B-A8AA-476FAFD7F26C.dita"><apiname>CMdaAudioRecorderUtility</apiname></xref> client
+API passes the command down through the controller framework to the MMF controller
+plug-in. </p> </li>
+<li id="GUID-F0400FAB-4644-5764-B806-FC4F9B3A42DF"><p>The MMF controller plug-in
+initializes DevSound for recording. </p> </li>
+<li id="GUID-692A4C69-6E04-52CE-9835-FD4E2B59D498"><p>Recording starts and
+continues until the client stops the recording or the limit on the file size
+is reached. </p> </li>
+<li id="GUID-579CFF58-4C6D-51F1-9249-CB1BCCC7D08F"><p>Upon completion, the
+client gives a request to the MMF controller framework to stop the recording.
+The controller framework passes the command down to the MMF controller plug-in. </p> </li>
+<li id="GUID-8F3214E6-DFA0-533A-BE7F-86657BFE82E0"><p>The MMF controller plug-in
+stops DevSound and sends the completion event back to the client via controller
+framework. </p> </li>
+</ol> <p><b>Playing
+a DTMF tone</b> </p> <p>In this example, a client application wants to play
+a Dual-Tone Multi-Frequency (DTMF) tone. The MMF <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> client
+API is used to play the DTMF tone. Unlike other MMF APIs, the <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> does
+not require a controller plug-in. This is because the input and output of
+the API is already in a known data format and does not require encoding or
+decoding. The <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> communicates directly
+with DevSound. </p> <p>The main steps in playing the DTMF tone are: </p> <ol id="GUID-653E4665-1469-5EDA-B83E-94DB580ECFB0">
+<li id="GUID-5B600730-C908-5D5E-9C7E-05B8FAE685AA"><p>The client application
+prepares the <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> to play a DTMF tone. </p> </li>
+<li id="GUID-EA9E73E1-AACE-52E8-BF8A-B11FE2117D2C"><p>The client application
+asks the <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> to start playing the tone. </p> </li>
+<li id="GUID-4DE7CB4B-3873-5B5E-ADCF-2AC712ADB2C0"><p>The <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> asks
+DevSound to play the tone. </p> </li>
+<li id="GUID-016EA63D-DF56-5ACC-9A8A-536092EE145F"><p>The <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref> informs
+the client application that the playing of the tone is complete. </p> </li>
+</ol> <p><b>Playing
+an AVI file</b> </p> <p>In this example, a client application wants to play
+an Audio Video Interleaved (AVI) file; output is to a screen and speakers.
+The AVI file contains audio and video data, so the <xref href="GUID-0F1F8AC6-B99F-3274-A785-9977197AF762.dita"><apiname>CVideoPlayerUtility</apiname></xref> class
+that can manipulate both types of data is used. </p> <p>The main steps in
+playing the AVI file are: </p> <ol id="GUID-D1F0C730-45BF-5B58-BBCE-3483C951BD72">
+<li id="GUID-83EF3725-22BE-5140-96C6-8F530DC7AAA3"><p>The client application
+requests to play an AVI file to the MMF CVideoPlayerUtility class. </p> </li>
+<li id="GUID-C8C8E7D2-982F-5561-A707-BCC5131E7C8D"><p>The MMF CVideoPlayerUtility
+class passes the request to the MMF controller framework. The controller framework
+loads the AVI controller </p> </li>
+<li id="GUID-980A38CF-CAA3-5A54-8888-A54AACF538B6"><p>The AVI controller plug-in
+initializes the DevSound and DevVideo. </p> </li>
+<li id="GUID-46DD25A9-62C1-5B6F-8BC8-21E57BB706F2"><p>The AVI controller plug-in
+reads the data in the AVI file and sends the audio data to DevSound and the
+video data to DevVideo. </p> </li>
+<li id="GUID-CFDEDC57-E5BD-5680-AC20-1A8F10A6328D"><p>DevSound outputs the
+audio data.</p> </li>
+<li id="GUID-AB78F54C-76B8-419A-AC24-F22371AFB506"><p>DevVideo sends the video
+data to be decoded to the corresponding codec. The decoded video data is then
+displayed on the screen. </p></li>
+</ol><note> AVI files support Dolby audio also. The client application requests
+for Dolby play back are processed in the similar way.</note></section>
+</conbody><related-links>
+<link href="GUID-2D3F7471-9B92-5E49-B8BC-E0FA7AA709D7.dita"><linktext>DevSound
+Overview</linktext></link>
+</related-links></concept>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-5D47DBF8-3DFE-5D0B-95B2-63302E91C423" xml:lang="en"><title>How
+to Open a Port: Tutorial</title><shortdesc>This tutorial shows the basic steps required to open a serial port
+using the RComm API.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>If the port is being opened for a console application or similar
+environment where device drivers are not guaranteed to be started, first load the
+LDD and PDDs as per the tutorial <xref href="GUID-57A909F3-EAEA-5FE2-B620-E21204794497.dita">How
+to load the Physical Device Driver and Logical Device Driver: Tutorial</xref></p></context>
+<steps id="GUID-7C95375B-0469-5B65-96C3-F94C0C4418D1">
+<step id="GUID-39496668-DE99-5A5C-AB01-CCB0609757EC"><cmd/>
+<info>The <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita"><apiname>RComm</apiname></xref> is a client of the <xref href="GUID-6B3CA99B-ABF2-32EA-935D-23AE5AE2C306.dita"><apiname>RCommServ</apiname></xref> API,
+so create a <xref href="GUID-6B3CA99B-ABF2-32EA-935D-23AE5AE2C306.dita"><apiname>RCommServ</apiname></xref> session. </info>
+</step>
+<step id="GUID-5C7D946E-C7A7-5482-9A94-E806EEB7DF4F"><cmd/>
+<info>Call <xref href="GUID-6B3CA99B-ABF2-32EA-935D-23AE5AE2C306.dita#GUID-6B3CA99B-ABF2-32EA-935D-23AE5AE2C306/GUID-F851835B-4585-3C3A-B257-ADAE04CD95AA"><apiname>RCommServ::LoadCommModule()</apiname></xref> with the <codeph>aFileName</codeph> parameter
+set to a Serial Protocol Module. This requests that the Serial Communications
+Server use a specific Serial Protocol Module. These Serial Protocol Modules
+are <filepath>.CSY</filepath> files that let the Serial Communications Server
+know how the server should manage the port. For example, sample terminal code
+uses a standard <keyword>RS232</keyword> module called <codeph>ECUART</codeph>,
+while infra-red code uses a <keyword>IrDA</keyword> module called <codeph>IrCOMM</codeph>. </info>
+<info>The <filepath>.csy</filepath> file extension is not required in the <codeph>aFileName</codeph> parameter. </info>
+</step>
+<step id="GUID-EF3C8BFE-1A2A-5F26-A35E-8C6924C3D699"><cmd/>
+<info>Call <xref href="GUID-0C42149F-BBEE-3EEC-A932-BECD16682BA0.dita"><apiname>RComm:Open()</apiname></xref> to connect the <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita"><apiname>RComm</apiname></xref> client
+to the server and to open the port by name. You must specify the name of the
+port. The serial port name format is: </info>
+<stepxmp><codeblock id="GUID-386368CF-113A-5804-B2A5-958E838B639C" xml:space="preserve">[text-string]::[0-255]</codeblock> </stepxmp>
+<info>The name of the port may not be the same as the name of the Serial Protocol
+Module. For example, the Infrared Serial Protocol Module is called <filepath>irda.csy</filepath> and
+the port name is <codeph>IrCOMM</codeph>. </info>
+</step>
+</steps>
+<example><title>Example</title> <codeblock id="GUID-AAF9BB90-7C53-5417-A518-2397945F53DF" xml:space="preserve">RCommServ server; 
+server.Connect ();                     // step 1
+server.LoadCommModule (_L ("ECUART")); // step 2
+RComm commPort;
+commPort.Open (server, _L ("COMM::0"), ECommExclusive); // step 3
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-35D49549-1F4D-583F-A45D-9B557A207DD2.dita"><linktext>GlassTerm
+-                 glass teletype terminal</linktext></link>
+</related-links></task>

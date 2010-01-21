@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-AF408E56-D2CB-557C-9D04-C6F7CE1A5424"><title>How to store and restore text</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Storing text and its formatting</title> <p><codeph>theFs</codeph> represents a session with the file server.</p> <codeblock id="GUID-C99E3E76-4464-519F-9DDC-744E8AC31EEE" xml:space="preserve">RFs theFs;
+CFileStore* theStore;
+TParse fileStoreName;
+TBufC&lt;28&gt; name(_L("C:\\Documents\\richtxt.dat"));
+TStreamId streamId;</codeblock> <p>A session with the file server must be opened before file-related operations are carried out. Use <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-34CED17B-226B-303F-A76A-57EABC04EC94"><apiname>RFs::Connect()</apiname></xref> to open a session with the file server.</p> <p>Call <codeph>StoreL()</codeph> on the <xref href="GUID-39945DA4-B362-3DF6-BF9E-DD079EEA7934.dita"><apiname>CRichText</apiname></xref> object to externalise the text object to a <xref href="GUID-9CBA8AB1-5BFC-3719-82AF-22A9BD93C306.dita"><apiname>CFileStore</apiname></xref>. The stream in which the text is stored is identified by its ID. This will later be used to restore the rich text.</p> <p>Call <codeph>Close()</codeph> on the <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> object to close the file as well as the file server session.</p> <codeblock id="GUID-6F01639A-012D-5258-813F-25BB465E3603" xml:space="preserve">// Store text to a file store
+theFs.Connect();
+theFs.Parse(name,fileStoreName);
+theStore=CDirectFileStore::ReplaceLC
+    (theFs,fileStoreName.FullName(),EFileRead|EFileWrite);
+theStore-&gt;SetTypeL(KDirectFileStoreLayout);
+// externalize the rich text
+streamId=iRichText-&gt;StoreL(*theStore); // Store and get ID
+CleanupStack::PopAndDestroy(); // pop and destroy store
+theFs.Close();</codeblock> </section> <section><title>Restoring rich text</title> <p>The following example restores the text object by calling <codeph>RestoreL()</codeph> on the <xref href="GUID-39945DA4-B362-3DF6-BF9E-DD079EEA7934.dita"><apiname>CRichText</apiname></xref> object, specifying the file store and the ID of the stream in which the rich text is stored.</p> <p>The file is opened for reading only.</p> <codeblock id="GUID-5EE0AC49-32B0-5BC3-826E-29FC7006F7CA" xml:space="preserve">// Restore text from file store
+theFs.Connect();
+theFs.Parse(name,fileStoreName);theStore=CDirectFileStore::OpenLC
+    (theFs,fileStoreName.FullName(),EFileRead|EFileShareReadersOnly);
+if (theStore-&gt;Type()[0]!=KDirectFileStoreLayout)
+    User::Leave(KErrUnknown);
+ // internalize from the store
+RichText-&gt;RestoreL(*theStore,streamId);
+CleanupStack::PopAndDestroy(); // pop and destroy store
+theFs.Close();</codeblock> </section> </conbody></concept>

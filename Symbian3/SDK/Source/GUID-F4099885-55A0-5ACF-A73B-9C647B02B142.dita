@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-F4099885-55A0-5ACF-A73B-9C647B02B142"><title>Customising a Parser Plug-in</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The parser plug-ins supplied with the XML framework can be customised to suit the structure of a particular document. This section explains how to customise the WBXML parser. </p> <section><title>Introduction</title> <p>To parse a WBXML document with a DTD which has not previously been implemented for the Symbian platform XML framework, add a new string table representing the DTD. </p> <p>Parsers use <xref href="GUID-0D16866C-F46B-5A2B-B974-324278588A1B.dita">string dictionaries</xref> to convert a file of text strings into a <xref href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita">string pool</xref> of <codeph>RString</codeph> objects. The strings within the dictionary are linked to the String Table statically at compile time. A string table is a text file having a <codeph>.st</codeph> extension. It contains the name of C++ enumeration constants paired with the strings they refer to. Each pair occupies a line of text and its two elements are separated by white space, as shown in the following example: </p> <codeblock id="GUID-CDAF42C3-C791-5A60-9ED8-AB841559C66D" xml:space="preserve">
+stringtable Wml1_1CodePage00TagTable
+EA          a
+EAnchor     anchor
+EAccess     access
+</codeblock> <p>The simplest use of a string table arises when WBXML is used as a method of compressing generic XML. In such scenario, create a single .st file for all frequently used strings. In the example scenario, the task is slightly complex because a specific XML application which conforms to a DTD is being parsed. A DTD specifies elements along with attributes. Create three separate <codeph>.st</codeph> files as to place these attribute values, as shown in the above example. It is the file containing attribute values which are required. The left hand column of an attribute value string table must be exactly the same as the left hand column of the corresponding attribute string table. That is, it must list the same constant names and list them in the same order. The right hand column of an attribute value table contains the values defined for the attributes. However, it may be that no value is defined for some attributes. In such scenario, the attribute value table contains a line consisting only of the constant name, followed not by white space but by the end of the line. </p> <p>The following two examples show a fragment of an attribute string table and the corresponding attribute value string table: </p> <codeblock id="GUID-452C963F-8215-5D96-B8C8-70AC619663E5" xml:space="preserve">
+EAcceptcharset                  accept-charset
+EAlign1                         align
+EAlign2                         align
+EAlign3                         align
+</codeblock> <codeblock id="GUID-A6A3DBDC-3AFF-5A8A-A5BB-C8909D1EA561" xml:space="preserve">
+EAcceptcharset
+EAlign1
+EAlign2                         bottom
+EAlign3                         top
+</codeblock> <p>In this example, the <codeph>accept-charset</codeph> attribute has no value defined for it. Hence, the constant name <codeph>EAcceptCharset</codeph> is paired with nothing in the attribute value table. The attribute 'align' may take no value or the values 'bottom' and 'top'. Therefore, the first table pairs it with three different constant names and the second table pairs the constant names with nothing, 'bottom' and 'top'. </p> </section> <section><title>Procedure</title> <ol id="GUID-B4CC5842-72DA-5F42-8E7E-D03CF7B6FA0D"><li id="GUID-C7C894E1-75F2-5908-90C1-3560FCEFB38B"><p>Implement a new string table. </p> </li> <li id="GUID-B2B0C09F-2088-54E6-9CA4-38B011EDAE53"><p>Convert the string table to the code. </p> <p>Convert the string tables to C++ by invoking the conversion tool from the build files when you compile your parser. The conversion tool can be found in <filepath>...\epoc32\tools\</filepath>. For more information about the tool, refer to <xref href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita">String pools</xref>. </p> </li> </ol> </section> </conbody></concept>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-947F448A-34D1-570F-9017-ED7B70674FBC" xml:lang="en"><title>Implementing
+TKey derived classes</title><shortdesc>This document describes how to implement TKey derived classes.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-1CA6BC6E-CC1A-4662-BC69-9F0551A19C2B"><title>Constructors</title> <p>The constructors are used to set the
+following information:</p> <ul>
+<li id="GUID-833E8D75-4336-501E-B131-FFAB85FF3CF1"><p>the key offset</p> </li>
+<li id="GUID-E1F4DD0A-D918-51D5-8775-D4D48FDE7914"><p>the type of comparison
+to be made between keys</p> </li>
+<li id="GUID-DEE000EE-C1D9-5FAD-8073-1D3BD0FA7C92"><p> the length of the key
+(for text type keys only).</p> </li>
+</ul> <p>For example:</p> <codeblock id="GUID-EA80D208-8559-5616-BB78-6B5B39183DE1" xml:space="preserve">TKeyDerived::TKeyDerived(TInt anOffset,TKeyCmpText aType)
+    : TKey(anOffset,aType)
+       {}
+</codeblock> <codeblock id="GUID-F7CCD8FA-0F40-5880-A602-29B4D068A86B" xml:space="preserve">TKeyDerived::TKeyDerived(TInt anOffset,TKeyCmpText aType,TInt aLength)
+       : TKey(anOffset,aType,aLength)
+       {}
+</codeblock> <codeblock id="GUID-2014FE37-1DFF-54B8-B095-824DDEFDBE7D" xml:space="preserve">TKeyDerived::TKeyDerived(TInt anOffset,TKeyCmpNumeric aType)
+       : TKey(anOffset,aType)
+       {}
+</codeblock> </section>
+<section id="GUID-B66EC4BD-6126-4515-995C-5EF82B9BD411"><title>Implementing the At() function</title> <p>A typical implementation
+of the virtual function <codeph>At()</codeph>, which gets a pointer to the
+key of an element corresponding to a given index, might be structured:</p> <codeblock id="GUID-B2EE7328-FF89-58DB-B08A-5E630CC88E35" xml:space="preserve">TAny* TKeyDerived::At(TInt anIndex) const
+       {
+       if (anIndex==KIndexPtr)
+        {
+              return((TUint8 *)iPtr+iKeyOffset);
+        }
+       //
+       // code to return a pointer to the key in the appropriate element
+       //
+       }
+</codeblock> <p>The derived class will need to have a pointer to the array
+it represents. At the very least, the derived class will need a data member
+for this pointer and, possibly, a member function to set it. This is needed
+in order to implement the <codeph>At()</codeph> function.</p> <p><codeph>TKey</codeph> and
+derived classes use untyped pointers, i.e. pointers of type <codeph>TAny*</codeph>.
+It may be desirable to provide type safety by further deriving a templated
+class.</p> </section>
+</conbody></concept>

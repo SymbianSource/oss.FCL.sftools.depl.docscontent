@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C6AB2B3A-BBFC-5B57-BECB-F46C96250502" xml:lang="en"><title>Cleanup
+stack support for non-CBase classes</title><shortdesc>The cleanup stack supports other types of cleanup using <codeph>CleanupStack::PushL()</codeph>.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The discussion of clean up so far has assumed objects to be cleaned up
+are derived from <codeph>CBase</codeph>, with clean up by invoking <codeph>delete</codeph>.
+Other classes need explicit cleanup support to be provided by the programmer. </p>
+<p>The cleanup stack supports other types of cleanup. You can push: </p>
+<ul>
+<li id="GUID-7BD04FAD-E88D-5549-95DA-B62C5D07493F"><p>a pointer to any type
+of object. This is an object of type <codeph>TAny*</codeph>. The cleanupstack
+destroys this type of object with a call to <codeph>User::Free()</codeph> on
+the pointer pushed. This is less powerful than standard cleanup, because it
+frees memory and does not call the C++ destructor. </p> <p>You use the <codeph>CleanupStack::PushL(TAny*
+aPtr);</codeph> overload. </p> </li>
+<li id="GUID-2D143181-B8B5-5449-B29C-358CE7F8FB4A"><p>a pointer to an object
+together with a specific cleanup operation for that object. The pointer and
+the cleanup operation are contained in a <codeph>TCleanupItem</codeph> object. </p> <p>You
+use the <codeph>CleanupStack::PushL(TCleanupItem anItem)</codeph> overload. </p> <p>You
+must understand that the <codeph>TCleanupItem</codeph> object does not go
+on the cleanupstack. The pointer to the object that is contained within the <codeph>TCleanupItem</codeph> object
+goes on the cleanupstack. For example, if you created a TCleanupItem called
+myCleanupItem, you must never call <codeph>CleanupStack::Pop(myCleanupItem);</codeph> </p> </li>
+</ul>
+<p>Some utility functions are provided that make construction of a suitable <codeph>TCleanupItem</codeph> easy.
+See <xref href="GUID-18EF9CFA-5080-5F89-89EC-C64897612D6B.dita">How to clean up
+non-CBase classes</xref>.</p>
+</conbody></concept>

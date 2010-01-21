@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-2A6C43A6-D5D3-5DC1-871C-C1428D2DB2E6"><title>How to access reference counting objects in object containers</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The following code fragment retrieves a pointer to the reference counting object with the name "Monday". It assumes that such a reference counting object does exist.</p> <codeblock id="GUID-3621E878-0505-5040-B034-6F6937F6D0A1" xml:space="preserve">...
+class CMyobject : public CObject
+    {
+       ...
+       };
+
+_LIT(KMatcher,"Monday");
+...
+CMyobject*  theobject;
+CObjectCon* thecontainer;
+TInt        thefindhandle;
+TName       objname;
+...
+thecontainer-&gt;FindByName(thefindhandle,KMatcher,objname);
+theobject = (CMyObject*)thecontainer-&gt;AtL(thefindhandle);
+...</codeblock> <p>The following code fragment retrieves pointers to all of the reference counting objects whose names end with "day":</p> <codeblock id="GUID-0AA53FC1-FEDA-5C0E-AA68-AAD8D564E4D0" xml:space="preserve">...
+class CMyobject : public CObject
+    {
+       ...
+       };
+
+_LIT(KMatcher,"*day");
+...
+CMyobject*  theobject;
+CObjectCon* thecontainer;
+TInt        thefindhandle;
+TName       objname;
+...
+thefindhandle = 0;
+while (thecontainer-&gt;FindByName(thefindhandle,KMatcher,objname)==KerrNone)
+    {
+    // objname contains the reference counting object's
+    // name, e.g. "Monday" or "Tuesday"
+    ...
+    theobject = (CMyobject*)thecontainer-&gt;AtL(thefindhandle);
+    ...
+    }
+// Now found all matching reference counting objects
+...</codeblock> </conbody></concept>

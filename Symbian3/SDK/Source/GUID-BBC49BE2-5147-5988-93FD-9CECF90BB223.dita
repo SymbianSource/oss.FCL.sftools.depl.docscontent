@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-BBC49BE2-5147-5988-93FD-9CECF90BB223"><title>Memory Management</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The P.I.P.S. System Call Adaptation Layer (SCAL) known as <i>Backend</i> uses its own private heap for storing objects in memory. </p> <p>By using a private heap, </p> <ul><li id="GUID-5EBDFF66-316F-56CC-8F19-B684B904A6BF"><p>the SCAL retains complete control over usage of the heap </p> </li> <li id="GUID-83256AD7-A1C3-5A4C-A558-00F7FF012AC8"><p>system wide resources are not allocated within the context of users' private and thread owned heaps </p> </li> <li id="GUID-65F6AA57-E8E5-5FA3-810A-0C489E931054"><p>the SCAL is virtually out-of-memory protected; that is, if the client application exhausts its own heap, most P.I.P.S. APIs will continue to function correctly, for example, opening or closing file descriptors </p> </li> <li id="GUID-810D513C-77ED-538F-A2EE-F9668DBA523E"><p>there is no need for application <codeph>EXE</codeph> s to explicitly clean up memory used by the SCAL prior to thread or process termination (this would be necessary to prevent <codeph>UHEAP</codeph> macros from panicking). The explicit calling of cleanup APIs is especially unintuitive for open-source applications and it is not obvious when a native Symbian platform <codeph>EXE</codeph> is using a <codeph>STDDLL</codeph>. </p> </li> </ul> <p>The use of a private heap might not make P.I.P.S. very memory efficient but it makes it much more intuitive to the user and memory safe. </p> <section><title>Limitations</title> <p>During low memory conditions, your P.I.P.S. application may crash at launch with an <codeph>STDLIBS-INIT</codeph> panic. This indicates that the P.I.P.S. subsystem was unable to initialise its core components and cannot function. Hybrid applications may also encounter this panic, for the same reasons, when it invokes a P.I.P.S. API. </p> </section> </conbody></concept>

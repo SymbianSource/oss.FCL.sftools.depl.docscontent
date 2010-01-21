@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A1D2C673-3B91-403A-800B-5E1504FB19EE" xml:lang="en"><title>Capturing still images</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To capture still images or to use the display as a viewfinder, build
+your application around the Symbian Ecam camera utility. To make use of the
+device camera to capture an image, the application needs to repeat the steps
+described in the illustration below.</p>
+<fig id="GUID-65212152-6862-4990-9869-CF643B9A5845"><title>The steps required to capture a still image</title><image href="GUID-5FE10ECA-1FAB-4E4F-A1D9-67D379EE8CB3_d0e266838_href.png"/></fig>
+<note>
+<p>The settings you can use in your application depend on what the camera
+hardware on the device supports.</p>
+</note>
+<p>To capture images, use the methods of the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html" format="application/java-archive"><codeph>CCamera</codeph></xref> and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html" format="application/java-archive"><codeph>MCameraObserver2</codeph></xref> classes to construct your application. <codeph>MCameraObserver2</codeph> uses
+the advanced camera features of the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aCCameraAdvancedSettings" format="application/java-archive"><codeph>CCamera::CCameraAdvancedSettings</codeph></xref> class. </p>
+<p>For a reference example, see <xref href="http://www.forum.nokia.com/info/sw.nokia.com/id/9a3e1226-79db-4c8e-bd70-7d9d22aaa6eb/S60_Platform_Camera_Example.html" scope="external">S60 Platform: Camera Example</xref> on Forum Nokia.</p>
+<section><title>To capture still images on a mobile device</title>
+<ol>
+<li id="GUID-9E819F98-B4C6-4C0B-A723-F82494E8655B"><p>Initialize
+the onboard camera.</p>
+<ul>
+<li><p>Create a camera object using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aNew2L%28MCameraObserver2%20%26amp%3b%2cTInt%2cTInt%29" format="application/java-archive"><codeph>CCamera::New2L()</codeph></xref> method.</p></li>
+<li><p>Reserve the camera for your application using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aReserve%28%29" format="application/java-archive"><codeph>CCamera::Reserve()</codeph></xref> method. <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html#%3a%3aMCameraObserver2%3a%3aHandleEvent%28const%20TECAMEvent%20%26amp%3b%29" format="application/java-archive"><codeph>MCameraObserver2::HandleEvent</codeph></xref> is called upon
+completion.</p></li>
+<li><p>Switch on the camera power using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aPowerOn%28%29" format="application/java-archive"><codeph>CCamera::PowerOn()</codeph></xref> method. <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html#%3a%3aMCameraObserver2%3a%3aHandleEvent%28const%20TECAMEvent%20%26amp%3b%29" format="application/java-archive"><codeph>MCameraObserver2::HandleEvent</codeph></xref> is called upon
+completion.</p></li>
+<li><p>If needed, share the camera between multiple clients using
+the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aNewDuplicate2L%28MCameraObserver2%20%26amp%3b%2cTInt%29" format="application/java-archive"><codeph>CCamera::NewDuplicate2L()</codeph></xref> function. This function
+needs the handle of an existing camera object (use <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aHandle%28%29" format="application/java-archive"><codeph>CCamera::Handle()</codeph></xref>).</p></li>
+</ul>
+</li>
+<li id="GUID-1A42718C-0158-4BB6-B99F-48278369C3F3"><p>Configure
+the camera settings.</p>
+<ul>
+<li><p>Before you adjust the settings, make sure the camera hardware
+supports the particular option. Use <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aCameraInfo%28TCameraInfo%20%26amp%3b%29const" format="application/java-archive"><codeph>CCamera::CameraInfo()</codeph></xref> to retrieve and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/TCameraInfoClass.html" format="application/java-archive"><codeph>TCameraInfo</codeph></xref> to
+specify the camera information.</p><p>For example, to find out what
+image formats are supported by the onboard camera, use the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/TCameraInfoClass.html#%3a%3aTCameraInfo%3a%3aiImageFormatsSupported" format="application/java-archive"><codeph>TCameraInfo::iImageFormatsSupported</codeph></xref> member variable.</p></li>
+<li><p>Specify the image format using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aPrepareImageCaptureL%28TFormat%2cTInt%29" format="application/java-archive"><codeph>CCamera::PrepareImageCaptureL</codeph></xref> method. For a list of
+possible formats, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aTFormat" format="application/java-archive"><codeph>CCamera::TFormat</codeph></xref>.</p><p>Devices support image capture in EXIF JPEG format (<xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aEFormatExif" format="application/java-archive"><codeph>CCamera::EFormatExif</codeph></xref>), which is encoded with
+JPEG and requires no additional conversion.</p></li>
+<li><p>Specify the desired image size using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aEnumerateCaptureSizes%28TSize%20%26amp%3b%2cTInt%2cTFormat%29const" format="application/java-archive"><codeph>CCamera::EnumerateCaptureSizes()</codeph></xref> method.</p>
+</li>
+<li><p>Additionally, you can set, for example, the brightness, contrast,
+zoom level, flash mode, exposure and white balance of the image. For more
+information on the options, see the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aCCameraAdvancedSettings" format="application/java-archive"><codeph>CCamera::CCameraAdvancedSettings</codeph></xref> class. You can also use the settings directly under <codeph>CCamera</codeph>.</p>
+</li>
+</ul>
+<ul>
+<li><p>Before you can call <codeph>CCamera::CaptureImage()</codeph>,
+allocate memory and set up image format, size and clipping rectangle using
+the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aPrepareImageCaptureL%28TFormat%2cTInt%29" format="application/java-archive"><codeph>CCamera::PrepareImageCaptureL()</codeph></xref> method. This
+needs to be called only once for multiple captures.</p></li>
+</ul>
+</li>
+<li id="GUID-A7ED7A90-1432-4905-A0A5-0CC725997127"><p>Use the display
+of the device as a viewfinder by transferring image data from the camera to
+the display memory.</p>
+<ul>
+<li><p>Start the transfer of viewfinder data with direct screen
+access using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aStartViewFinderDirectL%28RWsSession%20%26amp%3b%2cCWsScreenDevice%20%26amp%3b%2cRWindowBase%20%26amp%3b%2cTRect%20%26amp%3b%29" format="application/java-archive"><codeph>CCamera::StartViewFinderDirectL()</codeph></xref> method.</p>
+</li>
+<li><p>Transfer viewfinder data as a bitmap using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aStartViewFinderBitmapsL%28TSize%20%26amp%3b%29" format="application/java-archive"><codeph>CCamera::StartViewFinderBitmapsL()</codeph></xref> method.
+ <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html#%3a%3aMCameraObserver2%3a%3aViewFinderReady%28MCameraBuffer%20%26amp%3b%2cTInt%29" format="application/java-archive"><codeph>MCameraObserver2::ViewFinderReady</codeph></xref> is called
+upon completion.</p></li>
+<li><p>Set viewfinder mirroring on and flip the image horizontally
+using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aSetViewFinderMirrorL%28TBool%29" format="application/java-archive"><codeph>CCamera::SetViewFinderMirrorL()</codeph></xref> method.</p>
+</li>
+<li><p>Stop the transfer of viewfinder data to the screen using
+the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aStopViewFinder%28%29" format="application/java-archive"><codeph>CCamera::StopViewFinder()</codeph></xref> method.</p></li>
+</ul>
+</li>
+<li id="GUID-136AEB7B-B618-456E-A7AA-27105A50B9DE"><p>Capture one
+or multiple images using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aCaptureImage%28%29" format="application/java-archive"><codeph>CCamera::CaptureImage()</codeph></xref> method. <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html#%3a%3aMCameraObserver2%3a%3aImageBufferReady%28MCameraBuffer%20%26amp%3b%2cTInt%29" format="application/java-archive"><codeph>MCameraObserver2::ImageBufferReady()</codeph></xref> is called
+upon completion.</p></li>
+<li id="GUID-9EF06D1B-EB64-4406-A97F-FE0C9DA1664F"><p>To exit the
+application or to switch it to the background, switch off the camera power
+using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aPowerOff%28%29" format="application/java-archive"><codeph>CCamera::PowerOff()</codeph></xref> method and release the
+camera for other applications using the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html#%3a%3aCCamera%3a%3aRelease%28%29" format="application/java-archive"><codeph>CCamera::Release()</codeph></xref> method.</p></li>
+<li id="GUID-DDC63446-DACC-434D-B6EE-E661C4FC2813"><p>The <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/CCameraClass.html" format="application/java-archive"><codeph>CCamera</codeph></xref> and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Camera_Framework/MCameraObserver2Class.html" format="application/java-archive"><codeph>MCameraObserver2</codeph></xref> classes
+are defined in the <codeph>ecam.h</codeph> header file. Add the following
+line to the <codeph>.h</codeph> file, which is used to deploy the API:</p>
+<codeblock id="GUID-BB25E774-4122-47AE-BDDD-6691BEAEB15E" xml:space="preserve">#include &lt;ecam.h&gt;</codeblock>
+</li>
+<li id="GUID-0053A8A8-8664-4E35-8D80-EA579503C463"><p>Make sure
+you have correct <xref href="GUID-6971B0A2-F79B-4E05-8AF3-BB1FC1932A22.dita">capabilities</xref> information
+set for your application. You need at least the <codeph>UserEnvironment</codeph> capability.</p>
+</li>
+<li id="GUID-CE8449BB-25A8-462A-8010-6B64F0120603"><p>Make sure <codeph>ecam.lib</codeph> is
+accessible to your linker when compiling your application by including it
+in your <codeph>mmp</codeph> file or by editing the project properties in
+your IDE, depending on your build environment.</p></li>
+</ol>
+</section>
+<section><title>See also</title>
+<p><xref href="GUID-DA26D246-D74A-529F-9F81-11B45669103F.dita">Capturing Image</xref></p>
+<p><xref href="GUID-6C8507F7-FE70-5654-91B5-53E356CFF67C.dita">Controlling Pre-Image
+Capture </xref></p>
+<p><xref href="GUID-3C3BBE1F-D7A2-5021-830B-78084334C883.dita">Controlling Captured
+Image</xref></p>
+<p><xref href="GUID-BFDDCE4E-FE4F-5815-9D0B-A0967EA53B11.dita">Controlling Still-image
+Capture</xref></p>
+<p><xref href="GUID-36BD6059-6547-5754-8BE0-F8051A838C14.dita">Using Time Nudge
+Capture Drive Mode </xref></p>
+<p><xref href="GUID-E9E21C82-13F6-50D4-A271-F9E5F1BD982F.dita">Background Processing
+for Ecam</xref></p>
+</section>
+</conbody></concept>

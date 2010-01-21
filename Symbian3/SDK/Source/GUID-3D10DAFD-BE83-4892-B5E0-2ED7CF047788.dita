@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3D10DAFD-BE83-4892-B5E0-2ED7CF047788" xml:lang="en"><title>UHEAP
+Markers and Panics in GLib-based Applications</title><shortdesc>The 2.10.x version of GLib has introduced a new type of memory
+allocator called slice allocator. These allocators allocate memory in page
+sizes even for a small request of something like 20 bytes. Once a huge chunk
+has been allocated, all the future memory requests are granted using the chunk
+that was allocated for the first memory request. Once the free pool runs out,
+another huge chunk is allocated.  </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Whenever the memory is freed using <codeph>g_slice_free1()</codeph>, the
+memory is not returned to the OS; instead it is maintained by GLib as free
+memory which is used to for future memory requests.  </p>
+<p>The following example explains the issue. The code given below uses slice
+allocators to allocate 10 bytes of memory using <codeph>g_slice_alloc()</codeph> and
+subsequently frees it using <codeph>g_slice_free1()</codeph>. The code panics
+at <codeph>__UHEAP_MARKEND</codeph>, although the memory that has been allocated
+has been deallocated. This is because all the allocated memory on the heap
+has not been deallocated. When the user calls <codeph>g_slice_free1()</codeph> to
+free up, the memory is not freed; instead, GLib will keep it as part of the
+free pool for future allocation.  </p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+#include &lt;e32base.h&gt;
+
+int main()
+{
+  char *x;
+  __UHEAP_MARK;
+  x = (char *)g_slice_alloc(10);
+  g_slice_free1(10,x);
+  __UHEAP_MARKEND;
+  return 0;
+}
+</codeblock>
+<p>To get around this problem, define an environment variable <codeph>G_SLICE</codeph> and
+set it to “always-malloc”.</p>
+<note>It is necessary that this environment variable is set before any GLib
+call that can cause memory allocation. If the environment variable is set
+after any <codeph>g_slice*</codeph> APIs have been called either from the
+application code or from GLib library code, setting it has not effect.</note>
+<p>The code below demonstrates the usage.</p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+#include &lt;e32base.h&gt;
+
+int main()
+{
+  char *x;
+  __UHEAP_MARK;
+ 	g_setenv("G_SLICE","always-malloc",1);
+  x = (char *)g_slice_alloc(10);
+  g_slice_free1(10,x);
+ __UHEAP_MARKEND;
+ return 0;
+}
+</codeblock>
+<note><codeph>G_SLICE</codeph> is just a debugging environment variable. Setting
+it to “always-malloc” can help in detecting memory leaks in application code.
+This setting need not and should not be done in the release code since doing
+it overrides the GLib memory allocation mechanism and hence may
+result in loss of efficiency. The slice allocators are used by other GLib
+APIs like <codeph>GList</codeph>, <codeph>GSList</codeph>, <codeph>GNode</codeph>,
+and so on. Thus setting the environment variable is necessary if the application
+makes use of any such APIs that might use slice allocators.</note>
+</conbody></concept>

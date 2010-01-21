@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9E0CBB66-A573-5BBE-9788-95B313325C7E"><title>Interface definition </title><prolog><metadata><keywords/></metadata></prolog><conbody><p>It was stated earlier that an interface definition serves <i>two</i> purposes: </p> <ul><li id="GUID-46362D8E-60FF-5A22-89E2-4474B88E097E"><p>defining functions that offer services to clients </p> </li> <li id="GUID-8F65910F-1A63-5DD5-94A2-78E4B80FA6CA"><p>offering object instantiation functions </p> </li> </ul> <section><title>Interface definition class</title> <p>So, an interface definition class is a normal abstract class plus some implemented functions that use ECom to create object instances. The class can have any base class: for example, </p> <ul><li id="GUID-6CF03FB1-B927-5AE2-AE01-26BA132D7442"><p>for <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> -based classes, you can implement the object construction in <codeph>NewL()</codeph> and destruction in the destructor </p> </li> <li id="GUID-8B704ED3-65B2-5BC5-8680-7CEC8720386B"><p>for a <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> -based class, the <codeph>Open()</codeph> and <codeph>Close()</codeph> functions would be the natural place to conceal the implementation instantiation and destruction </p> </li> </ul> <p>The class must always declare a private UID member. This is set on object instantiation and is used by ECom to identify the instance when object destruction occurs. </p> </section> <example><title>Interface definition class example</title> <p>The following shows an example segment of a interface definition class that derives from <codeph>CActive</codeph> (i.e. it is an active object). </p> <codeblock id="GUID-60EE59FA-361B-5650-A04C-AA35021D6FD9" xml:space="preserve">class CExampleInterfaceDefinition : public CActive
+    {
+public:
+    // Wraps ECom object instantitation
+    static CExampleInterfaceDefinition* NewL();
+    // Wraps ECom object destruction 
+    virtual ~CExampleInterfaceDefinition();
+    // Interface service 
+    virtual void DoMethodL() = 0;
+...
+private:
+    // Instance identifier key
+    TUid iDtor_ID_Key;
+    };</codeblock> <p>The class: </p> <ul><li id="GUID-3E08C27A-FF75-5C4A-AC97-6FBAD991F24E"><p>Has a pure virtual method: this means that this class must be a base, although a <codeph>NewL()</codeph> usually implies that there is no derivation from this class. </p> </li> <li id="GUID-7A5334B5-331E-578B-B75C-2346B037998D"><p>Does not need a constructor, private or otherwise, because for an abstract base there is no requirement for construction. </p> </li> <li id="GUID-2392510F-4BD1-51F2-A650-64AD6CC88DFA"><p>Has no <codeph>ConstructL()</codeph> to accompany the <codeph>NewL()</codeph>, construction isn't going to happen in the standard two-phase pattern, but through ECom. </p> </li> </ul> </example> </conbody></concept>

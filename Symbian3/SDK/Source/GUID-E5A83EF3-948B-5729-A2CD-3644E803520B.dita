@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E5A83EF3-948B-5729-A2CD-3644E803520B" xml:lang="en"><title>Cleanup
+Support Overview</title><shortdesc>Provides idioms to handle program exceptions, and to clean up memory
+when exceptions occur</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AD5DD150-BB36-4ABC-AF10-D47DEEBE6EED"><title>Architectural relationships</title> <p>Symbian platform's
+clean up strategy is closely tied to its general class types, particularly
+classes derived from <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref>.</p> </section>
+<section id="GUID-A839CBBC-864A-40E0-8BCF-50BB307A3D03"><title>Description</title> <p>The API has three key concepts: exception
+handling, cleanup stack, and general cleanup item. </p> <p><b>Exception
+handling</b> </p> <p>Symbian platform does not use standard C++ exceptions
+(<codeph>try</codeph>, <codeph>catch()</codeph> blocks), but supplies its
+own idioms. An exception is referred to as a <i>leave</i>.</p> <p>The <i>trap
+harness</i> defines a point in code that will be immediately jumped to if
+a leave occurs. The trap harness is set using the <xref href="GUID-3F2CDC74-2568-371C-9D8E-34A66A619226.dita"><apiname>TRAP</apiname></xref> and <xref href="GUID-57895C34-AD00-35E1-9BF8-478653056383.dita"><apiname>TRAPD</apiname></xref> macros.</p> <p>Leaves
+are raised through calling functions provided by the System Static Functions
+API <codeph>User</codeph> class, principally <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-ABF0FC5C-3334-3761-893D-D836B2EE0541"><apiname>User::Leave()</apiname></xref>.
+Many system functions can result in leaves. Leaves may also be raised in user
+code.</p> <p><b>Cleanup
+stack</b> </p> <p>If a leave occurs, any heap allocated resources, such as
+objects created through <codeph>new()</codeph>, referred to only through automatic
+pointer variables will be orphaned on the heap, causing a memory leak. To
+prevent such leaks, it is necessary for the program to record any such objects,
+so that, on the event of a leave, the system can automatically find and clean
+them up. The cleanup stack is the means by which this is done. </p> <p>The
+cleanup stack is provided by <xref href="GUID-0DD554D7-B9B1-3FD3-898F-4D855144FCEA.dita"><apiname>CleanupStack</apiname></xref>. </p> <p>GUI
+applications have a cleanup stack supplied to them by the application framework.
+Other applications must explicitly create a cleanup stack using <xref href="GUID-17AC7BAD-1C03-3729-BCC6-F5B28B32E99D.dita"><apiname>CTrapCleanup</apiname></xref>.</p> <p><b>General cleanup item</b> </p> <p>By default, the cleanup stack only handles <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> -based
+classes, and untyped (<codeph>TAny*</codeph>) objects that can be cleaned
+up by a simple memory free call. The general cleanup item allows other types
+of object to put on the cleanup stack, by making the caller specify a function
+that is to be called to perform cleanup on the object.</p> <p>The general
+cleanup item interface is provided by <xref href="GUID-CD0A798E-7E42-3689-8E86-F5FD43C758FC.dita"><apiname>TCleanupItem</apiname></xref>.</p> <p>Template
+functions are provided as shortcuts to constructing a <xref href="GUID-CD0A798E-7E42-3689-8E86-F5FD43C758FC.dita"><apiname>TCleanupItem</apiname></xref> and
+pushing it onto the cleanup stack. These functions are <codeph>template &lt;class
+T&gt; void              CleanupDeletePushL(T*)</codeph>, <codeph>template &lt;class
+T&gt; void              CleanupClosePushL(T&amp;)</codeph>, and <codeph>template
+&lt;class T&gt; void              CleanupReleasePushL(T&amp;)</codeph>.</p> </section>
+<section id="GUID-F348A3AA-37A8-4489-89BD-26DF97F026E2"><title>See also</title> <p><xref href="GUID-FBE448A4-4728-5EE5-84F2-4790735857B3.dita">Basic
+Types Overview</xref> </p> <p><xref href="GUID-FF8F5D97-7D37-5F6B-84A3-C064E2FD53E0.dita">System
+Static Functions Overview</xref> </p> </section>
+</conbody></concept>

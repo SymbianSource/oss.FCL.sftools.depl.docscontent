@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-D30B09D1-6537-58B4-B94E-13EAD5A28EE0" xml:lang="en"><title>How
+to Configure the Speed and Data Format: Tutorial</title><shortdesc>This tutorial shows the basic steps to perform any serial port
+configuration through the RComm API. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-B8FEEEFA-3070-56DF-BC40-F69F5A7ED4AD">
+<step id="GUID-2DE6A576-3585-54DA-B2AF-1A37B59E3502"><cmd>Load the CSY and
+open a port. </cmd>
+</step>
+<step id="GUID-CD24F05E-4C5D-50E2-A351-24AD4091A11F"><cmd>Get the capabilities
+of the port by calling <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4A6ECC68-EBC7-3B6C-94AE-9272669F6FF2"><apiname>RComm::Caps()</apiname></xref></cmd>
+</step>
+<step id="GUID-879EC8B1-3F15-5CDE-B9F2-3C09AE04542B"><cmd>The capabilities
+of the port are in the <xref href="GUID-076DD315-CE3F-3640-BAB4-0FC51C906820.dita"><apiname>TCommCaps</apiname></xref> structure. For example, <xref href="GUID-6A3B6E0B-8C17-3383-AA1C-353A28919983.dita"><apiname>TCommCapsV01.iStopBits</apiname></xref> specifies
+the number of stop bits the port can manage. </cmd>
+<info>Note: Port capabilities are never exclusive. A port that can manage
+a speed of 50 bps may also be able to manage faster speeds as well. Most fields
+in <codeph>TCommsCaps</codeph> are bit fields which bitmasks must be used
+to determine all the capabilities. An example bitmask for the <xref href="GUID-B9752D91-7586-3EDB-9A5F-C676512D63BC.dita"><apiname>TCommCapsV01.iRate</apiname></xref> field
+is <xref href="GUID-43343094-0CE2-3F3F-9650-93ED3B274330.dita"><apiname>KCapsBps19200</apiname></xref>. </info>
+<info>These same fields in the configuration class <xref href="GUID-BF099B27-4E8A-3765-A6A8-DB88DB4F4F2E.dita"><apiname>TCommConfig</apiname></xref> are
+enumerations. For example, <xref href="GUID-B9752D91-7586-3EDB-9A5F-C676512D63BC.dita"><apiname>TCommCapsV01.iRate</apiname></xref> is a <xref href="GUID-F9432D7B-41C9-3048-AC50-B5BCF8BE11D0.dita"><apiname>TUint</apiname></xref> since
+it is a bitfield. <xref href="GUID-3A529B58-F3AA-3A4D-B154-35E6BD440438.dita"><apiname>TCommConfigV01.iRate</apiname></xref> is an enumeration
+of type <xref href="GUID-79F7A50B-0BA6-3B05-996F-C403AE1D0124.dita"><apiname>TBps.</apiname></xref> </info>
+</step>
+<step id="GUID-0ABC5449-73F5-5C68-A8C1-3129C2625AEF"><cmd/>
+<info>Create an object of type <xref href="GUID-FA42F645-D2A8-384B-9FE6-6495EACFA479.dita"><apiname>TCommConfigV01</apiname></xref>. </info>
+</step>
+<step id="GUID-721FC5DE-7144-51B3-8644-217DC2D0F9C1"><cmd/>
+<info>Call <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4C38E1D8-EC81-36A3-BAA2-4D4FFECFD995"><apiname>RComm::Config()</apiname></xref> with the <codeph>aConfig</codeph> parameter
+set to the <codeph>TCommConfigV01</codeph> object to get the port configuration. </info>
+</step>
+<step id="GUID-50114001-5413-59B2-BBBA-79C96F85B28E"><cmd/>
+<info>Set the fields that must be changed in the <codeph>TCommConfigV01</codeph> object.
+For example, set the <xref href="GUID-4EDA16F3-40B1-3C8A-BD00-C04FF81053BB.dita"><apiname>iSIREnable</apiname></xref> flag to enable Infrared. </info>
+</step>
+<step id="GUID-FA114152-8AFA-5016-9C03-4BFDB67B4BF4"><cmd/>
+<info>Call <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4C38E1D8-EC81-36A3-BAA2-4D4FFECFD995"><apiname>RComm::Config()</apiname></xref> with the <codeph>TCommConfigV01</codeph> object
+as the <codeph>aConfig</codeph> parameter. </info>
+<info>The port is now configured. </info>
+<info><p><b>Tip:</b> In cases where the application is written for a specific
+device, the application may skip the capability check since the capabilities
+are known at the time of manufacture.</p></info>
+</step>
+</steps>
+<example><title>Example</title> <p>The following code uses <codeph>Caps()</codeph> to
+find out if its desired port configuration of 19200 bps and 8 data bits with
+no parity and one stop bit is possible: </p> <codeblock id="GUID-4CB78EBE-4128-5044-93C7-DA2E71CAA8CD" xml:space="preserve">TCommCaps ourCapabilities;
+commPort.Caps (ourCapabilities);
+
+if (((ourCapabilities ().iRate &amp; KCapsBps19200)  == 0)||
+    ((ourCapabilities ().iDataBits &amp; KCapsData8) == 0)||
+    ((ourCapabilities ().iStopBits &amp; KCapsStop1) == 0)||
+    ((ourCapabilities ().iParity &amp; KCapsParityNone) == 0))
+   User::Leave (KErrNotSupported) ;
+</codeblock> <p>The following code configures the speed settings for a port. </p> <codeblock id="GUID-611D90E0-01D9-5137-B746-4DD821F7EBDC" xml:space="preserve">TCommConfig portSettings;
+commPort.Config (portSettings);
+portSettings ().iRate = EBps19200;
+portSettings ().iParity = EParityNone;
+portSettings ().iDataBits = EData8;
+portSettings ().iStopBits = EStop1;
+r = commPort.SetConfig (portSettings);
+User::LeaveIfError (r);</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-35D49549-1F4D-583F-A45D-9B557A207DD2.dita"><linktext>GlassTerm
+-                 glass teletype terminal</linktext></link>
+</related-links></task>

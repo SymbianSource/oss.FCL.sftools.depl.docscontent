@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-37CB6D0C-41F0-5C52-A925-978FAC30D311" xml:lang="en"><title>Implementing
+the Client Side</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The animation framework requires implementers to write server side and
+client side code. On the client side, provided by the Window Server Client-Side
+API, <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RAnimDll</apiname></xref> should be derived from
+for DLL level functionality, and for each animation an <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RAnim</apiname></xref> class
+should be derived. The client side classes can be thought of as thin layers
+of code that are used to pass information through to the matching server side
+classes, where the detailed logic is implemented. </p>
+<p>Clients must request an animation DLL to be loaded before the animations
+provided by it can be used. This is done using the <codeph>RAnimDll</codeph>. </p>
+<p> <codeph>RAnim</codeph> provides functions for implementing client side
+behavior. Generally, the client side code is concerned with setting up and
+initializing the server side classes which implement the actual animation
+graphics. The mechanisms that allow information to be packaged on the client
+side, passed through the Window Server, and recovered on the server side,
+are described in <xref href="GUID-ECE9B461-B473-5B7B-B5EB-FAA60479848C.dita">Passing
+Arguments from Client to Server</xref>. </p>
+<p>Two kinds of command function are provided, <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RAnim::Command()</apiname></xref> and <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RAnim::CommandReply()</apiname></xref>. The choice of which one
+to use depends on whether a return value is required and whether the command
+takes effect immediately or can be cached to the Window Server queue. If leaves
+are possible in code within or called from a command function, a return code
+should be tested and errors handled appropriately. </p>
+<p>The <codeph>CommandReply()</codeph> function forces immediate action. In
+general by the time these functions return, Window Server requests have been
+carried out. The background to this behavior is Window Server buffering of
+the requests it receives. In effect the behavior of these commands is to put
+a request to the Window Server queue and then flush the queue to ensure immediate
+action. The <codeph>Command()</codeph> function is buffered by the Window
+Server. Although these functions return immediately, there is no guarantee
+when the Window Server request will actually be carried out. </p>
+</conbody><related-links>
+<link href="GUID-E5CDDA05-CD86-5C44-B9DA-3249D9C14396.dita"><linktext>Client-Side
+Buffer</linktext></link>
+<link href="GUID-FAF1B60A-A4B5-5E45-B9B9-84DA982F2E2B.dita"><linktext>Animations</linktext>
+</link>
+</related-links></concept>

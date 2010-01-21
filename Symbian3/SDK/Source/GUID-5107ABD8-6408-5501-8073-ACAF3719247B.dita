@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5107ABD8-6408-5501-8073-ACAF3719247B" xml:lang="en"><title>Resizable
+buffer descriptors</title><shortdesc>Describes descriptor behaviour and resizable buffer descriptors.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A resizable buffer descriptor provides a buffer, allocated on the heap,
+to contain and access data. The data is not part of the descriptor object. </p>
+<p>The data represented by this descriptor can be both accessed and changed
+through the descriptor itself. Data is accessed through functions provided
+by the base class. The size of the buffer used by this descriptor can also
+be changed. Note that unlike dynamic buffers, reallocation is not done automatically;
+the descriptor provides an API that allows you to do reallocation. </p>
+<p>The descriptor has similarities to the standard heap descriptor,<xref href="GUID-A103FB19-60B3-3E45-97A5-1F295934ACA1.dita"><apiname>HBufC</apiname></xref>,
+but is <i>easier to use</i>. The standard heap descriptor is recommended for
+use when the data it represents rarely changes. The resizable buffer descriptor
+is recommended for use when the data changes frequently. </p>
+<p>This descriptor also has the following additional useful behaviour: </p>
+<ul>
+<li id="GUID-A40D7342-C864-51A3-B53B-DA73988501C2"><p>ownership of an existing
+heap descriptor can be transferred to a resizable buffer descriptor. </p> </li>
+<li id="GUID-63EA50EE-1DD4-5ABE-9676-0347E95F07CA"><p>ownership of memory
+that has already been allocated elsewhere can be transferred to a resizable
+buffer descriptor; this memory becomes the buffer used by the descriptor. </p> </li>
+<li id="GUID-D16CAA95-26A4-5B45-AEA2-58DDB28F16CB"><p>ownership of memory
+owned by a resizable buffer descriptor can be transferred to another resizable
+buffer descriptor. </p> </li>
+</ul>
+<p>The important point is that the user of the class need not be concerned
+about the 'origins' of the memory. </p>
+<p>A resizable buffer descriptor is supplied in two variants: </p>
+<ul>
+<li id="GUID-017A1851-A5FE-5179-87BC-0F0BF748761A"><p>a 16-bit variant, a <xref href="GUID-BEFF9C91-DA64-3032-96E8-F5054405DC74.dita"><apiname>RBuf16</apiname></xref>,
+to contain wide strings, and 16-bit wide data. </p> </li>
+<li id="GUID-55A2D978-C16A-58E7-BE55-9CB681484473"><p>an 8-bit variant, a <xref href="GUID-955061A8-A83E-39E5-8745-8FAC7DEA7BCC.dita"><apiname>RBuf8</apiname></xref>,
+to contain narrow strings and binary data. </p> </li>
+</ul>
+<p>There is also a build independent type, <xref href="GUID-BFBC574B-EFF6-37A4-9189-B71DA1505BC8.dita"><apiname>RBuf</apiname></xref>. This is
+the type that is most commonly used in program code; this is set (i.e. typedef)
+to the appropriate 'real' variant at build time, and by default equates to <xref href="GUID-BEFF9C91-DA64-3032-96E8-F5054405DC74.dita"><apiname>RBuf16</apiname></xref>. </p>
+<p>You would use an explicit 8-bit variant for binary data. An explicit 16-bit
+variant is rarely used. </p>
+<p>When discussing a resizable buffer descriptor, we normally refer to <xref href="GUID-BFBC574B-EFF6-37A4-9189-B71DA1505BC8.dita"><apiname>RBuf</apiname></xref>,
+rather than <xref href="GUID-955061A8-A83E-39E5-8745-8FAC7DEA7BCC.dita"><apiname>RBuf8</apiname></xref> or <xref href="GUID-BEFF9C91-DA64-3032-96E8-F5054405DC74.dita"><apiname>RBuf16</apiname></xref>. We only
+refer to <codeph>RBuf8</codeph> or <codeph>RBuf16</codeph> when they explicitly
+need to be used. </p>
+<p>The following drawing shows how an <codeph>RBuf</codeph> type is constructed.
+It is derived from <xref href="GUID-49D4E917-57EA-39AE-8941-144AA8AC2584.dita"><apiname>TDes</apiname></xref> and <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref>; the
+member data of these base classes hold the length and maximum length for the
+descriptor data. <codeph>RBuf</codeph> itself only contains a single pointer.
+The pointer is interpreted in one of two ways, depending on how its buffer
+has been set up: </p>
+<ul>
+<li id="GUID-8EB79399-9FAF-5CFE-9542-C015215B0D8D"><p>as a simple pointer
+to memory on the heap. </p> </li>
+<li id="GUID-645528B9-2786-59E1-9F6F-7DD875AE1B1E"><p>as a pointer to a previously
+created <xref href="GUID-A103FB19-60B3-3E45-97A5-1F295934ACA1.dita"><apiname>HBufC</apiname></xref> heap descriptor; ownership of the <codeph>HBufC</codeph> descriptor
+buffer will have been transferred to the <codeph>RBuf</codeph>. </p> </li>
+</ul>
+<p>The way descriptors in Symbian OS are implemented allows <xref href="GUID-BFBC574B-EFF6-37A4-9189-B71DA1505BC8.dita"><apiname>RBuf</apiname></xref> to
+distinguish between the two. </p>
+<p>The following drawing shows the internal representation of an <codeph>RBuf</codeph> object
+initialised with a string of five characters representing the English word
+"Hello". There are two possibilities: </p>
+<ul>
+<li id="GUID-3934910A-431A-582A-A117-3B1C497CE880"><p>the case where the buffer
+consists of simple memory, either allocated directly by the object itself,
+or assigned to it after having been allocated elsewhere. </p> </li>
+<li id="GUID-5AD86C97-66DF-5B88-95D7-2169D4CFD8A2"><p>the case where the buffer
+was originally allocated as a standard heap descriptor, a <xref href="GUID-A103FB19-60B3-3E45-97A5-1F295934ACA1.dita"><apiname>HBufC</apiname></xref> type,
+and whose ownership has been transferred. </p> </li>
+</ul>
+<p>Remember that <codeph>RBuf</codeph> is derived from both <codeph>TDes</codeph> and <codeph>TDesC</codeph>,
+and these classes provide the data members the contain the maximum length
+and the current length of the data. </p>
+<fig id="GUID-50810FFC-9A97-5EC1-B6A6-7E371AEC9FF6">
+<image href="GUID-2F0008EB-715C-50EC-87AD-C78619F44858_d0e196257_href.png" placement="inline"/>
+</fig>
+<p>While an <codeph>RBuf</codeph> descriptor has similarities to a heap descriptor,
+it behaves more like a standard 'R' type resource class, i.e. as a handle
+to a real resource maintained elsewhere. </p>
+</conbody></concept>

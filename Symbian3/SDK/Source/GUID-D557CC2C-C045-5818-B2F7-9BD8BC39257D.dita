@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D557CC2C-C045-5818-B2F7-9BD8BC39257D" xml:lang="en"><title>Address
+Space and Process</title><shortdesc>Programs in Symbian platform consist of a number of processes,
+each of which contains one or more conceptually concurrent threads of execution.
+Each thread has at least one <i>chunk</i> of memory.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Each user process has its own private address space, that is, a collection
+of memory regions which that process can access. A user process cannot directly
+access memory areas in the address space of another process. Threads belonging
+to a user process run at user privilege level. </p>
+<p>There is a special process, the Kernel process, whose threads run at supervisor
+privilege level. This process normally contains two threads: </p>
+<ul>
+<li id="GUID-5D2E1FB5-0DA1-5880-933C-A2335465D4A1"><p>the Kernel server thread,
+which is the initial thread whose execution begins at the reset vector, and
+which is used to implement all Kernel functions requiring allocation or deallocation
+on the Kernel heap </p> </li>
+<li id="GUID-1F10F528-B4B0-5DCD-8D39-15A8C3CDBF03"><p>the null thread, which
+runs only when no other threads are ready to run. The null thread places the
+processor into idle mode to save power. </p> </li>
+</ul>
+<p>The address space of a process consists of a number of <i>chunks</i>, where
+a chunk is a region of RAM mapped into contiguous virtual addresses. On creation,
+a user process contains one thread (the main thread) and one to three chunks;
+these are: </p>
+<ul>
+<li id="GUID-48BE05FA-5AB5-5178-9C43-E7B8B4909856"><p>The <b>stack/heap</b> chunk
+containing the stack and the heap used by the main thread of the process;
+this chunk always exists. </p> </li>
+<li id="GUID-09FDE7D1-37C9-5988-B06A-9A3588081AC1"><p>The <b>code</b> chunk;
+this exists only if the process is loaded into RAM (it is not ROM resident). </p> </li>
+<li id="GUID-F7F06C52-468D-5C29-B985-B8615530786D"><p>The <b>data</b> chunk;
+this exists only if the process has static data. </p> </li>
+</ul>
+<p>If a process creates additional threads, then a new chunk is created for
+each new thread. Each chunk contains the thread's stack; if a new thread is
+not sharing an existing heap, then the chunk also contains a new heap. </p>
+</conbody><related-links>
+<link href="GUID-5FBA9BB1-94A2-470C-9932-C4255E3774C0.dita"><linktext>Shared Memory
+Between Threads</linktext></link>
+</related-links></concept>

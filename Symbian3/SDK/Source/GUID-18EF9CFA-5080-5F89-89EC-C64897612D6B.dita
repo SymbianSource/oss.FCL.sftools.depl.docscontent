@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-18EF9CFA-5080-5F89-89EC-C64897612D6B" xml:lang="en"><title>How
+to clean up non-CBase classes</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-DDB53FB1-7E70-45C6-93F8-76FBE03CA6FA"><title>Cleanup for a TAny*</title> <p>This example code shows cleanup
+for a <codeph>TAny*</codeph>, in this case a <codeph>TText</codeph>. </p> <codeblock id="GUID-62C1326A-2C9F-5F57-AA1C-EA557D0FF4FE" xml:space="preserve">TText* buffer=(TText*) User::Alloc(100*sizeof(TText)); 
+// create a buffer 
+CleanupStack::PushL(buffer);
+// push it to the cleanup stack: treated as TAny*
+TPtr8 bufferPtr(buffer,100);  // create a pointer to the buffer
+...
+// use the buffer
+useBufferL(bufferPtr);
+...
+// destroy the buffer on the cleanup stack
+CleanupStack::PopAndDestroy();  
+</codeblock> </section>
+<section id="GUID-B2DF0D27-9520-4B7D-A8BC-1B4B1A80A714"><title>Cleanup support for an R class</title> <p>This example code
+shows how to provide cleanup stack support for an <codeph>R</codeph> class.
+To do this, a <codeph>TCleanupItem</codeph> object must be constructed with
+a pointer to the object to clean up, and a pointer to a function that provides
+cleanup for that object. The most effective way to do this is to define a <codeph>TCleanupItem</codeph> cast
+operator in the class. </p> <codeblock id="GUID-FEFC12E2-0BE9-5AEF-89AE-E812651D8AD1" xml:space="preserve">// TCleanupItem operator for objects of this class
+RExampleClass::operator TCleanupItem()
+ {
+ return TCleanupItem(Cleanup,this);
+ }</codeblock> <codeblock id="GUID-5D448C6A-C919-5251-9AC1-139A6F3703FC" xml:space="preserve">...</codeblock> <codeblock id="GUID-92812389-ADAF-554B-BF5E-AA515DF4BFB5" xml:space="preserve">// cleanup function for use by cleanup stack
+static void RExampleClass::Cleanup(TAny *aPtr)
+ { 
+ // Invoke the Close member on the RExampleClass at aPtr
+ testConsole.Printf(_L("Doing cleanup.\n"));
+ (static_cast&lt;RExampleClass*&gt;(aPtr))-&gt;Close();
+ }
+
+// Show use
+void DoTheExampleL()
+ {
+ RExampleClass r;
+ r.Open();
+ // Because RExampleClass has an operator TCleanupItem()
+ // pushing it is OK
+ CleanupStack::PushL(r);
+
+ // ...use r
+ // possibly some operations that leave
+
+ // PopAndDestroy() invokes RExampleClass::Cleanup()
+ CleanupStack::PopAndDestroy();
+ }
+ </codeblock> <p><b>Notes</b> </p> <ul>
+<li id="GUID-E8C0A2EF-AD7D-55C9-9805-ADA6072C18F0"><p>The operator returns
+a <codeph>TCleanupItem</codeph> object which is constructed from a pointer
+to the static member function which performs the class’s cleanup processing,
+and a pointer to the object to be cleaned up. </p> </li>
+<li id="GUID-83B10F9E-E07F-59BD-A1A4-62795F6EFF19"><p>The static member function
+which provides the class’s cleanup processing must cast the <codeph>TAny*</codeph> pointer
+into a pointer of the class to be cleaned up. This allows the class member
+function to perform the cleanup </p> </li>
+<li id="GUID-61BAAE8E-C8B4-5034-B4D1-3E31F790B54C"><p> <codeph>CleanupStack::PopAndDestroy()</codeph> removes
+the item from the cleanupstack and invokes the cleanup function defined in
+the <codeph>TCleanupItem</codeph> object. </p> </li>
+<li id="GUID-53F43DCE-9260-5A71-9D59-AABD7916AE9E"><p>Remember that the <codeph>TCleanupItem</codeph> does <i>not</i> go
+onto the cleanupstack. the <codeph>TCleanupItem</codeph> is a container for
+the object that goes onto the cleanupstack. In this example, a pointer to
+the <codeph>RExampleClass</codeph> is put on the cleanupstack. </p> </li>
+</ul> </section>
+</conbody></concept>

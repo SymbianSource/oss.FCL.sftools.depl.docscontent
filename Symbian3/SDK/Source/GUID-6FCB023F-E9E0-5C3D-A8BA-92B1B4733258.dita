@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6FCB023F-E9E0-5C3D-A8BA-92B1B4733258" xml:lang="en"><title>C
+Standard Library Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section provides an overview of Symbian platform's implementation
+of the C Standard Library (referred to as STDLIB). </p>
+<p>It provides information on how it differs from other such libraries and
+descriptions of some of its main features. It does not attempt to document
+the library's entire API. For such documentation, refer to the following documentation:</p>
+<ul>
+<li><p>For documentation of the ANSI C and POSIX specifications, see the relevant
+organisations' web sites (<xref href="http://www.ansi.org" scope="external">http://www.ansi.org</xref> and <xref href="http://standards.ieee.org/index.html" scope="external">http://standards.ieee.org/index.html</xref>). </p></li>
+<li><p>For literature on ANSI and POSIX specifications, see POSIX Programmers
+Guide— Donald Lewine O'Reilly &amp; Associates, Inc.— ISBN 0-937175-73-0  </p></li>
+</ul>
+<p> <b>Important:</b> C Standard Library is planned to be deprecated soon.
+It is recommended that you use the much more compliant or complete <xref href="GUID-D79380CF-22B5-5865-9366-44118E8ECA2E.dita">Open
+Environment Core (P.I.P.S.)</xref> libraries instead. </p>
+<section><title>Purpose</title> <p>STDLIB serves the following purposes: </p> <ul>
+<li id="GUID-780B9EEB-62C5-57D7-A1AE-26116D65E339"><p>Addressing the porting
+requirements of C software engines to Symbian platform. </p> </li>
+<li id="GUID-5A9D30BE-C387-5389-9AD2-5B8F837A0DC9"><p>Providing an ANSI C
+library with associated POSIX system calls. </p> </li>
+<li id="GUID-B15818AC-9E7A-5C58-B6A9-58D47C9484FD"><p>Supporting both pure
+C programs and mixed C/C++ programs. </p> </li>
+<li id="GUID-93F33B67-41B4-5983-90A1-C632972ED5E2"><p>Providing the standard
+include file structure with the standard <codeph>#defines</codeph> and function
+prototypes. </p> </li>
+</ul> <p>STDLIB implementation does not serve the following purposes: </p> <ul>
+<li id="GUID-304064B6-D603-56C1-9951-8FFD4CD91E4E"><p>Supporting pre-ANSI
+C compilers. </p> </li>
+<li id="GUID-7A765051-395B-5B7A-A71D-C44F5DC00ED4"><p>Passing ANSI or POSIX
+conformance test suites. </p> </li>
+<li id="GUID-01B46F4E-E6DD-5CD9-8B09-E9D169D961B4"><p>Supporting POSIX-style
+tools executed from a shell. Symbian platform neither provides a shell nor
+does it provide a advanced text console. </p> </li>
+<li id="GUID-12B49D44-453B-5BC6-826C-23B305C43003"><p>Being the C API for
+Symbian platform. For example, STDLIB does not provide any new C functions
+for supporting threads or active schedulers. </p> </li>
+<li id="GUID-B8292CEE-EC88-503F-8F8B-3EE2F643D524"><p>Providing new C++ interfaces.
+The public API for STDLIB is the C function by itself, and almost no aspects
+of the C++ implementation are exposed, even to C++ programmers. </p> </li>
+</ul> </section>
+<section><title>Required Background </title> <p>The understanding on the following
+are required prior to implementing STDLIB: </p> <p><b>Similarities between
+STDLIB and the ANSI standard </b> </p> <ul>
+<li id="GUID-177C458B-84C1-5BBA-A14A-A228DF249C18"><p>Many ANSI standard functions
+have been implemented, including all those in <codeph>stdio.h</codeph> and <codeph>math.h</codeph>.
+The functions which have been implemented are those in the STDLIB header files
+whose prototypes are preceded by the <codeph>IMPORT_C</codeph> macro. </p> </li>
+<li id="GUID-D807BFE5-B6DC-59D5-9C69-EB53FC79B6CB"><p>STDLIB's maths library, <codeph>math.h</codeph>,
+provides the mandatory ANSI maths functions. Most of these use the underlying
+Symbian platform maths functions, encapsulated by the <codeph>Math</codeph> class. </p> </li>
+<li id="GUID-7379EE4C-D9EF-5846-BA73-6BF628A404CA"><p>Many functions, including <codeph>bsearch()</codeph>, <codeph>qsort()</codeph>, <codeph>memcpy()</codeph> and <codeph>tolower()</codeph> are more than a call to a corresponding function
+provided by Symbian platform. In many cases, this function may be found in
+Symbian's <codeph>User</codeph> class. For example, <codeph>malloc()</codeph> and <codeph>free()</codeph> simply
+call <codeph>User::Alloc()</codeph> and <codeph>User::Free()</codeph> respectively. </p> </li>
+</ul> <p><b>Differences between STDLIB and ANSI and POSIX </b> </p> <ul>
+<li id="GUID-09D4CAF0-4427-52E1-BE90-C1C524AB13E3"><p>The STDLIB implementation
+of <codeph>printf()</codeph> does not take into account the format specifier
+for floating point values. Instead, the implementation uses <codeph>TDes8::Format()</codeph> with
+a Symbian platform format specifier which is derived from the style, width
+and precision of the original <codeph>printf()</codeph> specifier. The result
+does not obey the rules for ANSI <codeph>printf()</codeph> for some combinations
+of number width and precision, and formats the numbers using the thousands
+separator taken from the Symbian platform locale; see class <codeph>TLocale</codeph>. </p> </li>
+<li id="GUID-45507BF5-C062-5FF4-BC51-F2B77174C072"><p>Symbian platform identifies
+some errors as being fundamental programming errors and will abruptly terminate
+the offending thread (referred to as a panic). POSIX never does this and will
+always return error conditions instead (though some errors will result in
+signals, e.g., segmentation faults). </p> </li>
+<li id="GUID-5FD1D372-3514-5F31-AA92-1F6F5D023A75"><p>POSIX processes exist
+in a hierarchy with children inheriting resources from their parents — the
+"fork and exec" model of process creation. In Symbian platform, processes
+have no association whatsoever with the thread which created them. They are
+created by constructing a fresh instance of an executable image. </p> </li>
+<li id="GUID-868CC232-9A8F-5764-9499-8B39D3A1DF33"><p>Symbian platform provides
+limited text console support, intended for debugging of low-level components. </p> </li>
+<li id="GUID-04209D36-F963-5115-8E44-870AF9E16719"><p>An open file in the
+POSIX system is a process wide resource that can also be inherited by child
+processes. In Symbian platform each thread within a process has separate resources
+within the shared process address space, and open files are private to a given
+thread. </p> </li>
+<li id="GUID-157AB2F3-DE12-5A5F-8EA3-3A5E57CECAD9"><p>Open POSIX files are
+inherently shareable, so multiple processes can write to the same file simultaneously.
+In Symbian platform, open files are inherently non-shareable, and even the
+thread which has the file open is only allowed one outstanding write operation
+at a time. For more information on files, see the <codeph>RFile</codeph> class. </p> </li>
+<li id="GUID-D6CE165D-1AC7-50B8-8204-35C074F51079"><p>Symbian platform does
+not support global data in DLLs. To overcome this, STDLIB uses a structure, <codeph>_reent</codeph> (declared
+in <codeph>reent.h</codeph>) an instance of which is allocated to each thread
+to hold the <codeph>errno</codeph> value, some "static data areas" used by
+functions such as <codeph>ctime()</codeph>, and the STDIO data structures. </p> </li>
+<li id="GUID-84F0AAF4-BB2B-568A-883D-46656B829C62"><p>Symbian platform has
+different client classes for each type of resource: files, sockets and the
+console are all different and have different APIs. POSIX file descriptors
+can refer to all of these different resources and have a common API (though
+many functions will actually only work on socket file descriptors). </p> </li>
+<li id="GUID-15A73AC5-5065-50E9-8B78-16AFD918565E"><p>Symbian platform processes
+do not have a notion of a current working directory. The closest notion is
+the session path, as set and retrieved by class <codeph>RFs</codeph>. </p> </li>
+<li id="GUID-2BCF79DA-66B0-5407-A4E5-ACE41541BAF8"><p>Symbian platform does
+not have a way of pre-empting a thread and causing it to execute a different
+piece of code, so there is no true equivalent of a POSIX signal or signal
+handler. </p> </li>
+</ul> <p><b>Exclusions in STDLIB </b> </p> <p>Symbian has no plans to provide
+the following in the C Standard Library: </p> <ul>
+<li id="GUID-411B0B35-7705-5448-AE73-BAFDEDC538E2"><p>float-sized maths operations.
+POSIX requires only double-sized operations. Primitive arithmetic operations
+on float values can be carried out, and all of the standard <codeph>printf</codeph> format
+specifiers including <codeph>%E</codeph> and <codeph>%e</codeph> are supported.
+However, none of the floating point library functions declared to take float-sized
+arguments are supported. For example; </p> <codeblock id="GUID-C3ADA741-8FF4-5D72-9CE3-675B48F7E513" xml:space="preserve">double sqrt( double d );    // Supported by STDLIB
+float sqrtf( float f );     // Omission</codeblock> </li>
+<li id="GUID-224430FB-D02F-5C39-A9C4-4D80DFD2A95E"><p>mapping the ANSI locale
+functions onto the Symbian <codeph>TLocale</codeph> functionality. Instead
+the locale is a fixed "C" locale. Therefore STDLIB engines may not be localised.
+It is recommended that localisation be implemented at the Symbian platform
+application level. </p> </li>
+<li id="GUID-3A4751A8-9814-52BC-84C2-6A6963A6B233"><p> <codeph>select()</codeph>.
+The POSIX <codeph>select()</codeph> function is not implemented in STDLIB
+because Symbian platform does not in general support asynchronous "ready to
+read" or "ready to write" notification. </p> </li>
+<li id="GUID-05D7E649-FC17-5DD4-81E0-0D3A4FDD2619"><p> <codeph>signal()</codeph>.
+A Symbian thread cannot be made to spontaneously execute a "signal handler",
+so signals have not been implemented. </p> </li>
+<li id="GUID-9D25E72B-935D-5A95-B694-03D5F0F39C0D"><p> <codeph>fork()</codeph> or <codeph>exec()</codeph> functions </p> </li>
+<li id="GUID-17E9D42B-F3EA-530F-A86B-F20B36EE1160"><p>IPv6 support </p> </li>
+</ul> <p><b>Error codes </b> </p> <p>Most error codes reported by STDLIB functions
+correspond to the standard C error code values. Some of these are identified
+within STDLIB, which produces the correct <codeph>errno</codeph> value directly;
+most are reported by translating the Symbian platform error codes into equivalent <codeph>errno</codeph> values
+using a translation table. Occasionally, a Symbian platform error code may
+be reported untranslated. In this case, it will have a negative value. For
+the Symbian platform error codes, see <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> etc. STDLIB
+does not usually attempt to detect inputs which will cause a panic, (for example,
+attempting to <codeph>accept()</codeph> on a stream socket which has not been
+bound). Such a panic will terminate the offending thread, which may in turn
+result in the termination of the whole process. </p> </section>
+</conbody><related-links>
+<link href="GUID-39FA0ECE-D403-5F02-AC5D-7BC8E1669E8E.dita"><linktext>C Standard
+Library  Concepts</linktext></link>
+<link href="GUID-F7C9824F-0598-56A1-AC2B-24904E997588.dita"><linktext>C Standard
+Library Tutorials</linktext></link>
+<link href="GUID-7EFA2113-3C4A-5C52-AC28-BBD512466302.dita"><linktext>C Standard
+Library Examples</linktext></link>
+</related-links></concept>

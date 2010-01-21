@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-9C5A86D2-E602-55AE-B54B-8511E70CD23D"><title>Send Dual Tone Multi Frequency (DTMF) Tutorial </title><shortdesc>This tutorial describes how to send DTMF tones with the telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps id="GUID-8C057CAF-1357-5601-A1DF-C39BA93C0288"> <step id="GUID-FA2F0A51-0AF8-5E40-9E94-CDE2EF395A3B"><cmd/><info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info> </step> <step id="GUID-CB487FDE-4DF8-5BB3-A562-316DF4E1E8D3"><cmd/><info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::SendDTMFTones()</apiname></xref> to transmit a sequence of DTMF tones across the currently active call </info> <info>The sequence of tones is a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>TDesC</apiname></xref> string. It contains one or more occurrences of the numbers 0 to 9, * and #. </info> </step> <step id="GUID-F0797883-2489-5054-B7C2-8071EBE1F12B"><cmd/><info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::ESendDTMFTonesCancel</apiname></xref> to cancel the asynchronous request. </info> </step> </steps> <example id="GUID-BB3EA31B-FC0D-5107-A7C0-D57BD66CC0D1"><title>Send DTMF example</title> <p>This example sends the string <codeph>123456789</codeph>: </p> <codeblock id="GUID-AEB5A9BF-3576-5544-81CE-2D6DB981D7F0" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+_LIT(KTheTones, "123456789");
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;SendDTMFTones(iStatus, KTheTones);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {} // The tones were sent successfully;
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::ESendDTMFTonesCancel);
+    }
+</codeblock> </example> </taskbody></task>

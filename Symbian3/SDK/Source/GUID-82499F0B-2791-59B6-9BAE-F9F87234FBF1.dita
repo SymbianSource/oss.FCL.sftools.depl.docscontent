@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-82499F0B-2791-59B6-9BAE-F9F87234FBF1"><title>Implementing a NifMan Daemon Tutorial</title><shortdesc>This topic describes the steps involved in implementing a NifMan Daemon. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>Daemons are loaded when a connection is started that requires network layer configuration. The ECom configuration daemon manager used for a connection is specified in the <xref href="GUID-F0251041-3AFA-3FD1-88C7-10FB5E98F28B.dita"><apiname>SERVICE_CONFIG_DAEMON_MANAGER_NAME</apiname></xref> field in the <xref href="GUID-BD971173-E009-58DA-AF9C-F4AAFF77B138.dita">Comms Database</xref> Dial Out ISP and GPRS Packet Service tables. The daemon server used for a connection is specified in the <xref href="GUID-2768D204-6FA4-3D07-91E8-D1963FFE028D.dita"><apiname>SERVICE_CONFIG_DAEMON_NAME</apiname></xref> field in the CommDb Dial Out ISP and GPRS Packet Service tables. </p> <p>To implement a configuration daemon, you must write a Symbian OS server for more information see <xref href="GUID-6047DB3F-DC92-51DF-9EEB-00E79E890B54.dita">Using Client/Server</xref>. </p> <p>The name of the server in <xref href="GUID-D75692B1-FB2C-3893-9CF1-33BD02BBC63F.dita#GUID-D75692B1-FB2C-3893-9CF1-33BD02BBC63F/GUID-5D37DC05-93BC-3ED0-87EC-B500ADF55526"><apiname>CServer::Start()</apiname></xref> must match the name used in the CommDb <xref href="GUID-2768D204-6FA4-3D07-91E8-D1963FFE028D.dita"><apiname>SERVICE_CONFIG_DAEMON_NAME</apiname></xref> field. </p> <p>The following <codeph>ServiceL()</codeph> implementation tests for these messages types and calls functions: </p> <codeblock id="GUID-8E8F8E53-5D7E-583D-8341-1C6658A2B5FE" xml:space="preserve">void CEgConfigDaemonSession::ServiceL(const RMessage2&amp; aMessage)
+  {
+  switch (aMessage.Function())
+    {
+  case EConfigDaemonConfigure:
+    ConfigureL(aMessage);
+    break;
+  case EConfigDaemonDeregister:
+    DeregisterL(aMessage);
+    break;
+  case EConfigDaemonLinkLayerDown:
+    LinkLayerDownL(aMessage);
+    break;
+  case EConfigDaemonLinkLayerUp:
+    LinkLayerUpL(aMessage);
+    break;
+  case EConfigDaemonProgress:
+    ProgressL(aMessage);
+    break;
+  case EConfigDaemonIoctl:
+    IoctlL(aMessage);
+    break;
+  case EConfigDaemonCancel:
+    Cancel(aMessage);
+    break;
+  case EConfigDaemonCancelMask:
+    CancelMask(aMessage);
+    break;
+  default:
+    User::Leave(KErrNotSupported);
+    break;
+    }
+  }</codeblock> <p>For more information about the message types see <xref href="GUID-B380482B-CF42-50BF-B09C-F4B3BDAA1679.dita">What are the daemon message types?</xref>  </p> </context> </taskbody><related-links><link href="GUID-F8482AFB-BD49-5EF2-8092-EAA11862F9C4.dita"><linktext>What is Network Interface Management (NifMan)?</linktext> </link> <link href="GUID-BF4E220C-2388-517B-87D8-78AB1EA6382E.dita"><linktext>Architecture</linktext> </link> <link href="GUID-9F96807F-25DC-5DE1-B327-3E339665FF64.dita"><linktext>Reference</linktext> </link> </related-links></task>

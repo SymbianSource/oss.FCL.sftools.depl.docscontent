@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FDDAF8E9-4CAB-5489-B578-A5362E2140C1" xml:lang="en"><title>Decompressing
+File Archives</title><abstract><shortdesc>The Zip Compression Library, EZLib provides file archive
+decompression functionality for the Symbian platforms. </shortdesc> <p>EZLib
+allows clients to decompress data from file archives. The decompression task
+is performed by calling the decompression functions iteratively, until the
+required task completion. </p> </abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The input archive file is opened and the properties of all the
+files in the archive are retrieved. </p> </context>
+<steps id="GUID-0D781F2C-8D11-5792-98D5-76091DA8EBBB">
+<step id="GUID-E92A26A2-F56D-5FA0-A583-43B227AE670C"><cmd/>
+<info>Pass the input file archive and create an instance of the <xref href="GUID-79C613E8-35F8-319B-BE8B-1411CBE5AF00.dita"><apiname>CZipFile</apiname></xref> class.</info>
+<info> The <xref href="GUID-79C613E8-35F8-319B-BE8B-1411CBE5AF00.dita"><apiname>CZipFile</apiname></xref> is a read only interface. It does not
+support file compression to a single or multiple zip file archives. </info>
+</step>
+<step id="GUID-8E916762-869C-5E9C-B38C-43B55805EB73"><cmd/>
+<info>Invoke <xref href="GUID-79C613E8-35F8-319B-BE8B-1411CBE5AF00.dita#GUID-79C613E8-35F8-319B-BE8B-1411CBE5AF00/GUID-7F528528-1814-39A6-BE14-CA1F7AABFD06"><apiname>CZipFile::GetMembersL()</apiname></xref> that returns a pointer
+of <xref href="GUID-D458AE6A-EC64-3882-BCEA-A44A43DAA99A.dita"><apiname>CZipFileMemberIterator</apiname></xref>  </info>
+<info>The <xref href="GUID-D458AE6A-EC64-3882-BCEA-A44A43DAA99A.dita"><apiname>CZipFileMemberIterator</apiname></xref> iterator
+class provides functions that point to the first file in the archive and to
+navigate through all the entries in the archive. </info>
+<info>The <xref href="GUID-D458AE6A-EC64-3882-BCEA-A44A43DAA99A.dita"><apiname>CZipFileMemberIterator</apiname></xref> iterator class can access
+each member of the zip archive using <xref href="GUID-D458AE6A-EC64-3882-BCEA-A44A43DAA99A.dita#GUID-D458AE6A-EC64-3882-BCEA-A44A43DAA99A/GUID-610F12F0-C1B7-39BB-A446-7616BBF84B2C"><apiname>CZipFileMemberIterator::NextL()</apiname></xref>  </info>
+</step>
+<step id="GUID-BB056063-4391-5EC7-A223-ED752E2F1B32"><cmd/>
+<info>The properties of the member file are retrieved using the functions
+of <xref href="GUID-02A8BC62-D653-39A3-BE0C-92A5F3F43E85.dita"><apiname>CZipFileMember</apiname></xref>. </info>
+<info>The <xref href="GUID-02A8BC62-D653-39A3-BE0C-92A5F3F43E85.dita"><apiname>CZipFileMember</apiname></xref> class retrieves the properties
+of the member file once the member file is accessible. </info>
+</step>
+<step id="GUID-4EAC4BD5-551B-58A3-A6B4-D4433027F5C8"><cmd/>
+<info>The files extracted from the archive are stored in the output folder. </info>
+<info>If the output folder is unavailable a new folder is created prior to
+archive decompression. </info>
+</step>
+</steps>
+<example><p>The following example code illustrates the decompression of file
+archive. </p><codeblock xml:space="preserve">/*
+    * Decompresses all the files in "inputarchive.zip" using the EZlib.
+    *  If an input filename is not specified it is assumed that the
+    * input file name is contained in a provided .ini file.
+    */
+    void CEZlibEZipTests::DoEZlibZipArchiveDecompressL()
+    {
+    RFs iFs;
+    iFS.connect();
+    CleanupClosePushL(iFS);
+    TInt err = KErrNone;
+    HBufC8 *outputBuffer = HBufC8::NewLC(outputBufferSize);
+
+    _LIT(KInputFileLocation, "c:\\private\\E80000B7\\zip\\input\\inputarchive.zip");
+    TFileName inputFile(KInputFileLocation);
+
+    RFile input;
+    err = input.Open(iFs, inputFile, EFileStream | EFileRead | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KOpenFileError);
+        User::Leave(err);
+        }
+    CleanupClosePushL(input);
+
+    CZipFile *zipFile = CZipFile::NewL(iFs,input);
+    CleanupStack::PushL(zipFile);
+    CZipFileMemberIterator *fileMemberIter = zipFile-&gt;GetMembersL();
+
+    //  iZipArchiveEzlibFolder = GenerateZipArchiveFolderNameL(aInputFileName);
+    //  iZipArchiveEzlibFolder.Append(KZipArchiveEzlib);
+
+    for(TOLDEZIP::CZipFileMember *fileMember = fileMemberIter-&gt;NextL(); fileMember != NULL; fileMember = fileMemberIter-&gt;NextL())
+        {
+        TFileName tmpfilename(*(fileMember-&gt;Name()));
+
+        // Check if we have a folder or file
+        TPtrC lastChar = tmpfilename.Right(1);
+        if(lastChar.Compare(_L("\\")) != 0 &amp;&amp; lastChar.Compare(_L("/")) != 0)
+            {
+            RFile output;
+            err = output.Replace(iFs, tmpfilename, EFileStream | EFileWrite | EFileShareExclusive);
+            if(err != KErrNone)
+                {
+                INFO_PRINTF1(KCreateFileError);
+                User::Leave(err);
+                }
+            CleanupClosePushL(output);
+
+            TOLDEZIP::RZipFileMemberReaderStream *readerStream;
+            zipFile-&gt;GetInputStreamL(fileMember, readerStream);
+            CleanupStack::PushL(readerStream);
+
+            TPtr8 pOutputBuffer = outputBuffer-&gt;Des();
+            do
+                {
+                err = readerStream-&gt;Read(pOutputBuffer, outputBufferSize);
+                output.Write(pOutputBuffer);
+                } while(err == KErrNone);
+            if(err != KErrEof)
+                {
+                User::Leave(err);
+                }
+            CleanupStack::PopAndDestroy(2);
+            }
+        else
+            {
+            TFileName fullPath("c:\\private\\E80000B7\\zip\\input\\");
+            fullPath.Append(tmpfilename);
+            iRfs.MkDir(fullPath);
+            }
+        }
+    CleanupStack::PopAndDestroy(3);
+    }
+</codeblock></example>
+</taskbody></task>

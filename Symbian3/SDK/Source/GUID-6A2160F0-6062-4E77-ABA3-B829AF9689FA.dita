@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6A2160F0-6062-4E77-ABA3-B829AF9689FA" xml:lang="en"><title>Contacts
+database events</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A client application of the Contacts Server can be set to observe changes
+in the contacts database. When a change in the database occurs, the application
+gets an event. The event carries information about the type of the event,
+the contact ID, and the connection ID.</p>
+<codeblock id="GUID-F552F563-6AA7-4E55-9E0E-F131E2B2C91B" xml:space="preserve">struct TContactDbObserverEvent
+    {
+    TContactDbObserverEventType iType;
+    TContactItemId iContactId;
+    TUint iConnectionId;
+    };
+</codeblock>
+<p>The following event types are defined in the <parmname>cntdbobs.h</parmname> header:</p>
+<codeblock id="GUID-9022E0A5-8CF3-469E-B1D4-2B2CC607F852" xml:space="preserve">enum TContactDbObserverEventType
+    {
+    EContactDbObserverEventNull,
+    EContactDbObserverEventUnused,
+    EContactDbObserverEventContactChanged,
+    EContactDbObserverEventContactDeleted,
+    EContactDbObserverEventContactAdded,
+    EContactDbObserverEventUnknownChanges,
+    EContactDbObserverEventRecover,
+    EContactDbObserverEventRollback,
+    EContactDbObserverEventTablesClosed,
+    EContactDbObserverEventTablesOpened,
+    EContactDbObserverEventTemplateChanged,
+    EContactDbObserverEventTemplateDeleted,
+    EContactDbObserverEventTemplateAdded,
+    EContactDbObserverEventCurrentItemDeleted,
+    EContactDbObserverEventCurrentItemChanged,
+    EContactDbObserverEventOwnCardChanged,
+    EContactDbObserverEventPreferredTemplateChanged,
+    EContactDbObserverEventOwnCardDeleted,
+    EContactDbObserverEventGroupAdded,
+    EContactDbObserverEventGroupChanged,
+    EContactDbObserverEventGroupDeleted,
+    EContactDbObserverEventCurrentDatabaseChanged,
+    EContactDbObserverEventSpeedDialsChanged
+    EContactDbObserverEventSortOrderChanged,
+    EContactDbObserverEventBackupBeginning,
+    EContactDbObserverEventRestoreBeginning,
+    EContactDbObserverEventBackupRestoreCompleted,
+    EContactDbObserverEventRestoreBadDatabase,
+    };
+</codeblock>
+<p>In order to make an application receive events about contact database
+changes, the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/CNTMODEL/MContactDbObserverClass.html#%3a%3aMContactDbObserver" format="application/java-archive"><parmname>MContactDbObserver</parmname></xref> base class must be inherited and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/CNTMODEL/MContactDbObserverClass.html#%3a%3aMContactDbObserver%3a%3aHandleDatabaseEventL%28%29" format="application/java-archive"><parmname>HandleDatabaseEventL()</parmname></xref> virtual function must be implemented.
+The function is called by the system when a contact database event occurs.</p>
+<codeblock id="GUID-EEB33DFB-0009-4CE5-BC96-41B65519F8D1" xml:space="preserve">class CMyContactObserver : public CBase, public MContactDbObserver
+    {
+     public:
+         // any public data and functions
+         CMyContactObserver ();
+         // override the virtual function from the base class
+         virtual void HandleDatabaseEventL( TContactDbObserverEvent aEvent );
+         };
+     // handling contact database events
+     void CMyContactObserver::HandleDatabaseEventL( TContactDbObserverEvent aEvent )
+         {
+         // Event handling code
+         }
+</codeblock>
+<p>In addition, the application must create the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/CNTMODEL/CContactChangeNotifierClass.html#%3a%3aCContactChangeNotifier" format="application/java-archive"><parmname>CContactChangeNotifier</parmname></xref> object to register itself to receive events.</p>
+<codeblock id="GUID-95A974D8-3D88-4E64-8A33-AF2366C34791" xml:space="preserve">CContactDatabase* contactDb = CContactDatabase::OpenL();
+//iContactDbObserver is a CMyContactObserver pointer
+CContactChangeNotifier* notifier = CContactChangeNotifier::NewL( *contactDb, iContactDbObserver );
+</codeblock>
+</conbody></concept>

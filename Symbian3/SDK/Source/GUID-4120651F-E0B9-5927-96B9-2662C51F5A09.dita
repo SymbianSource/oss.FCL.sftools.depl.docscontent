@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09" xml:lang="en"><title>SIP High
+Level API</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The SIP High Level API encapsulates the SIP call flows inside the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> and <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> APIs.
+The following SIP functionality is supported using <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> and <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> APIs: </p>
+<ul>
+<li id="GUID-0A13EB92-CD3F-5F33-AE9F-3333BDFB5B03"><p>REGISTER - An application
+that wants to start a SIP session must register to the SIP server. For more
+information, see <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-02CBB3C7-9B7C-5B49-8F29-56F235FF320E">Registration</xref>. </p> </li>
+<li id="GUID-63D5BA93-28C1-5CE6-A1AD-78AD21EF5C6F"><p>INVITE - An invite session
+is created for activities such as setting up a voice call, and a game session.
+For more information, see <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-EE044B0B-4664-57DA-BAE1-F9A3B99C453C">Session
+initiation</xref>. </p> </li>
+<li id="GUID-40206112-EC3B-57EF-B316-F7C938EB2118"><p>SUBSCRIBE - SIP supports
+subscription to events for example, message waiting, notifying the subscriber
+about the current state of the event and any changes to its state. For more
+information, see <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-BF804D44-35A2-5997-9706-B48C2C30F2BE">Initiating
+a session using SUBSCRIBE</xref>. </p> </li>
+</ul>
+<p>The <codeph>INVITE</codeph> and <codeph>SUBSCRIBE</codeph> methods must
+be registered. <xref href="GUID-A412D2E5-C4BE-33F7-A610-ECBD1BD6BBF9.dita"><apiname>CSubConSIPInviteParamSet</apiname></xref> and <xref href="GUID-8ABE119B-CF5D-3FED-A26F-E889AE6B7663.dita"><apiname>CSubConSIPSubscribeParamSet</apiname></xref> classes
+provide the parameters. </p>
+<p> <b>Note</b>: SIP High Level API is included in the Symbian OS from version
+9.2 onwards. </p>
+<section id="GUID-02CBB3C7-9B7C-5B49-8F29-56F235FF320E"><title>Registration</title> <p>An
+endpoint, for example a SIP enabled phone, that wants to start a SIP session
+must use <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> to register with the SIP registrar.
+For more information about RConnection, see<xref href="GUID-BD8446C5-3ADE-59A6-A13A-A5482D6FC56F.dita">Connection
+Management</xref> . <xref href="GUID-506C0ECB-9424-3579-877E-1435F76B2594.dita"><apiname>ESOCK</apiname></xref> provides an interface for the
+user to access the SIP high level API. <xref href="GUID-506C0ECB-9424-3579-877E-1435F76B2594.dita"><apiname>ESOCK</apiname></xref> interacts
+with the SIP high level API through the <codeph>Connection</codeph> and <codeph>SubConnection</codeph> providers.
+Connection and SubConnection providers are <codeph>ESOCK</codeph> server side
+components that are loaded and called when <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> and <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> APIs
+are used. </p> <p>The following figure shows the architectural layer where
+the application interacts with SIP connection providers using SIPPARAMS. The
+second layer comprising <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref>, <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>,
+and <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> constitute the SIPPARAMS. </p> <fig id="GUID-57FDC30F-E5AD-5C9D-8D80-71B35CB905D4">
+<title>              Interface of Connection and Sub Connection.         
+  </title>
+<image href="GUID-FFE6BAF8-C093-53FC-8672-365BAF38E048_d0e318604_href.png" placement="inline"/>
+</fig> <p>The SIP high level API models the SIP with Connection and SubConnection
+providers and makes it stackable against the unified comms-infras architecture.
+This enables the future connection convergence. </p> <p><b> Initial setup</b> </p> <p>A
+profile data store is required to get registered with the SIP Registrar. A
+SIP registration profile is a data store containing the information required
+for registration such as AOR which is the IP address of registrar. The data
+profile must contain the following fields: </p> <ul>
+<li id="GUID-9419A4E2-40DB-52E4-9B70-89DEF5594CF6"><p>data profile type: Internet,
+IMS, others </p> </li>
+<li id="GUID-36207215-4ECE-5D08-AEFB-6D801DBA0902"><p>profile name IETF, IMS,
+others </p> </li>
+<li id="GUID-FF904FF9-9D4B-5B34-986F-8F565BDE8E41"><p>IAP name </p> </li>
+<li id="GUID-C66C0664-B9A8-59C8-8C44-88634D7D2E94"><p>profile AOR list (IP
+address) </p> </li>
+<li id="GUID-D85CF1F0-98CA-5947-90EB-0C4D0B96EBCC"><p>autoregistration </p> </li>
+<li id="GUID-FC499704-39DC-55E1-80EC-3A3F8F0A8C53"><p>private ID </p> </li>
+<li id="GUID-ED9C3D8E-A8CC-5D65-B381-81EC51264980"><p>security negotiation </p> </li>
+<li id="GUID-B400C58A-E180-54B7-A536-7B7103CD4274"><p>sigcomp </p> </li>
+<li id="GUID-AB1D459F-CCEA-5D20-8FCE-02939F716093"><p>server (IP address of
+registrar, outbound proxy) </p> </li>
+<li id="GUID-999CAACE-4E8F-5EDA-877E-2A46580D9BA9"><p>server param (username,
+realm, pwd) </p> </li>
+<li id="GUID-B4AAE1EE-1A67-5FBE-8F75-9BCB01E2ECE2"><p>default </p> </li>
+</ul> <p>Manual registration by specifying parameters is not possible. If
+connection details are not available, the connection is set up using the default <filepath>profile.flag</filepath> file. </p> <p id="GUID-D17BC438-09C2-58E9-ABE8-F18B8A285B4D"><b>Creating an RConnection</b> </p> <p>Create
+an <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> to register to the SIP Registrar using the
+following steps. <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> must be opened on an existing
+socket server session, <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RSocketServ</apiname></xref>. </p> <codeblock id="GUID-AC8B369E-1DC8-5868-95E2-B09FCFE4987E" xml:space="preserve">RSocketServ    socketServer;        // Create a client interface object to the socket server
+RConnection    con;                        // Create an RConnection object
+TRequestStatus status = KErrNone;                // object to hold the request completion status
+
+// Establish the connection to the Socket server
+
+User::LeaveIfError(socketServer.Connect());        // Returns KErrorNone if the connection is successful
+CleanupClosePushL(socketServer);
+
+TUint KAFSip = 0x10000;             //SIP protocol family id
+TInt err = con.Open (socketServer,KAFSip);            //open the connection
+TInt err1 = con.Start();                    // Start Rconnection to initiate the registration
+</codeblock> <p>When registration to the SIP registrar is successful, <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> is
+used to establish the SIP Invite or SIP Subscribe session. The <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> and <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> that
+is established and opened are used for either inviting a call session or subscribing
+for the message status. </p> </section>
+<section id="GUID-565742FA-20AB-57A8-AB81-19664F9B2BC8"><title>Session initiation</title> <p><b>SIP
+Params</b> </p> <p>SIPPARAMS is used to simplify the interaction with the
+SIP stack by abstracting the SIP functionality using the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> and <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> APIs.  It
+supports the basic SIP functionality. The complete SIP functionality is made
+available through the SIP stack APIs. </p> <p id="GUID-EE044B0B-4664-57DA-BAE1-F9A3B99C453C"><b>Initiating
+a session using INVITE</b> </p> <p> <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> is used
+to establish a SIP Invite session. A SIP invitation starts when an endpoint
+such as a VoIP Softphone or VoIP Hardware tries to establish a session with
+a remote compliant endpoint. A successful SIP invitation consists of an INVITE-OK-ACK
+triplet message exchange. The calling endpoint tries to start a session with
+SIP INVITE. This is followed by OK from the called endpoint, and by ACK from
+the calling endpoint that finally establishes the SIP session. </p> <p>A SIP
+session can be terminated by using BYE-200OK message exchange. Either the
+calling or the called party can initiate the termination. </p> <p> <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> establishes
+the SIP session using the three way communication of INVITE-OK-ACK and terminates
+the call using BYE-200OK. </p> <p> <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> when
+used on behalf of the calling endpoint, handles the message exchange independently
+and provides the status whether the session is established, denied or not
+reachable. The calling endpoint must fill the necessary SIP session parameters
+that are used to determine the target. </p> <p> <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> when
+used on behalf of the called endpoint alerts the user of an incoming call
+such as a SIP invitation. The incoming call can be either accepted or rejected
+using <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>. The application is notified about
+the outcome. The information about the calling endpoint is provided in a set
+of specific parameters. </p> <p>The SIP parameters for an outgoing call is
+set using <xref href="GUID-A412D2E5-C4BE-33F7-A610-ECBD1BD6BBF9.dita"><apiname>CSubConSIPInviteParamSet</apiname></xref> class. The following
+code shows how to initiate a call. It is assumed that you have already registered
+with the SIP registrar by creating an <codeph>RConnection</codeph> object
+and called <codeph>Open()</codeph>. For more information, see <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-D17BC438-09C2-58E9-ABE8-F18B8A285B4D">Creating an RConnection</xref>. </p> <codeblock id="GUID-0DCB4778-33E7-5604-A7C4-ED534B48FA33" xml:space="preserve">RSubConnection    subCon;    // Create an RSubConnection object
+err=subCon.Open(socketServer,RSubConnection::ECreateNew,con); // Open subconnection onto the Rconnection
+</codeblock> <p>Set the SIP Invite parameters. The following code shows how
+to set the SIP Invite parameters. </p> <codeblock id="GUID-904E8A67-646D-5589-9144-60D4C2598A62" xml:space="preserve">RSubConParameterBundle     sipBundle;            // create parameter bundle
+
+// create SIP parameter set family
+CSubConParameterFamily * family = CSubConParameterFamily::NewL(sipBundle,KSubConnCallDescrParamsFamily);
+
+// create invite parameter set object
+CSubConSIPInviteParamSet* sip = CSubConSIPInviteParamSet::NewL(*family,CSubConParameterFamily::ERequested);</codeblock> <p>Set
+the SIP header values to the parameter set. The following code shows how to
+set the SIP header values to the parameter set. </p> <codeblock id="GUID-E298FDDC-28CE-506D-A301-B5F04DC7D7AD" xml:space="preserve">_LIT8(KTo,"Sip:user@10.112.165.91");        //'To' header, SIP URI of called endpoint
+TPtrC8 ptrTo(KTo());
+sip-&gt;SetToL(ptrTo);         //Set'To', the target SIP URI to the SIP parameter set
+
+_LIT8(KFrom, "Sip:user@10.112.165.62");        //'From' header, SIP URI of the calling endPoint
+TPtrC8 ptrFrom(KFrom());
+sip-&gt;SetFromL(ptrFrom);                //Set the 'From' header field to the SIP parameter set
+
+_LIT8(KContact,"Sip:user@10.112.165.62");            //'Contact' header, the actual location of the calling endpoint
+TPtrC8 ptrContact (KContact());
+sip-&gt;SetContactL(ptrContact);                //Set the 'Contact' to the SIP parameter set 
+
+_LIT8(KRequestUri, "Sip:user@10.112.165.91");    //Request URI, the actual Next hop or the Target
+TPtrC8 ptrRequestUri(KRequestUri());
+sip-&gt;SetRequestUriL(ptrRequestUri);             //Set the 'RequestUri' to the SIP parameter set</codeblock> <codeblock id="GUID-916B4C73-B97B-5EC0-A70E-EFDD0FB51210" xml:space="preserve">TInt err = SubCon.SetParameters(sipBundle);         //Set The SIP parameters in the SubConnection
+sipBundle.Close();                    //close the parameter bundle</codeblock> <p id="GUID-8676EB5B-FA5D-51EC-9FAD-C36BB29A6392"><b>Establishing the INVITE
+session</b> </p> <p>To establish the SIP Invite session, use <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> to
+start the subconnection. This initiates the Invite request. </p> <codeblock id="GUID-4A8E0FB2-7096-583F-9DF6-D0B2255F618A" xml:space="preserve">//Start the subconnection, effectively sending an Invite
+TInt subConRet = subCon.Start(); 
+// Session is established</codeblock> <p id="GUID-BF804D44-35A2-5997-9706-B48C2C30F2BE"><b>Initiating
+a session using SUBSCRIBE</b> </p> <p>An endpoint subscribes to a specific
+service using a SIP SUBSCRIBE-200OK message exchange. The end point is notified
+by means of a NOTIFY-200OK message exchange. To send the subscription and
+receive notifications use <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>. <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> is
+also used to unsubscribe, which stops any further notifications. </p> <p>The
+following code shows how you subscribe to a session and receive notifications.
+It assumes that you have already registered with the SIP registrar by creating
+an <codeph>RConnection</codeph> object and calling <codeph>Open()</codeph> on
+it as explained in <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-D17BC438-09C2-58E9-ABE8-F18B8A285B4D">Creating
+an RConnection</xref> section. </p> <codeblock id="GUID-B68FF753-0D48-54C2-8DE1-282658CE96BA" xml:space="preserve">RSubConnection    subCon;// Create an RSubConnection object
+// Open subconnection onto the Rconnection
+err=subCon.Open(socketServer,RSubConnection::ECreateNew,con);
+</codeblock> <p>Set the SIP Subscribe parameters using <xref href="GUID-8ABE119B-CF5D-3FED-A26F-E889AE6B7663.dita"><apiname>CSubConSIPSubscribeParamSet</apiname></xref>.
+This class provides the SIP subscribe parameters that are passed through the
+subconnection to the SIP stack. </p> <codeblock id="GUID-3512DB0A-EE9E-5B59-92D5-46F65CB9F4B4" xml:space="preserve">RSubConParameterBundle     sipBundle;                 //    create parameter bundle
+
+//create SIP parameter set family
+CSubConParameterFamily * family = CSubConParameterFamily::NewL(sipBundle,KSubConnCallDescrParamsFamily);
+
+// create subscribe parameter set object
+CSubConSIPSubscribeParamSet* sip = CSubConSIPSubscribeParamSet::NewL(*family,CSubConParameterFamily::ERequested);</codeblock> <p>Set <codeph>the
+required information that is, to</codeph>, <codeph>from</codeph>, <codeph>contact,</codeph> and <codeph>reqURI</codeph> header
+values to the SIP subscribe parameter set as explained in <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-EE044B0B-4664-57DA-BAE1-F9A3B99C453C">Initiating a session using INVITE</xref> section. </p> <codeblock id="GUID-11671200-F24E-5278-9408-EE75399B25C2" xml:space="preserve">// Set the required information
+_LIT8(KEventType, "messagewaiting");    // subscription event type
+TPtrC8 ptrEventType (KEventType());
+sip-&gt;SetEventTypeL(ptrEventType);     //Set the subscription event type to 'messagewaiting'
+
+_LIT8(KAcceptType,  "application");    //accept type
+TPtrC8 ptrAcceptType(KAcceptType());
+sip-&gt;SetAcceptTypeL(ptrAcceptType); //set the accept type field to 'application'
+
+_LIT8(KAcceptSubType,   "indication"); //accept subtype
+TPtrC8 ptrAcceptSubType(KAcceptSubType());
+sip-&gt;SetAcceptSubTypeL(ptrAcceptSubType);    //set the accept subtype
+
+sip-&gt;SetExpires(3600);    // set the subscription Refresh timings
+
+sip-&gt;SetAutoRefresh(ETrue); // set Auto Refresh to 'on' 
+
+// pass SIP subscribe parameters through the subconnection
+Tint err = subCon.SetParameters(sipBundle);
+sipBundle.Close(); //close the parameter bundle
+
+subCon.Start();    // Start the subscription
+</codeblock> <p>To receive notifications to the subscribed events, <xref href="GUID-106A74C7-9B70-3397-973C-E317C1F40C58.dita"><apiname>CSubConSIPNotificationEvent</apiname></xref> class
+is used. </p> <codeblock id="GUID-4D3A9189-1AA5-5275-A5B6-425085006A25" xml:space="preserve">// Wait and receive notifications to events
+while(ETrue)
+{
+TNotificationEventBuf evtBuf;         // Sub-connection event notification object
+
+    TRequestStatus reqStatus;             // request status object
+
+    User::WaitForRequest(reqStatus);
+    TInt eventId = evtBuf.Id();                     // get sub-type id
+    TInt groupId = evtBuf.GroupId();         // get group id of the event
+
+if (eventId == KSubConSIPNotificationEventType &amp;&amp; groupId == KSubConSIPEventsUid)
+        {
+                CSubConSIPNotificationEvent * evtRes = (CSubConSIPNotificationEvent*)CSubConNotificationEvent::NewL(evtBuf);
+                CleanupStack::PushL(evtRes);    
+                ....................
+                ....................
+                CleanupStack::PopAndDestroy(evtRes);    
+
+            // Since We do not want to receive more notifications in this stage, break from the loop.
+
+                break;
+        }
+
+// we can wait again for another notification
+subCon.EventNotification( evtBuf,EFalse, reqStatus);  //request for notification
+}</codeblock> <p>Unsubscribe to events and unregister, refer to steps in the <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-FB267A38-FFB3-5360-9DC8-3E42C5C546A4">Terminating
+the session</xref> section. </p> <p><b>Setting authentication parameters</b> </p> <p>A
+remote party or a server may require authentication before it allows an endpoint
+to establish a session with another endpoint. <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> provides
+an authentication mechanism where the authentication information such as realm,
+username and password must be provided while initiating the call. If a challenge
+is received then <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> provides the realm and
+initiates a new session with authentication parameters. </p> <p>Authentication
+parameters are set in a subconnection parameter bundle as shown in the following
+code fragment. Set the SIP authenticate parameter set using <xref href="GUID-155DBCFD-76A4-3852-855E-0E0E8F1EC775.dita"><apiname>CSubConSIPAuthenticateParamSet</apiname></xref>.
+This class provides the SIP authenticate parameter values that are passed
+through the subconnection to the SIP stack. </p> <codeblock id="GUID-BE7DB575-79EE-5D13-B3CB-041579DD5D57" xml:space="preserve">RSubConParameterBundle     sipBundle;                         //    create parameter bundle
+// Add authorisation parameters as new family
+CSubConParameterFamily * family1 = CSubConParameterFamily::NewL(sipBundle,KSubConAuthorisationFamily );
+
+// create authenticate parameter set object
+CSubConSIPAuthenticateParamSet * authParam = CSubConSIPAuthenticateParamSet::NewL(*family1,CSubConParameterFamily::ERequested);
+</codeblock> <p>Set <codeph>the required information that is, to</codeph>, <codeph>from</codeph>, <codeph>contact</codeph>, <codeph>reqURI</codeph> header field values to the SIP authenticate parameter set, similar to that
+in <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-EE044B0B-4664-57DA-BAE1-F9A3B99C453C">Initiating
+a session using INVITE</xref> section. </p> <codeblock id="GUID-55C1E9B8-B6CB-565D-9163-31421965C01A" xml:space="preserve">_LIT8(KRealm, "SFTF");
+_LIT8(KUserName, "MyUserName");
+_LIT8(KPwd, "pass123");
+
+authParam-&gt;SetRealmL(KRealm);    //set the Realm parameter
+authParam-&gt;SetUserNameL(KUserName);    // set the username
+authParam-&gt;SetPasswordL(KPwd);                    //set the password
+
+TInt err = subCon.SetParameters(sipBundle); //set the Authenticate parameters to the subconnection
+sipBundle.Close();                    //close the parameter bundle</codeblock> <p>To
+terminate the call session or unsubscribe to events and unregister, follow
+the steps in <xref href="GUID-4120651F-E0B9-5927-96B9-2662C51F5A09.dita#GUID-4120651F-E0B9-5927-96B9-2662C51F5A09/GUID-FB267A38-FFB3-5360-9DC8-3E42C5C546A4">Terminating
+the session</xref> section. </p> </section>
+<section id="GUID-FB267A38-FFB3-5360-9DC8-3E42C5C546A4"><title>Terminating
+the session</title> <p>To terminate the SIP INVITE or SUBSCRIBE session: </p> <ul>
+<li id="GUID-E1DABB93-F761-554F-82F9-78CAF0116A2C"><p>send BYE message by
+closing the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> session </p> </li>
+<li id="GUID-D8757702-DB58-5F75-A00A-9251B3975CFF"><p>unregister with the
+SIP registrar by closing the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> session. </p> </li>
+</ul> <codeblock id="GUID-F5281FE3-651C-5DAD-9569-5A7C967233F0" xml:space="preserve">Int ret = subCon.Stop();    // Terminate the session, send BYE message
+
+subCon.Close();        // close the subconnection
+
+con.Stop();      // Terminate the connection
+
+con.Close();        // Close the connection </codeblock> </section>
+<section id="GUID-B6F7F947-1E4B-4DFD-80B4-70E5E890685A"><title>See also</title> <p> <xref href="GUID-FA4F1E9F-8775-51E4-99DD-D334E73319C5.dita">Socket
+Server Protocols Overview</xref>  </p> <p> <xref href="GUID-6BB74A83-C6EA-5BC2-B60F-8186CC896725.dita">Sockets
+Client Overview</xref>  </p> <p><xref href="GUID-BD8446C5-3ADE-59A6-A13A-A5482D6FC56F.dita">Connection
+Management</xref></p> </section>
+</conbody></concept>

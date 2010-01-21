@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9BF78E98-E376-5EE4-9350-C77BF9F540E6"><title>Using the Bitmap Utilities</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This topic provides example code that shows how to use the pixel manipulation functions in <codeph>TBitmapUtil</codeph>. In this example they are used to create a bitmap that is a rotated version of an existing bitmap. </p> <codeblock id="GUID-F6828C32-3C17-5DF5-8681-BFA4FB9A6DD4" xml:space="preserve">/* create a new bitmap (iBitmap4), with the same size as an existing bitmap (iBitmap1), but with the height and width swapped */
+iBitmap4 = new (ELeave) CFbsBitmap();
+TSize inSize = iBitmap1-&gt;SizeInPixels();
+User::LeaveIfError(iBitmap4-&gt;Create(TSize(inSize.iHeight,inSize.iWidth), iBitmap1-&gt;DisplayMode());
+    
+// create the bitmap utils
+TBitmapUtil bitmap1Util(iBitmap1);
+TBitmapUtil bitmap4Util(iBitmap4);
+    
+// Begin manipulation with bitmap1Util, setting initial pixel to 0,0 
+bitmap1Util.Begin(TPoint(0,0)); 
+    
+// Begin manipulation with bitmap4Util, setting initial pixel to 0,0
+bitmap4Util.Begin(TPoint(0,0),bitmap1Util); 
+    
+// set the bits of iBitmap4 as iBitmap1, rotated through 90 degrees
+TInt xPos;
+for (TInt yPos=0;yPos&lt;inSize.iHeight;yPos++)
+ {
+ bitmap1Util.SetPos(TPoint(0,yPos));
+ bitmap4Util.SetPos(TPoint(yPos,0));
+ for (xPos=0;xPos&lt;inSize.iWidth;xPos++) 
+  {
+  bitmap4Util.SetPixel(bitmap1Util);
+  bitmap1Util.IncXPos();
+  bitmap4Util.IncYPos();
+  }
+ }
+    
+// each Begin() must have a corresponding End()
+bitmap1Util.End();
+bitmap4Util.End();</codeblock> <p><b>Notes </b> </p> <ul><li id="GUID-5B1DED55-BC39-5DC3-A14B-48A78F9C84F4"><p> <codeph>Begin()</codeph> and <codeph>End()</codeph> calls must surround the other <codeph>TBitmapUtil</codeph> function calls. They tell the Font and Bitmap Server when to lock (that is, not to attempt to compress) the heap where bitmaps are stored, while operations are in progress. </p> </li> <li id="GUID-9CE06E09-B9DF-5F06-BA89-1E09070B2EE8"><p>The second call to <codeph>Begin()</codeph> specifies that the heap has already been locked by <codeph>bitmap1Util</codeph>. </p> </li> </ul> </conbody><related-links><link href="GUID-AFE8A9CC-E026-5396-8E0C-616338B5F5C3.dita"><linktext>BitGDI Tutorials</linktext> </link> <link href="GUID-EAAD1719-C02C-5705-A5C3-993E36441BE6.dita"><linktext>BitGDI Component</linktext> </link> </related-links></concept>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-508DD478-1876-5DE2-9271-BDD99F51F579" xml:lang="en"><title>How
+to use a change notifier</title><shortdesc>Provides code snippets to show you how to use a change notifier.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To use a change notifier, a thread:</p>
+<ul>
+<li id="GUID-1058B3E0-3185-55E1-B4FD-4C6EA533107D"><p>constructs an <codeph>RChangeNotifier</codeph> handle
+and then calls its <codeph>Create()</codeph> member function to create the
+associated Kernel side object. The <codeph>RChangeNotifier</codeph> handle
+is <keyword>thread-relative</keyword> which means that the handle is closed
+if the thread dies. </p> </li>
+<li id="GUID-9BB3408F-F792-5310-8459-50E0DB375B6C"><p>issues a request to
+be notified when the next change occurs, passing a <codeph>TRequestStatus</codeph> object.
+This is a call to the <codeph>Logon()</codeph> function.</p> </li>
+</ul>
+<p>When a change occurs, the change information is made available to the thread
+through the <codeph>TRequestStatus</codeph> object and the thread's <keyword>request
+semaphore</keyword> is signalled to indicate that the request is complete.</p>
+<p>The following code fragments demonstrates this:</p>
+<codeblock id="GUID-07277DED-7C9A-5620-BA3D-0DE5D2C64969" xml:space="preserve">{
+...
+RChangeNotifier the_notifier;
+TRequestStatus  the_status;
+...
+the_notifier.Create();
+the_notifier.Logon(the_status);
+User::WaitForRequest(the_status);
+...
+...// prepare for a long wait
+...
+TInt changes = the_status.Int();
+if (changes &amp; EChangesSystemTime)
+    {
+    // handle a change to system time
+    }
+if (changes &amp; EChanges EChangesLocale)
+    {
+    // handle a change to locale
+    }
+...
+the_notifier.Close();
+...
+}</codeblock>
+<p>In practical code, an <codeph>RChangeNotifier</codeph> would be part of
+an active object.</p>
+<p>The <codeph>RChangeNotifier</codeph> handle also offers the <codeph>LogonCancel()</codeph> function.
+Calling this function, causes the thread's <keyword>request semaphore</keyword> to
+be signalled and any wait to complete. The <codeph>TRequestStatus</codeph> is
+set to <codeph>KErrCancel</codeph>.</p>
+<p>The above technique for checking changes is used because, at the completion
+of a notification request, any, or all, changes may be reported. Code should
+make no assumptions about the other bits in the returned value. In other words,
+code should be prepared for a notification request to complete without an
+'interesting' change.</p>
+<p>Users should also note that the <i>first</i> notification request <i>after</i> creation
+of an <codeph>RChangeNotifier</codeph>, completes <i>immediately</i>; the
+changes reported are <i>all</i> those defined by the <codeph>TChanges</codeph> enum.</p>
+<p>Also note that after a notification request completes, other changes may
+occur before the user of the <codeph>RChangeNotifier</codeph> can issue the
+next notification request. If this occurs, any change events are collected
+by the change notifier; they are not lost; in this situation, the next notification
+request completes immediately.</p>
+</conbody></concept>

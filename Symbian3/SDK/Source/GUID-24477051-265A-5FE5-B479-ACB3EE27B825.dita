@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-24477051-265A-5FE5-B479-ACB3EE27B825" xml:lang="en"><title>Synchronisation
+Techniques</title><shortdesc>Describes the use of <apiname>RThread::Rendezvous()</apiname> to
+synchronize threads.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>There are a number of techniques to synchronize or coordinate the activities
+of your threads with one another: </p>
+<ul>
+<li id="GUID-E5EC8F8C-2129-5750-AFDC-F4B15E3874C9"><p> <xref href="GUID-24477051-265A-5FE5-B479-ACB3EE27B825.dita#GUID-24477051-265A-5FE5-B479-ACB3EE27B825/GUID-68FCE30C-5487-501E-842C-6895717FD636">Thread Rendezvous</xref> </p> </li>
+</ul>
+<section id="GUID-68FCE30C-5487-501E-842C-6895717FD636"><title>Thread Rendezvous</title> <p>The <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-83AADCC6-1AD8-32D8-A6E6-B86B47C97DC2"><apiname>RThread::Rendezvous()</apiname></xref> function
+allows a thread to signal that it has reached a point in its execution. This
+works in a similar way to the <xref href="GUID-77B673ED-F7EE-3D50-88A7-F8FBFCB2D64E.dita"><apiname>Logon()</apiname></xref> function, except
+that <xref href="GUID-77B673ED-F7EE-3D50-88A7-F8FBFCB2D64E.dita"><apiname>Logon()</apiname></xref> signals the termination of a thread, and <xref href="GUID-45C22917-DC6E-3C95-BFE5-B8E9B316D4E3.dita"><apiname>Rendezvous()</apiname></xref> signals
+that a particular point within the thread has been reached. </p> <p>The classic
+use for this function is in a server, where the main thread must wait until
+the initialisation of the server thread has completed before continuing. </p> </section>
+<section id="GUID-7A87E7D5-255B-4626-ADB0-7A8F3F839C3C"><title>Using Rendezvous</title> <p>The following example shows code
+a function creating a thread and then waiting for it to reach a certain point
+before continuing. The code shown here is taken from <filepath>…\examples\base\threadsandprocesses\Rendezvous\</filepath>,
+which you can build and run. </p> <codeblock id="GUID-292F2672-390D-5D14-9615-8894315A1645" xml:space="preserve">      // create threads to wait for
+    RThread thread;
+
+        // indicate completion status
+    TRequestStatus myThreadRendezvousStatus;
+
+        // pass 500 as the parameter to MyThread        
+    TInt r=thread.Create(KMsgMyThreadName, MyThread, KDefaultStackSize, KHeapSize,KHeapSize,(TAny*) 2000000, EOwnerThread); 
+    if (r!=KErrNone)
+        {   
+        console-&gt;Printf(KMsgCreateThreadFailed);
+            return;
+        }
+        // create rendezvous
+    thread.Rendezvous(myThreadRendezvousStatus);
+
+        //EXCECUTE THREAD!
+    console-&gt;Printf(KMsgStartThread);                    
+    thread.Resume();
+
+    User::WaitForRequest(myThreadRendezvousStatus);
+    if(myThreadRendezvousStatus==KErrNone)
+        {
+        console-&gt;Printf(KMsgThreadRendezvousReached);
+        }
+        else
+        {
+        console-&gt;Printf(KMsgSomethingIsWrong);   
+        }   
+        
+    thread.Close();
+    console-&gt;Printf(KMsgEndOfTest);</codeblock> <p>The following function
+is the <codeph>MyThread()</codeph> function created in the previous example.
+The <codeph>MyThread()</codeph> function calls the rendezvous function to
+signal that the rendezvous point has been reached, <codeph>MyThread()</codeph> can
+then continue. </p> <codeblock id="GUID-94F0244E-B3E8-54F0-9BD8-6BB8942BA30F" xml:space="preserve">TInt MyThread(TAny* aParameter)
+    {
+        // simulate some processing
+    User::After((TInt)aParameter);      
+            
+            // signal Rendezvous
+    RThread::Rendezvous(KErrNone);
+    
+        // simulate some processing
+    User::After((TInt)aParameter);      
+    
+    return(KErrNone);
+    }</codeblock> <note><p> <codeph>MyThread()</codeph> can fail before signalling
+the <xref href="GUID-251A11AD-1D92-3F9C-AAEF-3D0FC9728C7E.dita"><apiname>Rendezvous</apiname></xref>, for example, if <codeph>MyThread()</codeph> panics
+with a <codeph>KERN-EXEC 3</codeph>, then the <xref href="GUID-251A11AD-1D92-3F9C-AAEF-3D0FC9728C7E.dita"><apiname>Rendezvous</apiname></xref> completes
+with the reason code <codeph>KErrDied</codeph> or another system wide error
+code other than <codeph>KErrNone</codeph>. </p></note><p>If <xref href="GUID-B3606A64-D3FB-3B92-8675-FBFD57675564.dita"><apiname>MyThread()</apiname></xref> enters
+a never ending loop before the rendezvous is reached, then this situation
+cannot be detected and results in the calling thread waiting indefinitely
+for the rendezvous. This can be avoided by careful programming. </p> </section>
+</conbody></concept>

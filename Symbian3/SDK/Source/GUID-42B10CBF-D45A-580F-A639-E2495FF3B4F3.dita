@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-42B10CBF-D45A-580F-A639-E2495FF3B4F3" xml:lang="en"><title>Remote
+Call Termination Tutorial </title><shortdesc>This tutorial describes how to detect when a caller at the remote
+end of the connection has terminated a call with the telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p><codeph>CTelephony</codeph> represents the status of your calls
+with a <codeph>CTelephony::TCallStatus</codeph> Possible status values include <i>Idle</i>, <i>Ringing</i>, <i>On-Hold</i>.</p><ul>
+<li><p>When a call status changes from </p><codeph>CTelephony::EStatusConnected </codeph> to <codeph>CTelephony::EStatusIdle</codeph> then
+the call has terminated. </li>
+<li><p>When a call status changes from </p><codeph>CTelephony::EStatusHold
+ </codeph> to <codeph>CTelephony::EStatusIdle</codeph> then the call has terminated. </li>
+</ul><p>The method starts an asynchonous operation that completes when the
+calls's status changes. At this point, the call's new status is written into
+the <codeph>CTelephony::TCallStatusV1Pckg</codeph>.</p></context>
+
+
+<steps id="GUID-AA3B542C-797F-56C7-A6B6-8218FAFBB5D2">
+<step id="GUID-9DE15571-A8FC-5101-A597-EA03F1BED4AC"><cmd/>
+<info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>. </info>
+</step>
+<step id="GUID-AE2D9BB9-A111-572A-9720-44DAD351FEE1"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::NotifyChange()</apiname></xref> to
+detect changes in the voice line status. </info>
+<info>Pass a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EOwnedCall1StatusChange</apiname></xref> to
+detect a change in call 1, and pass it <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EOwnedCall2StatusChange</apiname></xref> for
+call 2. Also pass an empty <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TCallStatusV1Pckg</apiname></xref>. </info>
+</step>
+<step id="GUID-57B7B41E-8A8D-500C-86A2-6EB75D8E06A6"><cmd/>
+<info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EOwnedCall1StatusChangeCancel</apiname></xref> to
+cancel the request for call1 notification and <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EOwnedCall2StatusChangeCancel </apiname></xref> for
+call2 notification. </info>
+</step>
+</steps>
+<example id="GUID-8255D372-823D-52D0-9082-4EF7E7808A83"><title>Remote call
+termination example</title> <codeblock id="GUID-4E422327-E0AF-5C97-A09E-5A241E25D679" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TCallId iCallId;
+                CTelephony::TCallStatusV1 iCallStatusV1;
+                CTelephony::TCallStatusV1Pckg iCallStatusV1Pckg;
+    CTelephony::TNotificationEvent iEvent;
+
+public:
+    CClientApp(CTelephony* aTelephony, CTelephony::TCallId aCallId);
+    TInt SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony, CTelephony::TCallId aCallId)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iCallId(aCallId),
+      iCallStatusV1Pckg(iCallStatusV1)
+    {
+    //default constructor
+    }
+
+TInt CClientApp::SomeFunction()
+    {
+    switch(iCallId)
+       {
+       case CTelephony::EISVCall1:
+          iEvent = CTelephony::EOwnedCall1StatusChange;
+          break;
+
+       case CTelephony::EISVCall2:
+          iEvent = CTelephony::EOwnedCall2StatusChange;
+          break;
+
+       default:
+          // We have not been given a valid call ID, so return an error
+          return KErrArgument;
+       }
+
+    iTelephony-&gt;NotifyChange(iStatus, iEvent, iCallStatusV1Pckg);
+    SetActive();
+    return KErrNone;
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {
+       // The status of the call has changed.
+       if(iCallStatusV1.iStatus == CTelephony::EStatusIdle)
+          {
+          // The call has been terminated.
+          }
+       else
+          {
+          // The call has not yet been terminated, so request notification again
+          iTelephony-&gt;NotifyChange(iStatus, iEvent, iCallStatusV1Pckg);
+          SetActive();
+          }
+       }
+    }
+
+void CClientApp::DoCancel()
+    {
+    CTelephony::TCancellationRequest cancelRequest;
+    if(iCallId == CTelephony::EISVCall1)
+       {
+       cancelRequest = CTelephony::EOwnedCall1StatusChangeCancel;
+       }
+    else // iCallId == CTelephony::EISVCall2
+       {
+       cancelRequest = CTelephony::EOwnedCall2StatusChangeCancel;
+       }
+    iTelephony-&gt;CancelAsync(cancelRequest);
+    }</codeblock> </example>
+</taskbody></task>

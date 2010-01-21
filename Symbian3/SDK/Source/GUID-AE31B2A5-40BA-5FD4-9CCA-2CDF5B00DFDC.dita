@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AE31B2A5-40BA-5FD4-9CCA-2CDF5B00DFDC" xml:lang="en"><title> Using
+a Management Plane session to receive Access Point notifications: Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial shows how to register for Access Point notifications from
+the Management Plane. Filters allow the notifications to be restricted to
+certain Access Point fields. </p>
+<p>The <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ</apiname></xref> API
+has to be accessed through the <xref href="GUID-61E0CD76-A2E3-5066-84A8-146EECA8ADCD.dita">Sockets
+Server</xref> client API, so you need to ensure that <filepath>esock.lib</filepath> is
+included in the MMP file. </p>
+<section><title>Procedure</title> <ol id="GUID-D9D1E509-2DB7-56FD-ACF2-B9F76B415AA5">
+<li id="GUID-FAB284BB-919C-5B4F-AD78-A190E4032AA9"><p>Implement a class derived
+from <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>MAccessPointNotificationObserver</apiname></xref>. </p> </li>
+<li id="GUID-E9CE079D-5E47-5804-AC70-4754BC227CA0"><p>Construct a bundle of
+type <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>ConnectionServParameterBundle</apiname></xref>.
+The bundle specifies: </p> <ol id="GUID-3B94D198-D12D-5B32-B65B-60D4A5023243">
+<li id="GUID-F6B10B9E-8A56-5173-BEC7-3525D6266FA2"><p>When to notify <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ</apiname></xref> about
+the availability of Access Points. </p> </li>
+<li id="GUID-3627A9A8-ECAB-5E77-9257-F9BE55252C1E"><p>What information the
+client will receive in every notification. </p> </li>
+</ol> </li>
+<li id="GUID-C707D9E4-B15D-525F-906D-47E94E2415ED"><p>Call <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ::AccessPointNotification(const
+                CConnectionServParameterBundle&amp; aQuery,              
+  MAccessPointNotificationObserver&amp; aObserver)</apiname></xref> to register for
+notifications from the Management Plane. Specify <codeph>aObserver</codeph> as
+the class from the first step, and <codeph>aQuery</codeph> as the bundle from
+the previous step. </p> <ol id="GUID-D7FBCBD3-1F5D-5FA3-A90A-7EDF3D27C261">
+<li id="GUID-224E8F20-E034-52C6-AD53-0DBEE08B8842"><p>The client application
+receives the first notification with an empty bundle. </p> <p>For example,
+the client receives an instance of <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>CConnectionServParameterBundle</apiname></xref> with
+no <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>CParameterSetContainer</apiname></xref> as
+an argument. The receipt of this empty bundle is a signal to the client application
+that all relevant notifications have been set up and are active. At this point
+a call to <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>AccessPointStatusQuery()</apiname></xref> ensures
+that the client application has an accurate current view of the Management
+Plane. </p> </li>
+<li id="GUID-85DB2515-6099-58C5-8A55-C68D5DBC76E1"><p>Only one outstanding
+notification is allowed for each <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ</apiname></xref> session.
+If a second attempt is made then <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ::AccessPointNotification()</apiname></xref> returns <codeph>KErrInUse</codeph>. </p> </li>
+</ol> </li>
+<li id="GUID-0C30553B-DC7A-59B2-8829-A5E2F2ED9DDE"><p>Each notification is
+received through a call to the <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>AccessPointNotification(CConnectionServParameterBundle*
+                aResult)</apiname></xref> function of the class you derived from <codeph>MAccessPointNotificationObserver</codeph>. </p> <p>Each
+notification includes a parameter bundle in <codeph>aResult</codeph>. Ownership
+of this bundle is passed on this call. The client application must store this
+bundle until the bundle is no longer needed. The client application must delete
+the bundle once the bundle is no longer needed. </p> </li>
+<li id="GUID-DAF15ADB-B059-54A8-B8E4-B4D53448C296"><p>Call <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ::CancelAccessPointNotification()</apiname></xref>. </p> </li>
+</ol> </section>
+<section><title>Example Code</title> <p>The following is an example of Access
+Point notification: </p> <codeblock id="GUID-65754B1A-75F0-56C8-BDCA-00238C3F818A" xml:space="preserve">
+// Start the session as mentioned in starting a session
+ 
+// create bundle (This bundle is owned by this class so the destructor of this class    
+// must delete the bundle) 
+iQueryBundle = CConnectionServParameterBundle::NewL();
+
+// monitoring a specific Access Point
+ASSERT(iKnownAccessPointId);
+
+TAccessPointInfo apinfo;
+apinfo.SetAccessPoint(iKnownAccessPointId);
+
+// helper function to create basic query structure
+//   for example, specification of the record to monitor the change
+iQueryBundle-&gt;AddMatchConditionL(apinfo);
+
+// specify the set of records to be monitored for change, for example,
+//  the situation in which we want to be notified
+TAccessPointStatusFilter availFilter;
+
+// a) notify on all changes to this field
+availFilter.Available(EAccessPointFlagMatchTrue);
+
+// b) don’t notify on changes to these fields
+availFilter.Configured(EAccessPointFlagIgnore);
+availFilter.Restricted(EAccessPointFlagIgnore);
+availFilter.Started(EAccessPointFlagIgnore);
+
+iQueryBundle-&gt;AddMatchConditionL(availFilter);
+
+// helper function to specify what we want to get for each Access Point
+iQueryBundle-&gt;AddParameterSetToReturnL(XAccessPointGenericParameterSet::TypeId());
+
+// start the notifications with this object as the handler
+iConnServ.AccessPointNotification(*iQueryBundle,*this);
+
+    </codeblock> <p>Notification handlers are defined in the <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>RConnectionServ</apiname></xref> object.
+If all the notification handlers are set up and ready, you must call <codeph>AccessPointNotification()</codeph> with
+an empty bundle. This enables you not to miss any future events. You can now
+make a status query of the Access Point in which you are interested. At this
+point in time, you can delete the passed-in query bundle and later delete
+the bundle that contains changed Access Points. You can delete these whenever
+an Access Point enters or leaves the set of Access Points defined by the query
+parameters, or some other custom circumstances that are defined in a technology
+specific way in a particular <xref href="GUID-4AC100CB-D15E-35B0-9A68-FC2B49B747EA.dita"><apiname>XAccessPointGenericParameterSet</apiname></xref> derived
+class. </p> <p>The code example continues as follows: </p> <codeblock id="GUID-5FE31600-F7D0-5BCC-9EE4-6BBA7988BA9D" xml:space="preserve">
+/*virtual*/
+void CMyClass::AccessPointNotification(
+CConnectionServParameterBundle* aNotification)
+  {
+  // process results.
+  //  only expecting 1 Access Point record back as only 1 Access Point was in the query
+  CConnectionServParameterSetContainer* parSetCtr
+               = aNotification-&gt;GetParamSetContainer(0);
+  ASSERT(parSetCtr); // very bad if nothing in bundle
+
+  XAccessPointGenericParameterSet* genParamSet =
+    XAccessPointGenericParameterSet::FindInParamSetContainer(parSetCtr);
+  ASSERT(genParamSet); // we asked for this set back so fatal if
+                // it’s not present in notification
+
+  TUint apId = genParamSet-&gt;AccessPointInfo().AccessPoint();
+  ASSERT(apId == iKnownAccessPointId);
+
+  TAccessPointStatus availStatus = genParamSet-&gt;AccessPointStatus();
+
+  if(availStatus.Availability() == ETrue)
+    {
+    ChangeIconToAvailable(); // your handler function
+    }
+  else if(availStatus.Availability() == EFalse)
+    {
+    ChangeIconToUnavailable();// your handler function
+    }
+
+  if(YouWantToStoreThisNotificationForLater())
+    {
+    iStoredNotifications.Append(aNotification);
+    }
+  else
+    {
+    delete aNotification;
+    }
+
+  if(BoredReceivingNotifications())
+    {
+    iConnServ-&gt;CancelAccessPointNotification();
+    }
+  }
+//Later, in the destructor of this class the bundles must be deleted
+delete iQueryBundle;
+delete iStatusBundle;</codeblock> </section>
+</conbody></concept>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-667E7F90-D6C2-55CE-AE60-6C938072FB9C" xml:lang="en"><title>Graphics
+and Drawing Overview</title><shortdesc>This topic provides an introduction to drawing graphics to the
+screen. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: Both (ScreenPlay and non-ScreenPlay). <b>Target
+audience</b>: Application developers. </p>
+<p>Applications can draw to any <codeph>RDrawableWindow</codeph> —such as
+an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> —via a graphics device, of type <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita"><apiname>CWsScreenDevice</apiname></xref>,
+and a graphics context, of type <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref>. These classes
+are derived from the <xref href="GUID-B6D4AEE9-5C17-51D9-BBDE-7CCB5218279D.dita">GDI
+component</xref> classes <xref href="GUID-500FC564-35E9-3B66-A0C2-1269371A2EA0.dita"><apiname>CGraphicsDevice</apiname></xref> and <xref href="GUID-DAD09DCF-3123-38B4-99E9-91FB24B92138.dita"><apiname>CGraphicsContext</apiname></xref>,
+respectively. This means that general drawing functions can be used for drawing
+to windows, as well as to other graphics devices. The Window Server itself
+does not provide the facilities to draw graphics to a physical device. <codeph>CWindowGc</codeph> functions
+are not passed to the Window Server directly. Rather, they are stored in a
+buffer maintained by the Window Server Client API. This buffer is flushed
+to the Window Server only rarely. By this means the context switching involved
+in drawing is minimised, and system performance significantly enhanced. </p>
+<p> <codeph>CWsScreenDeviceminimized</codeph> encapsulates the device-dependent
+aspects of graphics operations. Graphics functions are not carried out directly
+via a <codeph>CWsScreenDevice</codeph>, however, but via a graphics context
+with which it is associated. The graphics context class, <codeph>CWindowGc</codeph>,
+provides a rich set of drawing functions, including functions to draw lines,
+arcs, polygons, text and bitmaps. </p>
+<p>A graphics context contains a collection of configurable parameters concerned
+with graphics, such as pen width, pen color, brush color. It is stored in
+the server, thus reducing the amount of information that has to be sent with
+each graphics call. The graphics call simply specifies the graphics context
+it wishes to use, and a single graphics context can be shared between multiple
+windows. </p>
+<p>To draw to a graphics context it must be associated with a window. Typically
+a graphics context is created when a session is constructed, and that graphics
+context is shared between several windows in the application. When the window
+needs to use the graphics context it calls <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-1C0F9DF6-23C2-3707-8F2B-0A738467FF0A"><apiname>CWindowGc::Activate()</apiname></xref>.
+If necessary it can change the graphics context's settings. <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-E977DBB2-8547-3AB7-99E3-9D246DA6CF58"><apiname>CWindowGc::Deactivate()</apiname></xref> should
+be called first if the graphics context is currently active upon another window. </p>
+<p>Several optimizations are used by the Window Server to obtain high-performance
+graphics: </p>
+<ul>
+<li id="GUID-C8AC84D6-AF17-5975-88B8-CC93C499DFA0"><p>Each window is associated
+with an <codeph>RWsSession</codeph> which is in turn associated with a client-side
+buffer. Instead of implementing graphics operations by a direct client-server
+call, which involves expensive context switching, all graphics operations
+are stored as opcodes in the buffer, and the buffer is only flushed in certain
+circumstances. </p> </li>
+<li id="GUID-00B3FC8E-25DE-542F-BF67-0F71CF22526A"><p>The <codeph>CFbsBitmap</codeph> class
+allows a bitmap to be shared between all threads in the system, including
+the client and the Window Server. This sharing is mediated by the <xref href="GUID-A03FB1BF-F67B-519D-A904-74CA3F8375D9.dita">Font
+and Bitmap server</xref>. The <xref href="GUID-17150D76-BB82-3A4B-8B1A-8BA93CB1A9EF.dita"><apiname>CWsBitmap</apiname></xref> class eliminates
+further context switches by taking ownership of the handle of the bitmap.
+Applications can use this class to more efficiently open, blit-to-screen,
+and close a series of bitmaps. Use functions that take a <codeph>CWsBitmap</codeph> in
+preference to those that take a <codeph>CFbsBitmap</codeph>, because they
+are faster. </p> </li>
+<li id="GUID-550D1374-C166-54C6-A055-0CA040691654"><p>A single graphics context
+may be used for drawing to many windows—it is not necessary to have one per
+window. The <codeph>Activate()</codeph> function associates a <codeph>CWindowGc</codeph> with
+a particular window. </p> </li>
+<li id="GUID-91AFC884-0BB2-5A73-B757-94EF1B2328A7"><p>Provided drawing operations
+to an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> are performed as <xref href="GUID-8DB1C618-597C-560C-95A2-C0AB2CEBB027.dita">redraw
+drawing</xref>, the Window Server stores the sequence of drawing commands
+that represent the window contents in redraw stores. Then when the Window
+Server needs to repaint the window (because, for example, a dialog box popped
+up over it and has now closed) it simply replays the sequence of stored commands,
+rather than sending a redraw request to the client. This minimizes the number
+of client-server transactions and means that windows are repainted as soon
+as the Window Server detects that they are needed. </p> <p>This means that
+all <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> drawing should now be redraw drawing, which
+means that it takes place between <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-9337538E-7A53-3153-A330-968B5E4F2FF2"><apiname>RWindow::BeginRedraw()</apiname></xref> and <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-3DE16607-AD3B-3946-BEB3-88512EAAB9CE"><apiname>RWindow::EndRedraw()</apiname></xref> calls.
+If you use the <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-D5458F8C-E199-37DD-B821-050B749122C6"><apiname>CCoeControl::DrawNow()</apiname></xref> and <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-9FB682AC-0209-302A-83F3-7BCB1162B998"><apiname>CCoeControl::DrawDeferred()</apiname></xref> methods,
+the UI Control Framework (CONE) takes care of this for you. See <xref href="GUID-8DB1C618-597C-560C-95A2-C0AB2CEBB027.dita">Redraw
+Drawing</xref> for more information. </p> </li>
+</ul>
+</conbody><related-links>
+<link href="GUID-484B51EC-2209-5492-8E9C-9D792AB0DF35.dita"><linktext>Graphics
+and Drawing </linktext></link>
+<link href="GUID-6C16417B-5B37-5310-B59A-750D971AA6D4.dita"><linktext>The UI Control
+Framework (CONE)</linktext></link>
+</related-links></concept>

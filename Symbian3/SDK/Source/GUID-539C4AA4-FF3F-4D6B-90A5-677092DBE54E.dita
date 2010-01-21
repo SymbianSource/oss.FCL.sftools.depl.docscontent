@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-539C4AA4-FF3F-4D6B-90A5-677092DBE54E" xml:lang="en"><title>Exporting
+Global Data from a DLL</title><shortdesc>Exporting global data from a DLL to be accessed by either P.I.P.S.
+or Symbian C++ applications is one of the typical problems that developers
+encounter.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>It is strongly recommended to avoid having global data in DLLs due to following
+reasons:</p>
+<ul>
+<li><p>EKA2 emulator allows only a DLL with WSD to load into a single process.</p></li>
+<li><p>RAM usage for WSD data chunk is atleast one 4K RAM page (the smallest
+possible RAM allocation), irrespective of how much static data is required.</p></li>
+<li><p>Chunks are a finite resource on ARMv5. Every process loading WSD enabled
+DLLs uses a chunk to hold the data.</p></li>
+<li><p>There are ARM architecture 4 and 5 specific costs and limitations that
+apply only to DLLs that link against “fixed processes”.</p></li>
+<li><p> There is a limit on the number of DLLs in a process with WSD. </p></li>
+</ul>
+<p>On having understood the above limitations, the following pattern can be
+used for exporting global data from a DLL:</p>
+<ol>
+<li id="GUID-CB5A6042-22D6-4A55-AB95-238D36B29E4D"><p>Do not export global
+variables. Within DLL, say there is one global variable, for example:</p><codeblock xml:space="preserve">int globalVal; </codeblock></li>
+<li id="GUID-441655B4-C2E0-4923-AA61-9AD71B9E8E43"><p>Export one method that
+returns a pointer to that variable.</p><codeblock xml:space="preserve">extern "C" EXPORT_C int* GlbData ()
+    {
+    return &amp;globalVal
+    }
+</codeblock></li>
+<li id="GUID-8C06D549-3F94-455B-981D-D0D19B004BE1"><p>Define a macro for the
+user of the DLL. Within the DLL header (for example, <filepath>xxx.h</filepath>),
+define the following:</p><codeblock xml:space="preserve">#ifdef __cplusplus
+extern "C" 
+#endif
+IMPORT_C int* GlbData ();
+#define globalVal (*GlbData())</codeblock><p>And the usage is like: </p><codeblock xml:space="preserve">#include &lt;xxx.h&gt;  // DLL header
+int main()
+    {
+    int i = 0;
+    globalVal = 10;
+    globalVal++;
+    i = globalVal;
+    return 0;
+    }
+</codeblock></li>
+</ol>
+</conbody></concept>

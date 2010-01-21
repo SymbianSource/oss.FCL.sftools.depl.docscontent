@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-0DA6722B-0700-5612-884A-F3B7733E5252" xml:lang="en"><title>Voice
+Line Status Tutorial</title><shortdesc>This tutorial describes how to get the voice line status with the
+telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<context id="GUID-BAC8D4B3-FAB2-4EE9-B20F-41810AEBD84E"><p>The <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref> functions provide a detailed
+ information on the voice line status. The detailed call information provides
+ the information about: </p><ul>
+<li><p>call status  </p></li>
+<li><p> date of the call  </p></li>
+<li><p> time of the call  </p></li>
+<li><p> duration of the call  </p></li>
+<li><p>destination number  </p></li>
+<li><p>caller identification  </p></li>
+<li><p>dynamic call capabilities  </p></li>
+</ul></context>
+<steps id="GUID-F9E13043-8D2A-57BC-B9C0-ADD51F3AA449">
+<step id="GUID-7BA25A70-5F62-5668-8A64-D5F90FD72504"><cmd>create a new instance
+of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </cmd>
+</step>
+<step id="GUID-382DD7F5-8555-5B06-9596-08D1C4684714"><cmd>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetLineStatus()</apiname></xref> to
+get the simple voice line status</cmd>
+</step>
+<step id="GUID-2B2692FB-88FF-5F40-8FC0-A30D7146C757"><cmd>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetCallStatus()</apiname></xref> to
+get the status of any voice call owned by the client application </cmd>
+</step>
+<step id="GUID-C46FB87F-B7FB-5347-9199-D27CA9634E6F"><cmd>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetCallInfo()</apiname></xref> to
+get the detailed call information about the call </cmd>
+<info>pass the following parameters for the required information </info>
+<stepxmp><table id="GUID-9FDDE4F7-130C-55C9-8205-CF8C96575665">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Parameter</entry>
+<entry>Function</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>TCallStatus </p> </entry>
+<entry><p>To get the status of a call like idle, on-hold, dialling and ringing </p> </entry>
+</row>
+<row>
+<entry><p>TDateTime </p> </entry>
+<entry><p>To get the data and time of a call </p> </entry>
+</row>
+<row>
+<entry><p>TTimeIntervalSeconds </p> </entry>
+<entry><p>To get the duration of a call </p> </entry>
+</row>
+<row>
+<entry><p>TTelAddress </p> </entry>
+<entry><p>To get the destination number </p> </entry>
+</row>
+<row>
+<entry><p>TPhoneNetworkSecurity </p> </entry>
+<entry><p>To get the ciphering information from the network </p> </entry>
+</row>
+<row>
+<entry><p>TCallRemoteIdentityStatus </p> </entry>
+<entry><p>To determine if the remote caller status is available </p> </entry>
+</row>
+<row>
+<entry><p>TCallDirection </p> </entry>
+<entry><p>To determine the call direction </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </stepxmp>
+</step>
+<step id="GUID-0604B8F5-98CA-57B1-98D9-2B91708CF29C"><cmd>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>GetCallDynamicCaps()</apiname></xref> to
+get the dynamic capability information about the call.</cmd>
+</step>
+</steps>
+<example id="GUID-6F8987BC-703D-549F-85F7-11BDB3EAC319"><title>Voice call
+information example</title> <p>The example code describes the steps to get
+the detailed call information. </p> <codeblock id="GUID-5B4EF60C-66A0-5862-9E72-6759532AC776" xml:space="preserve">CTelephony* telephony = CTelephony::NewLC();
+
+CTelephony::TCallInfoV1 callInfoV1;
+CTelephony::TCallInfoV1Pckg callInfoV1Pckg( callInfoV1 );
+
+CTelephony::TCallSelectionV1 callSelectionV1;
+CTelephony::TCallSelectionV1Pckg callSelectionV1Pckg( callSelectionV1 );
+
+CTelephony::TRemotePartyInfoV1 remotePartyInfoV1;
+CTelephony::TRemotePartyInfoV1Pckg remotePartyInfoV1Pckg( remotePartyInfoV1  );
+
+callSelectionV1.iLine = CTelephony::EVoiceLine;
+callSelectionV1.iSelect = CTelephony::EActiveCall;
+
+telephony-&gt;GetCallInfo( callSelectionV1Pckg, callInfoV1Pckg, remotePartyInfoV1Pckg );
+
+CleanupStack::PopAndDestroy( telephony );</codeblock> </example>
+<postreq id="GUID-3A6FA503-E4A8-5013-A155-E8F80844281B"><p>The example code
+to get the dynamic call capability information </p> <codeblock id="GUID-53DB7E1D-B6FA-5497-9140-28EB10EF242C" xml:space="preserve">CTelephony::TCallCapsV1 callCapsV1;
+CTelephony::TCallCapsV1Pckg callCapsV1Pckg( callCapsV1 );
+
+telephony-&gt;GetCallDynamicCaps( callId, callCapsV1Pckg );
+TUint32 caps = callCapsV1.iControlCaps;
+if( caps &amp; CTelephony::KCapsHold )
+   {} // The call represented by 'callId' can be put on hold</codeblock> </postreq>
+</taskbody></task>

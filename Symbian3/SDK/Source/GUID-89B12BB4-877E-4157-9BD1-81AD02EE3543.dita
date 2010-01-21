@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-89B12BB4-877E-4157-9BD1-81AD02EE3543" xml:lang="en"><title>Constructing
+the UI controller in the view architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The call on the first phase constructor method of the UI controller
+occurs in the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknDocument.html" format="application/java-archive"><parmname>CAknDocument</parmname></xref>-derived
+class of application. For more information, see <xref href="GUID-07D2ED79-90B2-4ABC-A61F-108DAEE21955.dita">Implementing
+framework requirements</xref>.</p>
+<p>The methods you need to implement for your <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknViewAppUi.html" format="application/java-archive"><parmname>CAknViewAppUI</parmname></xref>-derived
+UI controller are as follows:</p>
+<ul>
+<li><p>C++ default constructor, which cannot contain any code that
+might leave. A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-ED243BA0-4466-47F3-8F17-0A901EE29671" xml:space="preserve">CMyViewAppAppUi::CMyViewAppAppUi()
+    {    
+    }</codeblock>
+<p>The class declaration for this constructor in the class header file
+needs to be public to support the construction method required.</p>
+</itemgroup>
+</li>
+<li><p>Symbian 2nd phase constructor with code that might leave.
+A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-6665D735-D20A-4159-98B3-199BF15E7602" xml:space="preserve">
+void CMyViewAppAppUi::ConstructL()
+    {
+    
+    BaseConstructL(EAknEnableSkin); // Use EAknEnableSkin to make the application support themes.
+ 
+    CMyViewAppView* view1 = CMyViewAppView::NewL();
+
+    AddViewL( view1 );        // transfer ownership to CAknViewAppAppUi
+	  iViewId1 = view1-&gt;Id();   // view id to get view from CAknViewAppAppUi
+    
+
+    CMyViewAppView2* view2 = CMyViewAppView2::NewL();
+
+    AddViewL( view2 );      // transfer ownership to CAknViewAppAppUi
+	  iViewId2 = view2-&gt;Id(); // view id to get view from CAknViewAppAppUi
+    
+
+    SetDefaultViewL( *view1 );
+    }</codeblock>
+<p><parmname>ConstructL</parmname> completes the construction of the object.
+It is a public constructor in the header file.</p>
+<p><xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknViewAppUi.html#ebd48f5819a517d45755391fd3497b3b" format="application/java-archive"><parmname>CAknViewAppUi::BaseConstructL</parmname></xref> initializes the application UI with necessary UI components
+, including status and control panes. <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknViewAppUi.html#ebd48f5819a517d45755391fd3497b3b" format="application/java-archive"><parmname>CAknViewAppUi::BaseConstructL</parmname></xref> can
+accept flags enumerated in <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi" format="application/java-archive"><parmname>CEikAppUi</parmname></xref> and <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknAppUi.html" format="application/java-archive"><parmname>CAknAppUi</parmname></xref>.
+In particular, the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknAppUiBase.html#68986ab776eb5d6b5a809a1c005a73008d94047a388aa6a9fa6381f45d548ffe" format="application/java-archive"><parmname>CAknAppUi::EAknEnableSkin</parmname></xref> flag enables <xref href="GUID-A1DBE03F-728E-4F31-BE74-5BDA3906C8DD.dita">themes</xref> in
+the application.</p>
+<p><parmname>CMyViewAppView* view1 = CMyViewAppView::NewL()</parmname> is
+a two phase constructor for the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html" format="application/java-archive"><parmname>CAknView</parmname></xref>-derived
+view controller.</p>
+<p><xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknViewAppUi.html#369fea4cfb57a7bf69ad843355a66d67" format="application/java-archive"><parmname>CAknViewAppUi::AddViewL</parmname></xref> registers and adds the view controller to the UI controller</p>
+<p><xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#71e3a172cd418a5d73071f598fe8d26d" format="application/java-archive"><parmname>iViewId1
+= view1-&gt;Id()</parmname></xref> calls the view controller method that
+provides the UID of the view controller</p>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeAppUiClass.html#%3a%3aCCoeAppUi%3a%3aSetDefaultViewL%28const%20MCoeView%20%26amp%3b%29" format="application/java-archive"><parmname>CCoeAppUi::SetDefaultViewL</parmname></xref> registers a
+view as the default view of the application. The meaning of the default view
+varies depending on the UI. It is normally the view that is displayed when
+the application is launched. It may also be the view that is displayed when
+the application is brought to the foreground.</p>
+</itemgroup>
+</li>
+</ul>
+<p>You must implement other methods to support <xref href="GUID-E402616A-7ED8-45AC-B836-99C3A3760B33.dita">key
+event handling</xref>, <xref href="GUID-4941C035-C359-4968-9BD5-31F44EE5F810.dita">command
+handling</xref>, and other possible <xref href="GUID-EF7FF39E-929F-4767-B475-5D582D37BB32.dita">events</xref>,
+as well as overriding default <xref href="GUID-5918ED8A-B26B-41A0-94A6-AB6D51BF80A1.dita">control
+pane</xref> and status pane behavior.</p>
+<note>
+<p>Command, key event, and layout change support handling can take place
+at least partially in the view controller.</p>
+</note>
+<section id="GUID-4AA4BB6F-9331-4196-91F5-A3FF479667B2"><title>Scalability</title>
+<p>If you wish to support <xref href="GUID-B02C762B-C452-4184-ABEA-4753E6CD47D2.dita">scalability</xref> in
+your application, then you need to implement <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aHandleResourceChangeL%28%29" format="application/java-archive"><parmname>CEikAppUi::HandleResourceChangeL</parmname></xref> in the UI controller , and then a <parmname>HandleClientRectChangeL</parmname> method
+in the view controller.</p>
+<p> A common implementation is:</p>
+<codeblock id="GUID-ADB8DC30-EFF6-4F66-B418-78FD90A1B568" xml:space="preserve">void CMyViewAppAppUi::HandleResourceChangeL( TInt aType )
+    {    	    
+    CAknAppUi::HandleResourceChangeL( aType );	
+
+    
+    if ( aType==KEikDynamicLayoutVariantSwitch )
+        {		
+		((CMyViewAppView*) View( iViewId1) )-&gt;HandleClientRectChange(  );
+		((CMyViewAppView2*) View( iViewId2) )-&gt;HandleClientRectChange(  );	        
+		}	
+	
+    }   </codeblock>
+<p>, where</p>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aHandleResourceChangeL%28%29" format="application/java-archive"><parmname>CEikAppUi::HandleResourceChangeL</parmname></xref> is a <xref href="GUID-DD15F24B-0786-4531-A6C5-A5E70EBE2732.dita">layout change event method</xref>.</p>
+<p><parmname>HandleClientRectChangeL</parmname> is a method in the view
+controller for passing the change onto to the control</p>
+</section>
+</conbody></concept>

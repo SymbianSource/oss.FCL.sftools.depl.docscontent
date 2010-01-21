@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A721FC4A-03C6-59F7-A0D2-565C4828E5E1"><title>Camera Stub Plug-in Library Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This document introduces you to the Camera Stub Plug-in library overview. </p> <section><title>Purpose</title> <p>The purpose of this document is to provides a detailed description about the Camera Stub Plug-in implementation. </p> </section> <section><title>Camera Stub Plug-in library details</title> <p>The DLL that provides the functionality and the library to which your code must link is identified below. </p> <table id="GUID-F04D49F6-7EDD-5FF3-B3F4-379266D7F4DB"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry>DLL</entry> <entry>LIB</entry> <entry>Short Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-5B53C229-F86B-32EA-9185-290EB508942A.dita"><apiname>EcamStubPlugin.dll</apiname></xref>  </p> </entry> <entry><p> <xref href="GUID-75314782-EFB5-3BBA-82CF-D40A986631CD.dita"><apiname>ECamStubPlugin.h</apiname></xref>  </p> <p> <xref href="GUID-36E234FB-4049-3601-92B6-ACC451A3A983.dita"><apiname>ecom/ecom.h</apiname></xref>  </p> <p> <xref href="GUID-78112462-7106-3990-8ADE-2F5378A65922.dita"><apiname>ecom/implementationproxy.h</apiname></xref>  </p> <p> <xref href="GUID-2C80914C-987C-3208-9FA5-FD9D29FD3D8E.dita"><apiname>ecamuids.hr</apiname></xref>  </p> </entry> <entry><p>These files are used to implement the Camera Stub Plug-in functionalities. </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title>Architecture</title> <p>The Symbian platform no longer supports re-implementation of ECam component. Device creators who re-implement ECam should complete their migration to the ECam plug-in framework. Device creators already using the ECam plug-in framework are unaffected. Clients of the interfaces are also unaffected. </p> </section> <section><title>Description</title> <p>Symbian introduced the plug-in support for ECam from v9.1 onwards. Before that, device creators were supposed to re-implement ecam.cpp, which was effectively reference code. </p> <p>Device creators who re-implement ECam should use the Symbian-provided implementations. These implementations are available through the affected cpp files. In particular, to complete migration to the ECam plug-in framework, device creators should derive their class from <xref href="GUID-A738B809-754B-3090-9209-0880687F173C.dita"><apiname>CCameraPlugin</apiname></xref> instead of <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera</apiname></xref>. A resource file also needs to be created so that the specific plug-in gets chosen. Device creators will have to link against <codeph>ecampluginsupport</codeph>. </p> <p> <codeph>ECamStubplugin</codeph> is example code that helps in understanding the steps needed to migrate to the plug-in framework, and the API design is described in the ECam Design Onboard Camera API document. </p> </section> <section><title>APIs</title> <p>The key classes that make up the Camera Plug-in API is <xref href="GUID-A738B809-754B-3090-9209-0880687F173C.dita"><apiname>CCameraPlugin</apiname></xref>. </p> </section> <section><title>Using Camera Stub Plug-in</title> <p>The Camera Stub Plug-in is used to facilitate the creation of a new Camera Plug-ins component. </p> <p>The following test code is used as an example to create a new Camera Plug-ins component: </p> <codeblock id="GUID-93E2D806-8A6B-5498-BE38-E5C27168F6BB" xml:space="preserve">// 10207084.RSS
+//
+
+#include “Ecom\RegistryInfo.rh”
+#include “EcamUids.hrh”
+
+RESOURCE REGISTRY_INFO theInfo
+    {
+    dll_uid = KuidOnboardCameraTestDll;
+    interfaces = 
+        {
+        INTERFACE_INFO
+            {
+            interface_uid = KuidOnboardCameraPlugin;
+            implementations = 
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = KuidOnboardCameraTestPlugin;
+                    version_no = 2;
+                    display_name =”Ecam Test Plug-in”;
+                    opaque_data = “0;”;
+                    default_data=”*”;
+                    }
+                };
+            },
+        INTERFACE_INFO
+            {
+            interface_uid = KuidOnboardCameraInfoPlugin;
+            implementations = 
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = KuidOnboardCameraTestInfo;
+                    version_no = 2;
+                    display_name = “Ecam Test InfoPlugin”;
+                    opaque_data = “0;”;
+                    default_data=”*”;
+                    }
+                };
+            }
+        };
+    }</codeblock> </section> </conbody><related-links><link href="GUID-F25862A3-51E5-581A-9CC9-964791781E69.dita"><linktext>Camera Plug-in Support
+                Overview</linktext> </link> <link href="GUID-93D08C5F-D864-59E3-963D-D836EBE88B4D.dita"><linktext>Camera Plug-in Support Tutorial</linktext> </link> <link href="GUID-36C3A2FD-F4F9-5B8C-91B7-40C29B3D2224.dita"><linktext>Camera
+                Component Overview</linktext> </link> </related-links></concept>

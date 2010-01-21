@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-08A6A034-5609-58B0-8EA7-943B2A937B40" xml:lang="en"><title>Displayable
+Windows</title><shortdesc>The<codeph>RWindowBase</codeph> class is the abstract
+base class for all windows that can be displayed. These windows further subdivide
+into two types: windows that can be drawn to (<codeph>RDrawableWindow</codeph> abstract
+class), and blank windows (<codeph>RBlankWindow</codeph> class).</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: Both (ScreenPlay and non-ScreenPlay). <b>Target audience</b>:
+Application developers. </p>
+<p>Displayable windows introduce several attributes and associated functions: </p>
+<ul>
+<li id="GUID-9432F9B6-29F1-547C-A6B0-8A380C4F3E36"><p>All windows have a rectangle
+that defines the area in which they are contained. Most windows fill all of
+this area, but you can set rounded corners or specify any arbitrary region
+for the window's area. </p> </li>
+<li id="GUID-81D8BEA8-5CD8-56A5-8A9C-5B18BA0B44E4"><p>Whether the window is
+visible or not, controlled by the <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-A028954C-B8A7-3954-B0F7-47E79ACF5DD7"><apiname>RWindowBase::SetVisible()</apiname></xref> function. </p> </li>
+<li id="GUID-840930B6-6955-5A43-9A23-8678EA7ADABC"><p>For pointer event control,
+see <xref href="GUID-CD550DE7-D013-527B-BADE-5CB122C352C8.dita">Pointer Handling</xref>. </p> </li>
+</ul>
+<p>The Window Server maintains the screen display taking into account the
+region, ordinal position and visibility requirements of all displayable windows. </p>
+<section id="GUID-626A91B0-451B-4034-B3F4-DE024140E76D"><title>Standard windows</title> <p>The <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> class
+is derived from <codeph>RDrawableWindow</codeph>. These windows require very
+little RAM and are therefore the most common type of window used by Symbian
+applications. </p> <p>Provided drawing operations to an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> are
+performed as <xref href="GUID-8DB1C618-597C-560C-95A2-C0AB2CEBB027.dita">redraw
+drawing</xref>, the Window Server stores the sequence of drawing commands
+that represent the window contents in redraw stores. Then when the Window
+Server needs to repaint the window (because, for example, a dialog box popped
+up over it and has now closed) it simply replays the sequence of stored commands,
+rather than sending a redraw request to the client. This minimises the number
+of client-server transactions and means that windows are repainted as soon
+as the Window Server detects that they are needed. </p> </section>
+<section id="GUID-1FCF8A1B-36A9-404E-8950-B5E88EC04100"><title>Backed-up windows</title> <p>This feature is deprecated in
+Symbian^3. </p> <p>A backed-up window is provided by the <xref href="GUID-27A95595-F74D-32B2-A960-0CA290C8A3B3.dita"><apiname>RBackedUpWindow</apiname></xref> class.
+The Window Server stores the window contents in a bitmap rather than as a
+sequence of draw operations in redraw stores. When the window needs to be
+redrawn, the Window Server blits the bitmap to the window. This usually consumes
+much more memory than storing the drawing operations in the redraw store.
+For example, to store the drawing operations for a simple window would typically
+require fewer than 100 bytes. Storing the bitmap for the equivalent window
+would typically require hundreds of kilobytes. </p> <p>There are two different
+approaches to working with backed-up windows: </p> <ul>
+<li id="GUID-45934BD6-928C-5780-AB79-4F53612865D7"><p>The direct bitmap access
+functions allow the application to directly access the bitmap used by the
+Window Server for backing up the window. By default, areas of a backed-up
+window that are currently visible on the screen are not backed up. When a
+region of the window is covered by another window, that region's contents
+are copied to the bitmap before being covered over on the screen. </p> </li>
+<li id="GUID-CA85FC82-8009-5D33-B3B4-669ADBDD8F7F"><p>An alternative approach
+is provided by the <xref href="GUID-27A95595-F74D-32B2-A960-0CA290C8A3B3.dita#GUID-27A95595-F74D-32B2-A960-0CA290C8A3B3/GUID-28A5B6DD-3471-3F74-8D7B-808750018968"><apiname>RBackedUpWindow::MaintainBackup()</apiname></xref> function.
+This causes the backup bitmap to contain a copy of the entire window contents
+at all times. However, it may produce a reduction in performance, because
+the Window Server must subsequently carry out all drawing commands on both
+the screen and the bitmap. The more drawing-intensive an application, the
+more severe this degradation in performance is. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-99AE1D62-571A-5A63-B472-C0FBC0861F52.dita"><linktext>Window Types</linktext>
+</link>
+</related-links></concept>

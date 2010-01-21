@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-36718217-C9F7-5ACF-8DE7-7D83FBF435DB"><title>Store map cleanup support</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The destructor of a <codeph>CStoreMap</codeph> object calls the <codeph>ResetAndDestroy()</codeph> member function. This function deletes from the store all streams whose stream IDs are currently held by the store map.</p> <p>This is of most use:</p> <ul><li id="GUID-1978575F-24D5-5B3A-8FED-5A067ACF5691"><p>in stores which do not support commit and revert, for example, the non-persistent in-memory store <codeph>CBufStore</codeph>.</p> </li> <li id="GUID-C8FBA74B-939B-576B-9443-D55AD9B798EC"><p>where the streams, whose IDs are in the store map, do not contain pointers to other streams.</p> </li> </ul> <p>This behaviour allows a partially complete set of streams to be deleted if a leave occurs part of the way through the building of the set.</p> <p>Note that this behaviour cannot be exploited by stores which do not support the deletion of streams, for example, the direct file store <codeph>CDirectFileStore</codeph>.</p> <p>Stores such as the permanent file store, <codeph>CPermanentFileStore</codeph>, can also use commit and revert to implement this kind of behaviour.</p> <p>Given the example class, <codeph>CCompound</codeph>, defined as:</p> <codeblock id="GUID-84E229C8-624C-5024-B25B-DB5957580775" xml:space="preserve">class CCompound : public CBase
+    {
+    ...
+    TSwizzle&lt;CClassA&gt; iA;
+    TSwizzle&lt;CClassB&gt; iB;
+    TSwizzle&lt;CClassC&gt; iC; 
+    ...
+    }</codeblock> <p>the <codeph>CCompound</codeph> object is stored using its <codeph>StoreL()</codeph> function and the individual components are externalised by the <codeph>StoreComponentsL()</codeph> function:</p> <codeblock id="GUID-10BD78DC-C674-5C28-BECE-685A51324956" xml:space="preserve">TStreamId CCompound::StoreL(CStreamStore&amp; aStore)
+    {
+    CStoreMap* map=CStoreMap::NewLC(aStore);
+    StoreComponentsL(*map);
+       RStoreWriteStream stream(*map);
+    TStreamId id=stream.CreateLC(aStore);
+    ExternalizeL(stream);
+    stream.CommitL();
+    map-&gt;Reset();
+    CleanupStack::PopAndDestroy(2);
+    return id;
+    }</codeblock> <codeblock id="GUID-8D249B61-5858-500D-A1A2-4C17FF9D0D63" xml:space="preserve">void CCompound::StoreComponentsL(CStoreMap&amp; aMap) const
+    {
+    TStreamId id;
+    ...
+    id = iA-&gt;StoreL(iStore);
+    aMap.BindL(iA,id);
+    ...
+    id = iB-&gt;StoreL(iStore);
+    aMap.BindL(iB,id);
+    ...
+    id = iC-&gt;StoreL(iStore);
+    aMap.BindL(iC,id);
+    ...
+    }</codeblock> <p>Once the store map has been created, a cleanup item for it is placed onto the cleanupstack. This means that if, for example, the call to either:</p> <codeblock id="GUID-14BA383C-B2C5-5881-97E8-FD1196B8A459" xml:space="preserve">id = iC-&gt;StoreL(iStore);</codeblock> <p>or</p> <codeblock id="GUID-CFE924DF-2131-51D5-A3B6-DAC756B996CA" xml:space="preserve">aMap.BindL(iC,id);</codeblock> <p>were to fail, then the streams containing the <codeph>CClassA</codeph> and <codeph>CClassB</codeph> objects would be deleted from the store as part of the subsequent destruction of the store map.</p> <p>Once all three components have been successfully externalised and the <codeph>CCompound</codeph>'s other data has also been externalised to its own stream, and no further failure modes are possible, then the store map can be and must be reset, by calling its <codeph>Reset()</codeph> function.</p> <section><title>See also</title> <p><xref href="GUID-C9D8D913-C65F-5A69-A606-30F59BFB38E2.dita">File stores</xref> </p> <p><xref href="GUID-6EE0CB66-A759-5E0C-884D-90895F35F267.dita">Transactions</xref> </p> </section> </conbody></concept>

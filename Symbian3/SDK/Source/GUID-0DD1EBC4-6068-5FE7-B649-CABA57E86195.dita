@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-0DD1EBC4-6068-5FE7-B649-CABA57E86195"><title>Drawing Polylines and Polygons</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This topic provides examples that demonstrate how to draw a polyline and how to draw and fill a self-crossing polygon. </p> <p>The example code assumes the array of points used when drawing these shapes is defined as follows: </p> <codeblock id="GUID-9DACC372-C21C-5C99-9026-C5505B7C2B5A" xml:space="preserve">...
+// set up an array of points for drawing a polyline and a polygon etc.
+// will be used relative to top left of rectangle
+TPoint point1(20,20);
+TPoint point2(100,190);
+TPoint point3(110,90);
+TPoint point4(50,150);
+TPoint point5(200,150);
+CArrayFix&lt;TPoint&gt;* mypoints = new CArrayFixFlat&lt;TPoint&gt;(5);
+CleanupStack::PushL(mypoints);
+mypoints-&gt;AppendL(point1);
+mypoints-&gt;AppendL(point2);
+mypoints-&gt;AppendL(point3);
+mypoints-&gt;AppendL(point4);
+mypoints-&gt;AppendL(point5);
+...
+    
+// switch statement with example cases
+...
+CleanupStack::PopAndDestroy(); // mypoints</codeblock> <section><title>Drawing a polyline</title> <p>You can draw a polyline using <codeph>DrawPolyLine()</codeph> from an array of points. </p> <codeblock id="GUID-96082027-6F7C-52C3-A1E1-B41569851D97" xml:space="preserve">...
+// draw a polyline
+gc.DrawPolyLine(mypoints);
+...</codeblock> </section> <section><title>Drawing a polygon</title> <p>The following example code illustrates how to draw a filled polygon from an array of points. The polygon is self-crossing. Self-crossing polygons can be filled according to one of two rules, <codeph>TFillRule::EAlternate</codeph> (the default), or <codeph>TFillRule::EWinding</codeph>. These rules work with the concept of a winding number, as shown in the following figure: </p> <fig id="GUID-DCCC82D0-04BD-5CE5-B21E-1DF921F7E956"><title>
+             Winding numbers 
+          </title> <image href="GUID-93A4CD14-A3CD-57B2-BF32-57EF38F59ECF_d0e178906_href.png" placement="inline"/></fig> <p> <codeph>EWinding</codeph> fills all areas, while <codeph>EAlternate</codeph> only fills areas with odd winding numbers. </p> <p><b>Drawing a polygon using the EWinding fill rule</b> </p> <ol id="GUID-40875382-97F3-5BBA-9CE7-C49A6418ECCD"><li id="GUID-8A0BBCBF-BAB2-59A0-BE7B-F27875318DF5"><p>Use <codeph>SetBrushStyle()</codeph> to set a cross-hatched brush style. </p> </li> <li id="GUID-C7845F63-2332-5FA4-A750-0223ECFED056"><p>Use <codeph>DrawPolygon()</codeph> to draw the polygon with the <codeph>EWinding</codeph> fill rule. </p> </li> </ol> <codeblock id="GUID-893413B0-E8AA-5317-95B1-A8970D63FFC9" xml:space="preserve">...
+// draw self-crossing polygon using the winding fill rule
+gc.SetBrushStyle(CGraphicsContext::ESquareCrossHatchBrush);
+gc.SetBrushColor(black);
+gc.DrawPolygon(mypoints,CGraphicsContext::EWinding);
+...</codeblock> <p><b>Drawing a polygon using the EAlternate fill rule</b> </p> <ol id="GUID-A41D3FCD-9C7D-5400-B0EF-3CC287193B9B"><li id="GUID-0949D505-AF72-5CA6-B93B-7A6D34BC1B5E"><p>Use <codeph>SetBrushStyle()</codeph> to set a diamond cross-hatched brush style. </p> </li> <li id="GUID-F5382106-FFEB-55EA-98DF-751E07050568"><p>Use <codeph>DrawPolygon()</codeph> to draw the polygon with the <codeph>EAlternate</codeph> fill rule. </p> </li> </ol> <codeblock id="GUID-CBF5948B-BC44-5803-B00B-86D231D44169" xml:space="preserve">...
+// draw self-crossing polygon using the alternate fill rule
+gc.SetBrushStyle(CGraphicsContext::EDiamondCrossHatchBrush);
+gc.SetBrushColor(black);
+gc.DrawPolygon(mypoints,CGraphicsContext::EAlternate);
+...</codeblock> </section> </conbody><related-links><link href="GUID-55C8C429-1BEC-5A58-94EC-DA1E51F62867.dita"><linktext>Drawing
+                to a Graphics Context Tutorials</linktext> </link> <link href="GUID-E3AC8F3E-9D5C-5E7D-9760-023B77C7C8A8.dita"><linktext>Drawing and Graphics Contexts</linktext> </link> </related-links></concept>

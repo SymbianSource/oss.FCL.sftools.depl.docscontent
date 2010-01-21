@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CF8FA653-5A3B-5D57-8875-0BC6BDCC1D0A" xml:lang="en"><title>Schedule
+Send MTM Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section provides an overview of the Schedule Send MTM component. </p>
+<section><title>Purpose</title> <p>The Schedule Send MTM allows Message Type
+Modules (MTM) to send messages at scheduled times. For example, the <xref href="GUID-33C7EEEB-88B8-5587-916D-2C5D122F6010.dita">SMS MTM</xref> uses this
+functionality to allow scheduled sending of SMS messages. </p> </section>
+<section><title>Architecture</title> <p>The Schedule Send functionality is
+delivered by four components: </p> <ul>
+<li id="GUID-9F8C6A75-11C5-58F8-8C94-ABFEFB5551A7"><p> <b>Server MTM base
+class</b>  </p> <p>The base class provides support to Server MTMs that wish
+to support scheduled operations. </p> </li>
+<li id="GUID-B0BC4BCD-600A-5619-AA0A-721DFA6F6355"><p> <b>Data structures</b>  </p> <p>Classes
+used to represent the data associated with a scheduled operation. </p> </li>
+<li id="GUID-D096C050-6250-5C6B-8046-C6BEC1BBB4DA"><p> <b>Schedule Send Executable</b>  </p> <p>The
+Schedule Send Executable is run by the task scheduler at the scheduled time. </p> </li>
+<li id="GUID-FEC0314A-5D66-570B-BCD2-A995FA9B52EC"><p> <b>Task Scheduler</b>  </p> <p>The
+component is part of the Generic OS Services. </p> </li>
+</ul> <p>Clients request the Server MTM schedule operations; this is passed
+to the Server MTM through the Message Server. The Server MTM packages the
+operation ID, a selection of message IDs, how often to poll for progress and
+an MTM specific buffer. It then passes this package of data to the task scheduler
+requesting that it launches the Schedule Send executable at the correct time
+with the packaged information. When the task scheduler launches the Schedule
+Send executable, it unpacks the schedule information and uses the messaging
+client API to request the Server MTM to perform an operation. </p> <fig id="GUID-F3664A22-1E9F-586B-84B1-CDA7987C3894">
+<title>              Schedule Send architecture            </title>
+<image href="GUID-628A90FC-35F9-51D0-853E-9BECB3C91B59_d0e252086_href.png" placement="inline"/>
+</fig> <p>The executable to run by the Task Scheduler is specified in the
+schedule send settings. This allows different executables for different message
+types, as a set of schedule send settings are defined for each message type
+that uses the schedule send support. The executable is normally the schedule-send
+exe (<filepath>schsendexe.exe</filepath>). </p> <p>Each task contains some
+repeat and priority information and a payload of data. In the case of schedules
+created by <xref href="GUID-35CAC635-C0CE-328F-B10C-7FEB4503E8DB.dita"><apiname>CMsvScheduleSend</apiname></xref>, and the payload contains the <xref href="GUID-A4B1F874-27C0-3BB6-9D29-C35C75A5DB98.dita"><apiname>TMsvId</apiname></xref> of
+the scheduled message and ID of the command to be applied to that message. </p> </section>
+<section><title>Description</title> <p>The Schedule Send component is an extension
+to the Messaging Framework that provides the messaging client with functionality
+to schedule messages. It provides the following scheduling functionality: </p> <ul>
+<li id="GUID-D0FE4E53-6A5E-537C-8137-62FCBDA76C25"><p>Schedule a selection
+of messages </p> </li>
+<li id="GUID-310D7333-C3A4-544F-82F9-EBED51DEC322"><p>Reschedule a selection
+of messages </p> </li>
+<li id="GUID-E55C0577-3E52-57F8-9DE0-A74DD6504699"><p>Check the schedule information
+for a selection of messages </p> </li>
+<li id="GUID-A7553674-42EC-5437-A362-5994776B2D79"><p>Delete the schedule(s)
+for a selection of messages </p> </li>
+</ul> <p>It also provides status information, such as whether a message is
+currently scheduled, or failed. </p> <p>There are two types of schedules:
+conditions-schedules and time-schedules. Both are stored in the file system
+and persist across a reboot of a device. A schedule contains several pieces
+of information, such as the schedule trigger (for example, the scheduled time),
+the executable to run when the trigger occurs, and a list of tasks. </p> <p>Schedule
+Send supports a retry mechanism if the operation fails. The Server MTM has
+a resource file containing a mapping from the error codes the operation can
+fail with and actions to be performed. For example, the SMS resource file
+has a mapping such that if the operation fails with an error code indicating
+a bad phone number, the SMS is set to failed and left in the outbox. Whereas,
+if it fails with an error code indicating temporary network failure, the send
+operation is scheduled to be resent later with a maximum of three retries. </p> </section>
+<section><title>API summary</title> <p>The following are the main classes
+of the Schedule Send component: </p> <ul>
+<li id="GUID-FC3E3A59-29FD-5AD9-A4FE-3712BBE84F4F"><p>The <xref href="GUID-35CAC635-C0CE-328F-B10C-7FEB4503E8DB.dita"><apiname>CMsvScheduleSend</apiname></xref> is
+the main API that provides the Schedule Send support. This API provides the
+following scheduling functionality: </p> <ul>
+<li id="GUID-21BA2FDE-617B-521C-82E6-B6493677234D"><p>Schedule a selection
+of messages </p> </li>
+<li id="GUID-7A3D4A53-713C-50F1-9BCE-23C93795240B"><p>Reschedule a selection
+of messages </p> </li>
+<li id="GUID-81E94316-E1BE-5710-9573-5C9DD332E9C4"><p>Check the schedule information
+for a selection of messages </p> </li>
+<li id="GUID-5DAA73B7-5171-5F17-9F09-FBA1006BC69C"><p>Delete the schedules
+for a selection of messages </p> </li>
+</ul> <p>Scheduling is performed by the task scheduler. The <xref href="GUID-35CAC635-C0CE-328F-B10C-7FEB4503E8DB.dita"><apiname>CMsvScheduleSend</apiname></xref> class
+uses the task scheduler <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita"><apiname>RScheduler</apiname></xref> API to create persistent
+schedules and add tasks to that schedule. Each task contains some repeat and
+priority information, and a payload of data. In the case of schedules created
+by <xref href="GUID-35CAC635-C0CE-328F-B10C-7FEB4503E8DB.dita"><apiname>CMsvScheduleSend</apiname></xref>, the payload contains the <xref href="GUID-A4B1F874-27C0-3BB6-9D29-C35C75A5DB98.dita"><apiname>TMsvId</apiname></xref> of
+the scheduled message and the ID of the command to be applied to that message. </p> </li>
+<li id="GUID-88A357B8-1F54-5BB4-8996-749E08776880"><p>The <xref href="GUID-95828565-7389-381C-BD7E-B7F7B98A2487.dita"><apiname>CMsvSysAgentActions</apiname></xref> class
+is used to specify what (system agent) conditions need to be checked before
+sending a message. </p> </li>
+<li id="GUID-6B42C963-B955-5928-8CC9-D27D3D4B49C5"><p>The <xref href="GUID-BF841328-372B-3F68-8BC9-5CB8639650D0.dita"><apiname>CMsvSendErrorActions</apiname></xref> class
+has a set of actions associated with error codes. It also provides a method
+to populate itself from a resource file, <xref href="GUID-30427874-08F3-32E1-A512-44091C4ABD5C.dita"><apiname>RestoreFromResourceL</apiname></xref>. </p> <p>This
+is used in the <xref href="GUID-78B57F36-F131-3275-B23F-9F20446C5C2A.dita#GUID-78B57F36-F131-3275-B23F-9F20446C5C2A/GUID-6D031676-C9A7-36F3-B75A-363EA1571896"><apiname>CScheduleBaseServerMtm::RestoreSettings</apiname></xref> method,
+where the error actions are populated from the resource file for a message
+type. </p> </li>
+<li id="GUID-3C17AEBA-7F45-51A4-A2EB-C4E0EC64869E"><p>The <xref href="GUID-3A9254B7-77C2-300A-9128-6A7BD45F8CBA.dita"><apiname>CMsvScheduleSettings</apiname></xref> class
+encapsulates settings for the Schedule Send. This contains information, such
+as, the length of <b>short</b> and <b>long</b> time intervals that are used
+to calculate the next schedule time for a message being rescheduled. </p> </li>
+</ul> </section>
+<section><title>Typical uses</title> <table id="GUID-B9D02EE0-1A69-5540-AE43-23A2ADA52F98">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>Main task</entry>
+<entry>Sub-tasks</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Scheduling a message </p> </entry>
+<entry><p> </p> </entry>
+<entry><p>Schedules a selection of messages. The messages must be of the same
+type. They must also be scheduled for the same date and if applicable, for
+the same off-peak time. </p> <p>The first step of scheduling a message is
+to set the different parameters that allows determining the exact time the
+message is sent and what to do if the message cannot be sent. The following
+settings are per message and two parameters must be set for each message. </p> </entry>
+</row>
+<row>
+<entry><p> </p> </entry>
+<entry><p>Set the date </p> </entry>
+<entry><p>Client applications can set the schedule date for a message. </p> </entry>
+</row>
+<row>
+<entry><p> </p> </entry>
+<entry><p>Select off-peak sending </p> </entry>
+<entry><p>Client applications can select to send messages during off-peak
+periods. </p> </entry>
+</row>
+<row>
+<entry><p>Delete the schedule for messages </p> </entry>
+<entry><p> </p> </entry>
+<entry><p>Client applications can delete a schedule for a specified message
+from the task scheduler. The messages themselves are not deleted. </p> </entry>
+</row>
+<row>
+<entry><p>Re-schedule messages </p> </entry>
+<entry><p> </p> </entry>
+<entry><p>Client applications can determine when messages should be rescheduled
+on the task scheduler. </p> </entry>
+</row>
+<row>
+<entry><p>Send scheduled messages </p> </entry>
+<entry><p> </p> </entry>
+<entry><p>Client applications can send messages immediately that are previously
+scheduled, that is, override the scheduling. </p> </entry>
+</row>
+<row>
+<entry><p>Check the schedule of messages </p> </entry>
+<entry><p> </p> </entry>
+<entry><p>Client applications can verify that the schedule information stored
+in specified messages is the same as the one actually in use. </p> </entry>
+</row>
+<row>
+<entry><p>Configuring a Schedule Send message </p> </entry>
+<entry/>
+<entry><p>Client applications can configure the build-time configuration parameters,
+which are time-related parameters, off-peak period definitions and error actions. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Validity period </p> </entry>
+<entry><p>The time period that the messages are valid (the message is not
+sent after the validity period has expired). This is ignored if a message
+has to be sent off-peak. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Next attempt intervals </p> </entry>
+<entry><p>The messaging client uses this setting to define the time to wait
+before attempting to resend a message. </p> <p>After a failed attempt, a message
+can be sent immediately or later. The short interval and long interval define
+the delays before a new attempt. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Latency </p> </entry>
+<entry><p>The minimum amount of time between now and when the message is sent. </p> <p>A
+message scheduled in the past will actually be scheduled to be sent Latency
+seconds after the current time. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Start of off-peak period </p> </entry>
+<entry><p>The day of the week, hour of the day and minute of the hour when
+the off-peak period starts. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Duration of off-peak period </p> </entry>
+<entry><p>The length (in minutes) of the off-peak period time. Must be less
+than 24 hours. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Add an error action </p> </entry>
+<entry><p>Client applications can add an error-action to the configuration
+of the subsystem (for a type of message). That is, the error-action is configured
+for the number of retries or type of retry spacing to a particular error. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Remove an error-action </p> </entry>
+<entry><p>Client applications can remove an error-action from the list sustained
+by the Messaging Middleware module. </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Set a list of error-actions </p> </entry>
+<entry><p> </p> </entry>
+</row>
+<row>
+<entry/>
+<entry><p>Load the error-actions from a resource file </p> </entry>
+<entry><p>Client applications can restore the list of error-actions from a
+resource file. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody><related-links>
+<link href="GUID-8B843382-D27A-5E36-8F60-304903F3AA41.dita"><linktext>Message Type
+Module</linktext></link>
+</related-links></concept>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-51621C76-17B5-5829-B4EC-86B453442CDC" xml:lang="en"><title>How
+to implement a simple server interface</title><shortdesc>Provides code snippets to help you to implement a simple server
+interface.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-2720017E-2EDF-4DB5-81E9-2A75E434BDE3"><title>Handling asynchronous requests</title> <p>The implementation
+of a server requires a class derived from <codeph>CServer2</codeph>. This
+is the <i>active object</i> base class responsible for handling the asynchronous
+requests from the client program. </p> <p><b>Construction and initialisation</b> </p> <p>An
+instance of the <codeph>CServer2</codeph> derived class is, typically, created
+by the server's thread function. As an active object, it needs a priority
+and this is passed as a parameter to the constructor. The choice of priority
+value depends on the server's design. If the server can, ultimately, have
+more than one active object, then it may be important for the <codeph>CServer2</codeph> active
+object to have the highest priority. </p> <p>The server can now be started.
+This is a code fragment taken from the example that can be found at <filepath>...\examples\Base\IPC\ClientServer\complex</filepath>. </p> <codeblock id="GUID-6D887396-920C-5B5B-B58E-6700371DB31C" xml:space="preserve">CCountServServer *pS=new CCountServServer(EPriorityStandard);
+__ASSERT_ALWAYS(pS!=NULL,CCountServServer::PanicServer(ESvrCreateServer));
+...
+      
+    // Start the server
+TInt err = pS-&gt;Start(KCountServerName);
+if (err != KErrNone)
+    {
+    CCountServServer::PanicServer(ESvrStartServer);
+    }</codeblock> <p>The function <codeph>CServer2::Start()</codeph> adds
+the <codeph>CServer2</codeph> active object to the active scheduler and issues
+the first request for messages. The server is now waiting for messages. </p> <p>As
+with all active objects, the completion of requests for messages is handled
+by the <codeph>CServer2::RunL()</codeph> protected member function. </p> <p><b>Handling requests</b> </p> <p>A request for a connection by a client thread
+results in the creation of a new session. The request for a connection results
+in a call by the client/server framework to the <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita#GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C/GUID-3260F745-3597-349A-9754-303DC020EF18"><apiname>CServer2::NewSessionL()</apiname></xref> function.
+A derived class must provide an implementation - creating and initialising
+an instance of a <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> derived class. The framework
+takes this newly created session object to the server's queue. </p> <p>For
+a non sharable session, requests for disconnection by a client thread cause
+the relevant <codeph>CSession2</codeph> object to be deleted. The <codeph>CSession2</codeph> destructor
+should perform appropriate cleanup. </p> <p>Any other message is passed to <codeph>CSession2::ServiceL()</codeph>.
+This function must be implemented by a derived class. </p> </section>
+<section id="GUID-2E5EB078-59D7-49B3-A32A-17AF0FBD3492"><title>Server side session representation</title> <p>The base class <codeph>CSession2</codeph> represents
+a client's session on the server side. This class provides the standard session
+behaviour. A class derived from <codeph>CSession2</codeph> must be defined
+and implemented. The following class definition, taken from the example that
+can be found at: <filepath>...\examples\Base\IPC\ClientServer\simple</filepath>,
+is typical: </p> <codeblock id="GUID-8DCCB062-2630-5C2E-A590-89208928E902" xml:space="preserve">class CCountServSession : public CSession2
+    {
+public:
+    CCountServSession();
+
+      //service request
+    void ServiceL(const RMessage2&amp; aMessage);
+    void DispatchMessageL(const RMessage2&amp; aMessage);
+
+      // services available to initialize/increase/decrease/reset and
+      // return the counter value.
+    void SetFromStringL(const RMessage2&amp; aMessage);
+    void Increase();
+    void Decrease();
+    void IncreaseBy(const RMessage2&amp; aMessage);
+    void DecreaseBy(const RMessage2&amp; aMessage);
+    void CounterValue(const RMessage2&amp; aMessage);
+    void Reset();
+
+protected:
+        // panic the client
+   void PanicClient(const RMessage2&amp; aMessage,TInt aPanic) const;
+        
+private:
+    TInt iCount;
+    };</codeblock> <p>Note the following: </p> <ul>
+<li id="GUID-D3EE4EBA-47F3-5EC4-8487-A4DBD809D2B3"><p>The function <codeph>ServiceL()</codeph> is
+called by the client/server framework to handle all messages except requests
+to connect and disconnect. </p> </li>
+<li id="GUID-C4980BE1-D852-5AAE-8782-8C98D95BA102"><p> <codeph>ServiceL()</codeph> calls <codeph>DispatchMessageL()</codeph> under
+a trap harness. </p> </li>
+<li id="GUID-19A78104-9C7C-53C7-8328-F34E2CBCF857"><p> <codeph>DispatchMessageL()</codeph> determines
+the appropriate message service function to call by examining the operation
+code of the current message. This is simply a mechanism to delegate the handling
+of different request types. </p> </li>
+<li id="GUID-9A3F4396-8561-540D-BE0B-C674A14704AE"><p>The class provides message
+service functions: <codeph>Increase()</codeph>, <codeph>IncreaseBy()</codeph> etc.
+to service specific messages from clients. </p> </li>
+<li id="GUID-023BAF14-7588-5F25-B75C-8F1126D7749F"><p>The function <codeph>SetFromStringL()</codeph> needs
+a string specified by the client and therefore needs to read data from the
+client address space. </p> </li>
+</ul> <p><b>ServiceL()</b> </p> <p>This
+is implemented as follows: </p> <codeblock id="GUID-293D2833-3C1C-5B6E-AACF-B8EC20E0F7F9" xml:space="preserve">void CCountServSession::ServiceL(const RMessage2&amp; aMessage)
+    {
+    TRAPD(err,DispatchMessageL(aMessage));
+    aMessage.Complete(err);
+    }</codeblock> <p>After calling the appropriate service function via <codeph>DispatchMessageL()</codeph>,
+the asynchronous request is completed with <codeph>aMessage.Complete()</codeph> which
+passes the completion code back to the client. </p> <p><b>DispatchMessageL()</b> </p> <p>This is implemented as follows: </p> <codeblock id="GUID-14C3190C-921F-5C69-B0D0-7932C71B5ACF" xml:space="preserve">void CCountServSession::DispatchMessageL(const RMessage2&amp; aMessage)
+    {
+    switch (aMessage.Function())
+        {
+    case ECountServSetFromString:
+        SetFromStringL(aMessage);
+        return;
+    case ECountServIncrease:
+        Increase();
+        return;
+    case ECountServIncreaseBy:
+        IncreaseBy(aMessage);
+        return;
+        ...
+    case ECountServValue:
+        CounterValue(aMessage);
+        return;
+    ...
+    default:
+        PanicClient(aMessage,EBadRequest);
+        return;
+        }
+    }</codeblock> <p><b>IncreaseBy()</b> </p> <p>This message service function is implemented as follows: </p> <codeblock id="GUID-4516B089-F1D8-56BD-82CB-B7A1B0E98F0D" xml:space="preserve">void CCountServSession::IncreaseBy(const RMessage2&amp; aMessage)
+    {
+    iCount = iCount + aMessage.Int0(); 
+    }</codeblock> <p>Note that we need to pass the message object to the function.
+The <codeph>Int0()</codeph> function is used to get the integer specified
+in the client call - the '0' on the end of the function name indicates that
+the integer is the first parameter in the set passed across from the client. </p> <p><b>SetFromStringL()</b> </p> <p>This message service function is implemented
+as follows: </p> <codeblock id="GUID-2BC55BC9-6AE1-5462-A6EE-6767F8EE19C7" xml:space="preserve">void CCountServSession::SetFromStringL(const RMessage2&amp; aMessage)
+    {
+         // length of passed descriptor (1st parameter passed from client)
+    TInt deslen = aMessage.GetDesLength(0);
+    
+      // Passed data will be saved in this descriptor.
+    RBuf buffer;
+      
+      // Max length set to the value of "deslen", but current length is zero
+    buffer.CreateL(deslen);
+      
+      // Do the right cleanup if anything subsequently goes wrong
+    buffer.CleanupClosePushL();
+    
+      // Copy the client's descriptor data into our buffer.
+    aMessage.ReadL(0,buffer,0);
+    
+      // Now do a validation to make sure that the string only has digits
+    if (buffer.Length() == 0)
+        {
+        User::Leave(ENonNumericString);
+        }
+    ...
+      // Do rest of work to convert from 
+      // string to integer, and assign.</codeblock> <p> <codeph>RMessage::ReadL()</codeph> reads
+the descriptor from the client address space as specified by the first argument
+in the message, and copies the data into the descriptor specified as its second
+argument. A basic test is done to make sure there data is supplied. </p> <p><b>CounterValue()</b> </p> <p>This is implemented as follows: </p> <codeblock id="GUID-9EE6666F-A4A7-5437-8AF1-CB0F8E2D6F0F" xml:space="preserve">void CCountServSession::CounterValue(const RMessage2&amp; aMessage)
+    {
+    TPckgBuf&lt;TInt&gt; p(iCount);
+    aMessage.WriteL(0,p);
+    }</codeblock> <p>It writes data back to a descriptor in the client address
+space. The corresponding client request is: </p> <codeblock id="GUID-A772B781-18E8-5109-BB6F-8871F829A8B5" xml:space="preserve">TInt RCountServSession::CounterValue()
+    {
+    TInt res=0;
+    TckgBuf&lt;TInt&gt; pckg;
+    
+      // Note that TPckgBuf is of type TDes8
+    TIpcArgs args(&amp;pckg);
+    SendReceive(ECountServValue, args);
+    
+      // Extract the value returned from the server. 
+    res = pckg();
+    return res;
+    }</codeblock> <p><b>Notes</b> </p> <ul>
+<li id="GUID-EC003B28-3695-5B19-8074-54DB06B720B8"><p>The <codeph>TInt</codeph> is
+packaged into a descriptor before being passed to the server. The packaging
+mechanism is known as package buffer. </p> </li>
+<li id="GUID-BB34EFC9-D238-509C-98C1-66BC64AA6EE2"><p>The write operation
+copies the descriptor, i.e. the package buffer containing the integer value,
+back to the descriptor in the client address space. Note that the zero specified
+in <codeph>aMessage.WriteL(0,p);</codeph> means that the argument referred
+to is the first in the list passed across from the client side via the <codeph>TIpcArgs</codeph> object. </p> </li>
+</ul> </section>
+</conbody></concept>

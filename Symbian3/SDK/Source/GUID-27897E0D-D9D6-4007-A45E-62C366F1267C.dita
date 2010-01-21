@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-27897E0D-D9D6-4007-A45E-62C366F1267C" xml:lang="en"><title>Using
+direct feedback</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Direct feedback means that the application triggers feedback itself based
+on received pointer events. This approach is in general necessary in three
+cases:<ol>
+<li id="GUID-23A79B78-9228-4FD9-ACF9-8031E09A036B">The triggering of feedback
+depends on the state of the control (or application) in such a way that the
+area registry cannot be used. For example: feedback is triggered from each
+new character when the user selects text with the stylus.</li>
+<li id="GUID-85A0716A-15ED-4E02-8E9D-57D2280E00F4">Feedback area is non-rectangular
+and thus area registry cannot be used. For example: the user taps a tab of
+a non-focused view in a view-based application.</li>
+<li id="GUID-5296912E-A665-45E5-A7A5-CD323C449C42">Feedback is triggered from
+pointer repeat events.</li>
+</ol></p>
+<note><p>In the first two cases the feedback must be generated on the pointer
+down event, even though the related action itself would be done only on the
+pointer up event.</p></note>
+<p>In a lot of cases, you may want to use both <xref href="GUID-10A03A8E-E967-4F9C-B911-2F06031C6ADC.dita">area
+registry based feedback</xref> and direct feedback in your application. In
+this case you must ensure these two do not overlap, so that direct feedback
+would be generated for some pointer events, which have already triggered feedback
+from the area registry.</p>
+<p>Use the <codeph>InstantFeedback</codeph> function to generate direct feedback.
+This always causes a synchronous client-server transaction immediately. (If
+tactile feedback is not supported in the device, the API implementation ignores
+the function call.)</p>
+<codeblock xml:space="preserve">void CMyTactileEnabledControl::HandlePointerEventL(
+    const TPointerEvent&amp; aPointerEvent )
+    {
+    TBool stateChanged;
+
+    // (your code here)
+
+    if(aPointerEvent.iType == TPointerEvent::EDrag &amp;&amp; stateChanged)
+        {
+        // Produce sensitive feedback when dragging causes a state
+        // change (this kind of feedback triggering is not possible  
+        // by using area registry).
+        MTouchFeedback* feedback = MTouchFeedback::Instance();
+        if ( feedback )
+            {
+            feedback-&gt;InstantFeedback( ETouchFeedbackSensitive );
+            }
+        }
+    }
+</codeblock>
+<p>Also notice that there are two overloads of the <codeph>InstantFeedback</codeph> function:
+The first one only takes the logical feedback type as parameter, and can be
+used for generating feedback at any time, even when no UI controls are involved
+(for e.g. if the AppUi class wants to generate feedback). The second overload
+takes a <codeph>CCoeControl</codeph> pointer as parameter, and it does nothing
+in case feedback is disabled for the given control.</p>
+<p>The latter overload is recommended to be used from UI controls, because
+that gives the owner of the control a possibility to disable both area registry
+based and direct feedback if needed.</p>
+</conbody></concept>

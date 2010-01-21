@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C7589C93-B517-4251-ACFB-B03E07993242" xml:lang="en"><title>Hybrid
+Applications with Symbian C++ and Standard C</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If the developers want to use any of the P.I.P.S. APIs while writing some
+Symbian application, they need to link to the corresponding library. The only
+difference being that the developer does not have to link with the <codeph>STATICLIBRARY</codeph> <filepath>libcrt0.lib</filepath> in
+the MMP file.</p>
+<p>There are no additional P.I.P.S. specific changes that need to be done
+in the source file in this case. This is possible, because the P.I.P.S. developer
+of does not have to call any library initialization routine before use or
+cleanup routine after use.</p>
+<p>Some of the P.I.P.S. APIs assume that a cleanup stack is created and there
+is a top-level TRAP. If the developer does not create either of the two, calling
+such APIs may lead to application crash. </p>
+<note>In a hybrid application, the user must make sure that the
+cleanup stack is created and a top-level TRAP marker is done.</note>
+<p>Hybrid application can also contain threads created using both <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-6C840907-C3F7-34B7-97DB-CEDBA68EA277"><apiname>RThread::Create()</apiname></xref> and <codeph>pthread_create()</codeph>,
+and can still use P.I.P.S. APIs in both the threads. In case of <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-6C840907-C3F7-34B7-97DB-CEDBA68EA277"><apiname>RThread::Create()</apiname></xref> the
+developer has to create cleanup stack and a top level TRAP for this thread
+in the thread entry Function, if it is required; else this thread may crash
+or panic. </p>
+<p>An application can have both C++ and C source codes. In this case, in order
+to give C linkage to C++ code- that is calling a function defined in a C++
+file that may have C++ code, use extern “C”. For example:</p>
+<codeblock xml:space="preserve">// File: sample.c
+  void OtherFoo();
+  
+  void Foo() {
+     OtherFoo();
+  }
+
+// File: useme.cpp
+  
+  extern “C” {
+  void OtherFoo() {
+     //Can use any C++ code here
+     //Can use Symbian C++ code here
+  }
+  }
+</codeblock>
+</conbody></concept>

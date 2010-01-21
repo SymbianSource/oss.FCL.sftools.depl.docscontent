@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5287A403-1094-5682-A443-A6C2A04A1F23" xml:lang="en"><title>Creating
+and Managing an RTP session</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This page describes how to create a new session with the socket server
+and how to open the session and set some of the session parameters. It also
+describes how to use an RTP <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>RSocket</apiname></xref> interface. </p>
+<p>To communicate with RTP, open a session with the <xref href="GUID-61E0CD76-A2E3-5066-84A8-146EECA8ADCD.dita">socket
+server</xref>. You can open several sessions at the same time. </p>
+<p>An <xref href="GUID-2C5D53A3-0211-5C14-BD7F-E89EB27BAD2A.dita">active scheduler</xref> must
+be created and started before you open an RTP session. </p>
+<section><title>Opening a session</title> <p> <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>RRtpSession::OpenL()</apiname></xref> opens
+an RTP session and starts it. The method has four overloads. RTCP is enabled
+for the first three overloads and is disabled for the last overload. </p> <codeblock id="GUID-AFB0BF5E-DE8C-5AAE-B693-B3F6721B5321" xml:space="preserve">IMPORT_C void OpenL(RSocketServ &amp;aServer, TSockAddr &amp;aLocalAddr, TSockAddr &amp;aRemoteAddr, TInt aMaxRXSize, RConnection &amp;aConnection, TInt aPriority=EPriorityNormal, const TDesC8 &amp;aCNAME=KNullDesC8);</codeblock> <codeblock id="GUID-DEF6E5F9-BC04-5092-B444-08EB85268431" xml:space="preserve">IMPORT_C void OpenL(RSocketServ &amp;aServer, TSockAddr &amp;aLocalAddr, TSockAddr &amp;aRemoteAddr, TInt aMaxRXSize, TInt aPriority=EPriorityNormal, const TDesC8 &amp;aCNAME=KNullDesC8);</codeblock> <codeblock id="GUID-53661685-AA43-5EBB-B3A3-EC3EE143CC0E" xml:space="preserve">IMPORT_C void OpenL(RSocket &amp;aSocket, TInt aMaxRXSize, RSocket &amp;aRtcpSocket, TInt aPriority=EPriorityNormal, const TDesC8 &amp;aCNAME=KNullDesC8);</codeblock> <codeblock id="GUID-5283B661-0617-5656-B004-8A70B04E5DD9" xml:space="preserve">IMPORT_C void OpenL(RSocket &amp;aSocket, TInt aMaxRXSize, TInt aPriority=EPriorityNormal);</codeblock> </section>
+<section> <title>Setting session parameters</title> <p>After
+creating an RTP session, you need to set the following parameters before sending
+and receiving RTP packets: </p> <ul>
+<li id="GUID-E68D70C1-99D6-59E3-81F7-D022F0FEF545"><p>the bandwidth for the
+RTP stream, by calling the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>SetBandwidth()</apiname></xref> method </p> </li>
+<li id="GUID-9D89740D-74C2-5CDC-846E-9E10EFAFEBBC"><p>the conversion rate
+for the RTCP timestamp, by calling the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>SetRTPTimeConversion()</apiname></xref> method </p> </li>
+</ul> <p>During an active RTP session, you can change the following parameters: </p> <ul>
+<li id="GUID-1A5C1270-11D3-5557-94BE-AAF74ADD2AEC"><p>the destination address,
+by calling the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>SetRemoteAddress()</apiname></xref> method </p> </li>
+<li id="GUID-9E2B4415-4D5A-5FB1-96E8-83F9E60944D9"><p>the remote RTCP port,
+by calling the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>SetRemoteRtcpPort()</apiname></xref> method </p> </li>
+</ul> <p>When specifying a new remote address for the RTP session, the remote
+RTCP port is set one port higher than the RTP port, as defined by the RTP
+standard. When specifying a new RTCP port, the RTP port is not modified. </p> <p> <b>Note</b>:
+If you need more configuration options for your RTP communications, you can
+change the settings of the internal sockets. The <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>RtpSocket()</apiname></xref> and <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>RtcpSocket()</apiname></xref> methods return the handles of
+the internal sockets used for RTP and RTCP data. </p> </section>
+<section><title>Example</title> <p>The following code shows how to create
+a new session, and set session parameters. </p> <codeblock id="GUID-8AA5C199-15D4-5259-92DC-4389C3F40C2E" xml:space="preserve">// [...]
+
+// Construct a new session object 
+RRtpSession session; 
+session.OpenL(iRtpSocket, 1500, EPriorityNormal); 
+
+// Set the RTP session parameters 
+session.SetBandwidth(1000);    // Set session bandwidth in bps at the start up 
+
+//SetRTPTimeConversion API is called before receiving an RTP packet
+session.SetRTPTimeConversion(100, 100); // Set RTP time conversion for generating the RTP timestamps in RTCP packets
+</codeblock> <p>The following code shows how to change parameters during the
+RTP session: </p> <codeblock id="GUID-745688FD-A148-5668-A962-64985A952EB1" xml:space="preserve">
+// sample address and port for the RTP socket
+TSockAddr newAddr;
+newAddrr.SetAddress(INET_ADDR(192,168,0,1));
+newAddr.SetPort(4646);
+
+// changing the RTP destination
+session.SetRemoteAddress(newAddr);
+
+// by default, the RTCP port is set to the first port higher than the RTP port 
+session.SetRemoteRtcpPort(4649);
+
+// turning IMCP errors onsession.
+RtpSocket().SetOpt(KSoUdpReceiveICMPError, KSolInetUdp, 1);
+</codeblock> </section>
+</conbody></concept>

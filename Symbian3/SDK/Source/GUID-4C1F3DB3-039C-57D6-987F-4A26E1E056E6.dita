@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4C1F3DB3-039C-57D6-987F-4A26E1E056E6" xml:lang="en"><title>How to use the non-modifiable pointer descriptor - TPtrC</title><shortdesc>Non-modifiable pointer descriptors are useful for referencing
+		constant strings or data; for example, accessing strings built into ROM
+		resident code, or passing a reference to data in RAM which must not be modified
+		through that reference.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><ul id="UL_83DD0FC743444EBB91D9DADAD05AA845"><li id="LI_1AE27A9C48A742059A1F92645EE8DC40">For text data, it is usual to construct a <codeph>TPtrC</codeph> type and allow the appropriate variant, either a <codeph>TPtrC8</codeph> or a			 <codeph>TPtrC16</codeph> to be selected at build time.</li><li id="LI_46611661D34840A984E5DB5E1B2F5C83">For binary data, an explicit <codeph>TPtrC8</codeph> is used.</li><li id="LI_8E40A85E05F34A24B96A6985B0219F26">It is rare to use an explicit <codeph>TPtrC16</codeph>.</li></ul>
+<section id="SECTION_5C848D1949114AB4B5B04399DE2E1D0C"> 
+		<title>Constructing a <codeph>TPtrC</codeph></title> 
+		<p>A non-modifiable pointer descriptor can be constructed in a number
+		  of ways:</p> 
+		<ul id="UL_285D678E37474863A9CDE0AC07563A22"> 
+		  <li id="LI_FA3C5DEF26314DC4AD26D1C643A63439"> 
+			 <p>any other descriptor.</p> 
+		  </li> 
+		  <li id="LI_5762D37490F24F0CA795213A8E9FF639"> 
+			 <p>another non-modifiable pointer descriptor.</p> 
+		  </li> 
+		  <li id="LI_D44E9FC98D16448585130B89B27ECEE6"> 
+			 <p>a pointer into memory and specifying the length of the
+				data.</p> 
+		  </li> 
+		  <li id="LI_0270E00C05DD473C911B6EF4CC297814"> 
+			 <p>a zero terminated string.</p> 
+		  </li> 
+		</ul> 
+		<p>The following code fragment constructs a <codeph>TPtrC</codeph> to
+		  represent the data already represented by any other type of descriptor.</p> 
+		<p>The source descriptor is a literal which is converted to descriptor
+		  type.</p> 
+		<codeblock xml:space="preserve">_LIT(KText,"Hello World!");
+...
+TBufC&lt;16&gt; buf1(KText);  // buf1 is the existing descriptor
+...
+TPtrC ptr(buf1);        // data in buf1 now accessible through ptr</codeblock> 
+		<p>The following code fragment constructs a <codeph>TPtrC</codeph> to
+		  represent the data already represented by another <codeph>TPtrC</codeph>.</p> 
+		<codeblock xml:space="preserve">_LIT(KText,"Hello World!");
+...
+TBufC&lt;16&gt; buf1(KText);   // buf1 is the existing descriptor
+...
+TPtrC ptr1(buf1);        // data in buf1 now accessible through ptr1
+TPtrC ptr2(ptr1);        // data also accessible through ptr2</codeblock> 
+		<p>Although rarely used (possibly in porting legacy 'C' code), the
+		  following code fragment defines a constant <q>C</q> style non-Unicode
+		  string and then constructs the non-modifiable pointer descriptor for that
+		  string. The explicit 8 bit variant is used here. The descriptor is separate
+		  from the data it represents.</p> 
+		<codeblock xml:space="preserve">const TText8* cstr = (TText8*)"Hello World!";
+...
+TPtrC8 ptr(cstr);
+...
+ptr.Length();       // The length is 12.
+ptr.Ptr();          // The address of the descriptor's data,
+                    // i.e. 'C' string.</codeblock> 
+		<p>The following code fragment shows construction from a pointer into
+		  memory and a length. The example assumes that both the pointer and the length
+		  have valid values:</p> 
+		<codeblock xml:space="preserve">TUint8*  memptr;
+TInt    length;
+...
+TPtrC8 ptr(memptr,length);</codeblock></section>
+<section id="SECTION_BCAA81088E1E4473887D1E62F77AE2B1">
+<title>Accessing data</title><p>Once a
+non-modifiable pointer descriptor has been constructed, the functions in the
+base class, <codeph>TDesC</codeph>, are available to access the
+data.</p><p>For example, given a pointer descriptor labelled ptr:#</p><codeblock xml:space="preserve">_LIT(KText,"Hello World!");
+...
+TBufC&lt;16&gt; buf1(KText);  // buf1 is the existing descriptor
+...
+TPtrC ptr(buf1);        // data in buf1 now accessible through ptr
+...
+ptr.Length();           // returns the length of the data (i.e. 12)</codeblock>
+
+
+</section>
+</conbody><related-links><link href="GUID-112AAFA5-B4C9-5B62-A106-FB5097C13A0E.dita"><linktext>Dynamic  Buffers</linktext></link></related-links></concept>

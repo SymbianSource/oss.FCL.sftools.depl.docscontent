@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-ECE9B461-B473-5B7B-B5EB-FAA60479848C"><title>Passing Arguments from Client to Server Classes</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>To make the animation architecture work, some mechanism is required to pass arguments across the client/server boundary. The Window Server acts as courier, but a packaging mechanism is still required if arbitrary information is to be passed through it. The following example is taken from an anim DLL, which deals with handwriting. </p> <p>On the client side, a struct (<codeph>THandwritingDrawData</codeph>) is packaged in a <xref href="GUID-029C644B-BE0F-37C6-95E2-D27F974E6AD3.dita"><apiname>TPckgBuf</apiname></xref> templated argument descriptor and passed to the server-side <xref href="GUID-029C644B-BE0F-37C6-95E2-D27F974E6AD3.dita"><apiname>CAnim</apiname></xref> instance via the <xref href="GUID-029C644B-BE0F-37C6-95E2-D27F974E6AD3.dita"><apiname>RAnim::Command()</apiname></xref> function. </p> <p>An opcode, <codeph>EHwOpSetDrawData</codeph>, is used by the server-side <codeph>CAnim</codeph> derived class to carry out some functionality. </p> <p>The <codeph>param()=</codeph> expression sets the value of the <codeph>THandwritingDrawData</codeph> object inside the package to <codeph>aDrawData</codeph>. </p> <codeblock id="GUID-C9CA5949-F469-58E5-871D-27DD0651D3C2" xml:space="preserve">void RHandWritingAnim::SetDrawData(const THandwritingDrawData&amp; aDrawData)
+    {
+    TPckgBuf&lt;THandwritingDrawData&gt; param;
+    param()=aDrawData;
+    Command(EHwOpSetDrawData,param);
+    }</codeblock> <p>The Window Server calls the <xref href="GUID-029C644B-BE0F-37C6-95E2-D27F974E6AD3.dita"><apiname>CAnim::Command()</apiname></xref> function in response to application calls to the client side command function <codeph>RAnim::Command()</codeph>. The arguments passed to the function by the Window Server are the same as were used on the client side function call. </p> <codeblock id="GUID-5D53A6A7-CD17-55E2-83E9-F8EA3FEDE7D0" xml:space="preserve">void CHandWritingAnim::Command(TInt aOpcode,TAny *aParams)
+    {
+    switch (aOpcode)
+        {
+        case EHwOpActivate:
+            Activate();
+            break;
+        case EHwOpDeactivate:
+            Deactivate();
+            break;
+        case EHwOpSetDrawData:;
+            SetDrawData(STATIC_CAST(THandwritingDrawData*,aParams));
+            break;
+        default:
+            iFunctions-&gt;Panic();
+        }
+    }</codeblock> </conbody><related-links><link href="GUID-FAF1B60A-A4B5-5E45-B9B9-84DA982F2E2B.dita"><linktext>Animations</linktext> </link> </related-links></concept>

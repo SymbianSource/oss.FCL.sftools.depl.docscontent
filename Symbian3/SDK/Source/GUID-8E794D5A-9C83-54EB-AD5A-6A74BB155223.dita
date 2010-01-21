@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223" xml:lang="en"><title>JPEG
+Image Transform Extension Guide</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This document introduces you to the JPEG image transform extensions. </p>
+<section id="GUID-3333CA2A-EF84-5E7B-B9BE-8FF00523897F-GENID-1-6-1-17-1-1-5-1-6-1-12-1-4-1-3-1-3-1-3-1-2-2"><title>Purpose</title> <p>The
+Image Transform framework supports standard extensions for advanced JPEG functions. </p> <p>The
+functions are, </p> <ul>
+<li id="GUID-5AEE7F00-B5AE-5D17-8280-BB86E1C3F309"><p><xref href="GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223.dita#GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223/GUID-3F1A77BC-C5C3-5A3D-B823-7310B97D449A">Orientation</xref> (Rotation and Mirror over horizontal and vertical Axis) </p> </li>
+<li id="GUID-48438448-064A-5FE4-96D4-769336CFC50E"><p><xref href="GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223.dita#GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223/GUID-3132C68A-4A30-51FD-9259-9425E3E5B5AE">Overlay</xref>  </p> </li>
+<li id="GUID-03E14C2D-A7D9-532F-9E3A-BB8A38770929"><p><xref href="GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223.dita#GUID-8E794D5A-9C83-54EB-AD5A-6A74BB155223/GUID-AAD925E2-9450-5ADC-B2D2-FF106392FC4C"> Squeeze</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-3F1A77BC-C5C3-5A3D-B823-7310B97D449A"><title>Orientation</title> <p>The
+COrientationTransformExtension extension to CImageTransform allows you to
+rotate in steps of 90 degrees or to mirror a JPEG file either from file or
+memory. </p> <p>When you require an Image Transform plugin which supports
+the Orientation extension, call <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-141A948E-6070-335D-B0B2-1F4AD283EC1A"><apiname>CImageTransform::SetTransformationsL()</apiname></xref> or <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-429C3968-9EB4-3B6E-85FF-13244E4505D2"><apiname>CImageTransform::EOrientation()</apiname></xref>.
+The client must get the COrientationTransformExtension extension and use this
+to set up the required transformation: </p> <codeblock id="GUID-12531AE6-3383-50F3-8D89-629010D967E1" xml:space="preserve">
+
+IMPORT_C  void COrientationTransformExtension::SetOrientationL(TOrientation aOrientation);
+
+</codeblock> <p>The orientation changes supported by the <xref href="GUID-593AD11D-3CE7-39E7-B5FE-EDEDABE8D936.dita"><apiname>COrientationTransformExtension</apiname></xref> are, </p> <ul>
+<li id="GUID-E3056EBA-DC74-5D99-95D5-3016AEAADA4A"><p>90 degree clockwise </p> </li>
+<li id="GUID-9E607A83-0846-56FC-95D4-CD7250934EC0"><p>180 degree clockwise </p> </li>
+<li id="GUID-27A48EA1-7774-5DA8-9FCB-201965A9EA59"><p>270 degree clockwise </p> </li>
+<li id="GUID-53B7C705-D2EE-5729-BE74-91291D7F30C5"><p>mirroring over the vertical
+axis </p> </li>
+<li id="GUID-D7806048-D30A-5D77-BA5E-1F581E76D5CC"><p>mirroring over the horizontal
+axis </p> </li>
+<li id="GUID-88EDAE03-DB13-5BF9-BAE8-60C20065D114"><p>transpose over the main
+diagonal </p> </li>
+<li id="GUID-8E508BFF-714C-58B4-A0BB-82B6507FC7EA"><p>transpose over the minor
+diagonal. </p> </li>
+</ul> <p>In the example function below a JPEG image is rotated by 90 degrees: </p> <codeblock id="GUID-9C13D4D9-1772-5FC1-A294-F0B52A5EFFA2" xml:space="preserve">
+
+    // Create the image transform
+       CImageTransform* imageTransform = CImageTransform::NewL(iFs);
+       CleanupStack::PushL(imageTransform);
+
+    // Setup the image transform
+       imageTransform-&gt;SetSourceFilenameL(aSrcFileName);
+       imageTransform-&gt;SetDestFilenameL(aDestFileName);
+       imageTransform-&gt;SetTransformationsL(CImageTransform::EOrientation);
+       imageTransform-&gt;SetupL();
+
+    // Get the extension plugin supporting orientation
+       TUid lRotateUid = {KUidOrientationTransformExtension    };
+       TInt err = KErrNone;
+    COrientationTransformExtension* lRotateExt = static_cast&lt;COrientationTransformExtension*&gt;
+    (imageTransform-&gt;Extension(lRotateUid, err));
+
+ // Check here whether the plugin supports this extension or not set the orientation on 
+ // the plugin    
+ lRotateExt-&gt;SetOrientationL(COrientationTransformExtension::ERotation90DegreesClockwise);
+
+    // Perform the transformation
+      imageTransform-&gt;Transform(aStatus);
+
+    // CImageTransform::Transform() is an asynchronous function
+    // and the result of the transformation would be known in the
+    // RunL() function of the active object associated with the aStatus
+
+</codeblock> <p>The image rotation can be performed in the compressed domain
+allowing a transformation of the image. Benefits of speed and memory usage
+can be obtained dependent on the implementation of the plugin. </p> </section>
+<section id="GUID-3132C68A-4A30-51FD-9259-9425E3E5B5AE"><title>Overlay</title> <p> <xref href="GUID-83EA2789-C3FE-383A-B81F-E9E362FE4283.dita"><apiname>COverlayTransformExtension</apiname></xref> extension
+to Image Transform framework allows lossless overlay or blend of images. Examples
+of the use of <xref href="GUID-83EA2789-C3FE-383A-B81F-E9E362FE4283.dita"><apiname>COverlayTransformExtension</apiname></xref> include adding
+timestamp or place-stamp, some text or inserting a company logo. The images
+below show an example of overlay functionality: </p> <fig id="GUID-BA901C57-D744-5353-8B25-2195EA084016">
+<image href="GUID-E09CA978-2599-50F9-AF6D-077AD7D5CA6F_d0e283775_href.jpg" placement="inline"/>
+</fig> <p>The image overlay transformation can, depending on its implementation,
+be very fast eliminating the need to decode the whole image making it very
+useful, for example a camera application. The types of image that can be overlaid
+onto the main JPEG image can be discovered through the extension. It is also
+possible to overlay a <codeph>CFbsBitmap</codeph>. If you need transparency,
+then you have to choose an image format supporting a transparency channel
+such as PNG. </p> <p>When you require an Image Transform plugin which supports
+the Overlay extension, call <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-141A948E-6070-335D-B0B2-1F4AD283EC1A"><apiname>CImageTransform::SetTransformationsL()</apiname></xref> or <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-198CAB14-A6CB-3D51-9404-C4DED1DCF215"><apiname>CImageTransform::EOverlay()</apiname></xref>.
+The client must get the COverlayTransformExtension extension and use this
+to set up the required transformation. The client can control the desired
+position for overlay, and the transparency for image. The example below show
+the successful setup for <xref href="GUID-83EA2789-C3FE-383A-B81F-E9E362FE4283.dita"><apiname>COverlayTransformExtension</apiname></xref> with
+the JPEG image overlaid by an image at (0,0) position co-ordinates: </p> <codeblock id="GUID-648E2DC3-9BA2-59D3-88DA-3E9C31BC3F18" xml:space="preserve">
+
+    // Create the image transform
+    CImageTransform* imageTransform = CImageTransform::NewL(iFs);
+    CleanupStack::PushL(imageTransform);
+
+    // Setup the image transform
+    imageTransform-&gt;SetSourceFilenameL(aSrcFileName);
+    imageTransform-&gt;SetDestFilenameL(aDestFileName);
+    imageTransform-&gt;SetTransformationsL(CImageTransform::EOverlay);
+    imageTransform-&gt;SetupL();
+
+    // Get the extension plugin supporting overlay
+    TUid lOverlayUid = {KUidOverlayTransformExtension    };
+    TInt err = KErrNone;
+    COverlayTransformExtension * lOverlayExt = static_cast&lt; COverlayTransformExtension *&gt;
+ (imageTransform-&gt;Extension(lOverlayUid, err));
+
+    // Check here whether the plugin supports this extension or not Set the position on 
+ //  the plugin
+    lOverlayExt-&gt;Position(TPoint(0,0));
+
+    // Set the overlay file and its type
+    lOverlayExt-&gt;SetOverlayFileL(aOverlayFileName, KImageTypeJPGUid);
+
+    // Perform the transformation
+    imageTransform-&gt;Transform(aStatus);
+
+    // CImageTransform::Transform() is an asynchronous function
+    // and the result of the transformation would be known in the
+    // RunL() function of the active object associated with the aStatus
+
+</codeblock> </section>
+<section id="GUID-AAD925E2-9450-5ADC-B2D2-FF106392FC4C"><title>Squeeze</title> <p>The <xref href="GUID-1B022316-410D-328C-AFB2-E3A339E1609B.dita"><apiname>CSqueezeTransformExtension()</apiname></xref> extension
+to the Image Transform framework allows, </p> <ul>
+<li id="GUID-485ED69C-7895-5B8F-B2DC-D8A165F74D59"><p>Auto-resize </p> </li>
+<li id="GUID-8DDD9BE0-F079-5F6F-B4D7-26DC45170BEC"><p>Squeeze. </p> </li>
+</ul> <p>A auto-resize adjusts the image size and encoding quality to achieve
+a desired file size. If the file size requirement has not been met, then you
+can use squeeze to compress the image even further. The JPEG squeeze module
+is a convenient tool when creating MMS. </p> <p>When you require an Image
+Transform plugin which supports the Squeeze extension, call <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-141A948E-6070-335D-B0B2-1F4AD283EC1A"><apiname>CImageTransform::SetTransformationsL()</apiname></xref> or <xref href="GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4.dita#GUID-37B0C02C-F518-3ADD-8828-90FD6B3E9DE4/GUID-FC837A02-243D-3A5B-A81D-63802678F6C6"><apiname>CImageTransform::ESqueeze()</apiname></xref>. </p> <p>Squeezing an image can be accomplished through: </p> <codeblock id="GUID-12A6E7C4-8627-5ACC-8692-64F247FB518D" xml:space="preserve">
+
+IMPORT_C void CSqueezeTransformExtension::SetDestSizeInBytes(TUint aMaxDestDataSize ) ;
+
+</codeblock> <p>Or </p> <codeblock id="GUID-97A7CE4F-A227-51EE-B8E6-CC04C5A2491A" xml:space="preserve">
+    IMPORT_C void SetAdvancedSqueezeModeL(TAdvancedSqueezeParams* aSqueezeAutoResizeParams ) ;
+</codeblock> <p>In the latter case can be made through the use of <xref href="GUID-4372B86B-111B-3B9E-838A-511D247846D4.dita#GUID-4372B86B-111B-3B9E-838A-511D247846D4/GUID-15AB4D19-1FDE-3D29-AED2-7776E3E08C10"><apiname>TAdvancedSqueezeParams::TAutoResizeAction</apiname></xref>.
+The enumeration to do auto resize are, </p> <ul>
+<li id="GUID-3240A4EE-6904-536C-BA05-5995738CE048"><p> <xref href="GUID-DAEB147E-2A50-30F5-85C8-863DC8C21AF7.dita"><apiname>         
+       EAutoResizeActionPreserveSourceEncodingQuality</apiname></xref> for preserving
+the source encoding quality while shrinking the width and height of the image </p> </li>
+<li id="GUID-B29AE145-B946-59CD-879E-6F77F0E48563"><p> <xref href="GUID-EAF60EAB-3E65-34AE-BD3F-C32BA331BCEE.dita"><apiname> EAutoResizeActionPrioritizeLargeImageSize</apiname></xref> for
+preserving the maxImageSize while lowering the encoding quality </p> </li>
+<li id="GUID-2B98FA22-2853-5DB0-B9A2-7B2BC6080522"><p> <xref href="GUID-EAF42079-109B-36E7-940F-C10C10743E31.dita"><apiname>EAutoResizeActionResizePrioritizeHighEncodingQuality</apiname></xref> for
+preserving the highest possible encoding quality while shrinking the width
+and height of the image </p> </li>
+<li id="GUID-3848F63C-D0CF-5888-BC68-127AA29DFE81"><p> <xref href="GUID-D8807BBD-5EAE-3BBE-B408-5841D7554287.dita"><apiname>EAutoResizeActionMiddleCourse</apiname></xref> for
+simultaneously lower the encoding quality and shrink the width and height
+of the image. </p> </li>
+</ul> <p>These settings are used by the auto resize to determine size and
+encoding quality for the new image file. </p> <p>The JPEG squeeze enblaes
+images to be set to a enblaes pre-defined size. This is useful if storage
+size is critical or if there are limitations when sending images i.e. MMS
+file size. The dimensions of the image are preserved; the JPEG compression
+ratio being changed to maintain the image size. </p> <p> <b>Note:</b> The
+JPEG squeeze functionality must be used with care. Drastically decreasing
+file size will result in poor image quality. </p> <p>In the below example,
+the JPEG image is squeezed to get a file size less than the specified maxium
+size: </p> <codeblock id="GUID-9E529BC6-0042-5EBE-A5AE-8F2ADAA8E4D8" xml:space="preserve">
+
+    // Create the image transform
+    CImageTransform* imageTransform = CImageTransform::NewL(iFs);
+    CleanupStack::PushL(imageTransform);
+    // Setup the image transform
+    imageTransform-&gt;SetSourceFilenameL(aSrcFileName);
+    imageTransform-&gt;SetDestFilenameL(aDestFileName);
+    imageTransform-&gt;SetTransformationsL(CImageTransform::ESqueeze);
+    imageTransform-&gt;SetupL();
+    // Get the extension plugin supporting squeeze
+    TUid lSqueezeUid = {KUidSqueezeTransformExtension    };
+    TInt err = KErrNone;
+    CSqueezeTransformExtension * lSqueezeExt = static_cast&lt; CSqueezeTransformExtension*&gt;
+(imageTransform-&gt;Extension(lSqueezeUid, err));
+    // Check here whether the plugin supports this extension or not
+    // Set the max dest size in bytes    
+    lSqueezeExt-&gt; SetDestSizeInBytes(aMaxSizeInBytes);
+    // Perform the transformation
+    imageTransform-&gt;Transform(aStatus);
+    // CImageTransform::Transform() is an asynchronous function
+    // and the result of the transformation would be known in the
+    // RunL() function of the active object associated with the aStatus
+
+</codeblock> <p>The example code below show how the JPEG squeeze image is
+used to make an image fulfill the MMS ‘Image Rich’ class constraints, i.e.
+file size less than 100k bytes and image size no more than 640*480 pixels. </p> <codeblock id="GUID-C04CB828-3307-5079-91CD-BEA7A15F0215" xml:space="preserve">
+
+    // Create the image transform
+    CImageTransform* imageTransform = CImageTransform::NewL(iFs);
+    CleanupStack::PushL(imageTransform);
+    // Setup the image transform
+    imageTransform-&gt;SetSourceFilenameL(aSrcFileName);
+    imageTransform-&gt;SetDestFilenameL(aDestFileName);
+    imageTransform-&gt;SetTransformationsL(CImageTransform::ESqueeze);
+    imageTransform-&gt;SetupL();
+    // Get the extension plugin supporting squeeze
+    TUid lSqueezeUid = {KUidSqueezeTransformExtension    };
+    TInt err = KErrNone;
+    CSqueezeTransformExtension * lSqueezeExt = static_cast&lt; CSqueezeTransformExtension*&gt;
+(imageTransform-&gt;Extension(lSqueezeUid, err));
+    TInt res = KErrNone;
+    TInt newSize = 0;
+    TAdvancedSqueezeParams info ;
+
+    // MMS Image Rich
+    info.iMaxDestSizeInBytes = 100000;
+    info.iMaxImageSize.iWidth = 640;
+    info.iMaxImageSize.iHeight = 480;
+    info.iMinImageSize. iWidth = 160;
+    info.iMinImageSize. iHeight = 120;
+    info.iResizeAction = EAutoResizeActionPrioritizeLargeImageSize;
+    info.iMinEncodingQuality = 0.5f;
+    info.iSamplingUid = KUidSamplingColor420;
+    lSqueezeExt-&gt;SetAdvancedSqueezeModeL(&amp;info);
+    // Perform the transformation
+    imageTransform-&gt;Transform(aStatus);
+    // CImageTransform::Transform() is an asynchronous function
+    // and the result of the transformation would be known in the
+    // RunL() function of the active object associated with the aStatus
+
+</codeblock> </section>
+
+</conbody></concept>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6408C26A-2736-59A9-B785-6B119143619B" xml:lang="en"><title>How
+to use a thread-death notifier</title><shortdesc>Describes the thread-death notifier and provides a code snippet
+to show you how to use it.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To use a thread-death notifier, a thread which needs to know about the
+death of other threads: </p>
+<ul>
+<li id="GUID-914D2BE7-BFD3-58E3-ABD4-53371512332F"><p>constructs an <codeph>RUndertaker</codeph> handle
+and then calls its <codeph>Create()</codeph> member function to create the
+associated Kernel side object. The <codeph>RUndertaker</codeph> handle is <keyword>process-relative</keyword> which
+means that the handle is <i>not</i> closed if the requesting thread dies. </p> </li>
+<li id="GUID-F46FEA42-38C3-526D-AC05-225BDD3A8714"><p>issues a notification
+request to the thread-death notifier, passing a reference to a <codeph>TRequestStatus</codeph> object
+and a reference to a <codeph>TInt</codeph>. </p> </li>
+</ul>
+<p>When any other thread dies, the requesting thread's <keyword>request semaphore</keyword> is
+signalled to indicate that the notification request is complete. The <codeph>TRequestStatus</codeph> object
+supplied by the requesting thread is set to <codeph>KErrDied</codeph>. </p>
+<p>In addition, the Kernel opens a local thread-relative handle on the dying
+thread. (thread-relative, here, means relative to the requesting thread) and
+sets the <codeph>TInt</codeph>, supplied by the requesting thread, to the
+resulting handle-number. The requesting thread can construct an <codeph>RThread</codeph> from
+this handle-number. The following diagram helps visualise the situation. </p>
+<fig id="GUID-5B53CA3B-5365-5C54-B2BC-EA8BA684F15E">
+<title>           Thread-death notifier         </title>
+<image href="GUID-70483E81-311F-5247-9F39-3940F20C0EB1_d0e213982_href.png" placement="inline"/>
+</fig>
+<p>The following code fragments demonstrate this: </p>
+<codeblock id="GUID-B5A219AD-CC59-50CE-A65B-0D3F4FD32F7A" xml:space="preserve">{
+...
+RUndertaker     the_undertaker;
+TRequestStatus  the_status;
+TInt            the_dyingthread_handle_number;
+...
+the_undertaker.Create();
+the_undertaker.Logon(the_status,the_dyingthread_handle_number);
+User::WaitForRequest(the_status);
+...
+...// prepare for a long wait
+...
+RThread r;
+r.SetHandle(the_dyingthread_handle_number);
+...
+...// Now have an open thread-relative handle to the
+...// dying thread so we can, for example, ...
+if (r.ExitReason()==0x666)
+    {
+    ...
+    }
+...// We have an open handle on the dying thread; the dying thread
+...// remains in existence until we close it.
+r.Close();
+...
+}</codeblock>
+<p>In practical code, an <codeph>RUndertaker</codeph> is used by an active
+object. </p>
+<p>The <codeph>RUndertaker</codeph> handle also offers a <codeph>LogonCancel()</codeph> function.
+Calling this function, causes the requesting thread's <keyword>request semaphore</keyword> to
+be signalled and any wait to complete. The <codeph>TRequestStatus</codeph> is
+set to <codeph>KErrCancel</codeph>. </p>
+<p>This technique of using an <codeph>RUndertaker</codeph> is not guaranteed
+to report the death of all threads. In particular, if a second thread dies
+while a requesting thread is handling the request completion due to the death
+of a first thread (but before it can make another notification request), the
+death of this second thread will go unnoticed. </p>
+</conbody></concept>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CF6014E9-FB59-4715-B245-5826090DDF28" xml:lang="en"><title>Symbian
+Platform vs UNIX</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-977EFA64-8D61-44CA-9A89-64D8DB0F771E"> <title>Hello World</title><p>Assuming
+that the user is new to the UNIX environment, writing a simple program that
+displays a string on a console does not take more than a day’s effort. Its
+simply 4-5 lines of code as shown below: </p><codeblock xml:space="preserve">#include &lt;stdio.h&gt;
+int main(int argc, char** argv)
+    {
+    printf(“Hello world\n”);
+    return 0;
+    }</codeblock><p>The code contains a <codeph>main()</codeph> , one <codeph>printf</codeph> statement,
+and one <codeph>#include&lt; &gt;</codeph>. By convention UNIX applications will
+map descriptor 0 with standard input (<codeph>STDIN</codeph>), descriptor
+1 with standard output (<codeph>STDOUT</codeph>), and descriptor 2 with standard
+error (<codeph>STDERROR</codeph>) of the process. So, there is no need to
+create/open standard input/output/error for a process before using them. Notice
+also that, <codeph>main()</codeph> takes two arguments. These arguments will
+be read from the command prompt before invoking <codeph>main()</codeph> and
+will be passed to main. These arguments are not mandatory; they can be ignored.
+No additional work is needed for having these arguments. </p><p>If the user
+attempts to display a string on a console using Symbian platform, a lot of
+effort goes into collecting the materials, and for coding. The first time
+the developer may find the code a little complex to understand.</p><codeblock xml:space="preserve">#include &lt;e32std.h&gt;
+#include &lt;e32cons.h&gt;
+int HelloWorldL()
+       {
+       CConsoleBase* console = Console::NewL(_L("Hello World"), TSize( KConsFullScreen, KConsFullScreen));
+       console-&gt;Printf(_L(“Hello World\n”));
+       delete console;
+       return 0;
+       }
+
+TInt E32Main()
+       {
+       __UHEAP_MARK;
+       CTrapCleanup* cleanup = CTrapCleanup::New();
+       TInt retVal = KErrNone;
+       if (cleanup)
+           {
+           TRAP(retVal, HelloWorldL());
+           __ASSERT_ALWAYS(!retVal, User::Panic(_L("Hello-World PANIC"), retVal));
+           //Destroy cleanup stack
+           delete cleanup;
+           }
+       __UHEAP_MARKEND;
+       return retVal;
+       }
+</codeblock><p>The code above has some header inclusions, two functions, and
+some complicated codes. In Symbian platform, the entry function for an EXE
+is <codeph>E32Main</codeph> (not main as in UNIX). The following actions are
+done to print a message on a console: </p><ol>
+<li id="GUID-11FE80AB-BD78-4A53-88D4-90E9CE3158EF"><p>Mark the heap using <codeph>__UHEAP_MARK</codeph> (not
+mandatory).</p></li>
+<li id="GUID-5292A0E8-5158-4A3B-89DC-095D570AEDA7"><p>Create the cleanup stack.
+Have a top-level TRAP for the function <codeph>HelloWorldL()</codeph> function.</p></li>
+<li id="GUID-E47E4F4F-EC51-4D7F-8254-0329A6DC1689"><p>In the <codeph>HelloWorldL()</codeph> function,
+create a console object.</p></li>
+<li id="GUID-8CAA7ADA-3EE1-470E-A376-DAD345066BF2"><p>Do print on the created
+console object.</p></li>
+<li id="GUID-8ABFB71E-A89A-4D02-9CBC-50FACC853805"><p>Delete the console.</p></li>
+<li id="GUID-4FDC0B1D-0DAB-42AF-9E54-A53DBDD47327"><p>Delete the cleanup stack.</p></li>
+<li id="GUID-187B70A6-D15E-4197-A742-372F6E385FEC"><p>Unmark the heap (not
+mandatory if the heap is not marked). </p></li>
+</ol><p>In Symbian platform, a console is not created by default; it has to
+be created explicitly. Symbian platform does not give a rich set of APIs needed
+to perform I/O operations on a console. The I/O operations that can be performed
+on a console in Symbian platform are limited to:</p><ul>
+<li><p>printing strings and reading one character at a time</p></li>
+<li><p>getting cursor position </p></li>
+</ul><p>In case the user is interested in command line arguments, it takes
+some more additional work. The user must read explicitly from the command
+prompt by using the APIs provided by Symbian platform.</p>     </section>
+<section id="GUID-3FC28B5E-4D46-4E33-90E8-AB9A1FBC038E"><title>File I/O</title><p>This
+section compares the ease of programming in the P.I.P.S. environment against
+programming on Symbian platform.</p><codeblock xml:space="preserve">/* File I/O in UNIX environment */
+  FILE* fp = fopen(“file.txt”, w);
+  if (fp) {
+     fprintf(fp, “Write some data”);
+     fclose();
+  }
+</codeblock><codeblock xml:space="preserve">//File I/O in Symbian platform
+  RFs fSession;
+  User::LeaveIfError(fSession.Connect());
+  RFile file;
+  ret = file.Open(fSession, _L(“file.txt”), EFileWrite);
+  if (ret) 
+     {
+     ret = file.Create(fSession, _L(“file.txt”), EFileWrite);
+     }
+  if (!ret) 
+     {
+     file.Write(_L8(“Write some data”));
+     }
+  file.Close();
+  fSession.Close();
+</codeblock><p>The example above shows the complexity of the code in Symbian
+platform for doing simple file I/O. In addition to coding complexity, the
+user must include and link with:</p><ul>
+<li><p><filepath>efsrv.lib</filepath> for any file-related operation</p></li>
+<li><p><filepath>esock.lib</filepath> for network-related operation</p></li>
+<li><p><filepath>commdb.lib</filepath> for selecting IAPs </p></li>
+</ul><p>Since most of the resources under Symbian platform are accessed through
+client/server IPC, the user must connect with the corresponding server before
+doing any operation and close the session on completion of the operation.
+For example: <ul>
+<li><p>connect with the file server before file operations</p></li>
+<li><p>connect with the socket server for socket-related operation</p></li>
+<li><p>connect to the communication server before serial communication operation</p></li>
+</ul></p><p>P.I.P.S. eliminates all these operations. P.I.P.S. allows the
+user to code, as if it were done for the UNIX or Linux environment and lets
+the user link the application with P.I.P.S..</p></section>
+<section id="GUID-AFAE7FDA-8829-4FF7-991F-D65EBAA652F2"><title>Thread creation</title><p>This
+section deals with thread creation in the UNIX and Symbian platform environments.</p><codeblock xml:space="preserve">/* Thread creation in UNIX environment*/
+   void* ThreadEntryPoint( void* aParam );
+   int exitReason = 0;
+   int retVal  = 0;
+   pthread_t threadID = 0;
+   pthread_attr_t threadAttr;
+   pthread_attr_init(&amp;threadAttr);
+   retVal = pthread_create(&amp;threadID, &amp;threadAttr, ThreadEntryPoint, (void*)NULL );
+   if(retVal == 0) {
+       retVal = pthread_join(threadID1, (void**)&amp;exitReason);
+   }
+</codeblock><codeblock xml:space="preserve">// Thread creation in Symbian OS
+  TInt ThreadEntryPoint( TAny* aData );
+  …
+  RThread thread;
+  thread.Create(_L("MY-THREAD"), ThreadEntryPoint, 4096, NULL, NULL);
+  TRequestStatus stat;
+  thread.Logon(stat);
+  //Start executing the thread.
+  thread.Resume();
+  //Wait for the thread to die.
+  User::WaitForRequest(stat);
+  exitReason = thread.ExitReason();
+  thread.Close();
+</codeblock><p>In addition the difference in the code for creating threads
+using <codeph>pthread_create</codeph> and <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-6C840907-C3F7-34B7-97DB-CEDBA68EA277"><apiname>RThread::Create()</apiname></xref>,
+a thread created using <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-6C840907-C3F7-34B7-97DB-CEDBA68EA277"><apiname>RThread::Create()</apiname></xref> also expects the <codeph>ThreadEntryPoint()</codeph> function
+to create its own vcleanup stack and a top-level TRAP, if required. Else,
+the thread may crash or panic. But this does not have to be done for a thread
+created using <codeph>pthread_create. pthread_create</codeph> does that for
+the developer.</p></section>
+</conbody></concept>

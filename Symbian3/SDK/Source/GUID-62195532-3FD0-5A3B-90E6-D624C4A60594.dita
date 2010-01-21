@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-62195532-3FD0-5A3B-90E6-D624C4A60594"><title>Calendar User</title><prolog><metadata><keywords/></metadata></prolog><conbody><p> <xref href="GUID-FBFE40BE-BF1A-3A12-A3B6-D2BDB5B6406D.dita"><apiname>CCalUser</apiname></xref> represents a calendar user, such as a meeting participant. The class provides attributes and methods that are common to all the calendar users, including the user’s email address, sent-by and common name fields. </p> <p>You can construct a new calendar user with a specified email address, and optionally a sender, using the factory function <xref href="GUID-FBFE40BE-BF1A-3A12-A3B6-D2BDB5B6406D.dita#GUID-FBFE40BE-BF1A-3A12-A3B6-D2BDB5B6406D/GUID-E704BAD2-66AA-3E08-8AB2-0E1DC38DDC56"><apiname>CCalUser::NewL()</apiname></xref>. </p> <section><title>Attendee</title> <p>An attendee is a specialised calendar user used for attendees of an event. It is used only in group scheduled entries, and not for a single calendar user. The <xref href="GUID-EDF0615A-DB34-3298-A383-314AE1E00E30.dita"><apiname>CCalAttendee</apiname></xref> class, derived from <xref href="GUID-FBFE40BE-BF1A-3A12-A3B6-D2BDB5B6406D.dita"><apiname>CCalUser</apiname></xref>, provides additional methods to store and retrieve an attendee's ROLE, PART-STAT, and RSVP fields. </p> <codeblock id="GUID-002E2258-75E2-5CB0-AD6F-75A21A165366" xml:space="preserve">//Create an attendee
+_LIT(KAttendee1Address, "tom.smith@org.com");
+CCalAttendee* attendee1 = CCalAttendee::NewL(KAttendee1Address);
+_LIT(KAttendee1CommonName, "Tom");
+attendee1-&gt;SetCommonNameL(KAttendee1CommonName);//set common name to Tom
+attendee1-&gt;SetRoleL(CCalAttendee::EReqParticipant);// set the role of the attendee, other roles Chair and Optional participant
+attendee1-&gt;SetStatusL(CCalAttendee::EAccepted);// set the status value</codeblock> <codeblock id="GUID-809DADD5-B007-5AA8-AA64-9E442ECFC962" xml:space="preserve">// setup the entry
+entry-&gt;CCalEntry::NewL(CCalEntry::EAppt, guid, CCalEntry::EMethodNone, 0);
+entry-&gt;AddAttendeeL(attendee1);//add the attendee to the entry</codeblock> <p>You can get a list of attendees using <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-D6202737-D180-34C5-9FB0-D19673689ECE"><apiname>CCalEntry::AttendeesL()</apiname></xref>, and delete a specified attendee using <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-21A0AA94-BBB4-3547-9559-0B137348AC30"><apiname>CCalEntry::DeleteAttendeeL()</apiname></xref>. </p> </section> <section><title>Organizer and phone owner</title> <p>An entry can optionally have one phone owner and one organizer, both of which are of class <xref href="GUID-FBFE40BE-BF1A-3A12-A3B6-D2BDB5B6406D.dita"><apiname>CCalUser</apiname></xref>. The organizer may or may not be an attendee of that entry, but the phone owner must be an attendee. An organizer is a required property for a group scheduled entry. </p> <codeblock id="GUID-EF7AE721-DA4D-5A4C-9971-A10F8BBA9A17" xml:space="preserve">//Set up the Organizer 
+_LIT(KOrganizerAddress1, "harry.smith@org.com"); 
+CCalUser* organiser1 = CCalUser::NewL(KOrganizerAddress1, KOrganizerSentByA); 
+entry-&gt;SetOrganizerL(organiser1); //set the organizer for the event
+_LIT(KOrganiserCommonName, "Harry"); 
+organiser1-&gt;SetCommonNameL(KOrganizerCommonName); //set the  common name to Harry </codeblock> <codeblock id="GUID-A23316EA-8989-5F74-81A0-15530CA66AF8" xml:space="preserve">//Set up the Phone owner for the calendar entry 
+_LIT(KPhoneOwnerAddress1, "dick.smith@org.com"); 
+CCalUser* phOwner1 = CCalUser::NewL(KPhoneOwnerAddress1, KOrganizerSentByB); 
+entry-&gt;SetPhoneOwnerL(phOwner1); 
+_LIT(KPhOwnerCommonName, "Dick"); 
+organiser1-&gt;SetCommonNameL(KPhOwnerCommonName);//set the common name to Dick</codeblock> </section> </conbody></concept>

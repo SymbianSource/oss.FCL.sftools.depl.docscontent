@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-A09AFA5C-7B2A-503C-A218-987F2F9BF7B8" xml:lang="en"><title>Adding
+attachments to messages</title><shortdesc>The messaging framework allows you to add attachments to messages. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-DCEBCACA-CABD-59C7-A172-2BBA58ACA037"><p>A message attachment,
+once it has been created, must be added to its message in a separate procedure
+explained in this document. </p> </context>
+<steps id="GUID-A4D8D1D3-5A11-5107-9A4C-55BAB1837024">
+<step id="GUID-EB4005D6-C444-5FA7-BEEB-C8C2D795D1D6"><cmd/>
+<info>Create an active object implementation. All the <xref href="GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD.dita"><apiname>MMsvAttachmentManager</apiname></xref> functions
+that modify attachments for an entry are asynchronous, so a request must be
+called with an active object implementation. </info>
+<stepxmp><codeblock id="GUID-7104871F-A46F-5E98-9C17-CB555D374D02" xml:space="preserve">//* Active object request function to add an attachment.
+Arguments:
+aEntry -  entry to make attachment for
+aAttachPath -  path of file to attach
+aSize - size of attachment in bytes 
+*/
+
+void CFoo::AttachFileL(CMsvEntry&amp; aEntry, const TFileName&amp; aAttachPath, TInt aSize)
+    { 
+...
+    // Wait for request to complete
+    User::WaitForRequest(status);
+        
+    CleanupStack::PopAndDestroy(store);    
+    }
+
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-43BF419C-2571-506A-A4F0-B33EAB231394"><cmd>Get the details
+of the message to which you want to add an attachment using <xref href="GUID-85BBE389-81F7-3E2F-A789-446D9BE2CC49.dita#GUID-85BBE389-81F7-3E2F-A789-446D9BE2CC49/GUID-1864B96D-CB22-3EE1-8E73-023F12C68CB0"><apiname>CMsvEntry::EditStoreL()</apiname></xref>. </cmd>
+<info>This function returns <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref> in writable mode. </info>
+<stepxmp><codeblock id="GUID-0CF9F084-CA32-5E2B-90A9-C962BED421D2" xml:space="preserve">    // Get store   
+    CMsvStore* store = aEntry.EditStoreL();
+    CleanupStack::PushL(store);
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-D202696D-6ECF-5F0A-AB3F-6BA939911EAB"><cmd>Get an <xref href="GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD.dita"><apiname>MMsvAttachmentManager</apiname></xref> attachment
+manager for the message entry, using <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita#GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE/GUID-73CE27F3-855B-3F87-AE11-4B4F2B8F8825"><apiname>CMsvStore::AttachmentManagerL()</apiname></xref>. </cmd>
+<stepxmp><codeblock id="GUID-4DD6C7CB-BB2F-5953-9D15-BA0EA4DA08A6" xml:space="preserve">    // Get attachment manager from the entry's store     
+    MMsvAttachmentManager&amp; attManager = store-&gt;AttachmentManagerL();    
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-77E5F564-264F-524F-8DEA-C22AB05504B2"><cmd/>
+<info>Create a new attachment attributes object using the <xref href="GUID-8C2B9B89-D6B7-3622-AF26-658F53BCB70F.dita#GUID-8C2B9B89-D6B7-3622-AF26-658F53BCB70F/GUID-CB0C9E14-A0D3-340A-929D-8B2C3BC11300"><apiname>CMsvAttachment::NewL()</apiname></xref> function. </info>
+<stepxmp><codeblock id="GUID-5FA4C954-39F0-5EC6-BF51-B352FE03883C" xml:space="preserve">    // Create a new attachment attributes object    
+    CMsvAttachment* attachment = CMsvAttachment::NewL(CMsvAttachment::EMsvFile);    
+    CleanupStack::PushL(attachment);    
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-4405D256-83F8-554B-A39B-05E273D47E76"><cmd/>
+<info>Set the attachments name and size attributes using the functions of
+the <xref href="GUID-8C2B9B89-D6B7-3622-AF26-658F53BCB70F.dita"><apiname>CMsvAttachment</apiname></xref> class. </info>
+<stepxmp><codeblock id="GUID-0ED897B3-BBC3-5FD0-8602-574F58DA287F" xml:space="preserve">    // Set the attachment name and size attributes    
+    TParse fparse;    
+    User::LeaveIfError(fparse.Set(aAttachPath,NULL,NULL));    
+    attachment-&gt;SetAttachmentNameL(fparse.NameAndExt());    
+    attachment-&gt;SetSize(aSize);
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-BF384C85-B97E-585E-BDFA-57132E11BE5B"><cmd/>
+<info>Add the attachment using any of the following functions: </info>
+
+<substeps id="GUID-9412CD8C-D6C6-5245-A9D2-55A51636A028">
+<substep id="GUID-EE27135A-9ACB-5BCE-B21C-C283756343D7"><cmd/>
+<info>For copied attachments, use the <xref href="GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD.dita#GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD/GUID-283B631D-0166-30F9-BBA3-CA364DB66B45"><apiname>MMsvAttachmentManager::AddAttachmentL()</apiname></xref> function. </info>
+</substep>
+<substep id="GUID-6EEC55E5-0D9E-596B-924D-CAA207E64F3D"><cmd/>
+<info>For linked attachments, use the <xref href="GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD.dita#GUID-4E2B0CEA-1EDA-3452-895D-3CE1B59FD8FD/GUID-D11BB466-2529-3C49-AFAB-810806376478"><apiname>MMsvAttachmentManager::AddLinkedAttachmentL()</apiname></xref> function. </info>
+</substep>
+</substeps>
+<info> Note: For OBEX MTM, to add headers to an attachment, use the <xref href="GUID-F4577312-35AC-32DE-AE0E-45BB0E0A761F.dita#GUID-F4577312-35AC-32DE-AE0E-45BB0E0A761F/GUID-B1806BF9-78F5-31A2-AD51-D9B163EA62D6"><apiname>CObexHeaderList::ExportToAttachmentL()</apiname></xref> function.
+Headers can be retrieved using the <xref href="GUID-F4577312-35AC-32DE-AE0E-45BB0E0A761F.dita#GUID-F4577312-35AC-32DE-AE0E-45BB0E0A761F/GUID-1BD1998A-7C9C-32CF-AD6B-CB96358A0438"><apiname>CObexHeaderList::ImportFromAttachmentL()</apiname></xref> function. </info>
+<stepxmp><codeblock id="GUID-81899562-C23C-5737-A08E-6FDD157CDBA0" xml:space="preserve">    TRequestStatus status;
+         
+    // Ownership of attachment will transfer to attachManager    
+    CleanupStack::Pop(attachment);
+    // Add the attachment    
+    attManager.AddAttachmentL(aAttachPath, attachment, status);    
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-05B4EF20-8994-582B-9C7E-3A27141BAD08"><cmd/>
+<info>Commit the store. </info>
+</step>
+</steps>
+<result id="GUID-8D1AA546-5150-5778-A716-B2933EEDF028"><p>You now have an
+attachment added to its message. </p> </result>
+<postreq id="GUID-FD541AE4-7474-5CBB-AC0D-6987D6B0F9AE"><p>You can now retrieve
+and modify the message attachment. </p> </postreq>
+</taskbody><related-links>
+<link href="GUID-1963A487-D6A7-4225-8D0C-EC5FAB746854.dita"><linktext>Attachment
+Tutorial</linktext></link>
+<link href="GUID-54AB166A-8B24-5065-92AD-5FC1BF3ED89C.dita"><linktext>Messaging
+Framework Overview</linktext></link>
+</related-links></task>

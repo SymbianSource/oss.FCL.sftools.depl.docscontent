@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CDBBD44F-C5F6-4D51-B4BA-23DA9BB58D69" xml:lang="en"><title>Creating
+generic button</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Create the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknButton.html" format="application/java-archive"><codeph>CAknButton</codeph></xref> object
+either dynamically from program code or from a resource structure. The constructed
+button can then be used as a component control of a compound control.</p>
+<p>Use the resource structures <codeph>AVKON_BUTTON</codeph>, <codeph>AVKON_BUTTON_STATE</codeph>,
+and <codeph>AVKON_BUTTON_STATE_EXTENSION</codeph> for the button object (defined
+in the file <codeph>eikon.rh</codeph>). The following example shows how to
+construct a button with the help of a button resource. The button is placed
+in a compound control (container) and it occupies the whole rectangle of the
+container. The container is set as the observer of the button.</p>
+<p><b>Example: Button resource</b></p>
+<codeblock xml:space="preserve">RESOURCE AVKON_BUTTON r_myapp_button
+    {
+    flags  = KAknButtonTextLeft;
+    states =
+        {
+        AVKON_BUTTON_STATE
+            {
+            txt = “Text”;
+            helptxt = “Help text”;
+            }
+        };
+    }
+</codeblock>
+<p><b>Example: Constructing button from resource</b></p>
+<codeblock xml:space="preserve">void CMyButtonContainer::CreateButtonL()
+    {
+    CAknButton* iAknButton = CAknButton::NewL();
+    iAknButton-&gt;ConstructFromResourceL(R_MYAPP_BUTTON);
+    iAknButton-&gt;SetContainerWindowL(*this);
+    iAknButton-&gt;SetRect(Rect());
+    iAknButton-&gt;SetObserver(this);
+    iAknButton-&gt;MakeVisible(ETrue);
+    iAknButton-&gt;ActivateL();
+    }
+</codeblock>
+<p><b>Example: Constructing button from program code</b></p>
+<codeblock xml:space="preserve">void CMyButtonContainer::CreateButtonL()
+    {
+    HBufC* buttonText = StringLoader::LoadLC( R_MYAPP_TEXT );    
+    HBufC* helpText   =
+           StringLoader::LoadLC( R_MYAPP_HELPTEXT );
+    CAknButton* iAknButton = CAknButton::NewL( 
+        0, 0, 0, 0, 
+        *buttonText, *helpText, KAknButtonTextLeft, 0);
+    CleanupStack::PopAndDestroy( 2 );  // helpText, buttonText
+    iAknButton-&gt;SetContainerWindowL(*this);
+    iAknButton-&gt;SetRect(Rect());
+    iAknButton-&gt;SetObserver(this);
+    iAknButton-&gt;MakeVisible(ETrue);
+    iAknButton-&gt;ActivateL();
+    }
+</codeblock>
+</conbody></concept>

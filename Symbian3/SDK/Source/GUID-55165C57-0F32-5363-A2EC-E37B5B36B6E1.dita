@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-55165C57-0F32-5363-A2EC-E37B5B36B6E1"><title>How to set up the text view</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The following code constructs a text view, first allocating and constructing all its parameters.</p> <ul><li id="GUID-22D4A0CA-4DEC-59DD-8883-1DC6EA59B23A"><p>Before constructing the <xref href="GUID-CF377A98-F11F-380F-AD10-7F3E261D4421.dita"><apiname>CTextView</apiname></xref>  <keyword>text view</keyword> object, first construct a <xref href="GUID-101762DC-E498-3325-88AB-B0FF17DC62B6.dita"><apiname>TRect</apiname></xref>  <keyword>view rectangle</keyword>, then the <xref href="GUID-FEE7C848-2E93-3848-A3DA-7EAA533615AF.dita"><apiname>CTextLayout</apiname></xref> <keyword>layout object</keyword> to be used by the view. </p> <p>Call the <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-DEF7DBC5-5EBA-3A63-8A77-12F308CBF95E"><apiname>CCoeControl::Rect()</apiname></xref> function to construct the view rectangle.</p> </li> <li id="GUID-FE25259A-49E3-5105-AC0A-A3E0CB175303"><p>The following must also be provided:</p> <ul><li id="GUID-CC291486-D789-5188-806D-9F09A9B4637B"><p>A graphics device map for mapping between the physical co-ordinates of the screen or page being drawn to (measured in twips) and the device specific co-ordinates (measured in pixels). Use the <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-6586DB74-AF5C-330B-9D0A-E4637396A04E"><apiname>CCoeControl::SystemGc()</apiname></xref> function to get the graphics context </p> </li> <li id="GUID-E2CB4365-4805-5231-9372-16A7F3A14621"><p>a window group for the text view. If a window group is not provided, no cursors can be displayed in the document.</p> </li> </ul> </li> </ul> <p>The <keyword>view rectangle</keyword> is the rectangle in which all text, cursors and labels will be displayed. It resides within the <keyword>view window</keyword> and can be smaller than it.</p> <codeblock id="GUID-E2F50CD6-E170-5410-97C6-911A8C9ED10A" xml:space="preserve">TRect iViewRect; // rectangle in which to view text
+CTextLayout* iLayout; // text layout
+CTextView* iTextView; // text view
+CRichText* iRichText; // rich text document
+// prerequisites for view - viewing rectangle
+iViewRect=Rect(); // Construct view rectangle
+// layout
+iLayout=CTextLayout::NewL(iRichText,iViewRect.Width()); 
+        // construct layout, giving width of view rectangle
+// context and device
+CWindowGc&amp; gc=SystemGc(); // get graphics context
+CBitmapDevice* device=(CBitmapDevice*) (gc.Device()); // device
+// text view
+iTextView=CTextView::NewL(iLayout, iViewRect,
+        device,
+        device,
+        &amp;Window(),
+        &amp;iCoeEnv-&gt;RootWin(), // window group, needed for cursor
+        &amp;iCoeEnv-&gt;WsSession()
+        ); // new view</codeblock> </conbody></concept>

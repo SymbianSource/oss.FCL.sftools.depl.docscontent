@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-133999E8-0ACB-5929-949E-82BB16F8E267" xml:lang="en"><title>Writing
+a UI MTM </title><abstract><p>This section explains the initial set up steps to be performed
+to write a UI MTM. It does not explain the implementation of all <xref href="GUID-EB76BA4B-D6A2-5651-A310-647E1D2CDEBC.dita">UI
+MTM functionality</xref>, however, you can see the <xref href="GUID-385BB488-5C32-58A7-8401-F3F0A0707DD9.dita">UI
+MTM example</xref>for detailed implementation steps.</p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The most basic functionality required in a UI MTM is to open a
+message (for viewing or editing) and close it again. The <xref href="GUID-A5982338-A057-3870-8832-F503AEAC470A.dita#GUID-A5982338-A057-3870-8832-F503AEAC470A/GUID-0DD6B979-0473-3AAD-AE14-F1B0AC1E73C5"><apiname>CBaseMtmUi::OpenL()</apiname></xref> function
+opens the current context; the actual behaviour is dependent on the entry
+that the context points at. </p> <p>The base class of UI MTM, <xref href="GUID-2AD22359-BB98-31D2-8138-4E5F17A4BFE7.dita"><apiname>CBaseUiMtm</apiname></xref>,
+defines functions that return <xref href="GUID-AF724192-6580-3DE3-9287-3A005C0AA932.dita"><apiname>CMsvOperation</apiname></xref> objects for
+control of asynchronous operations. Implementers of these functions are required
+to provide suitable classes that are derived from <xref href="GUID-AF724192-6580-3DE3-9287-3A005C0AA932.dita"><apiname>CMsvOperation</apiname></xref>.
+For example, if <xref href="GUID-2AD22359-BB98-31D2-8138-4E5F17A4BFE7.dita#GUID-2AD22359-BB98-31D2-8138-4E5F17A4BFE7/GUID-59FD3DB0-9F10-3052-B4F6-F9CF59854B8B"><apiname>CBaseUiMtm::EditL()</apiname></xref> is implemented to provide
+message editing, a derived <xref href="GUID-AF724192-6580-3DE3-9287-3A005C0AA932.dita"><apiname>CMsvOperation</apiname></xref> class must be
+provided that completes when the editing operation is complete. </p> </context>
+<steps id="GUID-DD170CFC-0DD8-5B20-856C-E9269FD98F29">
+<step id="GUID-23F7AF46-A909-5802-8168-8416EF531AF1"><cmd/>
+<info>Derive a class from the <xref href="GUID-A5982338-A057-3870-8832-F503AEAC470A.dita"><apiname>CBaseMtmUi</apiname></xref> class. </info>
+</step>
+<step id="GUID-A37BCDA1-14CB-5FF2-931D-F32A8B92478B"><cmd/>
+<info>Register it using the <xref href="GUID-0D5D7FAC-4F14-3046-92FB-873B8350FF4C.dita"><apiname>CRegisteredMtmDll</apiname></xref> parameter. </info>
+</step>
+<step id="GUID-694A8171-AD7B-5671-86AA-87CC470213CE"><cmd/>
+<info>Create the <xref href="GUID-AF724192-6580-3DE3-9287-3A005C0AA932.dita"><apiname>CMsvOperation</apiname></xref> -based classes for performing
+the different operations that are required for your Messaging protocol. </info>
+</step>
+</steps>
+<example><title>UI MTM example</title><codeblock xml:space="preserve">//
+// CTextMtmUi: User Interface MTM
+//
+
+CTextMtmUi* CTextMtmUi::NewL(CBaseMtm&amp; aBaseMtm, CRegisteredMtmDll&amp; aRegisteredMtmDll)
+    {
+    CTextMtmUi* self=new(ELeave) CTextMtmUi(aBaseMtm, aRegisteredMtmDll);
+    CleanupStack::PushL(self);
+    self-&gt;ConstructL();
+    CleanupStack::Pop();
+    return self;
+    }
+
+CTextMtmUi::CTextMtmUi(CBaseMtm&amp; aBaseMtm, CRegisteredMtmDll&amp; aRegisteredMtmDll)
+    :   CBaseMtmUi(aBaseMtm, aRegisteredMtmDll)
+    {
+ 
+   }</codeblock> <p>For more details on implementing all the
+UI MTM functions, see <xref href="GUID-385BB488-5C32-58A7-8401-F3F0A0707DD9.dita">example
+code</xref>. </p> </example>
+</taskbody><related-links>
+<link href="GUID-59217FA7-3078-53CA-88B3-78D6FB788271.dita"><linktext>MTM overview</linktext>
+</link>
+<link href="GUID-EB76BA4B-D6A2-5651-A310-647E1D2CDEBC.dita"><linktext>User Interface
+MTM</linktext></link>
+</related-links></task>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-11FE772A-E662-4B88-B871-97A40A40FBAB" xml:lang="en"><title>Handling
+EEikCmdExit</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If your Symbian GUI-based application should close, for example, in
+out of memory situations, you must handle the <parmname>EEikCmdExit</parmname> command
+ID in your override of <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aHandleCommandL%28%29" format="application/java-archive"><parmname>CEikAppUi::HandleCommandL</parmname></xref>. The UI architecture of your application determines where you
+override <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aHandleCommandL%28%29" format="application/java-archive"><parmname>CEikAppUi::HandleCommandL</parmname></xref>. A typical implementation
+is as follows:</p>
+<codeblock id="GUID-80E7C5FF-A507-42FA-ACF0-808539FFF6A5" xml:space="preserve">void CMyCommandHandlingAppUi::HandleCommandL(TInt aCommand)
+    {
+    	
+    switch(aCommand)
+        {
+        case EEikCmdExit:
+        case EAknSoftkeyExit:
+            Exit();
+            break;
+       
+        default:
+            break;
+        }
+    }
+</codeblock>
+<p>where <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aExit%28%29" format="application/java-archive"><parmname>CEikAppUI::Exit()</parmname></xref> closes the application. <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi" format="application/java-archive"><parmname>CEikAppUI</parmname></xref> also provides <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aSaveAnyChangesL%28%29" format="application/java-archive"><parmname>SaveAnyChangesL</parmname></xref> and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aSaveL%28%29" format="application/java-archive"><parmname>SaveL</parmname></xref> methods
+in case you need to save the application document.</p>
+<note>
+<p>In Symbian view architecture applications, the <parmname>EEikCmdExit</parmname> command
+must be only handled once: either in the UI controller or in a view. Since
+the exit command is an application wide command, it is recommended that it
+be handled in the UI controller implementation.</p>
+</note>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aExit%28%29" format="application/java-archive"><parmname>CEikAppUI::Exit()</parmname></xref> exits the application.
+If the application is embedded, control returns to the parent, which should
+also exit. The application framework sends an <parmname>EEikCmdExit</parmname> command
+ID to each application in this chain to support this behavior.</p>
+<note>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aExit%28%29" format="application/java-archive"><parmname>CEikAppUI::Exit()</parmname></xref> is guaranteed not to
+return. This means that you should not trap this method. Among other things,
+do not call another method when you handle the command ID that triggers an
+exit.</p>
+</note>
+</conbody></concept>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-209F3620-2361-4AED-9F7A-02E72F9EE8FE" xml:lang="en"><title>Parent
+and Child without IPC</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>In this scenario, the parent process creates the child, but there is no
+subsequent communication between the two (except maybe the parent waiting
+for termination of the child via use of the <xref href="GUID-8F5C89A4-7813-32C7-973E-F7F0F3690BC6.dita"><apiname>waitpid()</apiname></xref> function).</p>
+<p>Rather than use the <codeph>fork()</codeph>/<codeph>exec()</codeph> combination
+to achieve this the <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref> API can be used instead.
+This API will create a process by a single API call. Additionally, actions
+can be performed on inherited file descriptors to change access before the
+child's main is called. For more detailed information on the <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref> function
+consult the relevant Open Group standard pages available at <xref href="http://www.opengroup.org" scope="external">http:\\www.opengroup.org</xref>.</p>
+<p><b>Parent process <codeph>fork()</codeph> and <codeph>exec()</codeph> functions</b></p>
+<p>The following code shows how the creation of a child process can be implemented
+using the <codeph>fork()</codeph> and <codeph>exec()</codeph> functions. Note
+that inclusion of header files has been omitted for clarity. </p>
+<codeblock xml:space="preserve">int main(int argc, char *argv[])
+{
+  pid_t Childpid = fork();
+     
+  if(Childpid == 0)
+  {
+      //Running in Child process
+
+      //exec() to replace the child process executable
+      char execFileName[] = "/root/PortDoc/Example0_c/Posix/child/ChildProg";
+
+      execl(execFileName,NULL);
+  }
+  else
+  {
+     //Running in parent process
+
+     //Wait for the child process to terminate
+     waitpid(Childpid,NULL,0);
+     
+     printf("\r\n*** Child process finished ***\r\n");
+     
+  }
+   
+  return EXIT_SUCCESS;
+}
+</codeblock>
+<p><b>Using the <codeph>posix_spawn()</codeph> function</b></p>
+<p>The following code shows how the above can be modified to use the <codeph>posix_spawn()</codeph> operation.</p>
+<codeblock xml:space="preserve">int main(int argc, char *argv[])
+{
+   pid_t Childpid;
+   char execFileName[] = "/root/PortDoc/Example0_c/Symbian/child/ChildProg";
+   
+   int RetVal= posix_spawn(&amp;Childpid,execFileName,NULL,NULL,NULL,NULL);
+   
+   (void)waitpid(Childpid,NULL,0);
+   
+   printf("\r\n*** Child process finished ***\r\n");
+    
+   return EXIT_SUCCESS;
+}
+</codeblock>
+<p><b>Child process example</b></p>
+<p>The child code shown is unaffected by the mechanism used to spawn it, that
+is, <codeph>fork()</codeph>/<codeph>exec()</codeph> or <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref>,
+but an example is shown below for completeness.</p>
+<codeblock xml:space="preserve">int main(void)
+{
+    printf("\r\n*** Child Running ***\r\n");
+    
+    return EXIT_SUCCESS;
+}
+</codeblock>
+</conbody></concept>

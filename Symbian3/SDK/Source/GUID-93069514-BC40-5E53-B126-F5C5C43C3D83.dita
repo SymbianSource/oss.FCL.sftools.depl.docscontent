@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-93069514-BC40-5E53-B126-F5C5C43C3D83" xml:lang="en"><title>Exporting
+a Private Key</title><shortdesc>This section explains the steps to export a private key from the
+keystore. Private keys can be exported in plain text and encrypted formats. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The following steps explain the process of exporting a private
+key: </p></context>
+<steps id="GUID-57C9001B-6CC1-5178-8B12-26E62649DD30">
+<step id="GUID-D7C51FBC-5075-5CBB-AB88-760C522B1371"><cmd/>
+<info>Create a file system session using an <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> object. </info>
+</step>
+<step id="GUID-1B781B79-7AC3-5075-A2CB-8852076D5CEA"><cmd/>
+<info>Create an object of type CUnifiedKeyStore using <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-C7A96153-4179-3B3F-878D-1EAA64A98D39"><apiname>CUnifiedKeyStore::NewL()</apiname></xref> or <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-217FBB3B-CEF5-36F2-A612-EDDA0982053C"><apiname>CUnifiedKeyStore::NewLC()</apiname></xref>. </info>
+</step>
+<step id="GUID-801F826D-B469-5D19-90FF-D78A4C69A302"><cmd/>
+<info>Initialise the member functions and keystore using the asynchronous
+function <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-6C5D732C-1FD1-3EF0-AC90-87690F891B8D"><apiname>CUnifiedKeyStore::Initialize()</apiname></xref>. </info>
+</step>
+<step id="GUID-C7934758-ACC0-5343-8A7E-E4D5BFDB53C9"><cmd/>
+<info>Use the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-8B22E1BC-D779-32DC-9C0A-CA37E4C0A81B"><apiname>CUnifiedKeyStore::List()</apiname></xref> function to list
+the keys of the keystore. Retrieve the handle of the private key to be exported. </info>
+</step>
+<step id="GUID-4B27945E-3202-5044-9B38-A30768721F1C"><cmd/>
+<info>Invoke the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-C94CA3E9-F2D9-32B4-B691-29FF58293264"><apiname>CUnifiedKeyStore::ExportKey()</apiname></xref> function
+for exporting the private key in plain text format or the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-74223F7E-C4D2-3208-88FE-03D14860A5A6"><apiname>CUnifiedKeyStore::ExportEncryptedKey()</apiname></xref> function
+for exporting in encrypted format. </info>
+</step>
+</steps>
+<result><p>A private key is exported in plain text or encrypted format. </p> </result>
+<example id="GUID-0C2E82D5-5297-5A9C-A258-26B2DA29BC9A"><title>Example</title> <p>The
+following code snippet shows how to set a file system session object, list
+the keys in the keystore and then export the selected private key in plain
+text format. </p> <codeblock id="GUID-E6FECC50-782D-5B03-B680-A58E7A1F3651" xml:space="preserve">
+
+//Create a file system session object
+RFs iFs;
+CleanupClosePushL(&amp;iFs);
+
+
+//Initialise the keystore and member functions
+CUnifiedKeyStore* keyStore = CUnifiedKeyStore::NewL(iFs);
+keyStore-&gt;Initialize(iStatus); //iStatus is a TRequestStatus object
+
+
+//List the keys of the keystore
+RPointerArray&lt;CCTKeyInfo&gt; iKeys; //This variable will contain the result after the completion of the export operation
+TCTKeyAttributeFilter  filter.iUsage = EPKCS15UsageAll;
+keyStore-&gt;List(iKeys, filter, iStatus);
+
+...
+
+
+//Retrieve the handle of the private key to be exported
+_LIT(KLabel,”keylabel”);
+TInt keyIndex;
+
+//Select the key
+for (TInt j = 0; j &lt; iKeys.Count(); j++)
+    {
+    if (iKeys[j]-&gt;Label() == KLabel) 
+        {
+         keyIndex = j;
+         break;
+        }
+    }
+
+...
+
+
+//Export the key 
+HBufC8* iKeyData = NULL;
+TCTTokenObjectHandle aHandle = iKeys[keyIndex]-&gt;Handle();
+keyStore-&gt;ExportKey(aHandle, iKeyData, iStatus);
+
+
+//Clean up
+CleanupStack::PopAndDestroy(); // iFs</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-F6625E22-BFB2-5367-A1A8-916252999B78.dita"><linktext>Exporting
+a Public Key</linktext></link>
+</related-links></task>

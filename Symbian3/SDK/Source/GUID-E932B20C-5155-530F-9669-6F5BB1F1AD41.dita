@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E932B20C-5155-530F-9669-6F5BB1F1AD41" xml:lang="en"><title>STRUCT
+statement</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<codeblock xml:space="preserve">&lt;struct-statement&gt;
+struct-statement ::= 
+STRUCT &lt;struct-name&gt; [ BYTE | WORD ] { &lt;struct-member-list&gt; } </codeblock>
+<p>A <codeph>STRUCT</codeph> statement defines the format of a struct; all
+resources are defined in terms of structs. The struct has a name designated
+by <varname>struct-name</varname>, and some items designated by <varname>struct-member-list</varname>.</p>
+<section><title>Struct names</title><p>The following rules must
+be observed for <varname>struct-names</varname>:</p><ul>
+<li id="GUID-E490ACC3-1A5E-5A93-97BC-EA13322F93B3"><p>they must be given in
+upper case</p> </li>
+<li id="GUID-A8237D56-9872-5869-9041-1F66130F1BCA"><p>they must begin with
+an alphabetic character, although subsequent characters may be numeric</p> </li>
+<li id="GUID-8F0B5DE9-C6B0-5637-A755-0BD408744898"><p>they may not begin with
+any of the 12 struct <varname>type-names</varname> (see <xref href="GUID-89ADFC64-AF9F-51B1-AC5F-493897226270.dita">STRUCT
+members</xref>), or the keywords: <codeph>GLOBAL</codeph>, <codeph>STRUCT</codeph>, <codeph>LEN</codeph> or <codeph>RESOURCE</codeph>.
+This restriction applies only to the <varname>struct-name</varname>, not the <varname>member-name</varname> of
+any individual struct members.</p> <p>So the following struct definition will
+generate an error</p> <codeblock id="GUID-A2D5E9FB-1C45-52FE-8997-95D2117DFE05" xml:space="preserve">STRUCT BUFTHING
+ {
+ BUF buffer;
+ }</codeblock> <p>whereas this struct definition will compile correctly</p> <codeblock id="GUID-6EEF6653-C2D9-559E-BA72-5C70E30B9633" xml:space="preserve">STRUCT ABUFTHING
+ {
+ BUF buffer;
+ }</codeblock> </li>
+</ul></section>
+<section><title>Struct member list</title><p>The <varname>struct-member-list</varname> is
+a sequence of <varname>struct-member</varname> s where each member is terminated
+by a semi-colon. The complete list is enclosed within a pair of braces.</p><p>See <xref href="GUID-89ADFC64-AF9F-51B1-AC5F-493897226270.dita">STRUCT members</xref> for
+more details.</p></section>
+<section><title>BYTE/WORD keywords</title><p><codeph>STRUCT</codeph> definitions
+allow resource instances to be of variable length, as the struct can allow
+default variables for its members. A resource’s entire length can be deduced
+from the position of the next resource; this information is available in a
+resource file’s index. If the resource is used as a member within an instance
+of another resource, however, its length <i>must</i> be identified another
+way.</p><ul>
+<li id="GUID-6EBE2158-D5F4-588F-B45E-94AB86D87547"><p>Use <codeph>BYTE</codeph> to
+prefix the struct with a single byte indicating its length (zero to 255 characters).</p> </li>
+<li id="GUID-43D2F295-C031-5812-A0BD-5F017C20918B"><p>Use <codeph>WORD</codeph> to
+prefix the struct with a word indicating its length (zero to 65,535 characters).</p> </li>
+</ul></section>
+<example><p>The following are valid <codeph>STRUCT</codeph> statements:</p><codeblock id="GUID-04C66589-84AC-591F-80A3-73FC1C973F4C" xml:space="preserve">STRUCT STRING
+ {
+ LTEXT str;
+ }</codeblock><p>This defines a struct called <codeph>STRING</codeph> which
+contains a single <codeph>LTEXT</codeph> item.</p><codeblock id="GUID-C85D999C-4E6A-57B8-ACFB-E6A7DB51E960" xml:space="preserve">STRUCT TEST BYTE
+ {
+ WORD status;
+ STRUCT text;
+ }</codeblock><p>This defines a struct called <codeph>TEST</codeph> which
+contains a <codeph>WORD</codeph> and an embedded struct. The total length
+of <codeph>TEST</codeph> is unknown, but should not exceed 255 characters:
+the <codeph>BYTE</codeph> directive in the definition indicates that, when
+this struct is embedded within another, it should be preceded with a byte
+indicating its length (zero to 255 characters).</p></example>
+</conbody></concept>

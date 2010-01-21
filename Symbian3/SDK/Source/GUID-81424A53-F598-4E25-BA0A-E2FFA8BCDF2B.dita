@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-81424A53-F598-4E25-BA0A-E2FFA8BCDF2B" xml:lang="en"><title>Controlling
+toolbar visibility</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Floating toolbar</title><p>You can define in your application
+view whether the floating toolbar is shown on view activation. By default,
+the floating toolbar is hidden. </p><p>You can also show or hide the toolbar
+by changing the toolbar visibility straight from the toolbar itself. In this
+case, however, remember that closing the application or deactivating the view
+resets the toolbar visibility state. So after e.g. view deactivation, the
+toolbar is set visible according to the default setting (defined by the view).</p></section>
+<section> <title>Fixed toolbar</title><p>The UI framework always sets the
+fixed toolbar visible when an application or view is activated. You can change
+the toolbar visibility straight from the toolbar itself, like in the case
+of a floating toolbar. However, when hiding the toolbar with the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknToolbar.html#f48c9775e05e7a6130a7c3c0d2a91199" format="application/java-archive"><codeph>CAknToolbar::SetToolbarVisibility()</codeph></xref> method, you should
+note that with that method the toolbar window is completely hidden and some
+other control should draw to its area to keep the area updated. If this is
+not applicable, you can use another method: <codeph>HideItemsAndDrawOnlyBackground()</codeph>.
+This will hide the toolbar but draw its background in the toolbar area. </p></section>
+<section><p>The example below shows how to hide or show the toolbar. You can
+also use <codeph>SetToolbarVisibility()</codeph> with the fixed toolbar if
+you don't need to draw the toolbar background. </p><codeblock xml:space="preserve">void CMyAppView::ChangeToolbarVisibility( TBool aHide )
+    {
+    
+    CAknToolbar* toolbar = Toolbar();
+    
+    if ( !toolbar )
+        {
+        return;
+        }
+
+    // Fixed toolbar        
+    if ( toolbar-&gt;ToolbarFlags() &amp; KAknToolbarFixed )
+        {
+        if ( aHide )
+            {
+            // Hide toolbar but draw background
+            toolbar-&gt;HideItemsAndDrawOnlyBackground( ETrue );
+            }
+        else
+            {
+            // Return situation to normal (toolbar as visible)
+            toolbar-&gt;HideItemsAndDrawOnlyBackground( EFalse );
+            }
+        }
+        
+    // Floating toolbar
+    else
+        {
+        if ( aHide )
+            {
+            // Hide floating toolbar
+            toolbar-&gt;SetToolbarVisibility( EFalse );
+            }
+        else
+            {
+            // Show floating toolbar
+            toolbar-&gt;SetToolbarVisibility( ETrue );
+            }
+        
+        }
+    }
+</codeblock></section>
+</conbody></concept>

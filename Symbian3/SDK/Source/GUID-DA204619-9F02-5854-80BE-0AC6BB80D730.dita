@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DA204619-9F02-5854-80BE-0AC6BB80D730" xml:lang="en"><title>Emulator
+Setup</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Zsh can be launched from an emulator using the Ethernet protocol. Before
+launching Zsh using an emulator as the Telnet server, the emulator must be
+configured. </p>
+<p>To configure the emulator, perform the following the steps: </p>
+<ol id="GUID-1EC9BA99-BC03-54A4-BAAC-ABF0288E1E35">
+<li id="GUID-7F1FB879-44B9-5F26-B14F-ECA35AE2572D"><p>Install <b>4.0-WinPcap.exe</b> from <xref href="http://www.winpcap.org/archive/" scope="external">www.winpcap.org</xref>,
+which is freeware. For more information about WinPcap, refer to <xref href="GUID-CDD1E761-6B28-5F69-BBEF-756DF45E59A2.dita">Installing
+WinPcap 4.0</xref>. </p> </li>
+<li id="GUID-51C4D952-23D4-51FD-BAA8-60B95A47EA1D"><p>If your PC is in a network
+where IP allocations are dynamic, use the Dynamic IP option; otherwise use
+the Static IP option. </p> <ul>
+<li id="GUID-4D87A125-49C2-5959-9400-CD3EC7855E23"><p> <b>Dynamic IP</b>:
+The <filepath>\epoc32\winscw\c\ethernetced.xml</filepath> file has CommDB
+settings for dynamic IP by default. So no action is required. </p> </li>
+<li id="GUID-D85DB7C6-4FC2-5454-BD92-EDC47FD889B1"><p> <b>Static IP</b>: Edit <filepath>\epoc32\winscw\c\ethernetced.xml</filepath> as
+follows: </p> <ul>
+<li id="GUID-C0D4149B-303D-5754-B489-A4C060C8A33B"><p>Select the <codeph>ConnectionPreferencesTable</codeph> entry
+with the highest value in <codeph>Ranking</codeph>. Modify the <codeph>IAPRef</codeph> value
+to <codeph>IAP.Ethernet with Daemon Static IP</codeph>. </p> <codeblock id="GUID-177CC8AF-8266-5B82-8809-E7CCEA3CB08A" xml:space="preserve">&lt;ConnectionPreferences operation="add"&gt;
+    &lt;Name&gt;ConnectionPreferencesTable2&lt;/Name&gt;
+    &lt;Ranking&gt;1&lt;/Ranking&gt;
+    &lt;Direction&gt;OUTGOING&lt;/Direction&gt;
+    &lt;DialogPref&gt;DONOTPROMPT&lt;/DialogPref&gt;
+    &lt;BearerSet&gt;LAN&lt;/BearerSet&gt;
+    &lt;IAPRef&gt;IAP.Ethernet with Daemon Static IP&lt;/IAPRef&gt;
+&lt;/ConnectionPreferences&gt;</codeblock> </li>
+<li id="GUID-F11883CA-7E5A-51AF-878E-B835AD4070E6"><p>Select the <codeph>LANServiceTable</codeph> entry
+with <codeph>Name: Ethernet Static IP</codeph>. </p> </li>
+<li id="GUID-2B7DBA68-9782-5125-B5C0-DF997AC60B11"><p>Modify the <codeph>IpNetMask</codeph>, <codeph>IpGateway</codeph>, <codeph>IpNameServer1</codeph>, and <codeph>IpNameServer2</codeph> values to those set on your PC. You
+can get these by typing the following command at a command prompt where your
+telnet client is running: </p> <p><userinput>ipconfig /all</userinput> </p> </li>
+<li id="GUID-FC9439C9-833D-515A-BE2A-F35531AAD2BD"><p>Modify the <codeph>IPAddr</codeph> to
+one from the unused pool (given by the network administrator) on your network. </p> <codeblock id="GUID-0CC03BB6-2083-5484-B76F-706FDDBABCCD" xml:space="preserve">&lt;LANService operation="add"&gt;
+    &lt;Name&gt;Ethernet Static IP&lt;/Name&gt;
+    &lt;IfNetworks&gt;ip&lt;/IfNetworks&gt;
+    &lt;IpNetMask&gt;255.255.252.0&lt;/IpNetMask&gt;
+    &lt;IpGateway&gt;10.192.199.254&lt;/IpGateway&gt;
+    &lt;IpAddr&gt;10.192.197.1&lt;/IpAddr&gt;
+    &lt;IpAddrFromServer&gt;FALSE&lt;/IpAddrFromServer&gt;
+    &lt;IpDNSAddrFromServer&gt;TRUE&lt;/IpDNSAddrFromServer&gt;
+    &lt;IpNameServer1&gt;10.192.59.6&lt;/IpNameServer1&gt;
+    &lt;IpNameServer2&gt;10.192.58.49&lt;/IpNameServer2&gt;
+    &lt;ConfigDaemonManagerName&gt;NetCfgExtnDhcp&lt;/ConfigDaemonManagerName&gt;
+    &lt;ConfigDaemonName&gt;!DhcpServ&lt;/ConfigDaemonName&gt;
+&lt;/LANService&gt;</codeblock> <p>For more information on static IP and setting,
+refer to <xref href="GUID-3C6935E1-66C9-5115-901E-D3B1D0C2E783.dita">Quick ethernet
+configuration</xref>. </p> </li>
+</ul> </li>
+</ul> </li>
+<li id="GUID-EC11E065-002A-5E0C-81E1-733CFF5AE82A"><p>Run the following command
+to generate the ethernet configuration files: </p> <p><userinput>configchange.pl
+--config ethernetWithCommDb --kernel EKA2 --target winscw --variant udeb</userinput> </p>. <p>For
+more information about <filepath>configchange.pl</filepath>, refer to <xref href="GUID-7B114A67-356A-5FCE-B57B-761F5477A2B2.dita">Using the Configchange.pl
+script</xref>. </p> <p>For information on CommDb, refer to <xref href="GUID-3EF88A1D-CCB6-5DE5-9CA6-F6E785A6898A.dita">Communications
+Framework</xref>. </p> </li>
+</ol>
+</conbody><related-links>
+<link href="GUID-F4E64499-57CB-5E4A-AAD7-439191BF5E0F.dita"><linktext>Launching
+Zsh</linktext></link>
+<link href="GUID-DC6AF355-3079-531F-98F7-A70AC13A2863.dita"><linktext>Device Setup</linktext>
+</link>
+</related-links></concept>

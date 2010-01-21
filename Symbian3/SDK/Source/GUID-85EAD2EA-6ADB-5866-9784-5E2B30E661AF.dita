@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-85EAD2EA-6ADB-5866-9784-5E2B30E661AF" xml:lang="en"><title>Deleting
+Keys </title><shortdesc>This section provides information on deleting keys. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The unified keystore allows the deletion of any key. The following
+steps explain the process of deleting a key: </p></context>
+<steps id="GUID-AFEDFA3B-FA51-5BF8-87A5-7E5DCD3C8D95">
+<step id="GUID-42688893-8588-5CF6-8F6C-959AA0495222"><cmd/>
+<info>Create a file system session using an <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> object. </info>
+</step>
+<step id="GUID-CAE0DEDF-139F-52C3-9D3A-A2BD14CFA621"><cmd/>
+<info>Create an object of type CUnifiedKeyStore using <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-C7A96153-4179-3B3F-878D-1EAA64A98D39"><apiname>CUnifiedKeyStore::NewL()</apiname></xref> or <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-217FBB3B-CEF5-36F2-A612-EDDA0982053C"><apiname>CUnifiedKeyStore::NewLC()</apiname></xref>. </info>
+</step>
+<step id="GUID-4F4C4296-50F5-593F-AA89-8FA043FA9908"><cmd/>
+<info>Initialise the member functions and keystore using the asynchronous
+function <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-6C5D732C-1FD1-3EF0-AC90-87690F891B8D"><apiname>CUnifiedKeyStore::Initialize()</apiname></xref>. </info>
+</step>
+<step id="GUID-19E5AAF5-1402-51F9-AE95-0970F286EF1C"><cmd/>
+<info>Use the <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-8B22E1BC-D779-32DC-9C0A-CA37E4C0A81B"><apiname>CUnifiedKeyStore::List()</apiname></xref> function to list
+the keys of the keystore. Retrieve the handle of the key to be deleted. </info>
+</step>
+<step id="GUID-435FCA01-D219-5BE3-B425-B4530F4C7F36"><cmd>Use the <codeph>CUnifiedKeyStore::DeleteKey()</codeph> function
+to delete the key. </cmd>
+</step>
+</steps>
+<result><p>The selected key is deleted from the keystore. </p> </result>
+<example><title>Example</title> <p>The following code snippet shows how to
+initialise the unified keystore, list the keys in a keystore, select a particular
+key and delete it. </p> <codeblock id="GUID-C18C5FBD-400F-5DFB-8E02-916F5C8C11FA" xml:space="preserve">//Create a file system session object
+RFs iFs;
+CleanupClosePushL(&amp;iFs);
+
+
+
+//Initialise the keystore and member functions
+CUnifiedKeyStore* keyStore = CUnifiedKeyStore::NewL(iFs);
+keyStore-&gt;Initialize(iStatus); //iStatus is a TRequestStatus object
+
+
+//List the keys of the keystore
+RPointerArray&lt;CCTKeyInfo&gt; iKeys; // This variable will contain the key for deletion
+TCTKeyAttributeFilter  filter.iUsage = EPKCS15UsageAll;
+keyStore-&gt;List(iKeys, filter, iStatus);
+
+
+...
+
+
+
+//Retrieve the handle of the key to be deleted
+_LIT(KLabel,”keylabel”);
+
+
+
+//Select the key with the label you are looking for
+for (TInt j = 0; j &lt; iKeys.Count(); j++)
+    {
+    if (Keys[j]-&gt;Label() == KLabel) 
+        {
+         keyIndex = j;
+         break;
+        }
+    }
+
+
+...
+
+
+
+//Delete the selected key
+keyStore-&gt;DeleteKey(*iKeys[keyIndex], iStatus);
+
+
+//Clean up
+CleanupStack::PopAndDestroy(); // iFs</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-C4389D60-2A8D-532D-9D92-E57B0CCD14CF.dita"><linktext>Unified Keystore</linktext>
+</link>
+</related-links></task>

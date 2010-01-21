@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-890F06C6-DE32-5EB1-BF0F-D41794F47AE1" xml:lang="en"><title>Active
+objects</title><shortdesc>This document describes the functionality and class membership
+of active objects.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An active object uses an asynchronous service provider class to provide
+a service. The active object hides the asynchronous service provider. The
+active object must provide: </p>
+<ul>
+<li id="GUID-C98FC10D-0ED4-5C6E-94DF-5B44143CB780"><p>a function that requests
+a service from the service provider </p> </li>
+<li id="GUID-CDA4E8D8-6E4A-5058-80AF-0CCC71956A7E"><p>a function that cancels
+a request for service from the service provider. </p> </li>
+</ul>
+<p>All active objects are derived from <codeph>CActive</codeph>. This class
+provides <i>derived</i> active objects with: </p>
+<ul>
+<li id="GUID-F6F9FD4E-1796-54F5-B90E-1784CAAB9BA5"><p>the data member <codeph>iStatus</codeph>.
+This data member is a <codeph>TRequestStatus</codeph> type object. This object
+is passed to the request functions of the asynchronous service provider. The
+request functions of the active object do not include a <codeph>TRequestStatus</codeph> in
+their parameters. The exception to this rule occurs when the active object
+acts as a secondary supplier of asynchronous services. </p> </li>
+<li id="GUID-E6BBFBF2-C909-5232-B37D-DD2AB5D56287"><p>the <codeph>Cancel()</codeph> function.
+This function cancels a request to the service provider. <codeph>Cancel()</codeph> does
+nothing if there is no outstanding request. If a request is pending, <codeph>Cancel()</codeph> calls <codeph>DoCancel()</codeph>. <codeph>DoCancel()</codeph> is a pure virtual function that a derived class supplies. <codeph>DoCancel()</codeph> must
+deal with the specific cancellation behavior that the service provider requires. <codeph>Cancel()</codeph> waits
+for the request to complete and then marks the request not active. </p> </li>
+<li id="GUID-48261AFE-F289-520B-9AE4-701487DC3376"><p>the <codeph>TPriority</codeph> enumeration.
+This enumeration defines the set of priorities that an active object can take.
+The priority of the active object is set during construction of the active
+object. When the active scheduler's wait completes, it checks the active object
+with the highest priority. Where active objects have the same priority, the
+order of checking is not defined. </p> </li>
+</ul>
+<p>Classes derived from <codeph>CActive</codeph> must: </p>
+<ul>
+<li id="GUID-07DFA89B-0690-56C4-B332-E48306B4FE4E"><p>own an asynchronous
+service provider. It may do this by containing either an instance of the required
+service provider or a handle to that provider. </p> </li>
+<li id="GUID-BAF677B6-C7EF-56DB-8C42-04F58C72777E"><p>provide one or more
+request functions, such as <codeph>IssueRequest()</codeph>, which pass on
+the request to an asynchronous service provider. </p> </li>
+<li id="GUID-16AE762B-88BF-5173-AD5F-000E82EC5267"><p>implement a <codeph>DoCancel()</codeph> function
+which passes on a cancel request to the asynchronous service provider </p> </li>
+<li id="GUID-8EBC0A7B-BF62-5568-BD26-DCA0C53961C3"><p>provide a <codeph>RunL()</codeph> function,
+which is called by the active scheduler when it detects that an active object’s
+request has completed. </p> </li>
+<li id="GUID-738F8086-7CCE-558E-A32C-10686214F288"><p>provide a <codeph>RunError()</codeph> function,
+which is called by the active scheduler if the active object's <codeph>RunL()</codeph> function
+leaves. A derived class can use the default implementation but this just propagates
+the leave code up to the active scheduler. </p> </li>
+</ul>
+<section id="GUID-FF78FFB3-6901-45D1-A5F3-4F1C44355836"><title>See also</title> <p> <xref href="GUID-2C5D53A3-0211-5C14-BD7F-E89EB27BAD2A.dita">Active
+Scheduler</xref>  </p> </section>
+</conbody></concept>

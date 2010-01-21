@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-E3E19113-AAEE-55C2-8016-11D492123762"><title>Creating a new sub-connection - Adding an already connected socket</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The following example shows how an application can use a sub-connection explicitly via an <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> instance, and tie an already connected <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> to the sub-connection that has had its properties set (parameter creation is described in separate section): </p> <codeblock id="GUID-3FCEF3CA-23AB-5040-90F9-C96A49FA4A84" xml:space="preserve">RSocketServ ss;
+RConnection conn;
+RSubConnection subconn;
+RSocket sock;
+TRequestStatus status;
+
+// Connect to ESOCK
+ss.Connect();
+
+// Open an Connection
+conn.Open(ss, KAfInet);
+
+// Start the connection
+conn.Start(status);
+User::WaitForRequest(status);
+
+// Open a TCP socket on the connection
+sock.Open(ss, KAfInet, KSockStream, KProtocolInetTcp, conn);
+
+_LIT(KRasAddr,"10.159.24.13");
+const TInt KEchoPort = 7;
+
+TInetAddr destAddr;
+destAddr.Input(KRasAddr);
+destAddr.SetPort(KEchoPort);
+
+// Connect the Socket to the destination over the connection (default sub-connection)
+sock.Connect(destAddr, status);
+
+// Create a new sub-connection
+subconn.Open(ss, RSubConnection::ECreateNew, conn);
+
+// Set Properties of the sub-connection
+subconn.SetParameters(…);
+
+// Move the connected socket onto the new sub-connection
+TRequestStatus status;
+subconn.Add(sock, status);
+
+// Wait for socket to added
+User::WaitForRequest(status);
+</codeblock> <p> <b>Note:</b> Error handling is not included to aid clarity. </p> </conbody></concept>

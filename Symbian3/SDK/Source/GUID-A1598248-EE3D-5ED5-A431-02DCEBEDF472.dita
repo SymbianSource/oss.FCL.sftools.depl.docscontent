@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A1598248-EE3D-5ED5-A431-02DCEBEDF472" xml:lang="en"><title> SIP
+Profile Setting</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>SIP Profiles are a set of configurable parameters related to registration.
+The SIP Profiles are stored in <xref href="GUID-27F39152-0AF2-577A-A367-BCEE9060902E.dita">CenRep</xref>.
+The applications retrieve the profiles based on parameters (AOR, Profile Type
+to mention a few) from CenRep and use them. </p>
+<p>The SIP Profiles can be provided with the device.(Default) </p>
+<p>The user can create new SIP Profiles as per requirement. </p>
+<p>The existing SIP Profiles (Default) can be customised by the user. </p>
+<p>A Key Schema ( Key Space Design) is defined for the storage of the SIP
+Profile in CenRep. </p>
+<section><title> Key Schema for a SIP Profile</title><p>SIP Profile data is
+referenced by using TUint32 constant as a Key. Several Keys defined in CSIPProfile,CSIPManagedProfile
+classes together define the parameters that constitute a complete SIP Profile.
+For more details refer to SIP Profile API Parameters. </p><p>The following
+schema is used to store SIP profile information in the Central Repository:
+ </p><table id="GUID-6521952F-3664-40EE-BEF8-40FAA9B82D45">
+<tgroup cols="3"><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry valign="top"><p>8 bits   </p></entry>
+<entry valign="top"><p> 12 bits</p></entry>
+<entry valign="top"><p>12 bits</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Profile Id      </p></entry>
+<entry><p> Variable Id</p></entry>
+<entry><p>Array index</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p><b>Profile Id</b> defines a SIP profile Id. The valid range for
+profile Id is 1 to 255. </p><p><b>Variable Id</b> identifies the variable.
+There can be a maximum of 4095 variables. </p><p><b>Array Index</b> indexes
+the array attribute. </p><ul>
+<li><p>The value at the ‘zero index’ contains the number of items in the array.</p></li>
+<li><p>Two different type of arrays are used :</p><ul>
+<li><p>Arrays that contain only data items. These arrays contain up to 4095
+elements .  </p></li>
+<li><p>Arrays that contain a list of Key value pairs. These arrays contain
+up to 2047 elements.</p><table id="GUID-E3BCE901-5E92-4305-94E6-9C7C81E8555B">
+<tgroup cols="3"><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry valign="top"><p>Element </p></entry>
+<entry valign="top"><p>Binary value</p></entry>
+<entry valign="top"><p> Data saved</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Array[0]    </p></entry>
+<entry><p> 000000000000b</p></entry>
+<entry><p> 2(array length) </p></entry>
+</row>
+<row>
+<entry><p>Array[1]      </p></entry>
+<entry><p> 000000000001b</p></entry>
+<entry><p>45</p></entry>
+</row>
+<row>
+<entry><p>Array[2]     </p></entry>
+<entry><p>000000000002b </p></entry>
+<entry><p>67</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>Key/value array are stored in Key first order as {Key, value},{Key,
+value} pairs.</p><table id="GUID-F65C1D91-EA0E-4263-94A3-064D9645495B">
+<tgroup cols="3"><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry valign="top"><p>Element  </p></entry>
+<entry valign="top"><p>Binary value</p></entry>
+<entry valign="top"><p>Data saved</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Array[0]      </p></entry>
+<entry><p> 000000000000b</p></entry>
+<entry><p>4(array length)</p></entry>
+</row>
+<row>
+<entry><p>Array[1]     </p></entry>
+<entry><p>000000000001b</p></entry>
+<entry><p> ‘Server’(Key)</p></entry>
+</row>
+<row>
+<entry><p>Array[2]      </p></entry>
+<entry><p> 000000000002b</p></entry>
+<entry><p>‘ 192.168.1.1’(value)</p></entry>
+</row>
+<row>
+<entry><p>Array[3]      </p></entry>
+<entry><p> 000000000003b</p></entry>
+<entry><p>‘ Proxy’(Key)</p></entry>
+</row>
+<row>
+<entry><p>Array[4]     </p></entry>
+<entry><p> 000000000004b</p></entry>
+<entry><p>‘ 192.168.1.1’(value)</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table></li>
+</ul></li>
+</ul></section>
+<example><p>The following example shows the complete CenRep Key/value data
+stored for a single predefined profile.The Key values are provided assuming
+Profile ID is '1' .  </p><p>  Provider Name: ‘Example Profile’
+  </p><p>Profile Id: 1   </p><p>Profile Type/Class: Internet  </p><p> Profile
+Type/Name : ‘IETF’  </p><p> Registrar Address: ‘192.168.1.1’  </p><p> Registrar
+User: ‘reguser’</p><p> Registrar Password: ‘regpass’   </p><p>Registrar Realm:
+’realm’   </p><p>Proxy Address: ‘192.168.1.1’   </p><p>Proxy User: ‘proxyuser’
+ </p><p> Proxy Password: ‘proxypass’  </p><p> Proxy Realm: ‘realm’   </p><p>Public
+User Name: ‘user@192.168.1.1’  </p><p> Password: ‘password’   </p><p>Proxy
+extension parameters : [key_1=‘value 1’, key_n=‘value n’]  </p><p> Registrar
+extension parameters : [key_1=‘value 1’, key_2=‘value 2’, key_n=‘value n’]
+  </p><p>Extension integer parameters :[11=1234, 22=5678]   </p><p>Extension
+boolean parameters :[33=1]  </p><p> Extension descriptor parameters : [44=‘extension
+descriptor parameter value’]  </p><p> Extension descriptor array parameters
+: [ [55, ‘Sub Array1 value1’, ‘Sub Array1 value2’, ‘Sub Array1 value3’], [66,
+‘Sub Array2 value1’, ‘Sub Array2 value2’, ‘Sub Array2 value3’, ‘Sub Array2
+value4’] ]  </p><table id="GUID-60D1747B-E298-5F42-B2CE-9802A995A539">
+<tgroup cols="4"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry> Member</entry>
+<entry> CenRep Key</entry>
+<entry> Key value</entry>
+<entry> Data saved</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>iSIPProviderName </p> </entry>
+<entry><p>KSIPProviderName </p> </entry>
+<entry><p>0x01002000 </p> </entry>
+<entry><p>‘Example Profile’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPProfileType. iSIPProfileClass </p> </entry>
+<entry><p>KSIPProfileClass </p> </entry>
+<entry><p>0x01FFA000 </p> </entry>
+<entry><p>0 (0=Internet,1=Ims,2=Other) </p> </entry>
+</row>
+<row>
+<entry><p>iSIPProfileType. iSIPProfileName </p> </entry>
+<entry><p>KSIPProfileName </p> </entry>
+<entry><p>0x01FFD000 </p> </entry>
+<entry><p>'IETF’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrar </p> </entry>
+<entry><p>KiSIPRegistrar </p> </entry>
+<entry><p>0x01082000 </p> </entry>
+<entry><p>‘192.168.1.1[:port]’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarParameter[i] </p> </entry>
+<entry><p>KSIPRegistrarDigestUserName </p> </entry>
+<entry><p>0x01FF1000 </p> </entry>
+<entry><p>‘Proxy’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarParameter[i] </p> </entry>
+<entry><p>KSIPRegistrarDigestPassword </p> </entry>
+<entry><p>0x01FEF000 </p> </entry>
+<entry><p>'192.168.1.1’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarParameter[i] </p> </entry>
+<entry><p>KSIPRegistrarDigestRealm </p> </entry>
+<entry><p>0x01FF0000 </p> </entry>
+<entry><p>‘realm’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxy </p> </entry>
+<entry><p>KSIPOutboundProxy </p> </entry>
+<entry><p>0x01083000 </p> </entry>
+<entry><p>‘192.168.1.1[:port;lr]’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyParameter[i] </p> </entry>
+<entry><p>KSIPProxyDigestUserName </p> </entry>
+<entry><p>0x01FF4000 </p> </entry>
+<entry><p>‘proxyuser’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyParameter[i] </p> </entry>
+<entry><p>KSIPProxyDigestPassword </p> </entry>
+<entry><p>0x01FF2000 </p> </entry>
+<entry><p>‘proxypass’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyParameter[i] </p> </entry>
+<entry><p>KSIPProxyDigestRealm </p> </entry>
+<entry><p>0x01FF3000 </p> </entry>
+<entry><p>‘realm’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPProfileId </p> </entry>
+<entry><p>KSIPProfileId </p> </entry>
+<entry><p>0x01001000 </p> </entry>
+<entry><p>1(first profile = 1, second = 2, …) </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyExtParameter[0] </p> </entry>
+<entry><p>KSIPExtProxyParam </p> </entry>
+<entry><p>0x01FFE000 </p> </entry>
+<entry><p>4 (the length of proxy extension parameter array) </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyExtParameter[1] </p> </entry>
+<entry><p>KSIPExtProxyParam </p> </entry>
+<entry><p>0x01FFE001 </p> </entry>
+<entry><p>'key_1' </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyExtParameter[2] </p> </entry>
+<entry><p>KSIPExtProxyParam </p> </entry>
+<entry><p>0x01FFE002 </p> </entry>
+<entry><p>‘value 1’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyExtParameter[n-1] ‘ </p> </entry>
+<entry><p>KSIPExtProxyParam </p> </entry>
+<entry><p>0x01FFE003 </p> </entry>
+<entry><p>'key_n’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPOutboundProxyExtParameter[n] </p> </entry>
+<entry><p>KSIPExtProxyParam </p> </entry>
+<entry><p>0x01FFE004 </p> </entry>
+<entry><p>‘value n’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[0] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC000 </p> </entry>
+<entry><p>6 (the length of registrar extension parameter array) </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[1] ‘ </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC001 </p> </entry>
+<entry><p>'key_1’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[2] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC002 </p> </entry>
+<entry><p>‘value 1’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[3] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC003 ‘ </p> </entry>
+<entry><p>'key_2’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[4] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC004 </p> </entry>
+<entry><p>‘value 2’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[n-1] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC005 ‘ </p> </entry>
+<entry><p>'key_n’ </p> </entry>
+</row>
+<row>
+<entry><p>iSIPRegistrarExtParameter[n] </p> </entry>
+<entry><p>KSIPRegistrarExtParam </p> </entry>
+<entry><p>0x01FFC006 </p> </entry>
+<entry><p>‘value n’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionIntParams[0] </p> </entry>
+<entry><p>KSIPExtensionIntParam </p> </entry>
+<entry><p>0x01FF8000 </p> </entry>
+<entry><p>4 (the length of extension int parameter array) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionIntParams[1] </p> </entry>
+<entry><p>KSIPExtensionIntParam </p> </entry>
+<entry><p>0x01FF8001 </p> </entry>
+<entry><p>11 (the id of the first extension int parameter) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionIntParams[2] 1234 </p> </entry>
+<entry><p>KSIPExtensionIntParam </p> </entry>
+<entry><p>0x01FF8002 </p> </entry>
+<entry><p>1234(value of the first extension int parameter) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionIntParams[3] </p> </entry>
+<entry><p>KSIPExtensionIntParam </p> </entry>
+<entry><p>0x01FF8003 </p> </entry>
+<entry><p>22 (the id of the second extension int parameter) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionIntParams[4] 5678 (value of the second extension int parameter) </p> </entry>
+<entry><p>KSIPExtensionIntParam </p> </entry>
+<entry><p>0x01FF8004 </p> </entry>
+<entry><p>5678 (value of the second extension int parameter) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionBoolParams[0] </p> </entry>
+<entry><p>KSipExtensionBoolParam </p> </entry>
+<entry><p>0x01FF7000 </p> </entry>
+<entry><p>2 (the length of extension Boolean parameter array) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionBoolParams[1] </p> </entry>
+<entry><p>KSipExtensionBoolParam </p> </entry>
+<entry><p>0x01FF7001 </p> </entry>
+<entry><p>33 (the id of the boolean parameter ) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionBoolParams[2] </p> </entry>
+<entry><p>KSipExtensionBoolParam </p> </entry>
+<entry><p>0x01FF7002 </p> </entry>
+<entry><p>1 (ETrue) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrParams[0] </p> </entry>
+<entry><p>KSIPExtensionDescParam </p> </entry>
+<entry><p>0x01FF6000 </p> </entry>
+<entry><p>2 (the length of extension descriptor array) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrParams[1] </p> </entry>
+<entry><p>KSIPExtensionDescParam </p> </entry>
+<entry><p>0x01FF6001 </p> </entry>
+<entry><p>44 (the id of the descriptor parameter ) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrParams[2] </p> </entry>
+<entry><p>KSIPExtensionDescParam </p> </entry>
+<entry><p>0x01FF6002 </p> </entry>
+<entry><p>‘extension descriptor parameter value’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[0] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5000 </p> </entry>
+<entry><p>11 (total count of array) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[1] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5001 </p> </entry>
+<entry><p>3 (Sub Array1 count) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[2] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5002 </p> </entry>
+<entry><p>55 (Sub Array1 id) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[3] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5003 </p> </entry>
+<entry><p>‘Sub Array1 value1’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[4] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5004 </p> </entry>
+<entry><p>‘Sub Array1 value2’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[5] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5005 </p> </entry>
+<entry><p>‘Sub Array1 value3’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[6] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5006 </p> </entry>
+<entry><p>4 (Sub Array2 count) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[7] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5007 </p> </entry>
+<entry><p>66 (Sub Array2 id) </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[8] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5008 </p> </entry>
+<entry><p>‘Sub Array2 value1’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[9] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF5009 </p> </entry>
+<entry><p>‘Sub Array2 value2’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[10] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF500A </p> </entry>
+<entry><p>‘Sub Array2 value3’ </p> </entry>
+</row>
+<row>
+<entry><p>iExtensionDescrArrayParams[11] </p> </entry>
+<entry><p>KSIPExtensionDescArrayParam </p> </entry>
+<entry><p>0x01FF500B </p> </entry>
+<entry><p>‘Sub Array2 value4’ </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></example>
+</conbody></concept>

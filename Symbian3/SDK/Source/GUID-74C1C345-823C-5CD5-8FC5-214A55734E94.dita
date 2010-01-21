@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-74C1C345-823C-5CD5-8FC5-214A55734E94" xml:lang="en"><title>Developing
+Programs with Task Scheduling Capabilities</title><abstract><p>Symbian Developers and device creators can use the task scheduler
+APIs to develop programs with scheduling capabilities. Programs may need task
+scheduling capabilities to support scheduling options that may be required
+for a phone user, another program or a system server. </p><p>For example,
+a phone user can use the alarm option of a clock application to schedule an
+alarm to be triggered every day at 5:00 A.M. </p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-17AC6716-B2C4-5C14-9764-109D31C3B9DA">
+<step id="GUID-C6EB0627-BD29-50F5-8A80-2581284DC750"><cmd/>
+<info>Connect the client to the task scheduler server using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-C4EEE075-3B47-3964-AFCC-0CDF09DEDA0F"><apiname>RScheduler::Connect()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-5D5D73EF-7642-5D91-91EA-09E562F93AE8" xml:space="preserve">RScheduler iScheduler;
+User::LeaveIfError(iScheduler.Connect());</codeblock> </stepxmp>
+</step>
+<step id="GUID-F442887C-9F99-50AF-89B3-7B9532E15A8C"><cmd/>
+<info>Register the client with the task scheduler server using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-C19048C5-DC9F-3B8A-B4AD-02C0D943B7AC"><apiname>RScheduler::Register()</apiname></xref> by
+passing the following parameters: </info>
+<substeps id="GUID-B8842174-43F3-5B5D-8906-7699B89A53C8">
+<substep id="GUID-E95387B3-CFAA-5523-8105-1999FD5FD309"><cmd/>
+<info>Name and full path of the executable to be used to execute the scheduled
+task. For more information about creating this executable, see the <filepath>taskexecutor.cpp</filepath> topic
+in the<xref href="GUID-8B938FEF-4D70-4589-921C-C99667193E20.dita">TaskSchedulerExample:
+Using Task Scheduler for Creating and Executing Tasks</xref> section. </info>
+</substep>
+<substep id="GUID-A1655664-C67A-5DDD-BF3E-E8DDC98F1FB6"><cmd/>
+<info>Priority of the task to be executed, relative to other clients. If two
+clients have tasks to execute at the same time, the one with the higher priority
+is executed first. </info>
+</substep>
+</substeps>
+<info>The following code snippet illustrates how to register a client with
+the task scheduler server: </info>
+<stepxmp><codeblock id="GUID-FFF2F47A-10AC-543D-B090-77E6B01A0C62" xml:space="preserve">RScheduler iScheduler;
+TFileName fileName;
+...
+
+//A priority value
+const TInt priority = 3;
+
+...
+
+User::LeaveIfError(iScheduler.Register(filename, priority));</codeblock> </stepxmp>
+<info><note>Task scheduler supports only the execution of Symbian platform
+executables. The <codeph>aFileName</codeph> parameter can include a path but
+must not include a file extension. </note></info>
+<info>For example, a <codeph>fileName</codeph> can be <filepath>minimalTaskHandler</filepath>.
+Note that in the presence of platform security all EXEs are located in the <filepath>\sys\bin</filepath> folder
+and as a consequence of this, the path of an EXE (only the drive letter) is
+not needed. </info>
+</step>
+<step id="GUID-5D132AE0-6A8D-5A56-A52B-2CE8151CC757"><cmd/>
+<info>Create the support for different types of schedules that you want to
+provide using the following functions of <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita"><apiname>RScheduler</apiname></xref>: </info>
+<substeps id="GUID-4F006CFD-2A46-568F-8495-E5B61CBDE4BB">
+<substep id="GUID-128E5806-8499-5F19-97ED-F9022046C128"><cmd/>
+<info> <xref href="GUID-5CF2FCCF-552B-3BDF-8024-32F895583C8A.dita"><apiname>IMPORT_C TInt CreatePersistentSchedule(TSchedulerItemRef&amp;
+aRef, const CArrayFixFlat&lt;TScheduleEntryInfo2&gt;&amp; aEntryList)</apiname></xref>:Creates
+a persistent time-based schedule without tasks. </info>
+<info>The following code snippet illustrates how to create a persistent time-based
+schedule scheduled to start on January 1st, 2010 at 08:00 A.M., runs every
+one hour and is valid for eight hours. </info>
+<stepxmp><codeblock id="GUID-E791116D-722C-5F25-BBE5-B4C0DEC5A29A" xml:space="preserve">...
+
+TSchedulerItemRef&amp; aRef;
+
+//Array to hold the schedule entries
+CArrayFixFlat&lt;TScheduleEntryInfo2&gt;* cSchEntryInfoArray;    
+cSchEntryInfoArray = new CArrayFixFlat&lt;TScheduleEntryInfo2&gt;(1);
+
+CleanupStack::PushL(cSchEntryInfoArray);
+
+// Create an hourly schedule
+TScheduleEntryInfo2 entry1;
+
+//Sets the date and time for the schedule as Jan 1st, 2010, 08:00 am
+TDateTime datetime2(2010, EJanuary, 1, 8, 0, 0, 0); 
+TTsTime time2(datetime2, ETrue);
+
+//Set the first instance when the entry will cause the execution of tasks. 
+entry1.SetStartTime(time2);
+
+// Set the interval between execution of tasks
+// Here the interval is 2 hours because the interval type is hourly.
+const TInt interval = 2;
+entry1.SetInterval(interval);
+
+// Set the type of interval used between due times for the scheduled entry
+entry1.SetIntervalType(TIntervalType(EHourly));
+    
+// Set the period for which the entry is valid. After 8 hours the 
+// tasks associated with the entry will not be eligible for execution.
+const TInt eightHours = 480; // in minutes 
+entry1.SetValidityPeriod(TTimeIntervalMinutes(eightHours));
+    
+cSchEntryInfoArray-&gt;AppendL(entry1);
+
+//create the time-based persistent schedule
+User::LeaveIfError(iScheduler.CreatePersistentSchedule(aRef, *cSchEntryInfoArray));
+
+CleanupStack::PopAndDestroy(cSchEntryInfoArray);
+...</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-FFC11C40-D971-5122-B07C-32695C61EE64"><cmd/>
+<info> <xref href="GUID-5A30CCBC-8D18-359A-ABB1-E4256ADC7199.dita"><apiname>IMPORT_C TInt CreatePersistentSchedule(TSchedulerItemRef&amp;
+aRef, const CArrayFixFlat&lt;TTaskSchedulerCondition&gt;&amp; aConditions, const
+TTsTime&amp; aDefaultRunTime)</apiname></xref>: Creates a persistent condition-based
+schedule without tasks. </info>
+<info>The following code snippet illustrates how to create a persistent condition-based
+schedule that is triggered when both <codeph>condtion1</codeph> and <codeph>condtion2</codeph> are
+satisfied. By default, the schedule is set to start on December 10th, 2009
+at 09:00 A.M., if the condition set is not met. </info>
+<stepxmp><codeblock id="GUID-B1F905E8-DC06-5C94-84FE-7BEC9E21EB43" xml:space="preserve">...
+
+TSchedulerItemRef&amp; aRef;
+
+//Array to hold the schedule conditions
+CArrayFixFlat&lt;TTaskSchedulerCondition&gt;* cTaskScheCondArray;
+
+//Condition list to hold a set of conditions
+CSchConditionArray conditionList = new (ELeave) CSchConditionArray(2);
+CleanupStack::PushL(conditionList);
+
+//set the first condition
+TTaskSchedulerCondition condition1;
+
+//UID of the publish and subscribe category for condition1
+const TUid KPubSubsPersistCondCategUid1 = TUid::Uid(0x102F7784);
+
+//Key of the publish and subscribe category for condition2
+const TInt KPubSubsPersistCondKey1 = 1;
+
+condition1.iCategory = KPubSubsPersistCondCategUid1;
+condition1.iKey        = KPubSubsPersistCondKey1;
+condition1.iState    = 10;
+condition1.iType    = TTaskSchedulerCondition::EEquals;
+conditionList-&gt;AppendL(condition1);
+
+//set the second condition
+TTaskSchedulerCondition condition2;
+
+//UID of the publish and subscribe category for condition2
+const TUid KPubSubsPersistCondCategUid2 = TUid::Uid(0x103F7784);
+
+//Key of the publish and subscribe category for condition2
+const TInt KPubSubsPersistCondKey2 = 1;
+
+condition2.iCategory = KPubSubsPersistCondCategUid2;
+condition2.iKey        = KPubSubsPersistCondKey2;
+condition2.iState    = 20;
+condition2.iType    = TTaskSchedulerCondition::ENotEquals;
+conditionList-&gt;AppendL(condition2);
+
+//Set the date and time for the schedule as Dec 10th, 2009, 09:00 am
+TDateTime datetime2(2009, EDecember, 10, 9, 0, 0, 0); 
+TTsTime time2(datetime2, EFalse);
+
+//create the condition-based persistent schedule
+iScheduler.CreatePersistentSchedule(aRef, *conditionList, time2);
+
+CleanupStack::PopAndDestroy(); // conditionList</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-E19A594F-F7A8-576F-B509-726FB4DF3B1F"><cmd/>
+<info><xref href="GUID-B51E61E7-8A9F-354C-9695-58E741DD21AB.dita"><apiname>IMPORT_C TInt ScheduleTask(TTaskInfo&amp; aTaskInfo, HBufC&amp;
+aTaskData, TSchedulerItemRef&amp; aRef, const CArrayFixFlat&lt;TScheduleEntryInfo2&gt;&amp;
+aEntryList)</apiname></xref>:Creates a transient time-based schedule and adds a task
+to it. </info>
+<info>The following code snippet illustrates how to create a transient time-based
+schedule and associate a task to it. It starts at a specific time, runs every
+one hour and is valid for two hours. </info>
+<stepxmp><codeblock id="GUID-B0087E50-F2F1-5BC8-9165-53C505E53330" xml:space="preserve">...
+
+TSchedulerItemRef ref;
+
+// Array that holds the schedule entries
+CArrayFixFlat&lt;TScheduleEntryInfo2&gt;* cSchEntryInfoArray;
+cSchEntryInfoArray = new CArrayFixFlat&lt;TScheduleEntryInfo2&gt;(1);
+
+CleanupStack::PushL(cSchEntryInfoArray);
+
+// Create a schedule entry
+TScheduleEntryInfo2 entry;
+
+TTime now;
+
+//    Set the date and time of this TTime to the universal time.
+now.UniversalTime();
+    
+// Assign an offset of 15 seconds. 
+TInt offset = 15;
+now += TTimeIntervalSeconds(offset);
+
+// Constructs a TTsTime with a TTime object.
+// ETrue indicates that TTsTime is UTC based time
+TTsTime time(now, ETrue);
+    
+// Set the above time as the first time at which
+// the entry will cause execution of tasks. 
+entry.SetStartTime(time);
+    
+// Set the type of interval used between due times for scheduled entry
+entry.SetIntervalType(TIntervalType(EHourly));
+    
+// Set the period for which the entry is valid. 
+// After 2 hours the tasks associated with the entry will not be eligible for execution 
+TInt validity = 120;
+entry.SetValidityPeriod(TTimeIntervalMinutes(validity));
+    
+// Set the interval between execution of tasks
+// Here the interval is 1 hour because the interval type is hourly.
+entry.SetInterval(1);
+
+//Add the schedule entry to the array
+cSchEntryInfoArray-&gt;AppendL(entry);
+    
+// Create a transient task to be scheduled
+TTaskInfo taskInfo;
+
+// Task id
+const TInt tId = 0;
+taskInfo.iTaskId = tId;
+    
+// The task repeats just once
+const TInt numberOfRepeats = 1;
+taskInfo.iRepeat = numberOfRepeats;
+    
+// Task priority set by the client. 
+// Where a client has two tasks with different priorities, 
+// the task with the higher priority will be executed first.
+const TInt priority = 2; 
+taskInfo.iPriority = priority;
+    
+_LIT(KScheduleType," transient schedule");
+const TDesC* transient = &amp;KScheduleType;
+HBufC* data = transient-&gt;AllocLC();
+        
+// Create the transient time-based schedule 
+User::LeaveIfError(iScheduler.ScheduleTask(taskInfo, *data, ref, *cSchEntryInfoArray));
+
+...</codeblock> </stepxmp>
+<info> Important:  The task scheduler does not notify a client if a scheduled
+task fails to execute successfully. Clients can however use the notification
+mechanism of the <xref href="GUID-5B63D14D-007D-566F-A065-1A25FE4B97A3.dita">Log
+Engine</xref> to get some notification and information of the error condition
+that caused the task to fail. </info>
+<info><ul>
+<li id="GUID-CEB9D7B2-08C1-5256-8E05-743E2F894AFB"><p>Errors can occur when
+the task scheduler prepares to create and run a task process. The most likely
+error is an out of memory error. The task scheduler logs the error to the
+system log with type <xref href="GUID-3F3A8B98-D750-30C5-A2D5-D28AB1D8EAE9.dita"><apiname>KLogTaskSchedulerEventTypeUid</apiname></xref>. The
+task or schedule is not retried. </p> </li>
+<li id="GUID-11D78BC8-02F4-53C3-8544-F5C3F8BD0671"><p>If the task process
+is created successfully, but it exits with an error, the task scheduler logs
+the process exit reason to the system log, also with type <xref href="GUID-3F3A8B98-D750-30C5-A2D5-D28AB1D8EAE9.dita"><apiname>KLogTaskSchedulerEventTypeUid</apiname></xref>. </p> </li>
+</ul> </info>
+</substep>
+<substep id="GUID-8E8365D3-3A08-5B6E-BA92-73F2E750145C"><cmd/>
+<info> <xref href="GUID-C6D23376-3EF2-349A-9BCF-812D57E61EA3.dita"><apiname>IMPORT_C TInt ScheduleTask(TTaskInfo&amp; aTaskInfo, HBufC&amp;
+aTaskData, TSchedulerItemRef&amp; aRef, const CArrayFixFlat&lt;TTaskSchedulerCondition&gt;&amp;
+aConditions, const TTsTime&amp; aDefaultRunTime)</apiname></xref>: Creates a transient
+condition-based schedule and adds a task to it. </info>
+<info>The following code snippet illustrates how to create a transient condition-based
+schedule and associate a task to it. The schedule is triggered when <codeph>condition1</codeph> is
+met. By default, the schedule is set to start on December 10th, 2009 at 09:00
+A.M., if the condition set is not met. </info>
+<stepxmp><codeblock id="GUID-F1E856BD-38F2-5F65-B1D7-96B11A008F47" xml:space="preserve">...
+
+TSchedulerItemRef ref2;
+
+//Array that holds the conditions
+CArrayFixFlat&lt;TTaskSchedulerCondition&gt;* CSchConditionArray;
+CSchConditionArray conditionList = new (ELeave) CSchConditionArray(1);
+
+CleanupStack::PushL(conditionList);
+
+//set the condition
+TTaskSchedulerCondition condition1;
+
+//UID of the publish and subscribe category for condition1
+const TUid KPubSubsTransCondCategUid1 = TUid::Uid(0x102F7785);
+
+//Key of the publish and subscribe category for condition1
+const TInt KPubSubsTransCondKey1 = 1;
+
+condition1.iCategory = KPubSubsTransCondCategUid1;
+condition1.iKey        = KPubSubsTransCondKey1;
+condition1.iState    = 10;
+condition1.iType    = TTaskSchedulerCondition::EEquals;
+conditionList-&gt;AppendL(condition1);
+
+// Associate a task with the condition-based schedule
+TTaskInfo taskInfo2;
+
+_LIT(KTransSchedTaskName, "Transient - Condition-Based");
+_LIT(KTransSchedTaskData2, "Task data for transient schedule");
+
+taskInfo2.iName = KTransSchedTaskName;
+taskInfo2.iPriority = 2;
+taskInfo2.iRepeat = 0;
+
+// Create some data associated with this task
+HBufC* taskTransSchedData = KTransSchedTaskData2().AllocLC();
+
+//set the default time at which you want the transient condition-based
+//schedule to start, if no conditions are met
+// sets the date and time as Jan 1st, 2010, 10:01 am
+TDateTime datetime2(2010, EJanuary, 1, 10, 1, 0, 0); 
+TTsTime defaultRuntime(datetime2, ETrue); // 10:01 am
+
+// Create the transient condition-based schedule
+User::LeaveIfError(iScheduler.ScheduleTask(taskInfo2, *taskTransSchedData, ref2, *conditionList, defaultRuntime));
+
+CleanupStack::PopAndDestroy(2); // taskTransSchedData, conditionList
+
+...</codeblock> </stepxmp>
+</substep>
+</substeps>
+<info><note> Schedules can be either persistent or transient. Persistent schedules
+have schedule information and any corresponding task data persisted to the
+disk. </note></info>
+<info>The task scheduler server reads this data back into memory when the
+phone is restarted. But, transient schedules do not have their data persisted
+and are deleted automatically once any associated tasks have finished running. </info>
+</step>
+<step id="GUID-265E13BF-EC53-5308-ABD1-92FAF2F3A9E0"><cmd/>
+<info>Create the support for adding tasks to a persistent schedule by passing
+the handle of the persistent schedule to <xref href="GUID-A293C22A-B2A7-333B-B2B7-E28A22343DE9.dita"><apiname>ScheduleTask(TTaskInfo&amp;
+aTaskInfo, HBufC&amp; aTaskData, const TInt aScheduleHandle)</apiname></xref>. </info>
+<info><b> Notes</b>:  <ul>
+<li><p>This step applies only, if you have already created a persistent schedule. </p></li>
+<li><p>For more information about the effects of backup and restore on scheduled
+tasks in persistent schedules, see the <xref href="GUID-00363030-AAE2-5231-8407-AC609DA0F496.dita">Backup
+and Restore on Scheduled Tasks in Persistent Schedules</xref>. </p></li>
+</ul><p/></info>
+<info>The following code snippet illustrates how to create a task and associate
+it with an existing persistent schedule. </info>
+<stepxmp><codeblock id="GUID-BA89C9FD-0876-59CE-BD90-BBEE3526277F" xml:space="preserve">
+...
+
+//Contains the handle to the persistent schedule
+TInt aScheduleId;
+...
+
+
+TInt&amp; aNewId;
+
+//Create the task that you want to add the persistent schedule
+TTaskInfo taskInfo;
+taskInfo.iTaskId = aNewId;
+
+_LIT(aName, "Task for Persistent Schedule");
+
+taskInfo.iName = aName;
+taskInfo.iPriority = 2;
+taskInfo.iRepeat = 0;
+
+HBufC* taskdata = _L("the data").AllocLC();
+
+iScheduler.ScheduleTask(taskInfo, *taskdata, aScheduleId);
+
+//Update aNewId with the task ID set by the task scheduler
+aNewId = taskInfo.iTaskId;
+...
+
+CleanupStack::PopAndDestroy(); // taskdata
+
+...</codeblock> </stepxmp>
+<info> Notes:  </info>
+<info><p><ul>
+<li><p>The <codeph>HBufC* taskdata</codeph> parameter is used by clients who
+want to send data to the executable that is launched when the task becomes
+due. When the executable is launched, this data is stored in a temporary task
+file and the filename is passed on the command line to the newly created process.
+That executable can then open the file and stream in the contents. </p></li>
+<li><p>If multiple tasks are assigned to a schedule that has become due, the
+data for each schedule is concatenated into the same file. The tasks are stored
+in the file as <xref href="GUID-049FF2D7-8444-3E87-BF2F-DD0EA9B10ED0.dita"><apiname>CScheduledTask</apiname></xref> instances. The first item
+in the file is an integer describing how many tasks there are in the file.
+Subsequently the file just contains tasks which can be streamed in using the <xref href="GUID-049FF2D7-8444-3E87-BF2F-DD0EA9B10ED0.dita#GUID-049FF2D7-8444-3E87-BF2F-DD0EA9B10ED0/GUID-F9ED1FDD-0DAF-3450-99A6-730D43D00FE0"><apiname>CScheduledTask::NewLC()</apiname></xref> method. </p></li>
+</ul></p></info>
+</step>
+<step id="GUID-DEE8E40C-ED35-5C48-9406-DA44B1E68A61"><cmd/>
+<info>Create the support for viewing schedules. This involves two steps: </info>
+<substeps id="GUID-97888525-CEB8-530F-A092-5DB980E7C841">
+<substep id="GUID-B783CD9D-AE70-5BB9-B6ED-CC93EEE97512"><cmd/>
+<info>Get the name and ID (schedule handle) of schedules using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-7C8B221C-F8E5-3EEE-9693-2055D6F1EBF4"><apiname>RScheduler::GetScheduleRefsL()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-07058B0D-CD00-53A0-B744-6073FD81B941" xml:space="preserve">//Array that holds schedule entries
+CArrayFixFlat&lt;TSchedulerItemRef&gt;* CSchItemRefArray;
+CSchItemRefArray = new CArrayFixFlat&lt;TSchedulerItemRef&gt;(3);
+
+CleanupStack::PushL(CSchItemRefArray);
+
+//Get the list of all schedules
+User::LeaveIfError(iScheduler.GetScheduleRefsL(*CSchItemRefArray, EAllSchedules));
+
+...
+
+//Gets the schedule handle and assigns it to schedHandle
+TInt schedHandle = *CSchItemRefArray)[1].iHandle;
+
+...</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-5D034701-EF62-5982-8070-A2C40DDD1122"><cmd/>
+<info>Get schedule details by passing the schedule handle to <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-AD5F8784-D619-32BB-B125-30C7393FA1A9"><apiname>RScheduler::GetScheduleL()</apiname></xref> or <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-946F7B2F-EF2C-33DB-A397-D31A009165A6"><apiname>RScheduler::GetScheduleTypeL()</apiname></xref>. </info>
+<info><ul>
+<li id="GUID-D15FBE3E-4214-5074-A91C-747324339C7E"><p> <b>Viewing details
+of time-based schedules:</b>  </p> <codeblock id="GUID-27955B2E-A6F6-5D13-8AFD-7AC37F579E31" xml:space="preserve">...
+
+CArrayFixFlat&lt;TTaskInfo&gt; CTaskInfoArray;
+CTaskInfoArray* tasks = new (ELeave) CTaskInfoArray(3);
+
+TTsTime nextTimeScheduleIsDue;
+TScheduleState2 stateTimebasedSched;
+
+CArrayFixFlat&lt;TScheduleEntryInfo2&gt; CScheduleEntryInfoArray;
+CScheduleEntryInfoArray* entries = new (ELeave) CScheduleEntryInfoArray(3);
+
+CleanupStack::PushL(entries);
+
+iScheduler.GetScheduleL(schedHandle, stateTimebasedSched, *entries, tasks, nextTimeScheduleIsDue);
+CleanupStack::PopAndDestroy(entries);</codeblock> </li>
+<li id="GUID-5EBF8371-0DAB-5C02-93BE-84C75D2258A3"><p> <b>Viewing details
+of condition-based schedules:</b>  </p> <codeblock id="GUID-240EF5BE-211F-5CA4-AD03-0A39B7FD9927" xml:space="preserve">...
+
+TTsTime defaultTime;
+TScheduleState2 state;
+
+CArrayFixFlat&lt;TTaskInfo&gt; CTaskInfoArray;
+CTaskInfoArray* tasks = new (ELeave) CTaskInfoArray(3);
+
+CArrayFixFlat&lt;TTaskSchedulerCondition&gt; CSchConditionArray;
+CSchConditionArray* conditionList = new (ELeave) CSchConditionArray(3);
+CleanupStack::PushL(conditionList);
+
+iScheduler.GetScheduleL(schedHandle, state, *conditionList, defaultTime, tasks);
+
+CleanupStack::PopAndDestroy(conditionList);</codeblock> </li>
+<li id="GUID-9966127B-4650-510D-9FD4-36177F801889"><p> <b>Viewing the schedule
+type associated with a schedule:</b> Identifies whether the schedule is a
+condition or time-based. </p> <codeblock id="GUID-E696A2CA-3135-56BD-8B41-AE2CB5E6FDC0" xml:space="preserve">...
+
+TScheduleType &amp;type;
+
+iScheduler.GetScheduleTypeL(schedHandle, type);</codeblock> </li>
+</ul> </info>
+</substep>
+</substeps>
+</step>
+<step id="GUID-BA59B4AB-0104-5794-808E-5D9F6693BE03"><cmd/>
+<info>Create the support for editing, enabling and disabling schedules. Schedules
+can be edited using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-50B287A9-F62F-3C49-AD22-2760C96846EA"><apiname>RScheduler::EditSchedule()</apiname></xref> when a change
+is required to be done to a schedule. </info>
+<info>Before making changes to a schedule, you can use <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-64263B93-74B9-3526-B585-4B2E8B8B86A2"><apiname>RScheduler::DisableSchedule()</apiname></xref> to
+disable a schedule, so that it is not triggered and later use <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-5AE06AE8-46BA-3339-8ADB-E7C642928C9C"><apiname>RScheduler::EnableSchedule()</apiname></xref> to
+enable it, once the changes are done to the schedule. </info>
+<info>The following code snippet illustrates how to disable a time-based schedule,
+edit it to make changes to the schedule and later enable the schedule. </info>
+<stepxmp><codeblock id="GUID-BD180A79-767B-54A4-A5EA-4D763A295D4C" xml:space="preserve">//Editing time-based schedules
+                  
+...
+
+TInt schedHandle;
+
+...
+
+//Disables the schedule referenced by "schedHandle"
+User::LeaveIfError(iScheduler.DisableSchedule(schedHandle);
+...
+
+//Array to hold the schedule entries
+CArrayFixFlat&lt;TScheduleEntryInfo2&gt; CSchEntryInfoArray;
+CSchEntryInfoArray* entryList = new (ELeave) CSchEntryInfoArray(3);
+
+CleanupStack::PushL(entryList);
+
+//Change the start date and time as Jan 10th, 2010, 11:00 am
+TDateTime datetime2(2010, EJanuary, 10, 11, 0, 0, 0);
+TTsTime defaultRuntime(datetime2, ETrue);
+
+//create the schedule entry with the updated time
+TScheduleEntryInfo2 entry1 (defaultRuntime, EDaily, 1, 20); // 20m from "now"
+entryList-&gt;AppendL(entry1);
+
+//Enables the schedule referenced by "schedHandle"
+User::LeaveIfError(iScheduler.EnableSchedule(schedHandle);
+
+//edit the schedule
+User::LeaveIfError(iScheduler.EditSchedule(schedHandle, entryList));
+        
+CleanupStack::PopAndDestroy(entryList);</codeblock> </stepxmp>
+<info>The following code snippet illustrates how to edit a condition-based
+schedule by passing the schedule handle of the schedule to be edited and the
+updated schedule condition details to <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-50B287A9-F62F-3C49-AD22-2760C96846EA"><apiname>RScheduler::EditSchedule()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-35B0F192-2530-5BD4-8AF5-E44C02405D13" xml:space="preserve">//Editing condition-based schedules
+...
+
+TInt schedHandle;
+
+...
+
+CArrayFixFlat&lt;TTaskSchedulerCondition&gt;* CSchConditionArray;
+
+
+CSchConditionArray conditionList = new (ELeave) CSchConditionArray(2);
+CleanupStack::PushL(conditionList);
+
+//update the condition
+TTaskSchedulerCondition condition1;
+
+//UID of the publish and subscribe category for condition1
+const TUid KPubSubsTransCondCategUid1 = TUid::Uid(0x102F7785);
+
+//Key of the publish and subscribe category for condition1
+const TInt KPubSubsTransCondKey1 = 1;
+
+condition1.iCategory = KPubSubsTransCondCategUid1;
+condition1.iKey        = KPubSubsTransCondKey1;
+condition1.iState    = 10;
+condition1.iType    = TTaskSchedulerCondition::EEquals;
+conditionList-&gt;AppendL(condition1);
+
+// sets the date and time as Jan 10th, 2010, 10:00 am
+TDateTime datetime2(2010, EJanuary, 10, 10, 0, 0, 0);
+TTsTime defaultRuntime(datetime2, ETrue);
+
+iScheduler.EditSchedule(schedHandle, *conditionList, defaultRuntime);
+
+...</codeblock> </stepxmp>
+</step>
+<step id="GUID-91C5C26A-7120-500C-8F42-AE61133BB375"><cmd/>
+<info>Create the support for deleting schedules using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-B4CECD92-82C6-3CEC-8DA6-E4D1580BEC00"><apiname>RScheduler::DeleteSchedule()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-DBB6A497-BFFC-5832-B5E8-5B8D2F713576" xml:space="preserve">...
+
+//Deletes the schedule referenced by "schedHandle"
+iScheduler.DeleteSchedule(schedHandle);</codeblock> </stepxmp>
+</step>
+<step id="GUID-83E497A5-9C7C-5B57-A4E1-922A0B9BF913"><cmd/>
+<info>Create the support for viewing task information associated with a schedule.
+This involves two steps: </info>
+<substeps id="GUID-F7C63AE4-4F06-58A6-9614-BC5356176977">
+<substep id="GUID-89600927-D804-54C6-8C97-459BD3C1078E"><cmd/>
+<info>Get a list of all tasks or a subset of tasks using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-8A56C5D7-473C-3CA1-9B03-E6C794434EAB"><apiname>RScheduler::GetTaskRefsL()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-6EA170CE-2CE5-5E43-B9AA-3FC177BF1B3F" xml:space="preserve">//Array to hold the list of tasks
+CArrayFixFlat&lt;TSchedulerItemRef&gt; CSchItemRefArray;
+CSchItemRefArray* refs = new (ELeave) CSchItemRefArray(3);
+
+//Gets the list of tasks
+iScheduler.GetTaskRefsL(*refs, EAllSchedules, EAllTasks);
+
+CleanupStack::PopAndDestroy(refs);</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-242AEAF8-CC8B-5EA3-9394-A62F79275735"><cmd/>
+<info>Get details associated with a specific task using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-389F77C6-6127-3376-B4CF-993A5849903B"><apiname>RScheduler::GetTaskInfoL()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-8EB737CE-5990-5A04-8A44-CA1B3EDB82DE" xml:space="preserve">...
+
+//Handle to the task
+TInt aTaskHandle;
+
+...
+
+TInt taskSize = 0;
+
+//Gets the size of the data to be passed to the task's program.
+taskSize = iScheduler.GetTaskDataSize(aTaskHandle, taskSize);
+HBufC* taskData = HBufC::NewLC(taskSize);
+
+TPtr pTaskData = taskData-&gt;Des();
+
+TTsime scheduleNextDueTime;
+TTaskInfo taskFromServer;
+TSchedulerItemRef scheduleReference;
+
+//Gets task details
+iScheduler.GetTaskInfoL(aTaskHandle, taskFromServer, pTaskData, scheduleReference, scheduleNextDueTime);
+
+CleanupStack::PopAndDestroy(taskData);</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+<step id="GUID-85E5D82C-B280-57D3-89E2-7AC8C63C072C"><cmd/>
+<info>Create the support for deleting tasks associated with a schedule using <xref href="GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1.dita#GUID-6E138B87-ED51-3C72-9075-8D7F887FA7B1/GUID-BE934053-79EA-3101-899D-18BC91359BB7"><apiname>RScheduler::DeleteTask()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-ADF28359-38D9-5B32-8828-929E4AE56496" xml:space="preserve">TInt taskId;
+
+...
+
+iScheduler.DeleteTask(taskId);</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-3CDCE4E0-E29D-5782-8053-B386A9E34BCC.dita"><linktext>Task Scheduler
+Overview</linktext></link>
+<link href="GUID-00363030-AAE2-5231-8407-AC609DA0F496.dita"><linktext>Backup and
+Restore on Scheduled Tasks in Persistent Schedules</linktext></link>
+</related-links></task>

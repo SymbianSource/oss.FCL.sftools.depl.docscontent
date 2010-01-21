@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-1A8B20B3-CA6D-58A6-9DA0-8EB3965EDE7A"><title>How to detach and re-attach a file</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The file associated with a file store may be detached from the file store and later re-attached. This behaviour is useful in cases where the file needs to be closed and later re-opened ; for example, to give up a write lock for backup purposes.</p> <p>It is very important that the contents of the file should <i>not change</i> while it is detached.</p> <p>In the following code fragment, the file associated with the file store is detached and closed; the file is then re-opened and re-attached to the file store.</p> <ol id="GUID-4E6D29CD-40E8-596A-B443-A6B5C1154AE5"><li id="GUID-3EF9488A-3B84-5D17-B32A-CB7EE21A428E"><p>Use the <codeph>File()</codeph> member function to retrieve a copy of the <codeph>RFile</codeph> object from the file store.</p> </li> <li id="GUID-81CF873E-51CD-509C-ABD7-E5A9DADE4181"><p>Use the <codeph>Detach()</codeph> member function to detach the file store from the file and, in effect, give up ownership of the file.</p> </li> <li id="GUID-1ABA76DD-EAE1-5E3C-83FE-00F8DA6B256D"><p>Use the <codeph>Reattach()</codeph> member function to re-attach a file to the file store and, in effect, take ownership of that file.</p> </li> </ol> <codeblock id="GUID-494F23D9-6A61-53A0-995F-70CF227667B9" xml:space="preserve">LOCAL_C void doUseL(const TDesC&amp; aName)
+    {
+    TParse filestorename;
+    ...
+    fsSession.Parse(aName,filestorename);
+    CFileStore* store = CPermanentFileStore::OpenLC (fsSession, filestorename.FullName(),EFileRead|EFileWrite );
+    RFile thefile = store-&gt;File();
+    store-&gt;Detach();
+    thefile.Close();
+    ...
+    thefile.Open(fsSession, filestorename.FullName(),EFileRead|EFileWrite );
+    store-&gt;Reattach(thefile);
+    ...
+    }</codeblock> </conbody></concept>

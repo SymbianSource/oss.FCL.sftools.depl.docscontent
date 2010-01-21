@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-C119A79A-D705-50B3-B174-70F517947BBD" xml:lang="en"><title>How
+certapp Processes Input File Information</title><abstract><p>This section provides information on the guidelines that the <codeph>certapp</codeph> tool
+follows to process various entities in the input files used to create certificate
+store files. </p><note> Input text files can be 7-bit text or UTF-8. If a
+file is UTF-8, it can optionally start with a UTF-8 Byte Order Marker. This
+is the marker that Windows uses when saving files as UTF-8.</note></abstract><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section><title>White spaces</title> <p>The <codeph>certapp</codeph> tool
+ignores white space (space, tab, carriage return and line feed characters)
+in input files. Instead, the line-ending convention of the platform on which
+the tool runs is followed. </p> </section>
+<refsyn><title>Double-quoted strings</title> <p>The <codeph>certapp</codeph> tool
+treats a series of bytes within double quote characters (in the input files)
+as a single token. </p> <p>A double quote character can be included in a double-quoted
+string by preceding it with a back slash, as shown in the following example: </p> <p>This
+is how you include \” in a double-quoted string. </p> <p>A backslash character
+can be included in a double quoted string by preceding it with another back
+slash, as shown in the following example: </p> <p>This is how you include
+\\ in a double-quoted string. </p> <p>The double quote syntax can be used
+to set any text field value, such as the certificate label, to any UTF-8 value,
+including quote characters, spaces, UTF-8 escape sequences and so on. </p> <p><note>UTF-8
+values are defined such that a UTF-8 escape sequence never contains a back
+slash character.</note> </p> </refsyn>
+<section><title>Enumerated types</title> <p>All enumerated values can be specified
+as numeric values, though using text values is strongly recommended. </p> </section>
+<refsyn><title>Numeric values</title> <p>Any numeric value can be entered
+in decimal as a raw number or in hexadecimal by prefixing the number with
+0x. </p> </refsyn>
+<section><title>Capability sets</title> <p>For a certificate, a capability
+set is a list of capabilities allowed in applications that have the certificate
+as their trust anchor. Capability set values can be specified as numeric bit
+offsets (starting from 0), though using text values is strongly recommended,
+as shown in the following example: </p> <codeblock id="GUID-DAB82140-EDF4-51D8-A483-CD41852C9B19" xml:space="preserve">CapabilitySet {ProtServ DiskAdmin NetworkControl 
+AllFiles SwEvent NetworkServices LocalServices}</codeblock> </section>
+<section><title>Subject and issuer key identifiers</title> <p>It is recommended
+that you set the <codeph>SubjectKeyId</codeph> field to an <codeph>auto</codeph> value
+in the input file for creating the certificate store file. In addition, set
+the <codeph>IssuerKeyId</codeph> field either to <codeph>auto</codeph> or
+to an empty octet string. </p> <p>When the <codeph>SubjectKeyId</codeph> and
+the <codeph>IssuerKeyId</codeph> fields are set to <codeph>auto</codeph> or
+if you omit setting values for these fields in the input file, the certapp
+tool performs its own processing to determine their values. The following
+sub-sections provide the details. </p> <p><b>Setting SubjectKeyId to auto</b> </p> <p>When <codeph>SubjectKeyId</codeph> is
+set to <codeph>auto</codeph> or if the field is omitted, then the following
+algorithm is used for determining the value of the field: </p> <ul>
+<li id="GUID-33035419-FAEC-572A-BA63-C0E49C1C90A3"><p>If the store type is
+not SWI certificate store, the certificate type is not user, and an X.509 <codeph>SubjectKeyId</codeph> extension
+with length less than or equal to 20 bytes is present, then this extension
+is used as the value of the <codeph>SubjectKeyId</codeph> field. </p> </li>
+<li id="GUID-AE8A59EF-E064-5C12-B9E3-3D99DFCE7F78"><p>Otherwise, the value
+of the <codeph>SubjectKeyId</codeph> field is calculated based on the certificate’s
+public key characteristics using a Symbian-specific algorithm. </p> </li>
+</ul> <p>The <codeph>SubjectKeyId</codeph> field value is stored in the certificate
+metadata and can be used by applications when querying the certificate store
+using a filter. </p> <p><b>Setting IssuerKeyId set to auto</b> </p> <p>If
+the <codeph>IssuerKeyId</codeph> field is set to <codeph>auto</codeph> or
+if the field is omitted, the following algorithm is used for determining the
+value of the field: </p> <ul>
+<li id="GUID-BC5FBF12-E8E8-5AA2-AB0D-FE8D2ACE4220"><p>If the store type is
+not SWI certificate store, and an X.509 <codeph>AuthorityKeyId</codeph> extension
+with length less than or equal to 20 bytes is present, then this extension
+is used as the value of the <codeph>IssuerKeyId</codeph> field. An authority
+key identifier specifies the public key that is used to sign the certificate. </p> </li>
+<li id="GUID-143490B1-B30A-57E7-9FB5-C7BA40080966"><p>If a single certificate
+is present in the certificate store with the subject matching the issuer of
+the original certificate (for which the <codeph>IssuerKeyId</codeph> is to
+be set), the <codeph>IssuerKeyId</codeph> is set to the <codeph>SubjectKeyId</codeph> of
+the matching certificate. </p> <p> <b>Note:</b>  </p> <p>When generating <codeph>IssuerKeyId</codeph> values
+for SWI store certificates, all certificates within the SWI certificate store
+are considered. When generating values for file certificate store, all certificates
+in both the SWI certificate store and the file certificate store are considered. </p> </li>
+<li id="GUID-2153579B-2651-5FF8-A5B6-75BEB59E7B25"><p>Otherwise, the <codeph>IssuerKeyId</codeph> is
+set to an empty octet string. </p> </li>
+</ul> <p>The <codeph>IssuerKeyId</codeph> field value is stored in the certificate
+metadata and can be used by applications when querying the certificate store
+using a filter. To filter certificates by <codeph>IssuerKeyId</codeph>, set
+the field to auto, otherwise set it to an empty octet string (for example,
+’’). </p> <p> <b>Note:</b> In case of a certificate that is not of type X.509,
+if you do not set the IssuerKeyId or the SubjectKeyId values to auto or empty
+octet strings, you can set them to octet strings, as explained in the following
+sub-sections. </p> <p><b>Setting SubjectKeyId and IssuerKeyId to octet strings</b> </p> <p>Consider
+the following example of an octet string value to which you can set the <codeph>SubjectKeyId</codeph> field: </p> <codeblock id="GUID-A04C2F3D-E87B-5FDC-BFF3-E39C719761FD" xml:space="preserve">SubjectKeyId ’01:02:43’</codeblock> <p>The <codeph>SubjectKeyId</codeph> field
+is set to an octet string consisting of the numbers <codeph>0x01</codeph>, <codeph>0x02</codeph> and <codeph>0x03</codeph>.
+The string can be 0 to 20 bytes long. The length limit is imposed by the certificate
+store metadata structure, but the usual values are SHA1 hash of certificate
+fields and hence 20 bytes long. </p></section>
+</refbody><related-links>
+<link href="GUID-B1B3C5E6-9F38-5A55-A30E-4C7591B446CC.dita"><linktext>Certificate
+Store Human-Readable File Formats</linktext></link>
+</related-links></reference>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BB39DE14-B314-59CB-A8EC-BBD2A5C1BCD9" xml:lang="en"><title>GUI App: Porting an Engine for Use in a Symbian Application</title><shortdesc>This section describes the steps to port an engine for use in a Symbian
+		application.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>The application uses the FreeBSD <codeph>cksum</codeph> utility as its
+		  engine. The checksum example is an application with a user interface and an
+		  engine written in C.</p>
+<p>The first stage in porting this program is to split the project into
+		  the engine (GUIAppEng) and the application (GUIApp).</p>
+<section id="SECTION_1B097EC0E8EC43BE82B88BE0D04DC5F8"><title>The engine</title>
+<p>The engine is written in C. At its core is the <codeph>crc()</codeph>
+			 function. This function accepts a file descriptor and returns the checksum and
+			 the file size.</p>
+<p>The engine's project specification file (<filepath>GUIAppEng.mmp</filepath>)
+			 is as follows:</p><codeblock xml:space="preserve">TARGET		GUIAppEng.dll
+TARGETTYPE	dll
+UID             0x1000008d 0x01000a02
+VENDORID 0x70000001
+SOURCEPATH	.
+SOURCE		crc.c
+SYSTEMINCLUDE	\epoc32\include\libc \epoc32\include
+LIBRARY		estlib.lib euser.lib 
+
+#if defined(WINS)
+    deffile GuiAppEngWINS.def
+#else if defined(ARM)
+    deffile GuiAppEngARM.def
+#endif
+nostrictdef</codeblock>
+<p>
+			 The output file is <filepath>GUIAppEng.dll</filepath>, whose import library
+			 will be included by the UI. 
+		  </p> 
+		  <p>
+			 The first UID specified (<codeph>0x1000008d</codeph>) is the standard UID
+			 for an interface DLL. The second UID (<codeph>0x01100a02</codeph>) is unique to the
+			 <filepath>GUIApp</filepath> project. 
+		  </p> 
+		  <p>
+			 Splitting the project into engine and UI means that the definition of
+			 <codeph>crc()</codeph> in <filepath>crc.c</filepath> must be marked <codeph>EXPORT_C</codeph>
+			 because this function will be exported from the engine's DLL. 
+		  </p> 
+		  <p>
+			 For more information on DLLs, see <xref href="GUID-4A56B285-790E-5171-88F3-8C40B2AA9699.dita">DLLs</xref>. 
+		  </p> 
+</section>
+<section>
+<title>Porting checksum - the GUI app</title>
+<p>
+			 The implementation of checksum (<filepath>GUIApp.app</filepath>) limits the
+			 user to the selection of a single file at a time and uses the default algorithm
+			 <codeph>crc()</codeph>, defined in <filepath>crc.c</filepath>, to produce a 32-bit value. 
+		  </p> 
+		  <p>
+			 The user interface provides two main menu commands; <codeph>Calculate
+			 checksum</codeph> (invokes a file selection dialog) and <codeph>View
+			 checksums</codeph>. When a file is selected and <codeph>OK</codeph> is pressed, the
+			 selected file name is retrieved and opened as shown in the following code: 
+		  </p> 
+		  <codeblock xml:space="preserve">const TUint16* fn = iFileName-&gt;PtrZ();
+int fd = wopen( ( const wchar_t* )fn, O_RDONLY, 0 ); </codeblock> 
+		  <p>
+			 This code fragment is taken from
+			 <filepath>examples\stdlib\GUIApp.cpp.</filepath> 
+		  </p> 
+		  <p>
+			 <codeph>open()</codeph> returns a file descriptor which the engine's
+			 <codeph>crc()</codeph> function uses to identify the file. The checksum is
+			 calculated (unless an error occurred in attempting to open or read the file),
+			 and is displayed. The file is closed. 
+		  </p> 
+		  <p>
+			 The file name and checksum are appended to an array, the contents of
+			 which may be viewed by selecting <codeph>View checksums</codeph>. 
+		  </p>
+</section>
+<section id="SECTION_7A8BA355A42C45C3A14EDF1756AB1126">
+		  <title>Linking to STDLIB - The project specification</title>
+		  <p>
+			 The application program includes several STDLIB header files, located
+			 in <filepath>\epoc32\include\libc\</filepath>. At link time, the program includes
+			 <filepath>estlib.lib</filepath> and the engine DLL's <filepath>.lib</filepath>
+			 (<filepath>GUIAppEng.lib</filepath>). Unlike the previous examples, this application
+			 does not link to <filepath>ecrt0.lib</filepath>. In this application there is no
+			 <codeph>main()</codeph> and Symbian platform provides its own
+			 <codeph>E32Main()</codeph>. 
+		  </p> 
+		  <p>
+			 For information on Symbian applications, their project specification,
+			 and resource files, see <xref href="GUID-81835322-5EF7-5839-9DC1-9A3FD396BD36.dita">How to build GUI applications</xref>. 
+		  </p> 
+		</section> 
+<section>
+		<title>Some potential issues</title>
+<ul id="UL_632D231449CE4474996ACD148CB9754D">
+<li>
+<p><b>Removing writeable static</b></p>
+        <p>
+			 The PETRAN stage of building may report a message similar to the
+			 following: 
+		  </p> 
+		  <codeblock xml:space="preserve">WARNING: Dll 'SLSUMENG[0x01000a02].DLL' has initialised data.</codeblock> 
+		  <p>
+			 This warning, which is not reported when building for the Emulator,
+			 indicates that the DLL contains non-const static data. This is not allowed in
+			 ARM builds. If it is not obvious where the problem occurs, the associated
+			 <filepath>.map</filepath> file
+			 (<filepath>epoc32\release\&lt;target&gt;\urel\&lt;dllname&gt;.map</filepath>) contains
+			 information which can help to track down the source file involved. A search for
+			 <codeph>from *(.bss)</codeph> (to find uninitialised data) or <codeph>from
+			 *(.data)</codeph> (to find initialised data) in <filepath>GUIAPPEng.map</filepath> will
+			 reveal the file in which the problem occurs, and the names of the offending
+			 variables, although static variables will not be named. 
+		  </p> 
+</li><li id="LI_BAD062FD16EC4CC8A11F13D0ACEE8378"><p><b>Include file clashes</b></p>
+<p>
+			 In C++ source files which use STDLIB routines, the Symbian platform
+			 C++ include files must be included before any of the STDLIB files. Failure to
+			 do this will result in the following warning: 
+		  </p> 
+		  <codeblock xml:space="preserve">'NULL' : macro redefinition"</codeblock> 
+</li>
+<li>
+<p><b>Mixing C and C++</b></p>
+<p>
+			 C and C++ have different views about the names of functions. If you
+			 refer to a C function from C++, ensure that its prototype is declared as
+			 <codeph>extern "C"</codeph>. If there are several such function declarations, it
+			 may be more convenient to enclose them within the following: 
+		  </p> 
+		  <codeblock xml:space="preserve">#ifdef __cplusplus
+extern "C" 
+    {
+    #endif
+    ...
+    #ifdef __cplusplus
+    }
+#endif</codeblock> 
+		  <p>
+			 See for example <filepath>examples\stdlib\GUIApp\extern.h</filepath>. 
+		  </p> 
+</li>
+
+<li id="LI_68EE8B3B25594B48864D5183BA8155AB">
+<p><b>Stack usage</b></p>
+<p>
+			 Some programs produce the following error: 
+		  </p> 
+		  <codeblock xml:space="preserve">unresolved external symbol __chkstk</codeblock> 
+		  <p>
+			 unless the amount of stack they use is reduced. Symbian threads have
+			 only 8k stack by default. 
+		  </p> 
+</li>
+
+<li>
+<p><b>Resource cleanup</b></p>
+<p>
+			 Symbian platform has a requirement that all resources which were
+			 allocated by an application must be cleaned up by the time the program
+			 terminates. On the Emulator, in debug builds, failure to do this will cause a
+			 panic from the <codeph>__UHEAP_MARKEND</codeph> macro. 
+		  </p> 
+		  <p>
+			 Because the data allocated in the thread-local storage for STDLIB's
+			 DLL (the <codeph>_reent</codeph> structure) is not automatically cleaned up when
+			 the environment is destroyed, it must be cleaned up by the user of STDLIB. 
+		  </p> 
+		  <p>
+			 The function to achieve this is <codeph>CloseSTDLIB()</codeph>. To use
+			 this function, file <filepath>epoc32\include\libc\sys\reent.h</filepath> must be
+			 included in the project. Call <codeph>CloseSTDLIB()</codeph> after the point at
+			 which it is known that code in STDLIB's DLL will no longer be called and its
+			 thread-local storage no longer needed. 
+		  </p> 
+		  <p>
+			 For example, see the destructor for <codeph>CExampleDocument</codeph> in
+			 <filepath>examples\stdlib\GUIApp\GUIApp.cpp</filepath>. 
+		  </p> 
+
+</li>
+</ul>
+
+		  
+		</section> 
+
+</conbody><related-links><link href="GUID-4A56B285-790E-5171-88F3-8C40B2AA9699.dita"><linktext>DLLs</linktext></link><link href="GUID-81835322-5EF7-5839-9DC1-9A3FD396BD36.dita"><linktext>How to build GUI applications</linktext></link></related-links></concept>
