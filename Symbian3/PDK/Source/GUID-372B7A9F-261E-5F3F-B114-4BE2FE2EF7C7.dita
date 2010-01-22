@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7" xml:lang="en"><title>Creating
+a SRTP Stream</title><abstract><p>SRTP library generates SRTP packets from the RTP or RTCP stream
+and forwards the packets to the receiver. SRTP transforms incoming SRTP packets
+to RTP/RTCP packets and passes them up the stack.  </p><p> The cryptographic
+state information associated with each SRTP stream is termed the cryptographic
+context. The state information is maintained by both the sender and receiver
+of SRTP streams. If multiple SRTP streams exist within a given RTP session,
+then separate cryptographic contexts must be maintained for each stream. Each
+stream is identified by a Synchronisation Source (SSRC). The stream can be
+a incoming or outgoing.  </p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>Prior to stream creation: </p> <ul>
+<li id="GUID-A5BAEFAD-4D7E-55E8-8C7E-6D0050E4EA51"><p>A SRTP session must
+be created and initialised. </p> </li>
+<li id="GUID-D39A619E-3302-555C-BA48-437438E87A90"><p>Values to populate the
+cryptographic context for the stream shall be available. </p> <p>The callback
+object (for MSRTPReKeyingObserver) shall be implemented . </p> </li>
+</ul> </prereq>
+<steps id="GUID-CABD5696-FCB4-57FD-953D-2DCB97FF7021">
+<step id="GUID-D9014EE0-7D97-5C29-B37E-E09E1A421705"><cmd>Create a SRTP stream
+(incoming) by invoking the <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>NewL()</apiname></xref> of
+the class <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>CSRTPStreamIn</apiname></xref>. </cmd>
+
+<info>The functions <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>NewL()</apiname></xref> has six
+variants. Each of the variants are explained below. </info>
+<substeps id="GUID-F852D7E8-4434-53DF-92F5-DEE5EEB5A009">
+<substep id="GUID-CF0C39A0-E813-5FEA-91FE-8548F74559B8"><cmd/>
+<stepxmp><codeblock id="GUID-5E7C4FF4-FBBB-5B31-AC1E-F1CDE07152E8" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession,
+                                      TUint aSSRC);</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream uses the cryptographic context
+of the session. </info>
+<stepxmp>aSession is the input parameter that contains the session. The stream
+will use the cryptographic context of the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-685A0114-7E49-5F44-BA72-D012D9F949D7"><cmd/>
+<stepxmp><codeblock id="GUID-AD168026-EC51-5685-8C8E-A8C3968DB47B" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession,
+                                      TUint aSSRC,
+                                      CSRTPCryptoContext* aCon,
+                                      MSRTPReKeyingObserver&amp; aObs );</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepxmp>aCon is the input parameter that contains cryptographic context of
+the SRTP stream. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-160B8669-5CC2-5B80-9639-8FC80493A4C6"><cmd/>
+<stepxmp><codeblock id="GUID-91CB350B-6572-5250-A08C-A1150CB59468" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession);</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will use the cryptographic context
+of the session. No synchronisation source id is provided at the time of stream
+creation. The stream uses late binding. </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-25FD7761-7ED8-5435-B772-2C61E2CD36CC"><cmd/>
+<stepxmp><codeblock id="GUID-E126672C-D116-5567-9884-8F4D0D7B35E6" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession,
+                                      CSRTPCryptoContext* aCon,
+                                      MSRTPReKeyingObserver&amp; aObs );</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. No synchronisation source id is provided at the time of stream
+creation. The stream uses late binding. </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aCon is the input parameter that contains cryptographic context of
+the SRTP stream. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-A0CF7B65-9696-5D19-A58F-A9CA9B6C81E3"><cmd/>
+<stepxmp><codeblock id="GUID-2120336E-C154-5C64-9D89-E60A486BB062" xml:space="preserve">
+                    IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession,
+                                      TUint aSSRC,
+                                      MSRTPReKeyingObserver&amp; aObs );</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. The cryptographic context is set later using <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>SetCryptoInL().</apiname></xref>  </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-DD5D97B1-9170-5BD9-A484-EF3BD94DD7D3"><cmd/>
+<stepxmp><codeblock id="GUID-B99F6769-1B3B-5D5E-B592-231D42960FF3" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamIn* NewL( CSRTPSession&amp; aSession,
+                                      MSRTPReKeyingObserver&amp; aObs ); </codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. The cryptographic context is set later using <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>SetCryptoInL().</apiname></xref> No
+synchronisation source id is provided at the time of stream creation .The
+stream uses late binding. </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+</substeps>
+</step>
+<step id="GUID-2305B32B-0C0A-561A-8EAC-501DBB246632"><cmd>Create a SRTP stream
+(outgoing) by invoking the <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>NewL()</apiname></xref> of
+the class <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>CSRTPStreamOut</apiname></xref>. </cmd>
+
+<info>The functions <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>NewL()</apiname></xref> has three
+variants. Each of the variants are explained below. </info>
+<substeps id="GUID-70902482-3118-5F45-85D1-4D35D82831BD">
+<substep id="GUID-5A084F2A-85B7-59F9-8801-831A1B10057E"><cmd/>
+<stepxmp><codeblock id="GUID-5BA8A9E3-7BAE-5409-854E-B6840D32C80E" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamOut* NewL( CSRTPSession&amp; aSession, TUint aSSRC );</codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream uses the cryptographic context
+of the session. </info>
+<stepxmp>aSession is the input parameter that contains the session. The stream
+will use the cryptographic context of the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-86DC7C26-24BF-5973-8F46-90A716024F27"><cmd/>
+<stepxmp><codeblock id="GUID-7E9DCEB2-6A34-5C3E-B944-9C558CCDA2F2" xml:space="preserve">
+                     IMPORT_C static CSRTPStreamOut* NewL( CSRTPSession&amp; aSession,
+                                       TUint aSSRC,
+                                       CSRTPCryptoContext* aCon,
+                                       MSRTPReKeyingObserver&amp; aObs );
+        </codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepxmp>aCon is the input parameter that contains cryptographic context of
+the SRTP stream. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+<substep id="GUID-08AEA9DC-88BC-56B5-8E6C-51C312875B19"><cmd/>
+<stepxmp><codeblock id="GUID-ADDC31FE-6D66-5860-9B1B-ACFF9E9CCCBC" xml:space="preserve">
+                    IMPORT_C static CSRTPStreamOut* NewL( CSRTPSession&amp; aSession,
+                                       TUint aSSRC,
+                                       MSRTPReKeyingObserver&amp; aObs ); </codeblock> </stepxmp>
+
+<info>This API is appropriate when the stream will have a cryptographic context
+of its own. The cryptographic context is set later using <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>SetCryptoOutL().</apiname></xref>  </info>
+<stepxmp>aSession is the input parameter that contains the session. </stepxmp>
+<stepxmp>aSSRC is the input parameter that contains the synchronization source
+ID of the SRTP stream. </stepxmp>
+<stepxmp>aObs is the callback object. </stepxmp>
+<stepresult>The API leaves with KErrNone if successfully executed, else returns
+a valid system-wide error code. </stepresult>
+</substep>
+</substeps>
+</step>
+</steps>
+<result><p>On successful execution of the API, a SRTP stream is created and
+initialized. </p> </result>
+<postreq><p>The cryptographic context of the stream can be deleted and the
+stream can be re-initialised using <xref href="GUID-86044C21-B6E7-3A38-AEA1-DC1DF372DAAE.dita"><apiname>UpdateCryptoAndStatesL() </apiname></xref>. </p> </postreq>
+</taskbody><related-links>
+<link href="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352.dita"><linktext>Creating
+an SRTP                 Session</linktext></link>
+<link href="GUID-425A208C-5D2D-55FD-8623-9E00006E2781.dita"><linktext>Creating
+a                 Cryptographic Context</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-922F292E-9420-593B-B226-2764C5F29DF9.dita"><linktext>Encrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Decrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Managing
+                Master Key</linktext></link>
+</related-links></task>

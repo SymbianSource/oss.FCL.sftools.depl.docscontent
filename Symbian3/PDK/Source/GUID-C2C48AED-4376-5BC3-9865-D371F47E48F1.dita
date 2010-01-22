@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C2C48AED-4376-5BC3-9865-D371F47E48F1" xml:lang="en"><title>Replacing
+and Hiding Plug-ins in Composite ROMs</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>From v9.3, Symbian platform supports building a composite NAND ROM, which
+allows several ROM images to be mapped to a single ROM (e.g. <filepath>Z:</filepath>)
+drive. This provides an easy method of customising ROMs, as new ROM images
+can be added without requiring rebuilding and reflashing of the ROM images
+already present on a device. </p>
+<p>This page describes how to use this technique to: </p>
+<ul>
+<li id="GUID-12E33FF0-F793-5758-9733-596312143945"><p>hide an existing ROM
+ECom plug-in, effectively removing it from the ROM drive. </p> </li>
+<li id="GUID-DFD60BE8-F68F-5F7B-A4A6-6EDE402C8A93"><p>update or customise
+an existing ROM ECom plug-in </p> </li>
+</ul>
+<p>When Static Plug-in Information (SPI) is used (see <xref href="GUID-D8ECC83A-4B48-5F5C-9334-5B79CDA95054.dita">How
+to improve load time with SPI files</xref>), each ROM section that contains
+ECom plug-ins will have an SPI file, and ECom will read each file. </p>
+<p>Note: this functionality depends on the rule that the ordering of images
+defined using <codeph>rom_image</codeph> matches the ordering of the mounting
+drives configured in the <filepath>estart</filepath> component. For more information
+on how drives are mounted for composite ROMs, see <xref href="GUID-E55EE9B5-AC5B-5C67-A23C-DDB3F40D174A.dita">Mounting
+multiple ROM images as a single ROM drive</xref>. </p>
+<section><title>Hiding an ECom plug-in</title> <p>To hide an ECom plug-in,
+use the <codeph>HIDE_ECOM_PLUGIN</codeph> keyword in the obey (<filepath>.iby</filepath>)
+file. Its first argument is the DLL name, and the second argument is the registration
+file name. </p> <p>The following example shows ROM image 2 hiding <filepath>plugin1</filepath> from
+ROM image 1: </p> <codeblock id="GUID-761B0B0C-1801-5B2D-AF22-B49A977A46FB" xml:space="preserve">//romimage1.iby
+ECOM_PLUGIN(plugin1.dll,plugin1.rsc)
+ECOM_PLUGIN(plugin2.dll,plugin2.rsc)
+</codeblock> <codeblock id="GUID-E5464F52-5D15-5BA6-A1E2-799D2E149804" xml:space="preserve">//romimage2.iby
+ROM_IMAGE[2] HIDE_ECOM_PLUGIN(plugin1.dll,plugin1.rsc) //hide ECom plugin 1 from image 1</codeblock> </section>
+<section><title>Replacing an ECom plug-in</title> <p>To replace a plug-in,
+simply re-define the plug-in, using the <codeph>ECOM_PLUGIN</codeph> macro
+in the Obey file. </p> <p>The following example shows ROM image 2 replacing <filepath>plugin1</filepath> from
+ROM image 1: </p> <codeblock id="GUID-0EEDEC68-7011-55BA-9496-D2127942F5B9" xml:space="preserve">//romimage1.iby
+ECOM_PLUGIN(plugin1.dll,plugin1.rsc)
+ECOM_PLUGIN(plugin2.dll,plugin2.rsc)
+…
+</codeblock> <codeblock id="GUID-11E2606D-B54D-59A0-BA8F-0831B2D12752" xml:space="preserve">//romimage2.iby
+ROM_IMAGE[2] ECOM_PLUGIN(plugin1.dll,plugin1.rsc) //replace ECOM plugin 1 in image 1</codeblock><p>For
+reference information on the relevant obey file keywords, and their related
+macros, see: </p><ul>
+<li><p>__ECOM_PLUGIN, which also discusses the macro ECOM_PLUGIN. </p></li>
+<li><p>_HIDE__ECOM_PLUGIN, which also discusses the macro HIDE_ECOM_PLUGIN. </p></li>
+</ul> </section>
+</conbody></concept>

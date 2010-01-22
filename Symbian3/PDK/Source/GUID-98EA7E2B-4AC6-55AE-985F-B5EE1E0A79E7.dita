@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7" xml:lang="en"><title>Creating
+a Render Stage Plug-in</title><shortdesc>This topic provides information about creating and configuring
+a render stage plug-in. It applies to ScreenPlay and is aimed at device creators
+and system integrators who want to create a customized rendering pipeline. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<section><title>Background information</title> <p>This topic assumes that
+you have a general understanding of render stages and ECom. For more information
+on these topics, see: </p> <ul>
+<li id="GUID-189C0DEB-01AC-554D-B5BF-45C17F84A38D"><p><xref href="GUID-9E92EE30-F2E2-5F28-BB2A-391C09EC69D2.dita">Using
+ECom</xref>  </p> </li>
+<li id="GUID-48020C41-8795-53EE-9D24-D9E6C0586742"><p><xref href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita">Render
+Stages</xref>  </p> </li>
+</ul> </section>
+<section><title>Summary</title> <p>Creating and configuring a render stage
+plug-in involves the following: </p> <ul>
+<li id="GUID-15333AD7-E535-57F7-8A61-068F44C0F362"><p><xref href="GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7.dita#GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7/GUID-D7F5CCDE-3A35-582F-B480-6D77E26DE0C1">Implementing the render stage classes</xref>  </p> </li>
+<li id="GUID-B6723CA4-635A-5EC7-99C3-17EF627E04D5"><p><xref href="GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7.dita#GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7/GUID-233E8010-2BF7-563D-94D9-8CFAE61F21EF">Packaging the plug-ins</xref>  </p> </li>
+<li id="GUID-C2C9D2F5-C84B-520B-8C99-84780890850D"><p><xref href="GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7.dita#GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7/GUID-140EDD81-76DF-5EF6-A34B-AE53283DBC73">Configuring the render stage chain</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-D7F5CCDE-3A35-582F-B480-6D77E26DE0C1"><title>Implementing
+the render stage classes</title> <p><b>The render stage factory </b> </p> <p>For
+each render stage plug-in, you must create a concrete render stage factory
+class, which must be able to produce the render stage object. The render stage
+factory class must derive from <xref href="GUID-28DEFD88-3AB5-3F94-9A26-27B240294950.dita"><apiname>CWsPlugin</apiname></xref> and <xref href="GUID-DE3DA8CA-437D-33B8-A747-941810A48897.dita"><apiname>MWsRenderStageFactory</apiname></xref>,
+as shown in the following diagram. </p> <fig id="GUID-EFC66A6D-29E4-58FC-810C-A3BA276E0734">
+<title>              Render stage factory class diagram            </title>
+<image href="GUID-BFD09EE5-CCB3-5498-BAA6-86F537DE9155_d0e220381_href.png" placement="inline"/>
+</fig> <p> <xref href="GUID-28DEFD88-3AB5-3F94-9A26-27B240294950.dita"><apiname>CWsPlugin</apiname></xref> is a thin wrapper around the Symbian
+ECom functionality. </p> <p><b>The render stage itself </b> </p> <p>For each
+render stage plug-in, you must create a concrete render stage class that derives
+from <xref href="GUID-B89CEF40-0139-3E6F-803D-F74E2BCB029A.dita"><apiname>CWsRenderStage</apiname></xref>. In ScreenPlay, the render stage is
+responsible for constructing the pixel target. Typically, you would do this
+in the <xref href="GUID-C8E0575D-5A7F-3D00-9BE5-AD8D6DBCF2F7.dita"><apiname>ConstructL()</apiname></xref> function. Other important functions
+to implement are <xref href="GUID-96129474-AC75-350C-90EB-A8AF8E1CC663.dita"><apiname>Begin()</apiname></xref> and <xref href="GUID-95ED21B6-F0E5-3C9F-8AC3-CD73AD32E59D.dita"><apiname>End()</apiname></xref>. </p> <p>You
+must also create implementations of all of the required <xref href="GUID-11BC2AAA-FDB8-5600-8488-F27A9552E336.dita">render
+stage interfaces</xref>, plus any optional ones that you want to use. You
+can do this in the main render stage class itself, or you can delegate them
+to a helper class. If delegated to a helper class, multiple render stage plug-ins
+could potentially share the same implementation of some of the interfaces. </p> <p>If
+the render stage is to host a transition effect (TFX) engine, you need to
+implement the transition effects. </p> <p>For example render stage plug-ins,
+see the reference render stages provided by Symbian. These are located in <filepath>os/graphics/windowing/windowserverplugins/</filepath>. </p> </section>
+<section id="GUID-233E8010-2BF7-563D-94D9-8CFAE61F21EF"><title>Packaging the
+plug-ins</title> <p>Render stage plug-ins are ECom plug-ins and as such they
+require an ECom resource file that must specify the UIDs of the DLL, interface
+and implementation(s), respectively. The interface is defined by <xref href="GUID-28DEFD88-3AB5-3F94-9A26-27B240294950.dita"><apiname>CWsPlugin</apiname></xref> and
+its UID is 0x10285A29. You can optionally wrap up multiple render stage plug-ins
+in a single DLL. This would then have a single ECom resource file. See <xref href="GUID-9A9103E4-27B0-5CF3-855A-DCD44795A5C0.dita">How to Provide ECom Registry
+Information</xref> for more information. </p> <p>For an example render stage
+plug-in resource file, see the one provided for the reference render stages.
+This is located in <filepath>os/graphics/wserv_std_plugins/src</filepath>. </p> </section>
+<section id="GUID-140EDD81-76DF-5EF6-A34B-AE53283DBC73"><title>Configuring
+the render stage chain</title> <p> </p> <p>You configure the render stage
+chain in the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini
+file</xref>. Here is an example: </p> <codeblock id="GUID-05CDB5C8-D6A0-5614-9CEE-7DCCF99FBB2E" xml:space="preserve">
+// General parameters.
+// ...
+    
+// Specify the plug-ins you want the Window Server to load.
+PLUGINS tfxrenderstage fbrenderstage display 
+    
+[SCREEN0] // This section configures the first screen.
+//...
+    
+// Configure the render stage chain for the first screen.
+RENDERSTAGES tfxrenderstage display
+    
+[SCREEN1] // This section configures the second screen.
+//...
+    
+// Configure the render stage chain for the second screen.
+RENDERSTAGES fbrenderstage display
+    
+[TFXRENDERSTAGE] // This section configures tfxrenderstage.
+ID 0x12345678
+    
+[FBRENDERSTAGE] // This section configures fbrenderstage.
+ID 0x12345679</codeblock> <ul>
+<li id="GUID-02A77490-F545-53AC-A4C9-FA9A60F49297"><p>The <codeph>PLUGINS</codeph> parameter
+controls which plug-ins the Window Server loads when it starts up. If you
+supply your own plug-ins and want to use any of the default plug-ins supplied
+by Symbian, you need to specify them here. </p> </li>
+<li id="GUID-F3539B28-CDEB-5A4B-97B8-197AD14083A4"><p>The <codeph>RENDERSTAGES</codeph> parameter
+configures the render stage chain. You can specify this separately for each
+screen, so that different effects can be used for each screen. </p> </li>
+<li id="GUID-FC95C274-2E4E-514E-B2DC-BA221DFE5FB7"><p>For each plug-in that
+you specify, create a separate section to specify its details (such as UID
+and type). </p> </li>
+<li id="GUID-52F01B4D-5CDC-591B-BB02-046FCF8E81BE"><p>TFX render stages that
+implement their own visual stores typically use the <codeph>CHANGETRACKING</codeph> parameter
+to put the Window Server rendering loop into change-tracking mode, rather
+than the default dirty-rectangle tracking mode. See <xref href="GUID-22093E74-EFE7-5642-93DE-1573E18F7C08.dita">Window
+Server Rendering Loop</xref> for more information. </p> </li>
+<li id="GUID-5DD25953-C7A0-537F-BF16-9C7A95C534E5"><p>In addition, you can
+optionally use parameters in the <filepath>wsini.ini</filepath> file to set
+up dynamic screen modes and configure the render stage <xref href="GUID-2B6D3A9D-1481-5587-A954-48CE7EC311EE.dita">display
+control handling</xref>. For example, the reference render stage chain uses
+the <codeph>DP_SCALING</codeph> parameter to specify the type of scaling.
+However, this is not mandatory. </p> </li>
+</ul> <p>See <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">The wsini.ini
+File Reference</xref> for more information. </p> </section>
+</conbody><related-links>
+<link href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita"><linktext>Render Stages</linktext>
+</link>
+</related-links></concept>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-AB7E58EB-F698-4CAD-B9BF-ECE712C6DB04" xml:lang="en"><title>Create
+the service class</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>Create the server service support class, derived from <codeph>CApaAppServiceBase</codeph> or
+a suitable System-GUI specialization of this class. This class adapts the
+IPC protocol to a set of virtual functions which the server application can
+override to implement the service. This class has the following responsibilities:</p><ul>
+<li><p>Receiving and decoding the IPC messages from the client</p></li>
+<li><p>Defining and calling virtual functions which the server application
+can override to implement the service</p></li>
+<li><p>Checking all parameters sent from the client for validity </p></li>
+<li><p>Supporting the security policy of the server application for this service.</p></li>
+</ul><p>This example shows a server-side service support class for a chat
+service. This class implements the code necessary for sending messages to
+the client, but provides a pure virtual <codeph>Receive()</codeph> function
+for the server application to implement its own handling of messages received
+from the client.</p><codeblock xml:space="preserve">class CChatService : public CApaAppServiceBase
+    {
+    public:
+        CChatService();
+        ~CChatService();
+        void Send(const TDesC&amp; aMessage);
+        virtual void Receive(TDes&amp; aMessage) = 0;
+    private:
+        void ServiceL(const RMessage2&amp; aMessage);
+        TBool ReceivePending() const;
+    private:
+        RMessagePtr2 iReceiveMsg;
+        TInt iReceiveLen;
+    };
+</codeblock></context>
+</taskbody></task>

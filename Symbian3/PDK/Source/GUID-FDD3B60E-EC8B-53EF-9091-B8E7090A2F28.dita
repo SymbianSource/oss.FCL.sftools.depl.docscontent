@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-FDD3B60E-EC8B-53EF-9091-B8E7090A2F28"><title>Phone Lock Settings Tutorial</title><shortdesc>This tutorial describes how to get and set the phone locks using the <apiname>RMobilePhone</apiname> functions. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps id="GUID-5A879807-E513-5019-9760-999874756FA0"> <step id="GUID-D8C4A67B-460D-565F-B164-26FCFA209FF1"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetLockInfo()</apiname></xref> to get the current phone lock setting. </cmd> <info>The lock is specified by a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneLock</apiname></xref> flag. </info> </step> <step id="GUID-C894535A-5107-5792-B169-5ED60B936E9B"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyLockInfoChange()</apiname></xref> to get the notification of any changes in lock settings. </cmd> </step> <step id="GUID-DD7FF1FA-06AD-514F-A6CC-681303D8FE5C"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetLockSetting()</apiname></xref> to set a phone lock. </cmd> </step> </steps> <result><p>Information about a lock status whether the lock is on or off, and the setting lock enabled or disabled is encapsulated in an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneLockInfoV1</apiname></xref> object. An enabled lock setting means that the lock is active and can be locked or unlocked if the user enters the security code. If the lock is enabled, it returns to the locked state if certain event such as the phone power down occurs. </p> </result> <example><title>Phone lock example</title> <p>The following code checks if phone lock information can be accessed and get that information. The example code also checks if the phone lock is enabled. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-90C41708-576E-5F8E-A809-B056C76E2060" xml:space="preserve">TUint32 securityCaps;
+User::LeaveIfError(iMobilePhone.GetSecurityCaps(securityCaps));
+
+if (securityCaps &amp; RMobilePhone::KCapsLockPhone)
+    {
+    RMobilePhone::TMobilePhoneLockInfoV1 lockInfo;
+    RMobilePhone::TMobilePhoneLockInfoV1Pckg lockInfoPckg(lockInfo);
+
+    RMobilePhone::TMobilePhoneLock lock = RMobilePhone::ELockPhoneDevice;
+
+    TRequestStatus status;
+
+    iMobilePhone.GetLockInfo(status, lock, lockInfoPckg);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    if (lockInfo.iStatus == RMobilePhone::EStatusLocked)
+        {
+            //do something
+        }
+</codeblock> </example> </taskbody></task>

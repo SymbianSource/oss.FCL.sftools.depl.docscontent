@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78"><title>Using String Pool</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>You can perform any of the following tasks on a string pool: </p> <ul><li id="GUID-075FC6AA-FF50-53A5-958D-58887D1C72CF"><p><xref href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita#GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78/GUID-45792D4C-69C0-5E57-A678-870806C3233D">Adding tables to a string pool</xref>  </p> </li> <li id="GUID-C230C949-D94A-50F4-AFD6-C18752A20C11"><p><xref href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita#GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78/GUID-B56DE379-D345-5A7A-9780-B29CA0D28C66">Accessing strings in a string pool</xref>  </p> </li> <li id="GUID-42328498-4535-54D8-BFBF-D7A744A9E1E6"><p><xref href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita#GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78/GUID-CDCAD75A-D210-5B04-B25C-DC8AD6136BDF">Retrieving a string from a string pool </xref>  </p> </li> <li id="GUID-94A9DFA5-71FE-5945-B95F-AE06FC7AE239"><p><xref href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita#GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78/GUID-0DB1030D-E073-5664-960A-A6FA33207D41">Comparing strings in a string pool</xref>  </p> </li> </ul> <section id="GUID-45792D4C-69C0-5E57-A678-870806C3233D"><title>Adding tables to a string pool </title> <ol id="GUID-E3C187AF-3693-5585-8AD3-716544DADFFC"><li id="GUID-140476B0-F437-5166-9193-1C3C8D7F8231"><p>Create a string pool with no static string tables. This is, in effect an empty string pool. Static string tables can be added later. Use the following variant of <codeph>OpenL()</codeph>: </p> <codeblock id="GUID-4C4C9467-342C-5E03-ADA7-F30CE2BA3E66" xml:space="preserve">void RStringPool::OpenL()</codeblock> </li> <li id="GUID-601A7683-6E56-5666-B8B3-115F85234FE4"><p>Add a static string table to the pool by using the following variant of <codeph>OpenL()</codeph>. </p> <codeblock id="GUID-711D9243-CE11-58AD-A156-D6297E2BDBB5" xml:space="preserve">void RStringPool::OpenL( const TStringTable&amp; aTable )</codeblock> <p>This function creates the string pool, if it doesn't already exist, before adding the string table. Use the same function to add further string tables whenever required. </p> </li> </ol> <p>There is a variation on the <codeph>OpenL()</codeph> function that provides a mechanism for notifying when the string pool is being closed. Following is the variant: </p> <codeblock id="GUID-0D22513A-D272-54FD-BFED-F687430DEF23" xml:space="preserve">void OpenL(const TStringTable&amp; aTable, MStringPoolCloseCallBack&amp; aCallBack);</codeblock> <p>Closing the string pool is performed using the <xref href="GUID-4BF6ECD3-5FB3-3A6A-B9CE-98871BD0812B.dita#GUID-4BF6ECD3-5FB3-3A6A-B9CE-98871BD0812B/GUID-A300515C-82B3-3CF1-92B2-363D7D4DC60B"><apiname>RStringPool::Close()</apiname></xref> function. It closes all open references to the string pool. This may be important in environments where asynchronous programming techniques is used. Provide an implementation of the <xref href="GUID-181D6F81-079E-39FD-A795-9274661C80D0.dita"><apiname>MStringPoolCloseCallBack</apiname></xref> to handle the situation. </p> <p> <b>Note:</b> The implementation assumes that the string tables remain in existence and are located at the same address for as long as the string pool remains open. This assumption is almost always justified as the tables are static data. </p> </section> <section id="GUID-B56DE379-D345-5A7A-9780-B29CA0D28C66"><title>Accessing strings in a string pool</title> <p>Accessing strings involves getting a handle to a string in the string pool. These handles are instances of <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> and <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> classes, which are used in the code to represent strings. </p> <p> <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> represents a case-sensitive string. For example, a string that is compared in a case-sensitive manner. </p> <p> <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> represents a case-insensitive string. For example, when you compare two <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> objects where the represented strings only differ in terms of case, the two strings are considered identical. </p> <p>Follow the steps given below to create an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> to represent a specific string: </p> <p> <b>Note</b>: Creating an <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> object is same as creating an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref>. Where <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> is discussed, this information also applies to <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref>: </p> <ol id="GUID-5D61F147-9CB7-5E0B-AEC3-5D3DDEE846E0"><li id="GUID-CB52068B-2D7E-564E-9E85-B1ECD3381D1E"><p>Create an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> to represent a specific string in a static string table by using the variant, </p> <codeblock id="GUID-8C54A1BC-5E7A-5DC4-A3EF-3D6FF861A35F" xml:space="preserve">RString RStringPool::String( TInt aIndex,const TStringTable&amp; aTable ) const;</codeblock> <p>pass the reference to the specific string table and the index number that identifies the string. Based on the example string table illustrated in <xref href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita#GUID-27340D18-A31D-512E-920A-B06C784A978A/GUID-8221E235-15F9-55E9-8C17-4015051F70CD">Static String Tables</xref> section, the following code is a commonly used pattern to generate an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref>. Here we generate an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> to represent the string "banana". The code does no error handling and ignores leave situations. </p> <codeblock id="GUID-CD9A4011-064C-5FCD-9AEC-915971915B6B" xml:space="preserve">#include &lt;&gt;
+
+RStringPool thepool;
+RString thebanana;
+...
+thepool.OpenL( ExampleStringTable::Table );
+thebanana = thepool.String( ExampleStringTable::EBanana,ExampleStringTable::Table );
+...</codeblock> <p>In more sophisticated code, and where there is more than one static string table, use a function or a member function of some class to retrieve that <xref href="GUID-91322CD6-6DA0-3868-A5D7-CA561A102074.dita"><apiname>TStringTable</apiname></xref> reference. The following is a common pattern: </p> <codeblock id="GUID-DCD42818-2975-5EDA-AF29-DD69C4BA395C" xml:space="preserve">void X::Foo( CSomeClass aInstance,... )
+    {
+    ...
+    thebanana = thepool.String( ExampleStringTable::EBanana,aInstance.GetTable() );
+    ...
+    }</codeblock> <p>where <codeph>GetTable()</codeph> is a function that returns a reference to a specific <xref href="GUID-91322CD6-6DA0-3868-A5D7-CA561A102074.dita"><apiname>TStringTable</apiname></xref>. </p> </li> <li id="GUID-79DB61DF-CFD8-573D-B8AE-2A93F41BB0A2"><p>Create an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> to represent a string that may not exist in any existing static string table within the string pool. Use the following function: </p> <codeblock id="GUID-9CA1BF60-4E8C-5012-A9D8-50AF128A1653" xml:space="preserve">RString  RStringPool::OpenStringL( const TDesC8&amp; aString ) const;</codeblock> <p>Following is an example of dynamically adding a string to the pool (which also generates the <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> to represent it). If the string already exists in a static string table, then the string value itself is not added; instead a new reference to the existing string is created. The following is a simple code fragment: </p> <codeblock id="GUID-951A4940-0FC1-5FDB-BF63-57F0B913038B" xml:space="preserve">class X
+    {
+public :
+    ...
+    void Foo( const TDesC8&amp; aString,... );
+    ...
+    }</codeblock> <codeblock id="GUID-758330C2-E442-5212-8AF4-F087CBA2D604" xml:space="preserve">void X::Foo( aString,... )
+    {
+    ...
+    RString theString;
+    theString = thepool.OpenStringL( aString );
+    ...
+    }</codeblock> </li> </ol> </section> <section id="GUID-CDCAD75A-D210-5B04-B25C-DC8AD6136BDF"><title>Retrieving a string from a string pool </title> <p>Given an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> object (or an <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref>), you can retrieve the string value itself. To retrieve the string value, use the <codeph>DesC()</codeph> function that is provided by the <xref href="GUID-0829EF3D-5068-341C-946F-BFCEFD8F42AC.dita"><apiname>RStringBase</apiname></xref> base class of <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> and <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> classes. </p> <p>For example: </p> <codeblock id="GUID-5D3AA9CF-2D8C-5074-9A0E-6AE82882C2DD" xml:space="preserve">class X
+    {
+    public :
+        ...
+        void Foo( RString aString, ... );
+        ...
+    }</codeblock> <codeblock id="GUID-05BD62DD-0100-54C2-9C4D-23C76C6B3210" xml:space="preserve">void X::Foo( aString )
+    {
+    const TDesC8&amp; stringValue = aString.DesC();
+    ...
+    }</codeblock> </section> <section id="GUID-0DB1030D-E073-5664-960A-A6FA33207D41"><title>Comparing strings in a string pool </title> <p>Comparing strings becomes a fast and simple process once an <xref href="GUID-86301BC4-2A98-3F9B-BAE3-A6DE8D3BD632.dita"><apiname>RString</apiname></xref> handle (or an <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref>) has been created. A common use is to route processing based on the value of the string, for example: </p> <codeblock id="GUID-ED99681E-A4D6-5C28-854E-C8039A449FC3" xml:space="preserve">class X
+    {
+    public :
+        ...
+        void Foo( RString aString,... );
+        ...
+    }</codeblock> <codeblock id="GUID-96F761B1-5513-52DE-83E1-20537082BA01" xml:space="preserve">void X::Foo( aString,... )
+    {
+    ...
+    switch( aString )
+        {
+        case ExampleStringTable::EBanana :
+            {
+            // do something
+            }
+        case ExampleStringTable::EOrange :
+            {
+            // do something
+            }
+        ...
+        }
+    }</codeblock> </section> </conbody><related-links><link href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita"><linktext>String Pools</linktext> </link> <link href="GUID-24D509E8-CF46-58D3-85E9-27DA7AB22012.dita"><linktext>Constructing a Static String
+                Table</linktext> </link> </related-links></concept>

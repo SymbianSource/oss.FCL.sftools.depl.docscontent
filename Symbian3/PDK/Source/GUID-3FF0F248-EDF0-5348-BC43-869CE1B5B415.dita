@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-3FF0F248-EDF0-5348-BC43-869CE1B5B415" xml:lang="en"><title>Setting
+Microsoft OS Descriptor</title><shortdesc>This section describes how to set the Microsoft OS Descriptor (MOD)
+for using Symbian MTP over USB services. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>Before you start, you must: </p> <ul>
+<li id="GUID-9A2A0DD6-06B3-5BF9-966F-B2E83C1CB18A"><p>Have a general understanding
+of the <xref href="http://www.microsoft.com" scope="external">MTP Enhanced
+Specification v0.95</xref>. </p> </li>
+<li id="GUID-2E60F217-425C-593C-8D35-D7D82F842D8D"><p>Have a general understanding
+of the <xref href="http://www.usb.org/developers/devclass/" scope="external">USB
+2.0 Specification</xref> (particularly Chapter 9.3 which describes the request
+types). </p> </li>
+<li id="GUID-A4BE2E18-013B-5FF9-A126-961EBB73ACDE"><p>Understand <xref href="http://msdn.microsoft.com/en-us/library/ms790473.aspx" scope="external">Microsoft-Defined USB Descriptors</xref>, <xref href="http://www.microsoft.com/whdc/connect/usb/os_desc.mspx" scope="external">Microsoft OS Descriptors</xref> and <xref href="http://msdn.microsoft.com/en-us/library/ms790473.aspx" scope="external">Extended Compat ID OS Feature Descriptor Specification</xref> in
+detail. </p> </li>
+<li id="GUID-DDB32234-882D-522C-8D60-9F80FCF7DF31"><p>Understand the <xref href="GUID-B2F5537B-3F47-5172-8DFA-185CC1CAAD22.dita">Symbian MTP over USB architecture</xref>. </p> </li>
+</ul> </prereq>
+<context><p>The USB Device Working Group does not define the class and sub-class
+ID for MTP. To allow a Symbian device to plug into Windows and handle MTP
+requests without installing software or requiring user interactions, device
+creators must provide Microsoft OS Descriptor (MOD) support in their user
+implementations. </p> <p>Two MODs must be supplied by the Symbian device:
+The OS string descriptor which stores vendor-specific information and the
+OS feature descriptor which contains the compatible ID (compat ID) and MTP
+sub-compatible ID (sub-compat ID). The compat ID is the class code for MTP.
+After getting a valid OS string descriptor, Windows will try to get the compat
+ID for MTP. The driver or class for MTP is finally loaded on Windows to handle
+MTP requests. </p> <p>To enable Symbian MTP over USB, device creators must
+implement a MOD solution. The implementation is referred to as user implementation.
+The implementation can be built into a user binary such as EXE or DLL. The
+user binary must be started up or loaded any time before enabling the MTP
+over USB. </p> <p>The following tasks must be completed in the user implementation: </p> <ol id="GUID-12B79044-A50F-5C51-A6E3-1B4358683B58">
+<li id="GUID-33C846CF-93A5-582E-A208-00B2B4B8D815"><p>Load the USB Logical
+Device Driver (LDD) and open an LDD client. </p> <p>After the user binary
+is loaded, the LDD must be loaded and the LDD client must be opened. The string
+OS descriptor can then be written into the LDD in the next step. </p> </li>
+<li id="GUID-B6FEFA9E-98AC-5AFF-ABE2-50FB8E9BCB25"><p>Set the OS string descriptor
+to the LDD. </p> <p>A USB device which supports MOD must contain an OS string
+descriptor. Windows sends a request to the device to retrieve the OS string
+descriptor from the LDD. </p> </li>
+<li id="GUID-5776F91A-6279-57F7-B257-2DCA9563B190"><p>Route device-directed
+requests to the user binary. </p> <p>In the next step, Windows will send a
+control request to the device to get the compat ID OS feature descriptor.
+This request is vendor-specific and device-directed and must be handled by
+device creators in their user implementation. To enable the USB Stack to route
+the request to the user binary, the user implementation must call <codeph>RDevUsbcClient::SetDeviceControl()</codeph>.
+Device-directed requests from the PC are all then routed to this instance
+of <codeph>RDevUsbcClient</codeph>. </p> <fig id="GUID-FD68DA9C-2175-5B9D-B4A1-8A8B6D0EAEA8">
+<image href="GUID-1E2DC905-472F-519F-A390-A1189FCB0F9D_d0e602075_href.jpg" placement="inline"/>
+</fig> </li>
+<li id="GUID-39D9E728-14DA-58DB-9F3A-C30B23832ECA"><p>Provide an OS feature
+descriptor handler. </p> <p>Once a valid OS string descriptor is returned,
+Windows sends another control request to get the Microsoft extended compat
+ID OS feature descriptor. </p> <p>Once the compat ID has been returned to
+the PC it can load the right MTP driver and class to handle MTP requests. </p> <p>Note:
+The string OS descriptor is written into the LDD. The OS feature descriptor
+is returned by the user implementation at runtime. </p> </li>
+</ol> <p>For more information about device directed requests and other types
+of requests, refer to <xref href="http://www.usb.org/developers/devclass/" scope="external">USB 2.0 Specification Chapter 9.3</xref>. For more information
+about the OS string descriptor and OS feature descriptor, refer to <xref href="http://www.microsoft.com/whdc/connect/usb/os_desc.mspx" scope="external">Microsoft OS Descriptors</xref>. </p> </context>
+<steps id="GUID-DA0DA5E7-D1CA-59DA-AAA3-4C6B05E1A0D9">
+<step id="GUID-03B9EE7D-F04A-5957-8B68-6319BE685586"><cmd/>
+<info>Load the USB LDD–<filepath>usbc.ldd</filepath> and open a client of
+it. </info>
+<stepxmp><codeblock id="GUID-799C6FC1-438A-5B7D-857B-02E58C29E3CB" xml:space="preserve">_LIT(KUsbLDDName, "eusbc"); //Name passed to User::LoadLogicalDevice()
+_LIT(KUsbLDDFreeName, "Usbc"); //Name passed to User::FreeLogicalDevice()
+
+TInt err = User::LoadLogicalDevice(KUsbLDDName); // Load the USB logical device
+
+if (err != KErrNone &amp;&amp; err != KErrAlreadyExists)
+   {
+   User::Leave(err);
+   }
+
+RDevUsbcClient ldd; //Create a client of the USB logical device
+
+User::LeaveIfError(ldd.Open(0)); //Open the client
+
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-8C094EE4-5C2D-54F6-A62F-9197B66CC606"><cmd/>
+<info>Set the OS string descriptor. </info>
+<info>OS string descriptor is stored in the USB device driver at the fixed
+index of 0xEE. It contains a request number that Windows uses to retrieve
+OS feature descriptors. </info>
+<stepxmp><codeblock id="GUID-5B8B2191-F298-578F-AB9D-417CE44CA4D3" xml:space="preserve">/**
+ * MTP OS string decsriptor definitions.
+ */
+const TUint8 KMTPUsbOSStringIndex(0xEE); //OS string descriptor index
+_LIT16(KMTPUsbOSStringSignature, "MSFT100\xAE"); //qwSignature and bMS_VendorCode
+
+// Write the OS string descriptor to the LDD.
+User::LeaveIfError(ldd.SetStringDescriptor(KMTPUsbOSStringIndex, KMTPUsbOSStringSignature));
+
+</codeblock> </stepxmp>
+<info> <codeph>qwSignature</codeph> and <codeph>bMS_VendorCode</codeph> are
+two key fields which must be set. <codeph>qwSignature</codeph> is a Unicode
+character array which identifies the descriptor as an OS string descriptor. <codeph>bMS_VendorCode</codeph> is
+one byte field whose value is set by the vendor. This value is used by Windows
+to request the OS feature descriptor (compat ID and sub-compat ID). </info>
+</step>
+<step id="GUID-6F5FD06E-53FC-556D-AB22-FB5DADBFE60A"><cmd/>
+<info>Route device-directed requests to the user binary. </info>
+<info>The user implementation must include the following to enable the USB
+Stack to route the device directed requests to the user binary. </info>
+<stepxmp><codeblock id="GUID-44E8D26E-0D0F-5643-8483-5E1F3CA4C7F8" xml:space="preserve">User::LeaveIfError(ldd.SetDeviceControl()); 
+</codeblock> </stepxmp>
+<info> Note: Only one instance of RDevUsbcClient can hold the device control
+at any given time. </info>
+</step>
+<step id="GUID-34F47BD0-9489-5534-A207-ABCC9D689B1F"><cmd/>
+<info>Provide the OS feature descriptor handler. </info>
+<info>Once a valid OS string descriptor has been returned, Windows retrieves
+the OS feature descriptor which it uses to load the appropriate USB driver.
+In this case, the OS feature descriptor contains the MTP compat ID and MTP
+sub-compat ID. </info>
+<stepxmp><codeblock id="GUID-A1CEEFCB-CEFE-5A55-9B86-9B6833020B9B" xml:space="preserve">// KMsOSFeatureDescriptor 
+_LIT8(KMsOSFeatureDescriptor, "\x28\x00\x00\x00\x00\x01\x04\x00\x01\x00\x00\x00\x00\x00\x00\x00" \
+//dwLength     |  bcdVersion | wIndex | bCount | Reserved      
+//4 characters |  2 chars    |  2     | 1      | 7
+
+"\x00\x01\x4D\x54\x50\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+// bFirstInterfaceNumber | bInterfaceCount |compatibleID | subCompatibleID | Reserved
+// 1                     | 1               | 8           | 8               | 6
+
+const TInt KMODHeaderSize   = 0x10; //The first 16 characters of the feature descriptor
+const TInt KMODFunctionSize = 0x28;  
+
+TRequestStatus status;
+
+//aRequest is a structure for requests defined by a device creator
+//wLength is the field which specifies the length of the data to be transferred
+TInt length(aRequest.wLength); 
+
+if (length == KMODHeaderSize)
+   {
+   // The request is for the header. Return just the header
+   ldd.Write(status, EEndpoint0, KMsOSFeatureDescriptor().Left(KMODHeaderSize), KMODHeaderSize, ETrue);
+   }
+else if (length == KMODFunctionSize)
+   {
+   ldd.Write(status, EEndpoint0, KMsOSFeatureDescriptor(),KMODFunctionSize, ETrue);
+   }</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-B2F5537B-3F47-5172-8DFA-185CC1CAAD22.dita"><linktext>MTP USB Transport
+Overview</linktext></link>
+<link href="GUID-DE2E64A5-417A-538C-904B-6D498BB55273.dita"><linktext>Symbian USB
+Manager</linktext></link>
+</related-links></task>

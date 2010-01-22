@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-05CDE32C-05B3-519F-9937-757A196400F9"><title>Integrated Circuit Card (ICC) Access Tutorial</title><shortdesc>This tutorial explains how the <apiname>RMobilePhone</apiname> functions enables a client to know whether ICC access is available and how to be notified when this access is possible. The <apiname>RMobilePhone</apiname> also enables the client to get the functional capabilities of the current ICC. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>An ICC has different names under the different cellular standards. </p> <ul><li id="GUID-3CE9DCD8-2129-5F8C-A4CC-1136CAA7310E"><p>The ICC is called as Subscriber Identity Module (SIM) card in GSM networks. </p> </li> <li id="GUID-37AB1492-E84B-5643-8922-57B16D809FDC"><p>The ICC is called Removable User Identity Module (R-UIM) in CDMA networks. </p> </li> <li id="GUID-7D402BEA-D833-5BC3-B6A0-E94687B9C021"><p>In WCDMA networks, the ICC contains a number of applications one of which is known as the Universal Subscriber Identity Module (USIM) application. </p> </li> </ul> <p>The ICC stores the services available in the SIM Service Table (SST) on a SIM, or the CDMA Service Table on a R-UIM. For DCS1800 systems, there is also the Customer Service Profile (CSP). The services available reflects the ICC applications static capabilities combined with the subscription details of the user. </p> </context> <steps id="GUID-330C5808-2492-57B4-9F70-93E11705E223"> <step id="GUID-6757FD3F-0913-562F-B1D3-6BF917B96777"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetIccAccessCaps()</apiname></xref> to find if the ICC access is available. </cmd> <info>Capabilities are described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneIccCaps</apiname></xref>. </info> </step> <step id="GUID-8B16C684-0711-59B9-8139-AEF2068C2F1D"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyIccAccessCapsChange()</apiname></xref> to get the notification of any changes in the capabilities. </cmd> </step> <step id="GUID-FB65BE05-5141-5EFD-9D3B-2E2E62D047F6"><cmd>Get the ICC service table using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetServiceTable()</apiname></xref>. </cmd> <info>Service table information is returned in a packaged <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneServiceTableV1</apiname></xref> object. This contains the data members that store bitmasks of flags indicating the supported services. </info> </step> </steps> <result><p>Capabilities are described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneIccCaps</apiname></xref>. The service table information is returned in a packaged <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneServiceTableV1</apiname></xref> object. This contains the data members that store bitmasks of flags indicating the supported services. </p> </result> <example><title>SIM access example</title> <p>The following code checks if the phone has a SIM that can be accessed, and if so, gets the service table of the SIM. It then checks if Cell Broadcast (CB) message identifiers (a list of identifiers used as a filter to specify which CB messages are accepted and shown to user and which are rejected) can be stored, by testing if the <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::KSstCBMI</apiname></xref> flag is set in the service table. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-208F50A9-395F-5CCB-A5B4-5C5601FFDFF3" xml:space="preserve">TUint32 iccCaps;
+
+User::LeaveIfError(iMobilePhone.GetIccAccessCaps(iccCaps));
+TBool cbStorage = EFalse;
+
+if (iccCaps &amp; RMobilePhone::KCapsSimAccessSupported)
+    {
+    RMobilePhone::TMobilePhoneServiceTableV1 mobilePhoneServiceTable;
+    RMobilePhone::TMobilePhoneServiceTableV1Pckg mobilePhoneServiceTablePckg(mobilePhoneServiceTable);
+
+    TRequestStatus status;
+
+    iMobilePhone.GetServiceTable(status, RMobilePhone::ESIMServiceTable, mobilePhoneServiceTablePckg);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    cbStorage = mobilePhoneServiceTable.iServices9To16 &amp; RMobilePhone::KSstCBMI;
+    }
+</codeblock> </example> </taskbody></task>

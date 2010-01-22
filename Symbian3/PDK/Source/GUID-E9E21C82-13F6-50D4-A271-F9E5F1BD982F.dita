@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-E9E21C82-13F6-50D4-A271-F9E5F1BD982F"><title>Background Processing for Ecam</title><shortdesc>This topic describes how to capture an image using standalone background processing in Ecam. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <prereq id="GUID-18F6B6F4-909B-58C3-A6B3-014E8B4D5919-GENID-1-7-1-18-1-1-6-1-5-1-6-1-4-1-12-1-3-1"><p>Before you start you should understand the <xref href="GUID-80EC80E2-E197-50F7-B1FD-720A00AC3B4D.dita">Onboard Camera Overview</xref> topic. </p> </prereq> <context id="GUID-43393C5E-C050-5B00-99CF-4C467DBE1335"><p>The Ecam API has been extended for background processing by having it as a standalone process. In order to use standalone background processing you need to implement the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCameraObserver2</apiname></xref>, <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MPreImageCaptureControlObserver</apiname></xref>, <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCaptureImageObserver</apiname></xref> interfaces and use with the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera</apiname></xref> API. </p> </context> <steps id="GUID-48762C38-0A88-5EEE-85E2-49DF09ED23A7"><step id="GUID-4F2E1FBC-5593-588D-A4E8-947E58EAADC0"><cmd/><info id="GUID-F6BB2B65-A4FD-53FA-BDD6-37A7D2AB3B54"> To prepare image capturing using the <codeph>CCamera</codeph> API </info> <substeps id="GUID-E491A3EC-80E1-502D-9A7E-F1EB1F69F0A6"><substep id="GUID-A28A04E2-C154-5846-A934-AE175BD4FD91"><cmd>call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPreImageCaptureControl::GetSupportedProcessingOptionsL(Tint&amp;)</apiname></xref> to get support for processing specified by <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>TECamProcessingTypes</apiname></xref>. </cmd> </substep> <substep id="GUID-BF3B1D7B-D79E-57A9-B5D5-F48938148CB7"><cmd/><info>pass the <codeph>EECamBackgroundProcessing</codeph> option instead of the <codeph>SetImageProcessingOptions</codeph> value within the <codeph>TPrepareImageParameters</codeph> values to the required processing option specified in <codeph>TECamProcessingOptions</codeph> for the background processing. </info> </substep> <substep id="GUID-3EFC3492-D190-5ADE-B293-41BC3775B3C6"><cmd/><info>call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPreImageCaptureControl::PrepareImageCapture(const
+                     CCameraPreImageCaptureControl:: TPrepareImageParameters&amp;,
+                     MCaptureImageObserver&amp;)</apiname></xref> to perform setup and allocation of memory for the image capture operation. This implementation creates a new <codeph>CCameraImageCapture()</codeph> object which internally implements the <codeph>MCameraImageCapture()</codeph> interface. </info> <info>If an error occurs while preparing an image, call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPreImageCaptureControl::PrepareImageComplete(CCameraPreImageCaptureControl*,
+                     TInt)</apiname></xref> to pass the <codeph>aErrorCode</codeph> value to <codeph>CCamera</codeph>. </info> </substep> </substeps> </step> <step id="GUID-57389BBB-6434-583D-95F1-E235DACAEA92"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraImageCapture::CaptureImage()</apiname></xref> to capture an image. This implements <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCameraImageCapture()</apiname></xref>. </info> </step> <step id="GUID-DC1848F3-CEF1-58A5-AE9C-9DA6CF602F0D"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPostImageCaptureControl::CreateL(CCameraImageCapture*,
+                TPostCaptureControlId)</apiname></xref> if you wish to capture another image. The <codeph>CCameraPostImageCaptureControl</codeph> object from the previous capture is preserved. This callback function creates a <codeph>CCameraPostImageCaptureControl</codeph> object for every individual image captured. </info> </step> <step id="GUID-27371599-2216-5C53-8730-69E8F9D9F988"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCaptureImageObserver::IndividualImageControlHandle(CCameraImageCapture&amp;,
+                TPostCaptureControlId)</apiname></xref> to destroy the individual captured image. </info> </step> <step id="GUID-27ADAF59-D386-5693-9106-AC87B6C8C3BA"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPostImageCaptureControl::~CCameraPostImageCaptureControl()</apiname></xref> to destroy any captured image objects created by <codeph>CCameraPostImageCaptureControl::CreateL()</codeph>. </info> </step> <step id="GUID-5F31396D-9C68-52F8-8FC3-1C51FC7B74B5"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraImageCapture::PauseProcessing(TUint)</apiname></xref> to pause any processing options associated with the relevant image capture function. </info> <info>Note: You can call <codeph>PauseProcessing()</codeph> for any processing options used during image capture. </info> </step> <step id="GUID-41D15FB4-E0A8-54FE-90FC-2DF05CA955D0"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraImageCapture::ResumeProcessingL(TUint)</apiname></xref> to resume any processing options associated with the relevant image capture function. </info> <info>Note: You can call <codeph>ResumeProcessingL()</codeph> for any processing options used during image capture. </info> </step> <step id="GUID-66119341-7FEE-5BCA-A7D8-3471E61B355A"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraPostImageCaptureControl::GetImageStateL(TImageState&amp;)</apiname></xref> to retrieve the image state of the individual image given by the <codeph>CCameraPostImageCaptureControl</codeph> object. </info> </step> </steps> <example><title>Example</title> <p>The following example shows you how to capture an image using standalone background processing in Ecam: </p> <codeblock id="GUID-F4409BA1-A6D9-5855-AB32-FC4672AD136A" xml:space="preserve">
+
+CCamera* camera; 
+MCameraObserver2* observer2; 
+camera = CCamera::New2L(*observer2, 0);
+MPreImageCaptureControlObserver* preImageCaptureControlObserver;
+CCamera::CCameraPreImageCaptureControl* preImgCapture = CCamera::CCameraPreImageCaptureControl::NewL(*camera, preImageCaptureControlObserver));
+TInt supportedProcessingOptions;
+preImgCapture-&gt;GetSupportedProcessingOptionsL(supportedProcessingOptions); // provides supported image processing options
+CCamera::CCameraPreImageCaptureControl::TPrepareImageParameters prepareImageParameters;
+prepareImageParameters::iImageProcessingOptions = EECamBackgroundProcessing;
+...
+...
+// Capture image
+...
+...
+TUint processingOptions = EECamBackgroundProcessing;
+imgCapture-&gt;PauseProcessing(processingOptions); // Pauses any background processing associated with this image capture
+imgCapture-&gt;ResumeProcessingL(processingOptions); // Resumes any background processing associated with this image capture
+
+ //  Retrieve the information for any stage of captured image. 
+TImageState imgState;
+postImgCapture-&gt;GetImageStateL(imgState); // Retrieves the stage of any processing on the current image
+
+
+</codeblock> </example> </taskbody><related-links><link href="GUID-DA26D246-D74A-529F-9F81-11B45669103F.dita"><linktext>Capturing Image</linktext> </link> </related-links></task>

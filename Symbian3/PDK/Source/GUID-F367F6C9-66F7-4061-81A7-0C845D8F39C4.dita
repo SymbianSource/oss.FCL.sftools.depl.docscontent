@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F367F6C9-66F7-4061-81A7-0C845D8F39C4" xml:lang="en"><title>Cancellation
+of Asynchronous Requests</title><shortdesc>This document describes how a device driver cancels an asynchronous
+request.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Any outstanding asynchronous request can be cancelled. <xref href="GUID-675860FB-AA37-3467-AF52-7D1B17FEE0A6.dita"><apiname>DoCancel()</apiname></xref> is
+implemented to handle cancel requests. Cancel requests are either explicitly
+made by the user or made when there is a close message. Any pending requests
+and queued DFCs are cancelled and the request is completed with <xref href="GUID-6F4A88DA-F54E-3848-9C32-942D6F5F4F3E.dita"><apiname>KErrCancel</apiname></xref>. </p>
+<codeblock id="GUID-AEE32663-E6E2-50CC-A756-10CAC0CA503D" xml:space="preserve">/** 
+ Cancel Asynchronous Requests. This is called from HandleMsg() to 
+ cancel pending asynchronous requests. This function determines which    
+ operation is to be cancelled and tidies up the resources specific to 
+ the request being cancelled, any outstanding DFCs, and timers, and   
+ signals the client that the operation is completed.
+ 
+ @param aMask
+ Mask containing the request number that has to be cancelled 
+ */
+void DExDriverLogicalChannel::DoCancel(TUint aMask)
+    {
+    ...
+    // Any pending asynchronous operation can be 
+    // cancelled. Check a valid asynchronous request 
+    // to cancel has been specified.
+    //
+    if(aMask&amp;(1&lt;&lt;RExDriverChannel::ERequestTransmitData))
+        {
+        if (iTxDataStatus)
+            {
+            // If it is a Transmit request, cancel the Transmit DFC. 
+            // TDfc::Cancel() cancels the DFC if it is already 
+            // queued. It does nothing if the DFC is not queued.
+            //
+            iTxDfc.Cancel();
+
+            // Notify the client (iClient) that the request is 
+            // completed. The TRequestStatus object is updated with the 
+            // status and the completion code is provided to the
+            // client. KErrCancel indicates that the request has been 
+            // cancelled. Typically, a client thread, waiting on 
+            // User::WaitForRequest(TRequestStatus &amp;aStatus) or using
+            // the active object framework, is unblocked and notified. 
+            // Then the client may read the request status from the 
+            // TRequestStatus object. 
+            //                                              
+            Kern::RequestComplete(iClient,iTxDataStatus,KErrCancel);
+            }
+        }
+    ...
+    }</codeblock>
+</conbody></concept>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-512B6FEB-3328-59A6-913C-7E9F7A5A0A04" xml:lang="en"><title>Retrieve
+Message Waiting Information Tutorial</title><shortdesc>This tutorial describes how to retrieve a message waiting information. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>Message waiting indicator informs the subscriber that, depending
+on the mode, the voice messages, data messages, fax messages, and email messages
+are waiting to be retrieved. </p> </context>
+<steps id="GUID-BB069FC3-27FB-5EA8-8C40-7C1C00B3E6D9">
+<step id="GUID-D6D4D339-EFD9-540B-BBF7-793F3C14030A"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-28B0955C-73B4-39B1-B0BB-2A8788795936"><apiname>RMobilePhone::NotifyMessageWaiting()</apiname></xref> to
+get the notification when the phone receives a message waiting indication
+from the network. </cmd>
+
+<info>In GSM and WCDMA modes, message waiting indications are received through
+SMS messages. This is applicable only to CDMA. </info>
+</step>
+<step id="GUID-E5A12E6D-6571-590C-AA75-7009201102FF"><cmd>Retrieve the set
+of message waiting indicators from the current ICC using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-938BA677-F8E8-322D-B5C0-73FD3ADFCF76"><apiname>RMobilePhone::GetIccMessageWaitingIndicators()</apiname></xref>. </cmd>
+<info>Indicator values are described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-10B245E9-5283-3C57-B7ED-62CAD938D44D"><apiname>RMobilePhone::TMobilePhoneMessageWaitingV1</apiname></xref>. </info>
+</step>
+<step id="GUID-709B003B-8F08-5A24-B9C1-04137C524003"><cmd>Set the message
+waiting indicators on the current ICC using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-B53A9F88-DC7B-3051-86F1-5539409A1E99"><apiname>RMobilePhone::SetIccMessageWaitingIndicators()</apiname></xref>. </cmd>
+</step>
+<step id="GUID-9A1A9A01-0DFA-531F-9088-ACE1E4230F11"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-D11F9FAF-5F0B-3055-AF77-8299E29CF088"><apiname>RMobilePhone::NotifyIccMessageWaitingIndicatorsChange()</apiname></xref> to
+get the notifications of any changes to the message waiting indicators on
+the current ICC. </cmd>
+</step>
+</steps>
+<example><title>Message waiting indicator example</title> <p>The following
+code gets the message waiting indicators and returns the number of voice messages
+waiting. </p> <codeblock id="GUID-35C73A9E-4502-5B0D-8A3A-19E93FFEA43E" xml:space="preserve">TUint8 CClientApp::VoiceMessagesWaitingL()
+    {
+    RMobilePhone::TMobilePhoneMessageWaitingV1 messageWaiting;
+    RMobilePhone::TMobilePhoneMessageWaitingV1Pckg messageWaitingPckg(messageWaiting);
+    TRequestStatus status;
+
+    iMobilePhone.GetIccMessageWaitingIndicators(status,messageWaitingPckg);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    return messageWaiting.iVoiceMsgs;
+    }
+</codeblock> </example>
+</taskbody></task>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-388004AF-6F99-4BBB-A8E0-D75DC5B6790C" xml:lang="en"><title>Test
+Application</title><shortdesc>This document describes a simple application which is used to load
+a device driver and test its functionality.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F3E3C80E-D74B-4846-A614-B69D653130CA">       <title>Testing
+device drivers</title>       <p>Drivers, apart from kernel extensions, are
+not automatically started by the Kernel, so they must be explicitly loaded
+by application. </p> <p>When testing an LDD-PDD model driver, it is a general
+practice to write a simple test application that loads the LDD and PDD by
+name, opens a logical channel, and calls the driver API to test the driver's
+functionality. </p> <p>The following shows a command line test application
+that does this: </p> <codeblock id="GUID-59C1DE97-3018-5B58-AF11-72A1F44B4C0F" xml:space="preserve">/** E32Main - Application, exe main entry point. */
+GLDEF_C TInt E32Main()
+    {
+    ...
+    // Load the PDD. This user API will load the PDD DLL by name 
+    // and also enable the loader to search for the PDD object 
+    // by name.
+    r = User::LoadPhysicalDevice(KExDriverPdd);
+
+    // PDD loading is considered successful, if either it is 
+    // loaded now or it is already loaded.
+    test((r==KErrNone)||(r==KErrAlreadyExists));
+
+    // Load the LDD. This user API loads the LDD DLL by name 
+    // and also enable the loader to search for the LDD object 
+    // by name.
+    r = User::LoadLogicalDevice(KExDriverLdd);
+
+    // LDD loading is considered successful, if either it is 
+    // loaded now or it is already loaded.
+    test((r==KErrNone)||(r==KErrAlreadyExists));
+    ...
+
+    // Get device capabilities
+    ...
+
+    // Open the device with reference to the driver name.    
+    r = device.Open(KDriverName);
+    if (r==KErrNone)
+        {
+        ... // do required operations
+        // Close the device. This handle is required only to 
+        // get any device related information from the LDD factory 
+        // object.
+        device.Close();
+        }
+
+    // RExDriverChannel is an RBusLogicalChannel derived class, which provides a user side 
+    // handle to a logical channel. It defines the driver interface.
+    RExDriverChannel ldd;
+
+    // Open the logical channel to the driver for unit 1. This is a 
+    // user-side wrapper function for the    
+    // RBusLogicalChannel::DoCreate() API. DoCreate() is 
+    // called in Open() for unit 1.
+    //
+    r = ldd.Open(KUnit1);
+    test(r==KErrNone);
+
+    // Call the driver API using the RExDriverChannel interface and 
+    // test for the functionality
+    ...
+
+    // Close the logical channel
+    ldd.Close();
+
+    // Free the logical device / LDD
+    r=User::FreeLogicalDevice (KDriverName);
+    test(r==KErrNone);
+
+    // Instead of directly using the PDD name, get the PDD 
+    // factory object name and append the extension name, to 
+    // unload the PDD.
+    TName pddName(KDriverName);
+    _LIT(KVariantExtension, ".pdd");
+    pddName.Append(KVariantExtension);
+
+    // Free the PDD, resulting in freeing the PDD factory object   
+    r=User::FreePhysicalDevice (pddName);
+    test(r==KErrNone);
+
+    ...
+    }</codeblock> <p>If the driver is a kernel extension, then the Kernel
+loads the driver when it boots, so an application does not need to load the
+driver explicitly. Applications simply open a channel to the driver and call
+the driver API as required. </p> <p>The <xref href="GUID-D16A6778-660E-302A-A3B5-DD98A088B7EC.dita"><apiname>RTest</apiname></xref> class provides
+macros and functions that can be used in test applications. It provides macros
+to validate a return value against an expected value, and to leave giving
+the line number where the error occurred. It also provides macros to print
+debug messages, to group the test sets, and so on. </p> <codeblock id="GUID-EB34D6B4-D9AC-5F47-BBEA-DBB04BBB5DEF" xml:space="preserve">// Create RTest object (test framework)
+LOCAL_D RTest test(_L("Tutorial Driver"));
+
+GLDEF_C TInt E32Main()
+    {
+    // Initialize the test object with a title    
+    test.Title();
+
+    // RTest::Starts() starts a set of tests
+    test.Start(_L("Load Physical Device"));
+    ...
+    // RTest::Next() starts a new set of tests
+    test.Next(_L("Open Channel"));
+    ...
+    // Test if a condition is true. If not, the application leaves 
+    // displaying the line number and error type
+    test(r==KErrNone)
+    ...
+    // Prints a string to the screen
+    test.Printf(_L(“&lt;display string %d&gt;”),r);
+    ...
+    // End the tests     
+    test.End();
+    }</codeblock> <p>The drivers developed and built can be tested on the
+target hardware. The debug or release versions of the driver are built into
+the ROM and downloaded to the target. This is done either by using a MMC card,
+USB, Serial or JTAG interface, as supported by the particular hardware board.
+Once the board is powered on or reset, Symbian platform boots and the text
+shell is displayed (assuming a text shell ROM image). To test an LDD-PDD driver,
+run the test application from the command line. </p> <p>If debug messages
+are enabled in the driver, by using <codeph>KTRACE</codeph> or <codeph>BTRACE</codeph>,
+the messages can be viewed on the LCD screen, or through a connected COM port,
+using the HyperTerminal application on a PC. </p>     </section>
+</conbody></concept>

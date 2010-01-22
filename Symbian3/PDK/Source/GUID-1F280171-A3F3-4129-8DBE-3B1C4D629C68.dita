@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68" xml:lang="en"><title>Atomic
+Operations</title><shortdesc>Describes the new atomic operations added to <codeph>euser.dll</codeph> and
+the kernel. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An atomic operation is an operation that comprises two or more conditions.
+When an atomic operation is executed and all conditions are met it results
+in success; when one or more conditions are not met it results in failure.
+The new atomic operations added to <codeph>euser.dll</codeph> and the kernel
+replace the existing ones. The existing operation format is preserved <codeph>__e32_atomic_xxx_yyyZ</codeph> </p>
+<p>In the above format: </p>
+<ul>
+<li><p>z specifies the size of the data type being operated on</p></li>
+<li><p>yyy specifies the type of memory ordering that is to be enforced (with
+memory barriers)</p></li>
+<li><p>xxx specifies the operation that is to be performed. </p></li>
+</ul>
+<p>The following table outlines the types of memory ordering and operations
+available.</p>
+<table id="GUID-3F63C6B6-E16F-4418-90FF-2BFBED7AB096">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.33*"/><colspec colname="col2" colwidth="1.67*"/>
+<tbody>
+<row>
+<entry nameend="col2" namest="col1"><b>Memory Ordering (yyy)</b></entry>
+</row>
+<row>
+<entry><b>Name </b></entry>
+<entry><b>Description</b></entry>
+</row>
+<row>
+<entry>rlx</entry>
+<entry>Relaxed memory ordering. In this type of ordering there is no fixed
+order in which the atomic operation is observed in relation to other memory
+operations.</entry>
+</row>
+<row>
+<entry>acq</entry>
+<entry>Acquire semantics. In this type of memory ordering a memory barrier
+is placed after the atomic operation.</entry>
+</row>
+<row>
+<entry>rel</entry>
+<entry>Release semantics. In this type of ordering a memory barrier is executed
+before the atomic operation.</entry>
+</row>
+<row>
+<entry>ord</entry>
+<entry>Fully ordered. In this type of ordering a memory barrier is executed
+before and after the atomic operation.</entry>
+</row>
+<row>
+<entry nameend="col2" namest="col1"><b>Operation (xxx)</b></entry>
+</row>
+<row>
+<entry><b>Name</b></entry>
+<entry><b>Description</b></entry>
+</row>
+<row>
+<entry>load</entry>
+<entry>Reads the contents of a location.</entry>
+</row>
+<row>
+<entry>store</entry>
+<entry>Writes to a location</entry>
+</row>
+<row>
+<entry>swp</entry>
+<entry>Swaps the contents of a specified memory location with a given parameter.</entry>
+</row>
+<row>
+<entry>add</entry>
+<entry>Adds a value to the contents of the specified memory location.</entry>
+</row>
+<row>
+<entry>and</entry>
+<entry>Logical AND.</entry>
+</row>
+<row>
+<entry>ior</entry>
+<entry>Logical OR.</entry>
+</row>
+<row>
+<entry>xor</entry>
+<entry>Logical XOR.</entry>
+</row>
+<row>
+<entry>axo</entry>
+<entry> AND then XOR</entry>
+</row>
+<row>
+<entry>cas</entry>
+<entry>Compare and Set<p>Compare the contents of the specified memory location
+with another specified location. If the contents of both locations have the
+same value, the contents of the original location is set to a specified value.</p></entry>
+</row>
+<row>
+<entry>tau</entry>
+<entry>Threshold and add unsigned<p>If the contents of a specified memory
+location is greater than the specified threshold, then add the contents with
+one parameter, otherwise add the contents to another. For this operation,
+all the parameters are unsigned.</p></entry>
+</row>
+<row>
+<entry>tas</entry>
+<entry> Threshold and add signed<p>If the contents of a specified memory location
+is greater than the specified threshold, then add the contents with one parameter,
+otherwise add the contents to another. For this operation, all the parameters
+are signed.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>The meaning of each parameter, depends on the operation (xxx) (the argument
+order is from left to right) :</p>
+<table id="GUID-2CEA8D77-49CB-4C7B-953D-A811C208C6FC">
+<tgroup cols="5"><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><colspec colname="col4"/><colspec colname="col5"/>
+<tbody>
+<row>
+<entry align="center"><b>Operation (xxx)</b></entry>
+<entry align="center"><b>First argument</b></entry>
+<entry align="center"><b>Second Argument</b></entry>
+<entry align="center"><b>Third Argument</b></entry>
+<entry align="center"><b>Fourth Argument</b></entry>
+</row>
+<row>
+<entry align="center">load</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">store</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be stored.</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">swp</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be swapped.</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">cas</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Address of the data to be compared.</entry>
+<entry align="center">New contents of the address specified in the first parameter,
+if the comparison is true.</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">add</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be added.</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">and</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be used in the AND operation .</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">ior</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be used in the OR operation.</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">xor</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be used in the XOR operation.</entry>
+<entry align="center">N/A</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">axo</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Data to be used in the AND operation.</entry>
+<entry align="center">Data to be used in the XOR operation.</entry>
+<entry align="center">N/A</entry>
+</row>
+<row>
+<entry align="center">tau</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Value of the threshold.</entry>
+<entry align="center">See note 1.</entry>
+<entry align="center">See note 2.</entry>
+</row>
+<row>
+<entry align="center">tas</entry>
+<entry align="center">address of the data</entry>
+<entry align="center">Value of the threshold.</entry>
+<entry align="center">See note 1.</entry>
+<entry align="center">See note 2.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p><note>Note:</note></p>
+<p> 1. Value to add if the value of the data pointed to by the address in
+the first parameter, is equal to or greater than the threshold value</p>
+<p>2. Value to add if the value of the data pointed to by the address in the
+first parameter, is less than the threshold.</p>
+<section id="GUID-C56AD38F-DF1F-4872-9BE9-C7A255695C26"><title>Example</title> 
+     <p>An example of an atomic operation in use is :</p><codeblock xml:space="preserve">              if (__e32_atomic_tas_ord32(&amp;buffer.iDisplayDriverCount, 1, -1, 0) == 1)
+                  {
+                      // All drivers disconnected, deallocate memory.
+                      ...
+                  }</codeblock><p>In the above example we use a fully ordered
+memory to compare a threshold value of 1. If the value of <codeph>&amp;buffer.iDisplayDriverCount</codeph> is
+greater than or equal to 1 then it is added with -1 and the final value of <codeph>&amp;buffer.iDisplayDriverCount</codeph> is
+returned. If the value of <codeph>&amp;buffer.iDisplayDriverCount</codeph> is
+not greater than or equal to 1, the value of <codeph>&amp;buffer.iDisplayDriverCount</codeph> is
+added with 0 and returned. The driver are disconnected when the returned value
+is equal to 1.</p></section>
+</conbody><related-links>
+<link href="GUID-9D93F895-B975-4F2D-A2A3-817033EA5C12.dita"><linktext>Maintaining
+Data Integrity Using Memory Barriers</linktext></link>
+</related-links></concept>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-052F58B7-117B-5EDD-A3D5-CB0DE6A4E239" xml:lang="en"><title>IIC Kernel-side
+Implementation Guide: Generic Considerations</title><shortdesc>This document explains how to implement an interface from Symbian
+platform to an IIC bus.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-C3EE341A-BEAB-4E0C-A91E-7A1A285BCE96"><title>Purpose</title> <p>This document covers information which
+is generic to master and slave channel implementation </p> <p><b>Intended
+Audience</b> </p> <p>Base porting engineers. </p> <p><b>Introduction</b> </p> <p>IIC
+buses (serial inter-chip buses) are a class of bus used to transmit non time-critical
+data between components of a hardware system. </p> </section>
+<section id="GUID-38B543E8-06DB-417F-8B8E-84F6B43DF8BF"><title>Generic architecture</title> <p>Different IIC buses have a
+large amount of functionality in common, but some functionality is specific
+to individual implementations. For this reason, the Symbian platform IIC library
+has an architecture consisting of two layers, the Platform Independent Layer
+(PIL) and the Platform Specific Layer (PSL). The Platform Independent Layer
+is a set of classes which encapsulate generic functionality and have been
+implemented for you. The Platform Specific Layer is an interface which you
+must implement yourself to encapsulate the functionality specific to the platform
+you are working on. </p> <p>You implement the Platform Specific Layer by subclassing
+the classes of the Platform Independent Layer and writing certain functions
+using the machine instructions of your hardware. To access the hardware you
+are strongly recommended to use the Symbian platform API (e.g. <xref href="GUID-66BB033A-3386-3913-9A25-EF3867D42C2C.dita"><apiname>AsspRegister</apiname></xref> to
+access hardware registers, or <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>GPIO</apiname></xref> to access GPIO pins). </p> <p>An
+IIC channel operates in one of two modes, master and slave, and there are
+separate master and slave APIs to be implemented. In master mode, a channel
+and a client communicating with that channel execute in two separate threads.
+In slave mode there is only one thread for both channel and client. </p> <p>The
+platform specific and platform independent APIs assume an interrupt-driven
+approach to implementation. An event on hardware triggers an interrupt, which
+then signals this event to the channel thread (where client is master) or
+client thread (where client is slave). This means that implementation involves
+writing interrupt service routines (ISRs) and a DFC queue to hold the callbacks
+which respond to them. A channel responds to interrupts by requesting notification
+of a hardware event, specified in the form of a bitmask called a trigger (slave)
+or reacting to it by receiving or transmitting data (master) or by various
+other possible responses. The possible triggers and possible responses to
+them constitute a state machine. A master channel conforms to a simple state
+machine which varies from one hardware implementation to another. A slave
+channel conforms to a more complex state machine, generic to all implementations,
+which is explained in this document. </p> <p>Symbian platform provides an
+example of an IIC channel in the Naviengine reference implementatin which
+you are encouraged to consult and use as a model. </p> <p><b>API Conditions</b> </p> <p>The
+same conditions apply to all APIs, both master and slave. They are: </p> <ul>
+<li id="GUID-EBBE18CB-D8FE-5BA6-98F4-C5AABB87731D"><p>Kernel must be unlocked. </p> </li>
+<li id="GUID-6CD66E54-61A6-5C80-AFDE-3C42DA13D75C"><p>No fast mutex must be
+held. </p> </li>
+<li id="GUID-2535DF51-CE96-5F12-89AB-AE15BD1CB6EA"><p>Interrupts must be enabled. </p> </li>
+<li id="GUID-8DF80532-D047-5160-BDAE-2CF68642D5D9"><p>APIs are called from
+thread context (not from NULL thread or DFC thread 1). </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-0C8318B1-71D7-5384-97EB-85CBBC3E6B84.dita"><linktext>IIC Kernel-side
+Implementation Guide:                 Master Channel</linktext></link>
+<link href="GUID-C9644081-004E-5DA0-8133-A32EEA91EF5E.dita"><linktext>IIC Kernel-side
+Implementation Guide:                 Slave Channel</linktext></link>
+<link href="GUID-9986DCC6-EE73-59FB-BDAC-9B09DC64FBCE.dita"><linktext>Client of
+Master Channel Implementation Tutorial</linktext></link>
+<link href="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1.dita"><linktext>Client of
+Slave Channel Implementation Tutorial</linktext></link>
+<link href="GUID-B2F86F54-EF50-56DB-ADF7-15325AC9324D.dita"><linktext>IIC Guide</linktext>
+</link>
+<link href="GUID-99FC067C-0AED-5373-AF63-8DB7FF5C1F7E.dita"><linktext>SPI Technology
+Guide</linktext></link>
+<link href="GUID-3A30DA16-ECA8-5639-A9DC-6BE2AD55420B.dita"><linktext>I2C Technology
+Guide</linktext></link>
+</related-links></concept>

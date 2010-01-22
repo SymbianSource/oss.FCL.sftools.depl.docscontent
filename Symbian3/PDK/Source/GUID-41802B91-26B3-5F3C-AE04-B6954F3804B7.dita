@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-41802B91-26B3-5F3C-AE04-B6954F3804B7" xml:lang="en"><title>Scene
+Elements</title><shortdesc>This topic provides an introduction to the concept of <b>scene
+elements</b> within the context of graphics composition. Scene elements are
+sometimes referred to as <b>layers</b>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: ScreenPlay. <b>Target audience</b>: Device creators. </p>
+<p>Within a composition scene, elements map surfaces to screen rectangles.
+Depth ordering (z-order) is used to resolve how the elements overlap each
+other. The elements support some basic pixel rectangle transformations such
+as scaling and rotation in 90 degree increments. </p>
+<p>The following diagram shows the three elements in a video telephony use
+case. The uppermost element (with a red border) contains the UI content (called
+the UI surface). This is semi-transparent and is owned by the Window Server.
+The next element down is the camera viewfinder (green border). The surface
+associated with this element is owned by the camera. The final element (blue
+border) shows a video of the caller. The surface associated with this element
+is owned by the video renderer. </p>
+<fig id="GUID-C2FEB262-DA13-5172-A432-EAC03F0FC80A">
+<title>           The elements in a video telephony use case          </title>
+<image href="GUID-E1E25E68-7FE3-53A7-980E-CCF25090715F_d0e250255_href.png" placement="inline"/>
+</fig>
+<p>A similar principle applies when a game is running on the phone. The semi-transparent
+UI surface would overlay the element containing the EGL-owned surface. When
+the game or a video is in full screen mode, the composition engine can enter <b>fast
+path mode</b>. This indicates to the LCD controller that there is no UI content
+to blend with the background element. </p>
+<fig id="GUID-A52A1E62-E929-5CC3-A756-A7E332951155">
+<title>           Fast path mode          </title>
+<image href="GUID-F5BFE35F-ED90-50C5-8F63-7A780A97689B_d0e250269_href.png" placement="inline"/>
+</fig>
+<p> </p>
+<p>The z-order of an element is determined by its position in the list of
+elements. Several additional pieces of positional information are stored as
+element metadata. The element maps the surface to the device screen. More
+specifically it maps a part of the surface, the <b>source rectangle</b>, to
+a <b>destination rectangle</b> on the screen. The destination rectangle defines
+the position and size of the element itself. </p>
+<fig id="GUID-FCF3894F-F8D5-511F-881A-169501AA27B5">
+<title>           Element terminology          </title>
+<image href="GUID-FBF2ED6F-D1C5-5368-96C2-FCF38234BF43_d0e250289_href.png" placement="inline"/>
+</fig>
+<p>The source rectangle corresponds to the <b>viewport</b> in the Window Server
+documentation and the destination rectangle corresponds to the <b>extent</b>. </p>
+<p>The source and destination rectangles do not have to be the same size—the
+composition engine can clip or scale the data to fit. </p>
+<p>The following concepts are related to elements: </p>
+<ul>
+<li id="GUID-53CC7FB9-1BB9-50B1-8840-D83439BE4DBF"><p> <b>Scene structure</b>  </p> <p>A
+set of elements, all with a specific size, visible region and z-order, which
+when composed form an entire scene. </p> </li>
+<li id="GUID-AC3AD2BA-EE44-54B7-AA37-73CC8D0CF158"><p> <b>Scene content</b>  </p> <p>A
+set of surfaces bound with elements that contain the pixels to be composed
+according to the structure described by the scene structure. </p> </li>
+</ul>
+<p>This distinction between the scene structure and scene content is important.
+The architecture is split so that the Window Server deals only with the scene
+structure and UI content and not with the scene content. This allows optimal
+data and control paths. For example, it has the advantage that the Window
+Server does not need to take any action when the content of a video surface
+changes but the UI does not change. </p>
+<p>The components in the Graphics Composition collection are divided between
+those that manage the scene structure and those that manage scene content: </p>
+<ul>
+<li id="GUID-DB21268B-F180-5985-BEAE-ECC4E1DC2420"><p>The composition engine
+manages scene structure. This means that the composition engine mainly deals
+in elements and dictates how the scene is composed. </p> </li>
+<li id="GUID-F32404D9-5DD8-53A8-95D2-664BC3E25A79"><p>The Surface Manager
+and the Surface Update Server manage scene content. This means that they mainly
+deal in surfaces. </p> </li>
+</ul>
+
+</conbody><related-links>
+<link href="GUID-783086B9-D6FE-539C-90F1-D745253A640D.dita"><linktext>Composition
+Concepts</linktext></link>
+<link href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita"><linktext>Graphics
+Composition Collection Overview</linktext></link>
+</related-links></concept>

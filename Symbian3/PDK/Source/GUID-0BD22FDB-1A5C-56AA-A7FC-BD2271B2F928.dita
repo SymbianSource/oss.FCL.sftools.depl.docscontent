@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-0BD22FDB-1A5C-56AA-A7FC-BD2271B2F928" xml:lang="en"><title>Writing
+a Backup Engine Client (CSBEClient)</title><shortdesc>The Backup Engine exports <apiname>conn::CSBEClient</apiname>,
+which provides data to a host PC for backup and receives data from a host
+PC while restoring data. Device creators can call this API to write a backup
+server that handles PC requests for backup and restore. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>The <xref href="GUID-5CA933B9-7987-5DDE-AE12-B0D5AFD31451.dita">Backup
+Engine Overview</xref> provides an overview of the backup and restore architecture
+as well as components and APIs for using <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref>.
+It also shows that a backup server (<xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref>) interacts
+with a host PC and the Backup Engine. </p> <p>The <xref href="GUID-7FDD9FEC-5017-5E5D-A50A-5F343A3C7F6C.dita">Backup
+Engine Concepts</xref> introduces different types of backup and restore. </p> <p>The <xref href="GUID-C579E24C-2B8E-5646-B307-7967F50A0B84.dita">File Locks</xref> describes
+the concepts of public data and private data. </p> </prereq>
+<context id="GUID-039E9656-DF70-52DD-AF3A-05912737C1A9"><p>After a phone connects
+to a PC, the phone user can select to back up or restore data from PC-side
+software. The backup software on the device side responds to the requests
+by working with a set of components. </p> <p>Requests during a backup or a
+restore are usually initiated from a host PC to a backup server on a device.
+The backup server handles the PC requests and calls <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> for
+backup and restore. The <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> then interacts
+with the Backup Engine which in turn calls data owner applications for data
+request or supply. The backup server finally transfers the data to and from
+the host PC. </p> <fig id="GUID-52D747F3-9EA8-5474-B854-A00A01D6B8F1">
+<image href="GUID-414DD60D-C5C3-5A75-9DF7-8980F72CB485_d0e597578_href.jpg" placement="inline"/>
+</fig> <p>In the CSBEClient API, <codeph>RequestDataL()</codeph> and <codeph>SupplyDataL()</codeph> are
+two major functions for backup and restore: </p> <ul>
+<li id="GUID-7641D61E-215C-5326-B05B-9367DB79AC4D"><p>For a backup, the backup
+server calls the <codeph>CSBEClient::RequestDataL()</codeph> function which
+gets the data from the Backup Engine. The backup server can then transfer
+the data to the host for a backup. </p> </li>
+<li id="GUID-85B681B6-842A-5A1A-BF77-9EC83B082F56"><p>For a restore, the backup
+server gets the data from the host PC. The backup server then calls the <codeph>CSBEClient::SupplyDataL()</codeph> function
+which supplies the data to the Backup Engine for a restore. </p> </li>
+</ul> <p>A particular type of <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-27BF6AEB-72A0-3E39-9598-AB97BE2569FC"><apiname>conn::CSBGenericTransferType</apiname></xref> is
+passed to these functions depending on the data to be transferred, such as
+a snapshot or incremental data. Refer to the <xref href="GUID-8BFC185E-91FD-5E04-A26C-728B06F31FDD-GENID-1-7-1-23-1-1-4-1-3-1-6-1-6-1.dita">Creating
+transfer types</xref> section for an example. </p><p> The backup and restore
+sections below describe the <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> function calls.
+The sequence of the calls depends on the requests from the host PC and the
+backup server, but the recommended sequence is listed below.</p> </context>
+<steps-unordered id="GUID-23CB37EE-9978-5FCF-BBC2-B532FA1323FC">
+<step id="GUID-8298F87B-6603-57DB-B2F4-08615F61442D"><cmd/>
+
+<info><xref href="GUID-F40BA7EA-AF7E-5BCF-96DD-9C4D8E947F0C.dita">Writing a CSBEClient
+for Backup</xref> describes the sequence of <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> functions
+call for partial and incremental data backup. </info>
+</step>
+<step id="GUID-61CD02CF-7592-5F6E-9943-98BEB5397E69"><cmd/>
+<info><xref href="GUID-A5ED089C-8831-5E25-AE7C-8E6F1C21D3BE.dita">Writing a CSBEClient
+for Restore</xref>  describes the sequence of <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> functions
+call for partial and incremental data restore. </info>
+</step>
+<step id="GUID-151F94B7-4A9F-5C58-8AE0-B15C83025801"><cmd/>
+<info><xref href="GUID-8BFC185E-91FD-5E04-A26C-728B06F31FDD-GENID-1-7-1-23-1-1-4-1-3-1-6-1-6-1.dita">Creating Transfer
+Types</xref> describes how to create a particular <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-27BF6AEB-72A0-3E39-9598-AB97BE2569FC"><apiname>conn::CSBGenericTransferType</apiname></xref> transfer
+data type. The data type is passed to the <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> to
+transfer the data from or to the Backup Engine. </info>
+</step>
+</steps-unordered>
+</taskbody><related-links>
+<link href="GUID-5CA933B9-7987-5DDE-AE12-B0D5AFD31451.dita"><linktext>Backup Engine
+Overview</linktext></link>
+<link href="GUID-743D2832-E73A-5184-A85D-306B2A6FFACC.dita"><linktext>Active Backup
+Client</linktext></link>
+</related-links></task>

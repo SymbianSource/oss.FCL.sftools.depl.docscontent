@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-FEA8BB25-3F1F-5F2E-92E3-E5CF360BDD4B"><title>State Aware Component</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The state aware component session, <xref href="GUID-89C25B0F-DB76-30D5-A4D6-0C12922194E4.dita"><apiname>RSsmStateAwareSession</apiname></xref>, provides an API for use by components that must be system state aware. A system state aware component is notified of changes to the system state through this API. </p> <p>The declaration of <xref href="GUID-89C25B0F-DB76-30D5-A4D6-0C12922194E4.dita"><apiname>RSsmStateAwareSession</apiname></xref> is as defined in the following class: </p> <codeblock id="GUID-3F89CA2F-C193-591F-A98B-6F6DEB16C115" xml:space="preserve">
+class RSsmStateAwareSession
+{
+    public:
+        IMPORT_C TInt Connect( TDmDomainId aId );
+           IMPORT_C void Close();
+           IMPORT_C TSsmState State() const;
+           IMPORT_C void RequestStateNotification( TRequestStatus&amp; aStatus );
+           IMPORT_C void RequestStateNotificationCancel();
+           IMPORT_C void AcknowledgeStateNotification( TInt aError );
+           IMPORT_C void AcknowledgeAndRequestStateNotification( TInt aError, TRequestStatus&amp; aStatus );
+}
+</codeblock> <p>The following table lists the various methods of <xref href="GUID-89C25B0F-DB76-30D5-A4D6-0C12922194E4.dita"><apiname>RSsmStateAwareSession</apiname></xref> and their description. </p> <table id="GUID-1E11A150-AFAA-5EB5-94EB-5654AEB42F75"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>Method</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <codeph>RSsmStateAwareSession::Connect()</codeph>  </p> </entry> <entry><p>This method connects the 'R' class so that it is ready for use. The <codeph>aDomainId</codeph> parameter is used to specify at which position in the system state domain hierarchy this client must be inserted. The position in the domain hierarchy determines the order in which clients are notified of state changes. </p> </entry> </row> <row><entry><p> <codeph>RSsmStateAwareSession::State()</codeph>  </p> </entry> <entry><p>This method returns the current system state. The <codeph>RSsmStateAwareSession::RequestStateNotification()</codeph> method completes the <codeph>aStatus</codeph> when the system state has changed from its current value. </p> </entry> </row> <row><entry><p> <codeph>RSsmStateAwareSession::RequestStateNotificationCancel()</codeph> </p> </entry> <entry><p>This method cancels the previous request for state notification on this <xref href="GUID-89C25B0F-DB76-30D5-A4D6-0C12922194E4.dita"><apiname>RSsmStateAwareSession</apiname></xref>. </p> </entry> </row> <row><entry><p> <codeph>RSsmStateAwareSession::AcknowledgeStateNotification()</codeph>  </p> </entry> <entry><p>This method is used to signal that the client has reacted appropriately to the notified state change. The <codeph>aError</codeph> value is used to pass back information about the success of the actions performed by this client, such as successful initialisation of elements during a staged start-up. </p> </entry> </row> <row><entry><p> <codeph>RSsmStateAwareSession::AcknowledgeAndRequestStateNotification()</codeph> </p> </entry> <entry><p>This method provides clients to acknowledge a state change notification and request notification of subsequent changes without the risk of the client missing a later update to the system state. It combines the functions of <codeph>AcknowledgeStateNotification()</codeph> and <codeph>RequestStateNotification()</codeph> into a single method call. </p> </entry> </row> <row><entry><p> <codeph>AcknowledgeStateNotification() or
+                AcknowledgeAndRequestStateNotification() </codeph>  </p> </entry> <entry><p>This method is called after a client has requested and received the notification of a state change to acknowledge that the client has responded to the state notification. </p> <p> <b>Note:</b> A time-out exists for this acknowledgement, so clients of this API have to complete the necessary tasks for the state notification and must acknowledge the transition at the earliest. </p> </entry> </row> </tbody> </tgroup> </table> </conbody></concept>

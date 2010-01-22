@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D5DDC05E-B8C6-5BF0-AEBA-EED1D88BB5BB" xml:lang="en"><title>CAF
+Streaming Support Overview</title><abstract><p><xref href="GUID-7EE46FD9-DC9E-5C1F-9AC5-48F5212AF0CA.dita">CAF</xref> Streaming
+Support component comprises a framework that provides interfaces for managing <xref href="http://en.wikipedia.org/wiki/Digital_rights_management" scope="external">Digital
+Rights Management (DRM)</xref> protected streamed data. </p></abstract><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p>CAF streaming framework provides interfaces
+for applications to access DRM protected data stream using streaming agents.
+A CAF streaming agent is an ECom plug-in that provides streaming <xref href="http://en.wikipedia.org/wiki/Digital_rights_management" scope="external">DRM</xref> data support in CAF. </p> <p>Device creators can
+use the interfaces provided by the framework to support streaming DRM content. </p> </section>
+<section><title>Key concepts</title> <dl>
+<dlentry>
+<dt>CAF streaming agent</dt>
+<dd><p>A CAF streaming agent is an ECom plug-in that provides streaming <xref href="http://en.wikipedia.org/wiki/Digital_rights_management" scope="external">DRM</xref> data
+support. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Key stream</dt>
+<dd><p>A stream of data and meta-data required for decrypting encrypted media
+streams. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Key stream decoder</dt>
+<dd><p>A key stream decoder decrypts the key stream. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Data stream</dt>
+<dd><p>A sequence of digitally encrypted packets of data (media data). </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Short-term key</dt>
+<dd><p>A key that decrypts data packets. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Long-term key</dt>
+<dd><p>A key that encrypts short-term keys. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Cryptographic context</dt>
+<dd><p>The key data along with its corresponding meta-data, such as algorithms
+and usage parameters. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Rights Object</dt>
+<dd><p>A file that includes long-term keys, usage rights such as the validity
+and expiry dates for which the subscription is purchased and post-acquisition
+rights. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Session Description Protocol (SDP) </dt>
+<dd><p>The SDP protocol specifies the properties of a streaming media session.
+The protocol includes information such as audio and video encoding type, addresses
+for delivering the respective streams, protection of the streamed data and
+so on. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Architecture</title> <p> <i>CAF for Streaming Support</i> handles
+DRM protected key stream. The framework handles specific standards including <xref href="http://en.wikipedia.org/wiki/DVB-H" scope="external">DVB-H</xref> and <xref href="http://en.wikipedia.org/wiki/OMA_BCAST" scope="external">OMA DRM BCAST</xref> (DRM
+and SmartCard profiles) using CAF streaming agent. The CAF streaming agent
+manages the key stream, but does not process the data stream. </p> <p>The
+agent receives a key stream containing short-term key. It checks if the received
+key stream is supported and if so, associates it with an appropriate key stream
+decoder for decryption and pushes the decrypted (cryptographic) context to
+data processing stack such as <i>CommsServer</i> for processing the data stream. </p> <p>The
+agent and entities in the data processing stack have to be assured and maintained
+for setting the cryptographic context (short-term key and relevant algorithms).
+The processed data is then passed to the appropriate streaming player middleware
+(audio or video device drivers) for playback or recording using <b>Multimedia
+Framework</b>. </p> <fig id="GUID-CF002BDE-3759-5603-AC5C-546ADC4DAA86">
+<title>              CAF Streaming Support Architecture            </title>
+<image href="GUID-DF14773D-6A2E-5FAD-A1CC-5D54E53BEA2E_d0e609772_href.png" placement="inline"/>
+</fig> <p>For information about the set-up and tear down of streaming session,
+see <xref href="GUID-DD95C4FA-B044-5A0E-A556-C7171AEFED8E.dita">Streaming Session
+Sequence</xref>. </p> </section>
+<section><title>APIs</title> <p>The streaming CAF interfaces are defined using
+the namespace <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita"><apiname>StreamAccess</apiname></xref>. </p> <table id="GUID-E60A4002-2D6B-5F94-B3D3-661AF3BE8722">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Class Name</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita#GUID-D6AB6275-9EEF-370C-8556-D6354FB46583/GUID-358B5544-5184-342E-9968-7EDA1D185811"><apiname>StreamAccess::CAgentKeyStreamDecoder</apiname></xref>  </p> </entry>
+<entry><p>Represents the base class for a CAF streaming agent </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita#GUID-D6AB6275-9EEF-370C-8556-D6354FB46583/GUID-88594631-30C1-3046-B2D4-1DE7128699A2"><apiname>StreamAccess::CKeyStreamDecoder</apiname></xref>  </p> </entry>
+<entry><p>Allows clients to instantiate key stream decoders for short-term
+key streams in protected broadcasts. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita#GUID-D6AB6275-9EEF-370C-8556-D6354FB46583/GUID-8CBEED82-471C-3198-ACED-C1A2F5C23216"><apiname>StreamAccess::CStreamAgentFactory</apiname></xref>  </p> </entry>
+<entry><p>Represents a factory class responsible for creating instances of <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita#GUID-D6AB6275-9EEF-370C-8556-D6354FB46583/GUID-88594631-30C1-3046-B2D4-1DE7128699A2"><apiname>StreamAccess::CKeyStreamDecoder</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D6AB6275-9EEF-370C-8556-D6354FB46583.dita#GUID-D6AB6275-9EEF-370C-8556-D6354FB46583/GUID-F7615BC3-73C7-33B4-96B6-00AF9B10AB3C"><apiname>StreamAccess::CKeyStreamSink</apiname></xref>  </p> </entry>
+<entry><p>Defines the abstract class for key stream sink. Key stream sink
+is used for applying keys decrypted by the CAF streaming agent to their correct
+destination. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>A CAF streaming agent plug-in must implement <xref href="GUID-CB467A21-BFBF-3DB8-8163-8E3ED9191B4C.dita"><apiname>CAgentKeyStreamDecoder</apiname></xref>.
+A streaming player middleware, for example the Multimedia Framework controller
+(MMF controller), must use <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita"><apiname>CKeyStreamDecoder</apiname></xref>. The figure
+below shows the key classes of CAF streaming agent. </p> <fig id="GUID-5A9F3FAB-E8FC-53B4-B71B-1D2A616E89BA">
+<title>              Class diagram            </title>
+<image href="GUID-3FEA5BE8-C306-587F-8CCC-E4619DE7183A_d0e609904_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Typical uses</title> <p>CAF Streaming Support provides interfaces
+to create an ECom based streaming agent. A streaming player middleware such
+as MMF controller uses streaming agent to view and access the key stream.
+For more information, see <xref href="GUID-D5DDC05E-B8C6-5BF0-AEBA-EED1D88BB5BB.dita">CAF
+Streaming Support Tutorials</xref> . </p> </section>
+</conbody><related-links>
+<link href="GUID-92FC3BBB-9C80-5665-8421-5C6A11BE4A5C.dita"><linktext> CAF Streaming
+Support Concepts</linktext></link>
+<link href="GUID-4AAE6CC7-7F0B-51B7-8F6F-7E538841DF41.dita"><linktext>Writing CAF
+Streaming Agents</linktext></link>
+</related-links></concept>

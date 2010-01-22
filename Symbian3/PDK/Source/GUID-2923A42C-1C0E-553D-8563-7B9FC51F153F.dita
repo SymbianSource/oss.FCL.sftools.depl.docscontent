@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F" xml:lang="en"><title>EGL
+Functions with Symbian-Specific Behavior</title><shortdesc>This topic describes the EGL functions that are defined as having
+platform-specific behavior and explains their expected behavior on the Symbian
+platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The functions that have Symbian-specific behavior are: </p>
+<ul>
+<li id="GUID-26A32D85-FFC6-5EF8-AF56-D4F2BB809D51"><p> <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-4E3AD50C-FBBF-554A-99FE-A637AADAE93C">eglQueryString()</xref>  </p> </li>
+<li id="GUID-04065DA1-A3E1-52C2-9C24-8B48FF3968FE"><p> <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-7D3B2473-5BFA-5C8A-B895-7B7E3D9949A8">eglCreatePixmapSurface()</xref> </p> </li>
+<li id="GUID-988AF3F7-D2CD-5993-A980-82C46A6E2D36"><p> <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-7FC7E115-F659-5EA0-9BD0-AFFA717C2C00">eglChooseConfig()</xref>  </p> </li>
+<li><p><xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-E6BE99B1-6C0D-4D0D-B956-E7D3A312D75E">eglSurfaceAttrib()</xref></p></li>
+</ul>
+<section id="GUID-4E3AD50C-FBBF-554A-99FE-A637AADAE93C"><title>eglQueryString()</title> <codeblock id="GUID-3A9B5681-C61C-581F-A72E-10A821C15C3C" xml:space="preserve">const char *eglQueryString(
+                  EGLDisplay dpy,
+                  EGLint name)</codeblock> <p>When <codeph>name</codeph> is <codeph>EGL_EXTENSIONS</codeph>,
+the function returns the list of extensions supported by the implementation.
+The platform-specific strings are as follows: </p> <table id="GUID-969FA7B5-8C7A-5CD0-AA9E-9EA4AB3B34BA">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>String</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>EGL_SYMBIAN_COMPOSITION</codeph>  </p> </entry>
+<entry><p>Indicates that the ScreenPlay variant is in use. </p> </entry>
+</row>
+<row>
+<entry><p><codeph>EGL_KHR_reusable_sync</codeph></p></entry>
+<entry><p>Indicates that the EGL reusable sync extension is supported.</p></entry>
+</row>
+<row>
+<entry><codeph>EGL_NOK_resource_profiling</codeph></entry>
+<entry><p>Indicates that the EGL resource profiling extension is supported.</p></entry>
+</row>
+<row>
+<entry><codeph>EGL_NOK_resource_profiling2</codeph></entry>
+<entry><p>Indicates that the EGL resource profiling2 extension is supported.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p><b>Example </b> </p> <codeblock id="GUID-D509300C-44C2-5AC1-8C8D-A5F42B55D825" xml:space="preserve">if ( NULL == strstr(eglQueryString(display, EGL_EXTENSIONS), "EGL_SYMBIAN_COMPOSITION") ) 
+    {
+    RDebug::Printf("ScreenPlay not in use.");
+    error = KErrNotSupported;
+    }</codeblock> </section>
+<section id="GUID-7D3B2473-5BFA-5C8A-B895-7B7E3D9949A8"><title>eglCreatePixmapSurface()</title> <codeblock id="GUID-70CE6CC8-4F27-5296-B41C-998FDE11C466" xml:space="preserve">EGLSurface eglCreatePixmapSurface(
+                  EGLDisplay dpy,
+                  EGLConfig config,
+                  EGLNativePixmapType pixmap,
+                  const EGLint *attrib_list)</codeblock> <p> <codeph>EGLNativePixmapType</codeph> is
+a <codeph>CFbsBitmap*</codeph> . See <xref href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita">Symbian-Specific
+Behavior</xref> for more information. </p> <p>You must choose <codeph>&lt;config&gt;</codeph> using
+the attribute <codeph>EGL_MATCH_NATIVE_PIXMAP</codeph> when calling <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-7FC7E115-F659-5EA0-9BD0-AFFA717C2C00">eglChooseConfig()</xref> in
+order to ensure compatibility with the Symbian pixmap. </p> <p><b>Preconditions </b> </p> <ul>
+<li id="GUID-765C39DC-C244-5D0D-A084-63F8CCD8BC92"><p> <codeph>&lt;pixmap&gt;</codeph> has
+been initialized. </p> </li>
+<li id="GUID-1C249E36-D0F0-599F-8845-CBCEE4A8DC4F"><p>The <codeph>EGL_VG_ALPHA_FORMAT</codeph> attribute
+must be set to <codeph>EGL_VG_ALPHA_FORMAT_PRE</codeph> if the following conditions
+are all true: </p> <ul>
+<li id="GUID-5C0EB569-7768-5DA6-A114-0DB95380A686"><p>The pixel format of <codeph>&lt;pixmap&gt;</codeph> specifies
+premultiplied alpha—such as <codeph>EColor16MAP</codeph>. </p> </li>
+<li id="GUID-C103868C-106E-5BD3-8CD5-792548A7C30E"><p>The <codeph>EGL_RENDERABLE_TYPE</codeph> of <codeph>&lt;config&gt;</codeph> includes <codeph>EGL_OPENVG_BIT</codeph>. </p> </li>
+</ul> </li>
+</ul> <p><b>Error conditions </b> </p> <table id="GUID-9058A877-4E21-52DD-8F07-9785D46B9B4A">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Error</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>EGL_NO_SURFACE</codeph>  </p> </entry>
+<entry><p>Returned if any of the preconditions are violated. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EGL_BAD_NATIVE_PIXMAP</codeph>  </p> </entry>
+<entry><p>Error generated when <codeph>&lt;pixmap&gt;</codeph> is not initialized. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EGL_BAD_MATCH</codeph>  </p> </entry>
+<entry><p>Error generated when any of the following occur: </p> <ul>
+<li id="GUID-7669B73A-8066-5488-A9F0-C8CC151107C0"><p>The attributes of <codeph>&lt;pixmap&gt;</codeph> do
+not correspond to those of <codeph>&lt;config&gt;</codeph>. </p> </li>
+<li id="GUID-C52CFB58-C033-52B6-ADBD-935D2808DD4D"><p> <codeph>&lt;config&gt;</codeph> does
+not support rendering to pixmaps (the <codeph>EGL_SURFACE_TYPE</codeph> attribute
+does not contain the <codeph>EGL_PIXMAP_BIT</codeph>). </p> </li>
+<li id="GUID-FB3EA01C-CD38-5764-8019-FD63B3B673B4"><p>The <codeph>EGL_VG_ALPHA_FORMAT</codeph> attribute
+is not set to <codeph>EGL_VG_ALPHA_FORMAT_PRE</codeph> for the cases described
+in the preconditions section above. </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-7FC7E115-F659-5EA0-9BD0-AFFA717C2C00"><title>eglChooseConfig()</title> <codeblock id="GUID-36D7DCCD-C2AA-5A33-B55C-7648E685DC6B" xml:space="preserve">EGLBoolean eglChooseConfig(
+                  EGLDisplay dpy,
+                  const EGLint *attrib_list,
+                  EGLConfig *configs,
+                  EGLint config_size,
+                  EGLint *num_config)</codeblock> <p>The <codeph>EGLNativePixmapType</codeph> value
+corresponding to the <codeph>EGL_MATCH_NATIVE_PIXMAP</codeph> attribute is <codeph>CFbsBitmap*</codeph>.
+See <xref href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita">Symbian-Specific
+Behavior</xref> for more information. </p>  <p>The configuration attribute <codeph>EGL_SWAP_BEHAVIOR_PRESERVED_BIT</codeph> is
+set by default on window surfaces. This bit is not relevant to pixmap and
+pbuffer surfaces because they are single-buffered.</p> <p><b>Postconditions </b> </p> <p>The
+following apply to the <codeph>EGLNativePixmapType</codeph> value only. </p> <ul>
+<li id="GUID-37ED30DE-703C-5427-9DE5-9D3E0FBDCDC8"><p>The <codeph>EGL_SURFACE_TYPE</codeph> of
+each matching config contains <codeph>EGL_VG_ALPHA_FORMAT_PRE_BIT</codeph> if
+the following conditions are all true: </p> <ul>
+<li id="GUID-ECCF6C6C-B582-5326-B18B-8FB9FCA87309"><p>The pixel format of
+the pixmap specifies premultiplied alpha—such as <codeph>EColor16MAP</codeph>. </p> </li>
+<li id="GUID-DC7E7D5B-2E6F-5290-A419-C5BD3EFA69E4"><p>The <codeph>EGL_RENDERABLE_TYPE</codeph> of
+the config includes <codeph>EGL_OPENVG_BIT</codeph>. </p> </li>
+</ul> </li>
+</ul> <p> <i>Note</i>: The <codeph>EGL_RENDERABLE_TYPE</codeph> can be used
+as an input to <codeph>eglChooseConfig()</codeph> to further filter the set
+of configs returned. </p> </section>
+<section id="GUID-E6BE99B1-6C0D-4D0D-B956-E7D3A312D75E"><title>eglSurfaceAttrib()</title><codeblock xml:space="preserve">EGLBoolean eglSurfaceAttrib(
+                  EGLDisplay dpy,
+                  EGLSurface surface, 
+                  EGLint attribute,
+                  EGLint value);</codeblock><p>If the <codeph>attribute</codeph> is <codeph>EGL_SWAP_BEHAVIOR</codeph>,
+the value can be one of the following:.</p><ul>
+<li><p><codeph>EGL_BUFFER_DESTROYED</codeph>: Indicates that posting a surface
+with <codeph>eglSwapBuffers()</codeph> changes or destroys the back buffer
+content.</p></li>
+<li><p><codeph>EGL_BUFFER_PRESERVED</codeph>: Indicates that  posting a surface
+with <codeph>eglSwapBuffers()</codeph> preserves the back buffer content.</p></li>
+</ul> <p>The preserve buffer feature is relevant only to window surfaces.
+It is not relevant to pbuffer or pixmap surfaces because they are single-buffered.
+Therefore setting the swap behavior to preserve buffer is not allowed for
+these surface types, as shown in the following table. </p> <table id="GUID-1BB87D88-B15C-4BB5-AAC8-88094B4ADB2A">
+<title>Configuration behaviors</title>
+<tgroup cols="4"><colspec colname="col1" colwidth="1.62*"/><colspec colname="col2" colwidth="0.88*"/><colspec colname="col3" colwidth="0.74*"/><colspec colname="col4" colwidth="0.79*"/>
+<thead>
+<row>
+<entry valign="top">Configuration Mask</entry>
+<entry valign="top">Default EGL_SWAP_BEHAVIOR</entry>
+<entry valign="top">Set Destroyed Allowed?</entry>
+<entry valign="top">Set Preserved Allowed?</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><codeph>EGL_SWAP_BEHAVIOR_PRESERVED_BIT|EGL_WINDOW_BIT </codeph></entry>
+<entry>Destroyed</entry>
+<entry>Yes</entry>
+<entry>Yes</entry>
+</row>
+<row>
+<entry><codeph>EGL_WINDOW_BIT</codeph> </entry>
+<entry>Destroyed </entry>
+<entry>Yes</entry>
+<entry>Yes</entry>
+</row>
+<row>
+<entry> <codeph>EGL_PIXMAP_BIT</codeph></entry>
+<entry>Preserved</entry>
+<entry>Yes</entry>
+<entry>No</entry>
+</row>
+<row>
+<entry> <codeph>EGL_PBUFFER_BIT</codeph></entry>
+<entry>Preserved </entry>
+<entry>Yes</entry>
+<entry>No</entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p><b>Error conditions </b></p><p>This applies to attempting to set
+the <codeph>EGL_SWAP_BEHAVIOR</codeph> attribute to <codeph>EGL_BUFFER_PRESERVED</codeph>.
+If the surface configuration does not match <codeph>EGL_SWAP_BEHAVIOR_PRESERVED_BIT</codeph>,
+this function returns <codeph>EGL_FALSE</codeph> and generates an error of <codeph>EGL_BAD_MATCH</codeph>. </p></section>
+</conbody><related-links>
+<link href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita"><linktext>EGL Interface
+Overview</linktext></link>
+<link href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita"><linktext>Symbian-Specific
+Behavior</linktext></link>
+<link href="GUID-46813F51-370B-5853-917C-6916925A347D.dita"><linktext>EGL Tutorial</linktext>
+</link>
+<link href="GUID-DC8BFEF5-DA50-52DA-8CE2-5729A4A005F6.dita"><linktext>EGL Collection
+Overview</linktext></link>
+</related-links></concept>

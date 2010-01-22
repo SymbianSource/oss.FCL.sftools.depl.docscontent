@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-114D4F3F-9358-5B50-94DC-45CCBA783DF4" xml:lang="en"><title>Alarm
+Server Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Alarm Server is a system server, which starts during device start-up. It
+is responsible for maintaining a queue of all system-wide alarms. </p>
+<p>It allows clients to query the status of alarms, set alarms, remove alarms
+and perform other utility functions. The Alarm client API allows other components
+to interact with the Alarm Server. The Alarm Server sends notification of
+alarm expiry to the Alert Server, which then notifies the Alarm UI to display
+dialogs and play sound. </p>
+<p>The typical clients of Alarm Server include Clock and Calendar applications. </p>
+<section><title>Purpose</title> <p>The Alarm Server manages the alarms in
+the system and provides the following functionality: </p> <ul>
+<li id="GUID-56175798-4930-55A3-ACD8-848192C07A63"><p>adding, updating and
+deleting alarms. </p> </li>
+<li id="GUID-FCF13562-7E88-5A5B-84B9-05B7934E7277"><p>getting and setting
+client-specific data associated with the alarm. </p> </li>
+<li id="GUID-44A49D6B-A12E-5C05-A7D7-9BDE3E430521"><p>performing alarm category-based
+operations such as retrieval and deletion. Retrieving alarm information includes
+alarm count, unique identifiers based on alarm states. </p> </li>
+<li id="GUID-57B8169F-1166-5534-9236-D1C367AB2413"><p>getting and setting
+Alarm Server’s global sound state and play intervals. </p> </li>
+<li id="GUID-7BB3AD26-5650-5B6A-B656-76A24EF9086A"><p>notifying the client
+when alarm settings change and when the alarm expires. </p> </li>
+</ul> </section>
+<section><title>Key concepts and terms</title> <dl>
+<dlentry>
+<dt>Duration</dt>
+<dd><p>It is the time period, in seconds, for which the alarm sound is played. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Offset</dt>
+<dd><p>It is the time (in minutes) duration of alarm sound played after the
+alarm expiry. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Alarm play interval</dt>
+<dd><p>Alarm play interval consists of duration and an offset. At each offset,
+the Alarm Server makes a request to the Alarm Alert Server to display the
+alarm dialog and play the alarm sound. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Universal Time Coordinated (UTC)</dt>
+<dd><p>It is the international time standard. It is the current term for what
+was commonly referred as Greenwich Meridian Time (GMT) . Zero hours UTC is
+midnight in Greenwich England, which lies on the zero longitudinal meridian.
+Universal time is based on a 24-hour clock. Therefore, afternoon hours such
+as 4 PM are expressed as 16:00 UTC. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Daylight Saving Time (DST)</dt>
+<dd><p>Daylight Saving Time or Summer Time, is a way of utilizing more daylight
+by advancing the local time by one hour during the summer. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Session alarms</dt>
+<dd><p>The alarms that are removed from the alarm queue when their session
+owners disconnect are referred as Session Alarms. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Non-Session alarms</dt>
+<dd><p>The alarms that continue to persist in the alarm queue, even after
+their session owner which added these alarms disconnect, are referred as Non-Session
+alarms. These alarms are also referred to as Orphaned Session alarms. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Wake-Up alarms</dt>
+<dd><p>An alarm that wakes-up the device if the device is switched OFF when
+the alarm occurs, is referred to as Wake-Up alarm. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Skipped/Missed Calendar alarms</dt>
+<dd><p>An alarm which does not expire normally because of an environment change
+but the alarm’s expiry time is put in the past, is referred as Skipped Calendar
+alarms. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Architecture</title> <p>Alarm Server is implemented using
+the Symbian platform IPC client-server architecture. It has an interface to
+the Alarm Alert server, which is delivered as part of the Application Framework
+(UIKON component). Alarm Alert Server is responsible for displaying the alarm
+dialog when an alarm expires. The Alarm Server implements the Alarm Alert
+server’s client side DLL to send and receive notifications to and from the
+Alarm UI. Alarm Alert Server is a part of the UIKON server (<codeph>Eiksrv.exe</codeph>).
+The Alarm Server itself implements the client-side APIs since it is the only
+client for the Alarm Alert server. The following diagram illustrates the Alarm
+Server architecture: </p> <fig id="GUID-D6309F3E-4835-5703-8929-8A108CC5D376">
+<title>              Alarm Server Architecture            </title>
+<image href="GUID-7CD8F0E3-68C3-5939-A96D-547740D796E5_d0e152190_href.png" placement="inline"/>
+</fig> <p><b>Alarm Client and Alarm Shared</b> </p> <p>They are the static
+interface DLLs. Alarm client is the client side of the Alarm Server, which
+allows other components to interact with the Alarm Server. </p> <p>The Alarm
+Shared facilitates a common format shared across server and its clients for
+providing definition for an alarm. It consists of shared objects such as alarm
+class, IPC messages, repeat definitions, alarm states. </p> <p><b>Alarm Server</b> </p> <p>Alarm
+Server manages all alarms on the device and enables client UI applications
+to use the services provided by the Alarm Server. It relies on the Alarm UI
+to notify, which includes displaying and playing sounds. </p> <p>It uses a
+resource file to configure the sound intervals required for the alarm to repeat.
+The compiled resource file resides in the private directory of the Alarm Server.
+The resource file is used only for initial configuration. </p> <p>Alarm Server
+configurations are stored in <codeph>AlarmServer.ini</codeph> file and <codeph>Backup_Registration.xml</codeph> file
+performs a passive backup of this <codeph>.ini</codeph> file to the PC-side
+at runtime. For secure backup of this <codeph>.ini</codeph> file, <codeph>backuprestorenotification.lib</codeph> is
+used. For more information on the resource file and backup, refer to the <xref href="GUID-A5F65344-BE05-5295-85BB-E8114505FB82.dita">Alarm Sound Play Control</xref>. </p> <p>It
+provides Publish and Subscribe keys to enable the client to receive notifications
+of the changes to the Alarm Server. The P&amp;S key are: </p> <ul>
+<li id="GUID-BDB9B185-B20A-5598-AD66-29EE0DC25224"><p> <codeph>KMissingAlarmPubSubKey</codeph> -
+provides information about missed calendar alarms, which were missed due to
+the device being in the shutdown state. </p> </li>
+<li id="GUID-D0ABBB1C-0796-5E5B-A7E0-216ECAD537F5"><p> <codeph>KSkippedAlarmInstancesPubSubKey</codeph> -
+provides information about skipped calendar alarms instances which can used
+for searching the required data in the calendar store. </p> </li>
+<li id="GUID-2FCE4A66-7199-5B74-AE68-DCD702672FD3"><p> <codeph>KWakeupAlarmPubSubKey</codeph> -
+provides information about an active wake-up alarm which is set or unset. </p> </li>
+</ul> <p>For more information on Skipped Calendar Alarms and Wake-up Alarms,
+refer to <xref href="GUID-12A32F8E-0C53-5311-9B2B-8E0EA373ED08.dita">Types of Alarm</xref> section. </p> <p>It
+listens to the following events: </p> <ul>
+<li id="GUID-266EBC9B-E834-5DCD-9B5F-F9E4A13EFF4E"><p>DST rollover - Using <codeph>KDSTChangePropertyKey</codeph> P&amp;S
+key, Alarm Server listens to DST rollover information from <xref href="GUID-3CD0CEB1-CE8B-5108-A7F7-5E1414020C37.dita">Time
+Zone Server</xref> resulting in the change of wall clock/local time clock. </p> </li>
+<li id="GUID-F759197E-A22E-5C4F-89B7-247BF64134E1"><p>System state changes
+- Using <xref href="GUID-788BD091-186A-5E25-B058-952C7629A8D4.dita">System State
+Manager</xref> (SSM), Alarm Server listens to the system state changes (normal
+and shutdown states) to synchronize the backup of the alarm server queue to
+the <codeph>AlarmServer.ini</codeph> backup file. </p> </li>
+<li id="GUID-42C04AB7-8BCC-57D6-A716-4F6B12F5AC30"><p>Environment change -
+Using <xref href="GUID-7C6D3479-2159-5A9B-9970-0B3E625442A6.dita">Environment Change
+Notifier</xref> (<codeph>bafl.dll</codeph>), Alarm Server listens to the changes
+in the environment, such as system time/date change, workdays change or UTC
+offset change. </p> </li>
+</ul> <p><b>UIKON Server</b> </p> <p>UIKON server is responsible for starting
+the Alarm Server at the device boot-up, by loading the polymorphic DLL, EIKSRVUI
+provided by the device creator. </p> <p>It is also responsible for playing
+sounds, flashing lights and displaying the message. Through the UIKON server,
+alarms can be cleared, snoozed or silenced. Alarm server implements and uses
+the client side interface. Alarm UI implements the server side of the UIKON
+server. </p> </section>
+<section><title>APIs</title> <p>The Alarm Server provides the following client
+API: </p> <table id="GUID-60D7DF2B-BA9C-5CEC-9048-6B8536D04CFE">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita"><apiname>RASCliSession</apiname></xref>  </p> </entry>
+<entry><p>Client interface to Alarm session on Symbian Platform. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Typical uses</title> <p>The following are the typical use
+cases of Alarm Server: </p> <ul>
+<li id="GUID-854E8EA9-3194-5D0E-8BB5-3006B04BB6D3"><p>Using Alarm Server to
+add, update and delete alarms, set alarm status and so on. </p> </li>
+<li id="GUID-9A999DC2-6D48-58B8-B251-F22A88A1978C"><p>Playing an alarm continuously. </p> </li>
+<li id="GUID-2D7D1AF6-2728-59CF-BD92-32D97FD6C6B6"><p>Activating an alarm
+on specified days. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-E6788741-EF34-57B7-B4D4-8AAC21B25774.dita"><linktext>Alarm Server
+Concepts</linktext></link>
+<link href="GUID-63730EBD-E5C1-5BA9-AB71-8FF668ECEF00.dita"><linktext>Alarm Server
+Tutorials</linktext></link>
+<link href="GUID-7BCA8B7A-E250-5452-9837-26C60F71F14F.dita"><linktext>Alarm Server
+Reference</linktext></link>
+<link href="GUID-74153585-D483-5761-85B6-2CF2D2615C00.dita"><linktext>Alarm Server
+Example</linktext></link>
+</related-links></concept>

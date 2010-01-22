@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E238B1FE-BBD8-5C6D-AE04-258188EFF9FF" xml:lang="en"><title>Creating
+a Graphics Surface Tutorial</title><shortdesc>This tutorial first shows you how to create a composition surface
+using the Surface Manager API. It then shows you how to create second surface
+that shares the same memory. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<section id="GUID-B29CBC23-1A7A-5848-ACE1-65EFE25293DB"><title>Required background</title> <p>This
+tutorial assumes a background knowledge of the following: </p> <ul>
+<li id="GUID-5FC40F07-18E3-520D-9336-4C8D7D1D9F2C"><p><xref href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita">Graphics
+Composition Collection Overview</xref>  </p> </li>
+<li id="GUID-6688632B-48E1-5357-9451-C46487026585"><p><xref href="GUID-ADA8CECB-0E70-5B9C-8F36-0714AAF0CD13.dita">Graphics
+Composition Surfaces</xref>  </p> </li>
+<li id="GUID-86252B83-1503-588F-ACBC-2924D73F9729"><p><xref href="GUID-55EF3CEB-AF3E-5A32-96F3-F146D1A06C8F.dita">Surface
+Manager</xref>  </p> </li>
+<li id="GUID-8C7E9588-DF1B-56A2-8CAD-059F70C5DB9C"><p><xref href="GUID-81A0A2E9-4BB9-58BF-B2D3-08098E7E9C7C.dita">Surface
+Update Server</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-7ADE65B1-3DF6-5224-B783-382DC8448059"><title>Introduction</title> <p>This
+topic shows you how to create one graphics surface and then another one that
+shares the same memory. Because the screen is either in portrait or landscape
+orientation, this approach is useful for handling two surfaces, one of which
+is used for the portrait orientation and the other for the landscape orientation. </p> <p>For
+example, suppose <i>Surface 1</i> is used for landscape orientation and <i>Surface
+2</i> for portrait orientation. When a rotation is in progress from landscape
+to portrait: </p> <ul>
+<li id="GUID-B32ACAAE-91CC-5DB8-863F-224C5A5AAA06"><p>The first buffer in <i>Surface
+1</i> is in use as an input to the composition engine. </p> </li>
+<li id="GUID-AC1BA893-C782-5B02-B21B-83186B86B0A7"><p>The renderer renders
+into the second buffer in <i>Surface 2</i>. </p> </li>
+</ul> <p>Because both surfaces share the same memory, the buffers in the two
+orientations must be at the same offsets in the chunk. This is shown in the
+following diagram. </p> <fig id="GUID-552B25FF-A930-5F5B-9379-89F77AB0BE17">
+<title>              Two double-buffered surfaces that share the same memory
+           </title>
+<image href="GUID-EFFEB18E-5BF5-5855-9D1F-E7C39CB569D0_d0e253301_href.png" placement="inline"/>
+</fig> <p>In the example code below, some error handling has been omitted
+for brevity. </p> </section>
+<section><title>Creating the first surface</title> <ol id="GUID-90E6761F-7BE0-528C-ABC2-AEBCE4A8A120">
+<li id="GUID-EB97C422-189F-51D0-AF56-5803C3AECB1E"><p>Call <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>RSurfaceManager::Open()</apiname></xref> to
+open a connection to the Surface Manager. </p> <p><codeblock id="GUID-89837128-5647-56CD-8C1B-2FF142DAFE46" xml:space="preserve">RSurfaceManager surfaceManager;
+surfaceManager.Open();</codeblock> </p> <p>The Surface Manager is now ready
+for use. </p> </li>
+<li id="GUID-8B6DA00E-12F1-520B-9DC9-1AFC72EF4443"><p>Specify the surface
+creation attributes using the <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>TSurfaceCreationAttributes</apiname></xref> class. </p> <p><codeblock id="GUID-2B4FF1D8-69CB-5DA3-9A14-1A8B17DE85B5" xml:space="preserve">RSurfaceManager::TSurfaceCreationAttributesBuf bf;
+RSurfaceManager::TSurfaceCreationAttributes&amp; attributes = bf();
+    
+attributes.iSize.iWidth = 320;
+attributes.iSize.iHeight = 240;
+attributes.iBuffers = 2;
+attributes.iPixelFormat = EUidPixelFormatARGB_4444;    
+attributes.iStride = 640;
+attributes.iOffsetToFirstBuffer = 100;
+attributes.iAlignment = 4;
+attributes.iContiguous = EFalse;
+attributes.iCacheAttrib = TCacheAttribute::ECached; 
+     
+// Create two user-defined hints.
+RSurfaceManager::THintPair hints[2];
+hints[0].Set(0x124578, 25, ETrue);
+hints[1].Set(0x237755, 50, ETrue);
+    
+attributes.iHints = hints;
+attributes.iHintCount = 2;</codeblock> </p> </li>
+<li id="GUID-BC9CCB88-C7FE-54D8-83B6-957D274CBC9F"><p>Call <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>RSurfaceManager::CreateSurface(const
+                TSurfaceCreationAttributesBuf&amp;, TSurfaceId&amp;)</apiname></xref> to
+create the first surface. </p> <p>This function takes the surface creation
+attributes as input and returns the new surface ID. </p> <p><codeblock id="GUID-9B155DBD-C343-5103-B2A3-CE6DB30CA020" xml:space="preserve">TSurfaceId surfaceId;
+TInt err = surfaceManager.CreateSurface(bf, surfaceId);</codeblock> </p> </li>
+<li id="GUID-5C36F371-D0D4-52ED-87D8-B87B9FE7C947"><p>Call <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>RSurfaceManager::MapSurface(const
+TSurfaceId&amp;,                 RChunk&amp;)</apiname></xref> to map the surface. </p> <p>This
+function takes the surface ID as input and returns a handle to the shared
+chunk. </p> <p><codeblock id="GUID-C0058D19-355B-5A16-B6A2-602DD35C90D1" xml:space="preserve">if (err == KErrNone)
+    {
+    // We have a surface, so map it in.
+    RChunk chunk;
+    err = surfaceManager.MapSurface(surfaceId, chunk);
+    if ( err == KErrNone)
+        { 
+        // Get info about it
+        RSurfaceManager::TInfoBuf buf;
+        RSurfaceManager::TSurfaceInfoV01&amp; surfaceInfo = buf(); 
+       
+        surfaceManager.SurfaceInfo(surfaceId, buf); 
+        }</codeblock> </p> </li>
+</ol> </section>
+<section><title>Creating the second surface</title> <p>An overload of <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>RSurfaceManager::CreateSurface()</apiname></xref> allows
+you to supply a shared chunk as an input parameter. The shared chunk must
+be successfully allocated by the calling code before it is passed in to the
+surface creation API. We will use the shared chunk returned in the last step. </p> <ol id="GUID-9E4CE367-00ED-5F39-829C-BF3B5CD8446C">
+<li id="GUID-6144B775-CFB1-5CFF-9AF4-AC7AA823D375"><p>Specify the surface
+creation attributes in a <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>TSurfaceCreationAttributes</apiname></xref> class. </p> <codeblock id="GUID-EF7EFC61-9AE9-53C9-93DA-2E7E259DA4B2" xml:space="preserve">// We have a surface, so create an another surface with a different             
+// orientation.
+         
+RSurfaceManager::TSurfaceCreationAttributesBuf bf2;
+attributes = bf2();
+         
+// Initialize the surface creation attributes.  
+attributes.iSize.iWidth  = 240; // Change the orientation .
+attributes.iSize.iHeight = 320;   
+attributes.iBuffers = 2;
+attributes.iPixelFormat = EUidPixelFormatARGB_4444;    
+attributes.iStride = 480;    // Width has changed to 240.
+     
+// Read the offset to the first buffer from the first surface.
+TInt offset;
+surfaceManager.GetBufferOffset(surfaceId, 0, offset); 
+attributes.iOffsetToFirstBuffer = offset;
+        
+// iCacheAttribute and iContiguous are not used for already existing
+// chunks.</codeblock> </li>
+<li id="GUID-868F20E1-9A6A-52F7-8979-15793E634659"><p>Call <xref href="GUID-733B8BFA-7BC2-3A6D-A66F-F788413D25A9.dita"><apiname>RSurfaceManager::CreateSurface(const
+                TSurfaceCreationAttributesBuf&amp;, TSurfaceId&amp;, const
+                RChunk&amp;)</apiname></xref> to create a surface in the specified
+shared chunk. This overload takes the surface creation attributes and the
+handle of the existing chunk (returned in step 4 above) as inputs and returns
+the new surface ID. </p> <codeblock id="GUID-DC3C332D-CBD0-5804-8A44-66545A1558AF" xml:space="preserve">TSurfaceId surfaceId1;
+err = surfaceManager.CreateSurface(bf2, surfaceId1, chunk);    
+if (err == KErrNone)
+    {
+    // Surface created successfully.
+    }</codeblock> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-55EF3CEB-AF3E-5A32-96F3-F146D1A06C8F.dita"><linktext>Surface Manager
+Overview</linktext></link>
+<link href="GUID-ADA8CECB-0E70-5B9C-8F36-0714AAF0CD13.dita"><linktext>Graphics
+Surfaces</linktext></link>
+<link href="GUID-63CB6C7E-44EC-5D0B-A37D-FE78F7D76592.dita"><linktext>Graphics
+Composition Collection</linktext></link>
+</related-links></concept>

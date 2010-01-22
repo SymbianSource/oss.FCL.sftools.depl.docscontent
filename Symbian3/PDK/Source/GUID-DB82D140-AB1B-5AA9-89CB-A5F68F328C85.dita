@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85" xml:lang="en"><title>Creating
+an MTP Data Provider Plug-in</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-E3BEB74D-79C7-59A9-9366-CCD8B52DB7F8-GENID-1-7-1-23-1-1-5-1-3-1-5-1-4-1-2-1"><p>Before you start,
+you must: </p> <ul>
+<li id="GUID-83AE79AE-086A-5A3C-9A58-159CF32EBE32"><p>Understand the MTP Data
+Provider API. </p> </li>
+<li id="GUID-893581C5-6E8D-5552-8624-C692058550AE"><p>Understand <xref href="GUID-1E7AA950-06C2-599C-BCC2-12BB99306E1B.dita">Symbian
+capabilities</xref>. </p> </li>
+<li id="GUID-45FB644B-17AD-5E84-9645-82979D29FC20"><p> <xref href="http://www.microsoft.com/whdc/device/wpd/MTPDevServExt_spec.mspx" scope="external">MTP Device Services Extension Specification</xref>. </p> </li>
+</ul> </prereq>
+<context id="GUID-6799E3F3-353E-5C00-A38C-D32F888392AA-GENID-1-7-1-23-1-1-5-1-3-1-5-1-4-1-2-2"><p>MTP data providers
+are implemented as ECOM plug-ins loaded into the MTP framework. The MTP Data
+Provider APIs enable device creators to create data provider plug-ins and
+support specific media and data types. Data providers interact with the MTP
+framework using the API/SPI interface pair. </p> </context>
+<steps id="GUID-CB0E761B-76EF-57F3-87E7-8CB508E1E08C">
+<step id="GUID-EC8BEF8F-2849-52D2-9801-E48E75AFFDB8"><cmd>Create a data provider
+plug-in class that derives from <xref href="GUID-710B9980-7EF5-3E20-954B-795241D1D479.dita"><apiname>CMTPDataProviderPlugin</apiname></xref> and
+implements the abstract SPI methods defined by <xref href="GUID-706C058C-6562-33F6-A923-4AD31C6233E3.dita"><apiname>MMTPDataProvider</apiname></xref>. </cmd>
+</step>
+<step id="GUID-0BEC04D8-6399-55CC-8A07-41B832A13227"><cmd>Call <codeph>MMTPDataProviderFramework::DataCodeGenerator()</codeph> to
+get a reference of <xref href="GUID-86E1BD36-36F3-3136-9185-330385950E17.dita"><apiname>MMTPDataCodeGenerator</apiname></xref> and generate a
+set of unique datacodes for a data provider service. </cmd>
+<info> Note: This step is only required to implement a data provider as a
+device service. Device creators can also write their own datacode allocation
+mechanism to avoid datacode conflicts. For more information about Datacodes,
+refer to the <xref href="http://www.microsoft.com/whdc/device/wpd/MTPDevServExt_spec.mspx" scope="external">MTP Device Service Extension Specification</xref>. </info>
+<info>The MTP Device Services Extension Specification extends the MTP protocol.
+It moves the limited 16-bit datacodes to 128-bit Global Unique IDs (GUID)
+to support extensible operations, properties and formats for a service. For
+better performance and efficiency, 16-bit datacodes which map the GUIDs are
+still used. They are generated at run time on a device with unique values.
+Datacodes and their mapping GUIDs are sent to a host PC and then only datacodes
+are used in later communications. </info>
+<info>The <xref href="GUID-86E1BD36-36F3-3136-9185-330385950E17.dita"><apiname>MMTPDataCodeGenerator</apiname></xref> interface class defines
+the following functions:<ol>
+<li id="GUID-C9D57D43-1510-482C-A88D-CFEF55A17B31"><p><codeph>MMTPDataCodeGenerator::AllocateServiceID()</codeph> generates
+a datacode for a service GUID.</p></li>
+<li id="GUID-961A9AED-C60C-4320-8950-7C838E2F916E"><p><codeph>           
+          MMTPDataCodeGenerator::AllocateServicePropertyCode()</codeph> generates
+datacodes for service property GUIDs. </p></li>
+<li id="GUID-97F8065B-D63E-4C18-9611-EED7C61CF505"><p><codeph>           
+          MMTPDataCodeGenerator::AllocateServiceFormatCode()</codeph> generates
+datacodes service format GUIDs.</p></li>
+<li id="GUID-FD2490F0-651F-46F8-B53E-E4E5644F456B"><p><codeph>           
+          MMTPDataCodeGenerator::AllocateServiceMethodFormatCode()</codeph> generates
+datacodes for service method format GUIDs. </p></li>
+</ol></info>
+<info>The following code block shows how to generate datacodes for the Task
+service GUID and one of its service format GUIDs: </info>
+<stepxmp><codeblock id="GUID-32D9F595-F8B1-5B61-ADD6-C75CCAA4F62F" xml:space="preserve">void CMTPTaskDataProvider::ConstructL()
+{
+…
+
+//Get the reference of the Datacode Generator.
+MMTPDataCodeGenerator&amp; datacodeGenerator(Framework().DataCodeGenerator());
+
+// Generate a datacode for the Windows task service GUID.
+TUint taskServiceID(0);
+const TMTPTypeUint128 KMTPTaskDpPersistentServiceID(
+                          MAKE_TUINT64(0x10287013,0x00000001),
+                          MAKE_TUINT64(0x00000000,0x00000000));
+User::LeaveIfError(datacodeGenerator.AllocateServiceID(
+                                         KMTPTaskDpPersistentServiceID,
+                                         0,
+                                         taskServiceID));
+…
+
+//Generate a datacode for the service AbstractTask format.
+TUint16  abstractTaskFormatcode(0);
+const TMTPTypeUint128 KAbstractTaskGUID(
+                           MAKE_TUINT64(0x522979c0,0x74cf44ab),
+                           MAKE_TUINT64(0x975455bc,0x596a67df));
+User::LeaveIfError(datacodeGenerator.AllocateServiceFormatCode(
+                                         KMTPTaskDpPersistentServiceID,
+                                         KAbstractTaskGUID,
+                                         abstractTaskFormatcode));
+…
+
+}
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-6D5FDCB3-A1E0-5CFE-94A0-6B33F16B11EB"><cmd>Register and configure
+a data provider. </cmd>
+<info>Each Data Provider must register with the ECOM plug-in framework by
+creating and exporting a standard ECOM plug-in framework registration file.
+In addition, each MTP Data Provider is required to register itself with the
+MTP framework by exporting a compiled resource file as follows </info>
+<info> <filepath>z:/resource/mtp/[implementation_uid].rsc</filepath>  </info>
+<info>Where [implementation_uid] is the Data Provider’s unique MTP Data Provider
+SPI implementation UID. For a Data Provider implemented as an ECOM plug-in
+[implementation_uid] should match the implementation_uid value specified in
+its ECOM plug-in registration file, for example </info>
+<info> <filepath>z:/resource/mtp/[implementation_uid].rsc</filepath>  </info>
+</step>
+<step id="GUID-9336C1C4-14B4-5529-B855-C3A61376F7A5"><cmd>Notify USB cable
+disconnection. </cmd>
+<info>The MTP Data Provider must be notified by the Symbian MTP USB transport
+upon the USB disconnection from the Host. To notify the USB disconnection,
+the licensee must handle the <codeph>EMTPDisconnected</codeph> event using
+the <codeph>ProcessNotificationL()</codeph> function. </info>
+<info>For example, </info>
+<stepxmp><codeblock id="GUID-8BF67564-E1BE-5374-A622-9264050CCA3E" xml:space="preserve">void CMTPImageDataProvider::ProcessNotificationL(TMTPNotification aNotification, const TAny* aParams)
+
+    {
+
+    __FLOG(_L8("ProcessNotificationL - Entry"));
+
+    switch (aNotification)
+
+        {
+
+    case EMTPSessionClosed:
+
+        SessionClosedL(*reinterpret_cast&lt;const TMTPNotificationParamsSessionChange*&gt;(aParams));
+
+        break;
+
+        
+
+    case EMTPSessionOpened:
+
+        SessionOpenedL(*reinterpret_cast&lt;const TMTPNotificationParamsSessionChange*&gt;(aParams));
+
+        break;
+
+    case EMTPDisconnected:
+
+        {
+
+        __FLOG(_L8("USB  - Disconnected"));   
+
+        }
+        
+        break;
+
+    default:
+
+        // Ignore all other notifications.
+
+        break;
+
+        }
+
+    __FLOG(_L8("ProcessNotificationL - Exit"));
+
+    }
+
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-B0D95CB3-82BB-5769-8D06-1C25B1DC43E6"><cmd>Grant MTP Data Provider
+capabilities. </cmd>
+<info>The MTP daemon has the following capabilities. To be loaded by the MTP
+daemon, the same capabilities must be granted to your data provider plug-in. <ol>
+<li id="GUID-B0295923-4372-46DB-8B4C-EF10F751CBC8"><p><codeph>CommDD</codeph></p></li>
+<li id="GUID-0B0F177A-3A12-469F-A656-968F6CFE4BAA"><p><codeph>LocalServices</codeph></p></li>
+<li id="GUID-9717C39E-7C86-4D79-B33D-192A8A4C0249"><p><codeph>NetworkControl</codeph></p></li>
+<li id="GUID-7FF04718-5E4E-4123-8CF2-B19B49C0AE0D"><p><codeph>NetworkServices</codeph></p></li>
+<li id="GUID-D9449582-B3FD-4C71-A26B-83E6FB44E8AC"><p><codeph>PowerMgmt</codeph></p></li>
+<li id="GUID-523A5B84-AF70-43E7-A9AC-C1B9CCFED431"><p><codeph>ReadDeviceData</codeph></p></li>
+<li id="GUID-14CA2113-B996-4395-AC11-B9C5C9A6EC14"><p><codeph>ReadUserData</codeph></p></li>
+<li id="GUID-AE84D61F-8AC4-487C-AE46-7746B9897C61"><p><codeph>TrustedUI</codeph></p></li>
+<li id="GUID-7DC3B602-BC3B-40BC-9A64-EC0DB52C2BFE"><p><codeph>WriteDeviceData</codeph></p></li>
+<li id="GUID-4FD2D0EE-F9F5-4714-92F2-DA2900E5EA55"><p><codeph>WriteUserData</codeph></p></li>
+</ol></info>
+</step>
+<step id="GUID-829B1633-1E8B-5FA1-B03E-77FDD5A2E28E"><cmd/>
+<info>Set the file exclusion list and folder exclusion list </info>
+<info>Your data provider supports specific media and data type(s). You may
+need to prevent the File Data Provider and the Device Data Provider (and possibly
+any other Data Providers) from trying to handle the same data type(s). You
+can use the file exclusion list in the File Data Provider and the folder exclusion
+list in the Device Data Provider for this purpose. The ways to configure the
+lists are different based on whether your data provider is built in ROM or
+installed via SIS file. </info>
+<choicetable id="GUID-433FE006-32E4-4A36-93AC-2463A6027142" keycol="1">
+<chrow>
+<choption><p><xref href="GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85.dita#GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85/GUID-89540e99-3699-43fa-9da4-0b59aee8006c">Data
+provider built in ROM</xref> </p></choption>
+<chdesc><p>For data providers included in the ROM.</p></chdesc>
+</chrow>
+<chrow>
+<choption><p><xref href="GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85.dita#GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85/GUID-EAE8EA84-489E-43F0-BA92-318B96600E71">Data
+provider installed via SIS file</xref></p></choption>
+<chdesc><p>For data providers installed via SIS file.</p></chdesc>
+</chrow>
+</choicetable>
+<info><wintitle id="GUID-89540E99-3699-43FA-9DA4-0B59AEE8006C">Data provider
+built in ROM</wintitle> <p>If the data provider is included in the ROM (<filepath>z:</filepath> drive),
+edit the configuration files directly as follows: </p></info>
+<substeps id="GUID-403EA734-31CB-55C8-A1E3-C266326D597C">
+<substep id="GUID-74E385CF-6E32-5DC6-9043-5E410040201F"><cmd/>
+<info>Edit <filepath>mtpfiledp_config.rss</filepath>, the File Data Provider
+configuration resource file, using a text editor. Add the file format code
+to the <codeph>format_exclusion_list</codeph> section and add its mapping
+file extension to the <codeph>extension_map</codeph> section. </info>
+<info>For example a Music Data Provider is to be included in the ROM. The
+Music Data Provider supports <filepath>.mp3</filepath>, whose file format
+code is <codeph>0x3009</codeph>. The <filepath>mtpfiledp_config.rss</filepath> file
+must be configured as follows: </info>
+<stepxmp><codeblock id="GUID-8379ACB6-5D96-523C-9119-B640AFE0F904" xml:space="preserve">RESOURCE MTP_FILEDP_CONFIG fileConfig
+{
+    enumeration_iteration_length = 32;
+    format_exclusion_list = {
+    //Association
+    0x3001,
+    0x3009 //mp3 code added to exclusion list, handled by Music Data Provider.
+    };
+    
+    extension_map = 
+    {
+      ...
+      MTP_FILEDP_EXTENSION_MAP // mp3 added to extension map, handled by Music Data Provider.
+      {
+      file_extension = "mp3";
+      mtp_object_format = 0x3009;
+      },
+     
+     ...
+     };
+
+}</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-5EDB4F14-0469-59AA-95E6-A47883BB9CAF"><cmd/>
+<info>Edit <filepath>mtpdevicedp_config.rss</filepath>, the Device Data Provider
+configuration resource file, using a text editor. Add the folder or drive
+to save the supported data to the <codeph>folder_exclusion_list</codeph> section,
+for example <filepath>c:\media\music</filepath>. </info>
+<stepxmp><codeblock id="GUID-33656110-667F-564B-BAC7-6DE853F8F99A" xml:space="preserve">RESOURCE MTP_DEVICEDP_CONFIG folderConfig
+    {
+    enumeration_iteration_length = 32;
+    folder_exclusion_list = 
+        {
+        ...
+
+        "c:\\media\\music\\",
+        ...
+
+        };
+    }</codeblock> </stepxmp>
+</substep>
+</substeps>
+<info> <p><wintitle id="GUID-EAE8EA84-489E-43F0-BA92-318B96600E71">Data provider
+installed via SIS file</wintitle></p><p>If the data provider is installed
+via SIS file, <codeph>MMTPDataProvider::Supported()</codeph> and <codeph>MMTPDataProvider::SupportedL()</codeph> must
+be implemented for the folder and file exclusion lists. </p><p>For example
+after a phone is shipped, the Music Data Provider can be installed via SIS
+files to the phone. The Music Data Provider supports <filepath>.mp3</filepath>,
+whose file format code is <codeph>0x3009</codeph>. MP3 files are saved under <filepath>c:\media\music</filepath>.
+The following snippet of code shows an implementation of the two methods. </p><codeblock id="GUID-62743679-6CA2-587D-9E8A-5A8923F20816" xml:space="preserve">/**
+define all the operations that are supported by the music data provider
+*/
+static const TUint16 KMTPMusicDpSupportedFormats[] =
+    {
+    EMTPFormatCodeWMA,
+    EMTPFormatCodeMP3
+    };
+
+...
+
+void CMTPMusicDataProvider::Supported(TMTPSupportCategory aCategory, RArray&lt;TUint&gt;&amp; aArray) const
+    {
+    switch (aCategory) 
+        {      
+    case EObjectCaptureFormats:
+    case EObjectPlaybackFormats:
+           {
+           TInt count = sizeof(KMTPMusicDpSupportedFormats) / sizeof(TUint16);
+           for(TInt i = 0; i &lt; count; i++)
+                {
+                aArray.Append(KMTPMusicDpSupportedFormats[i]);
+                }
+        }
+        break;
+                     
+    default:
+        break;
+        }
+    }
+
+void CMTPMusicDataProvider::SupportedL(TMTPSupportCategory aCategory, CDesCArray&amp; aStrings) const
+    {
+    switch (aCategory) 
+        {
+    case EFolderExclusionSets:
+         {
+         //Hardcoded path, can be read from a resource file.
+         _LIT(KMusicDPRootDir, "c:\\media\\music\\*");
+         aStrings.AppendL(KMusicDPRootDir);
+          }
+          break;
+    case EFormatExtensionSets:
+         {
+         _LIT(KFormatExtensionMP3, "0x3009:MP3");
+         aStrings.AppendL(KFormatExtensionMP3);
+         }
+         break;
+    
+    default:
+         break;
+        }
+    }
+...
+
+</codeblock></info>
+</step>
+</steps>
+</taskbody></task>

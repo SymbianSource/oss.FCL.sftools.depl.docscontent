@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6" xml:lang="en"><title>Licensee
+TSY Tutorial </title><shortdesc>This topic describes how to implement a licensee TSY. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+<section id="GUID-34A5E710-A1BC-534F-BD8A-FFECCB3845AF"><title>Introduction</title> <p><b>LTSY
+functionality</b> </p> <p>The following functionality is implemented by the
+device creators in the LTSY. </p> <ul>
+<li id="GUID-EF0607D8-9501-5B78-823B-8D0ADF5F396F"><p><xref href="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6.dita#GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6/GUID-5D167910-A858-52B0-B137-096CD4862CEA">Message Router</xref>  </p> </li>
+<li id="GUID-A3E2D9C3-6A74-5A00-82F8-E816D4A9591A"><p><xref href="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6.dita#GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6/GUID-D8518EB6-687A-52E0-AF2A-70FAC33D2E04">Message handler</xref>  </p> </li>
+<li id="GUID-1B7B1D3A-732D-52ED-9EBD-E6D5E02BD7E7"><p><xref href="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6.dita#GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6/GUID-56B428BB-5D79-5812-B50B-730CBC0F119B">Utility classes</xref>  </p> </li>
+<li id="GUID-11AC842E-924E-55D2-B24F-AE4E1F65BBE0"><p><xref href="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6.dita#GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6/GUID-C728078B-A9FC-5779-91F9-482666203A8C">Baseband sender</xref>  </p> </li>
+<li id="GUID-16B5676D-4351-5510-81BA-3CF51AF4CDC3"><p><xref href="GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6.dita#GUID-FA5782F2-3E30-5EB9-A9E2-843CB9614FD6/GUID-5E0A2911-7A6A-5BCF-8832-0F8FF8CB76F2">Baseband receiver</xref>  </p> </li>
+</ul> <title>Message
+router</title> <p>The message router routes the telephony client requests
+to the appropriate methods implemented by the licensees in the baseband. CTSY
+provides the functionality through the <xref href="GUID-70ABA633-AA88-3042-8DB9-78B88BF96D8E.dita"><apiname>CMmMessageRouter</apiname></xref> class.
+Licensees should implement this class to acknowledge the CTSY messages. The
+message router creates and processes all the message handlers. Each CTSY request
+is distinguished by a specific Inter Process Communication (IPC) value. The
+IPC number is used to route the calls. When a message router receives a request
+from the CTSY, it creates baseband sender and baseband receiver objects. </p> <title>Message handlers</title> <p>The main function of the message handlers is
+to group the CTSY requests into logical units. There is no limit on the number
+of message handlers. The number of message handlers depends on the logical
+grouping of baseband messages, decided by the licensees. The message handlers
+implement the <xref href="GUID-B7024C98-B4C4-3FB1-9339-6057CEEF2A3A.dita"><apiname>ExtFuncL()</apiname></xref> entry point. The message handlers
+are responsible for handling the CTSY requests and their response from the
+baseband. </p> <title>Utility
+class</title> <p>The utility class must contain the information that can be
+used by the LTSY to adapt baseband data to Symbian platform data format. The
+information such as error code mapping is stored in the utility class. </p> <title>Baseband sender</title> <p>The purpose of the baseband sender is to send
+messages to the baseband. The messages are created based upon the baseband
+and should be able to get the information required to acknowledge the CTSY
+requests. </p> <title>Baseband
+receiver</title> <p>The main purpose of the baseband receiver is to receive
+messages from the baseband and forward them to the CTSY. It is also responsible
+for verifying the status of baseband and format of the data. The class must
+format the data so that it can be processed by the CTSY. </p> </section>
+<section id="GUID-7E1BEBC6-F234-4D09-86AD-12A9CB40B1CD"><title>Procedure</title> <ol id="GUID-27BC9B0E-CC64-5EDC-9F8A-91193E7841BF">
+<li id="GUID-E75E6914-C4F2-5511-AD8D-C54C1EC7155C"><p>Phone engine starts
+during the device startup </p> </li>
+<li id="GUID-0C672679-1ED4-5259-B2BB-4211DC6A77F3"><p>Phone engine creates
+the PhoneTSY.dll </p> </li>
+<li id="GUID-D79F8569-287E-5D43-94A1-4C6B26403789"><p>PhoneTSY.dll loads the
+CommonTSY.dll and the LicenseeTSY.dll </p> </li>
+<li id="GUID-1E72A1CD-2D1D-5491-943F-6196ACB5979A"><p>LicenseeTSY.dll connects
+with the baseband to verify that it is ready to receive requests from the
+TSY </p> </li>
+<li id="GUID-3794A4DD-3514-582D-8A56-5033C964BD71"><p>The baseband updates
+the status to the LTSY </p> </li>
+<li id="GUID-DAE40C5D-A6E8-5FEB-88DC-7044721F73CC"><p>Any change in the baseband
+status is notified to the CTSY by the LTSY. </p> </li>
+</ol>  </section>
+<example id="GUID-A0CD6CFD-8727-5A40-B061-0A1D72DA0585"><title>Voice call
+example</title> <p>If a client application wants to make a call the following
+sequence of events takes place after the TSY is initialised: </p> <ol id="GUID-C2C24A4B-CB22-5C2B-A596-521764D65525">
+<li id="GUID-02138921-E7EC-523B-8958-A35A1A5EF321"><p>The client application
+sends a request to the telephony server. </p> </li>
+<li id="GUID-C6F961EE-76BE-557A-8205-5EA640A6DA46"><p>The server calls the
+Dial function through the client side telephony object. </p> </li>
+<li id="GUID-501BD4FC-F7E2-5D50-8B6D-85E84BC3BF1A"><p>The dial request is
+processed by the CTSY and forwarded to the message manager. </p> </li>
+<li id="GUID-0659E831-3F4E-58C7-9D2C-E6FBFC8DD020"><p>The message manager
+forwards the request to the message router in LTSY. </p> </li>
+<li id="GUID-795EBFE4-D57D-5DD5-96C1-15373985CC67"><p>After getting the information
+from the message manager, the message router calls the ExtFunc, and forwards
+the request to the baseband. </p> </li>
+<li id="GUID-10B0AFF2-BC25-54C6-8F0D-BBA41F3095DE"><p>The baseband should
+notify of the status changes and the call details to the LTSY. These details
+should be forwarded to the CTSY using the Complete() method. </p> </li>
+<li id="GUID-0FE6C4B2-70F0-5989-AC69-2099ED293CD2"><p>The complete method
+should return the call details with: </p> <ul>
+<li id="GUID-454C0149-12EB-58FF-80D4-FB6F926FA316"><p>a <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>,
+if the call is established successfully. </p> </li>
+<li id="GUID-B197FB68-9D3A-589B-86E5-82520625A587"><p>one of the GSM error
+code, as specified in the <xref href="GUID-87AB0DA8-E634-5D87-AD89-EFFB1090C9D0.dita#GUID-87AB0DA8-E634-5D87-AD89-EFFB1090C9D0/GUID-B1BDF73C-8C31-5351-936B-CB56239E8B17">reference</xref> section,
+if the call establishment is unsuccessful. </p> </li>
+</ul> </li>
+</ol> </example>
+
+<section id="GUID-7B656AFD-A81A-5A7A-90A2-1F47858FD20C"><p>The events can
+be logged and debugged with the <codeph>CommsDebugUtility</codeph>. </p> <p>The
+Common TSY uses the <codeph>CommsDebugUtility</codeph> to log the TSY events.
+The <codeph>CommsDebugUtility</codeph> can be enabled by adding <b>LOG TSY
+CTSY</b> in <i>commsdbg.ini</i> file located at <codeph>c:\logs</codeph>. </p> </section>
+<section id="GUID-01C6CDF4-2FC4-4E22-A17C-5C65010EFD2A"><title>Intermediate library </title> <p>This topic describes how
+to build and load the licensee TSY. </p> <p><b>System
+state manager</b> </p> <p>The system state manager is an ECOM plug-in used
+by the CTSY. An alternative to the system state plug-in is available as a
+stubbed method in <codeph>ctsy/systemstateplugin</codeph>. </p> <p><b>Licensee TSY intermediate library</b> </p> <p> <filepath>Phonetsy.tsy</filepath> is
+the DLL that loads the common TSY and the Licensee TSY. Each device has its
+own LTSY. To load the TSYs dynamically: </p> <ul>
+<li id="GUID-81F0E187-B1AF-53C8-B2A3-DA1CD58D43F3"><p>The LTSY to be used
+in the device is known at ROM build time. </p> </li>
+<li id="GUID-F2D37F7B-7715-5DEC-9701-30F797B4D237"><p>There is only one LTSY
+per device. </p> </li>
+<li id="GUID-D3A5AB0F-483D-5292-9613-69BD6AB326C7"><p>The CTSY must not load
+or unload any other TSY at runtime. </p> </li>
+</ul> <p>The common TSY does not use the ECOM plug-in, instead it is developed
+as a <codeph>IMPLIB</codeph> target type. The <codeph>IMPLIB</codeph> target
+will generates a <codeph>licenseetsy.lib</codeph>. The runtime library is
+not available. The run time library must be developed and built by the licensees.
+The licensees can name and configure the LTSY modules. </p> <p>Licensees should
+implement the interface defined by <xref href="GUID-C96C7C6B-547A-3917-AA2A-2831096E8C1C.dita"><apiname>MLtsyFactoryV1</apiname></xref> class
+in <codeph>ctsy/licenseetsy_lib/inc/mltsyfactory.h</codeph>. The UID3 value
+used in the intermediate library must be the same UID3 used in the LTSY implementation. </p> </section>
+</conbody></concept>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-B573EB3C-AAC7-5E86-99AA-A1D55FCA8CCF"><title>Configuring the MTP Framework for Different Protocols</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This section describe how to configure the MTP framework and data providers to operate in MTP, PTP and PictBridge modes. </p> <section><p>Before you start, you must understand: </p> <ul><li id="GUID-662A7994-7C77-5856-A659-E224E4D5B8E9"><p>Basic knowledge of MTP, PTP and PictBridge. </p> </li> <li id="GUID-3591EFE1-727F-53D6-87F5-4D1591743A2F"><p> <xref href="GUID-F1DD8800-389C-5A88-A5EB-138359EF7DC5.dita">Symbian MTP Architecture</xref>. </p> </li> <li id="GUID-5936156D-42FC-5BF5-8CCD-1C4EC20A59AF"><p> <xref href="GUID-16218C7E-B927-5729-9A05-680A3D0D8BDE.dita">Symbian MTP data provider configuration files</xref>. </p> </li> <li id="GUID-6BDD80BF-9DAB-5672-A895-0F78365B6A76"><p><xref href="GUID-A81C65CF-CF4E-571C-8080-9D387F46AAD6.dita">Symbian Publish and Subscribe events</xref>. </p> </li> </ul> </section> <section><title>Introduction</title> <p>The Symbian MTP implementation also supports the interoperability with hosts that only support Picture Transfer Protocol (PTP) or PictBridge. PTP is useful for transferring images files from digital cameras to computers and PictBridge is useful in printing images directly from digital cameras to a printer. </p> <p>The required mode must be selected before the MTP framework is started. The framework retrieves the mode using a <xref href="GUID-A81C65CF-CF4E-571C-8080-9D387F46AAD6.dita">Publish and Subscribe</xref> property. By default, the framework starts in MTP mode. To select a different mode you must reset the Publish and Subscribe property in the MTP client application (RMTPClient) and restart the MTP framework. Starting in the appropriate mode saves file enumeration time and improves performance. The framework can use the mode property to decide which data provider plug-ins to load. </p> </section> <section><title>Procedure</title> <ol id="GUID-182BF2F8-2A36-59D5-8117-99B50975F0E4"><li id="GUID-E2C02D54-5A6E-5333-8641-2E208F2D9D83"><p>Grant the property <codeph>KUidMTPModeKeyValue</codeph> with the same capabilities as <xref href="GUID-0F7C98EA-168C-3662-8EB1-81AF174F6305.dita"><apiname>RMTPClient</apiname></xref>. </p> <p> <codeph>Capabilities</codeph>: <i>All -TCB (that is all the capabilities are included except TCB).</i>  </p> </li> <li id="GUID-2A3EF9A0-DBE3-5097-878A-DD4A2927634A"><p>Publish the <codeph>KUidMTPModeKeyValue</codeph> property by definting it and setting its value: </p> <codeblock id="GUID-E54F1CB4-7A2B-54EC-B55A-9F1EEF94A371" xml:space="preserve">TInt err = RProperty::Define (
+                                 KUidSystemCategory,
+                                 KUidMTPModeKeyValue,
+                                 RProperty::EInt);</codeblock> <codeblock id="GUID-BC979FC1-3EA9-5911-A273-60DBC0AF4C5B" xml:space="preserve">TInt err = RProperty::Set (
+                                 KUidSystemCategory,
+                                 KUidMTPModeKeyValue,
+                                 RProperty::EInt);</codeblock> <table id="GUID-4739E4D5-365F-5525-8956-59A35995BFC6"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry> Parameter </entry> <entry> Description </entry> <entry>Values</entry> </row> </thead> <tbody><row><entry><p> <codeph>aMode</codeph>  </p> </entry> <entry><p>The new property value of the mode that is set. </p> </entry> <entry><p> <codeph>KMTPModeMTP</codeph> or <codeph>KMTPModePTP</codeph> or <codeph>KMTPModePictBridge</codeph>  </p> </entry> </row> </tbody> </tgroup> </table> </li> <li id="GUID-AFBBF935-2382-5598-A955-1C2A6DCAF01B"><p>Configure Data Providers for different modes. </p> <p>Data providers are implemented as ECOM plug-ins, which are loaded by the MTP framework. </p> <p>You can use the <codeph>supported_modes</codeph> value in the configuration file of a data provider to instruct the MTP framework to load it for one or more specified modes. </p> <codeblock id="GUID-B5523A0F-A046-5FCF-978A-225E7ECE558B" xml:space="preserve"> supported_modes = KMtpModeMTP|KMtpModePTP|KMtpModePictBridge; </codeblock> <p>For example, if the <codeph>supported_modes</codeph> field in a data provider’s configuration file contains only <codeph>KMtpModePTP</codeph>, then that data provider will be loaded only if the MTP mode is set to PTP when the framework starts up. </p> <p>The following example shows the <codeph>supported_modes</codeph> field in the <filepath>mtpImagedp_config.rss</filepath> configuration file. The Image data provider supports only PTP and PictBridge modes: </p> <codeblock id="GUID-2CCB137F-EE1B-5D5D-BC2A-C8A76232192B" xml:space="preserve">
+RESOURCE MTP_DATA_PROVIDER dpConfig
+  {
+  type = EMtpDataTypeEcom;
+  major_version = 1;
+  object_enumeration_persistent = 0;
+  supported_modes = KMtpModePTP|KMtpModePictBridge; //Supported modes 
+  server_name = "";
+  server_image_name = "";
+  opaque_resource = fileConfig;
+  }
+</codeblock> <p> <b>NOTE</b>: The default data providers are all loaded irrespective of the mode that is set. </p> </li> </ol> </section> </conbody></concept>

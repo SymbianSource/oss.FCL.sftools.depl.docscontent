@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3FB8AC96-209B-5B1E-8139-BA2D858CBF2F" xml:lang="en"><title>CryptoSPI
+Overview (weak build)</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p>This is an overview of the weak CryptoSPI
+APIs. An overview and other documents for the strong CryptoSPI APIs are available
+in the Security Supplement, which is delivered to device creators with the
+CBR. </p> </section>
+<section><title>Introduction</title> <p>CryptoSPI (<filepath>cryptospi.dll</filepath>)
+is a framework for implementing cryptographic algorithms, hash algorithms
+and random number generation. It allows alternative implementations to be
+added by Symbian platform device creators as plug-in DLLs. </p> <p><b>Weak
+and strong builds</b> </p> <p>The cryptography APIs are subject to export
+control regulations. The export of cryptography refers to the transfer from
+one country to another of technology related to cryptography. Export control
+regulations are for national security considerations. </p> <p>Export control
+applies to key sizes that are greater than a size specified by the UK Government.
+Currently, symmetric algorithms with keys greater than 56 bits and asymmetric
+algorithms with keys greater than 512 bits are export controlled. To comply
+with government export control rules, the Cryptography library is delivered
+in two builds: </p> <ul>
+<li id="GUID-B6D2DA99-B26C-563C-AB89-12B55BEA3F86"><p>A weak build </p> <p>The
+weak build (weak_cryptography.dll) includes cryptography algorithms that are
+not export controlled. The weak build rejects requests to apply an encryption
+scheme with key sizes greater than 56 bits for symmetric algorithms and 512
+bits for asymmetric algorithms. </p> </li>
+<li id="GUID-8C455A29-794A-50F4-8503-FCFBF55A731B"><p>A strong build </p> <p>The
+strong build (strong_cryptography.dll) includes cryptography algorithms that
+are export controlled. </p> </li>
+</ul> <p> <b> Note:</b> The API guide and other documentation for cryptography
+is broken up in the same way as the cryptography library. This document provides
+information on the weak build. It also gives a brief summary of the algorithms
+provided in the strong build. The strong cryptography API guide and other
+documentation is not available from the Symbian Developer Library. It is delivered
+to device creators with the CBR. </p> </section>
+<section><title>Architectural relationships</title> <p>Before the introduction
+of CryptoSPI, features such as cryptographic algorithms, hash algorithms and
+random number generation were provided by the Symbian platform in <filepath>cryptography.dll</filepath>, <filepath>hash.dll</filepath> and <filepath>random.dll</filepath>. </p> <p> <filepath>softwarecrypto.dll</filepath> is
+a plug-in module (implemented in the Symbian platform) that provides software-based
+implementations of all the cryptographic algorithms that were previously implemented
+by the legacy components (<filepath>cryptography.dll</filepath>, <filepath>hash.dll</filepath> and <filepath>random.dll</filepath>).
+The legacy APIs have been re-implemented internally to use the new framework
+via shim classes. <filepath>hardwarecrypto.dll</filepath> is an arbitrary
+name used in the diagram to represent a plug-in module provided by device
+creators. The plug-ins and <filepath>cryptospi.dll</filepath> have a dependency
+on <filepath>cryptography.dll</filepath> because it implements big integers. </p> <fig id="GUID-F3B5470E-25D5-5BDD-8F47-480D39C4CDB5">
+<title>              CryptoSPI dependencies            </title>
+<image href="GUID-708FC2C8-19BB-5EFC-A8CD-B0E9E96A5409_d0e614073_href.png" placement="inline"/>
+</fig> </section>
+<section><title>API summary</title> <p>The <codeph>CryptoSpi</codeph> namespace
+is defined for all CryptoSPI classes to differentiate them from the legacy
+APIs with the same names. </p> <p><b>CryptoSPI scope</b> </p><p>CryptoSPI
+provides equivalent implementations of all algorithms supported by the legacy
+APIs, including hashing and random number generation. The following algorithms
+are implemented in <filepath>softwarecrypto.dll</filepath>: </p><p>This
+section includes summary details of the following (For more information on
+the strong APIs, see the Security Supplement, which is delivered to device
+creators with the CBR): </p><ul>
+<li><p>cryptographic algorithms </p></li>
+<li><p>hash algorithms </p></li>
+<li><p>random number generator</p></li>
+</ul> <p id="GUID-19D541E1-1868-527A-A376-3ED1D0F428D8"><b>Cryptographic algorithms</b> </p> <p>Cryptographic
+algorithms allow data to be encrypted and decrypted. They include: </p> <ul>
+<li id="GUID-C68FBFD7-EE10-5CDD-835B-62D770D7E9E5"><p> <b>Symmetric ciphers</b> —
+algorithms that require communicating parties to hold a shared secret. They
+are fast and are used for the transmission of bulk data. </p> </li>
+<li id="GUID-D7ADFE85-C48D-5E2B-BAF0-CBF68B676C3E"><p> <b>Asymmetric ciphers</b> —
+algorithms which have two keys, one private to the keys' owner and one which
+can be published. They are slow compared to symmetric ciphers and are used
+to exchange a symmetric key before transmission of data encrypted using that
+key. </p> </li>
+</ul> <p>The Cryptography algorithms are part of the strong build. To access
+details of how to implement them you need to access the Security Supplement,
+which is delivered to device creators with the CBR. </p> <p id="GUID-1C869199-DF50-5DCA-AD0D-5EA31EADA384"><b>Hash
+algorithms</b> </p> <p><xref href="GUID-679390E8-1DE6-55F0-9A0C-60D58956A1E3.dita">Hash
+algorithms</xref> compact a message down to a short series of bytes from which
+it is impossible to regenerate the message. They are used with an asymmetric
+cipher to generate signatures. </p> <p>The following hash algorithms are supported: </p> <table id="GUID-2ECEAC82-2DEA-5907-9443-ED023DAD2653">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Hash algorithms</entry>
+<entry>Specified in</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>MD2 </p> </entry>
+<entry><p> <xref href="http://www.ietf.org/rfc/rfc1319.txt" scope="external">RFC
+1319 </xref>  </p> </entry>
+</row>
+<row>
+<entry><p>MD4 </p> </entry>
+<entry><p> <xref href="http://www.ietf.org/rfc/rfc1320.txt" scope="external">RFC
+1320</xref>  </p> </entry>
+</row>
+<row>
+<entry><p>MD5 </p> </entry>
+<entry><p> <xref href="http://www.ietf.org/rfc/rfc1321.txt" scope="external">RFC
+1321</xref>  </p> </entry>
+</row>
+<row>
+<entry><p>SHA1 </p> </entry>
+<entry><p> <xref href="http://www.itl.nist.gov/fipspubs/fip180-1.htm" scope="external">FIPS
+180-1</xref> and <xref href="http://www.ietf.org/rfc/rfc3174.txt" scope="external">RFC
+3174</xref>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p><i>Hashes in HMAC mode</i> </p> <ul>
+<li id="GUID-551F9056-7110-5002-8495-D31BAFDCFEA8"><p>MD2 </p> </li>
+<li id="GUID-4C0AB778-90A5-5EA8-9C26-29248FA9DF63"><p>MD4 </p> </li>
+<li id="GUID-CC9931AA-B0F4-5832-8C9E-78FBE95F7AEB"><p>MD5 </p> </li>
+<li id="GUID-6307D557-0AA8-5CC0-88D4-464C31FF1960"><p>SHA1 </p> </li>
+<li id="GUID-CD13BA31-4543-5E95-8DB4-F9F790F7816D"><p>SHA-224 </p> </li>
+<li id="GUID-1A2A7EAA-85F5-5516-9590-A2DBA7BBE7FC"><p>SHA-256 </p> </li>
+<li id="GUID-AACCA093-2CD3-55ED-9D80-298DAB45BBFC"><p>SHA-384 </p> </li>
+<li id="GUID-7A6E01DF-635C-5EEA-BD53-3CD47CF50160"><p>SHA-512 </p> </li>
+</ul> <p>HMAC mode is specified in <xref href="http://www.ietf.org/rfc/rfc2104.txt" scope="external">RFC 2104</xref>. </p> <p id="GUID-58FB3D9C-A557-59C7-9AA8-37C77FE9002E"><b>Random
+Number Generator (RNG)</b> </p> <p><xref href="GUID-0B2245C5-766B-5CF1-8A0C-DD98CEEEBB05.dita">RNG</xref> is
+the basis for the cryptographic key generation. It uses the RANROT algorithm
+seeded by random data available on the target hardware (for example free running
+counters available on ARM processers). </p> <p id="GUID-CE692E1B-A0FF-5CF1-8D22-50BC0D12B83A"><b>Supporting
+APIs</b> </p> <ul>
+<li id="GUID-A314831E-84E2-5F33-AF4F-6187020FEB88"><p> <b>Password Based Encryption
+(PBE)</b> — provides an API to encrypt and decrypt data with a user-supplied
+password </p> </li>
+<li id="GUID-FE498ED5-276A-53D1-9283-A4406001B532"><p> <b>Padding</b> — is
+extra bits concatenated with a key, password, or plaintext to make their length
+equal to the block size. It defines the way blocks are filled with data when
+the data to be encrypted is smaller than the block size. Padding is added
+at encryption and checked on decryption. </p> </li>
+<li id="GUID-A8A99555-C8BF-5466-8610-67F55A2B36D5"><p> <b>Big integers</b> —
+arbitrarily large integers. </p> <p>Note that although some functions are
+exported, the intent is that big integers are only for use by the Cryptography
+library and not by application code. Big integers are implemented in <filepath>cryptography.dll</filepath>. </p> </li>
+</ul> <p><b>Implementing CryptoSPI algorithms</b> </p> <p>The guide to CryptoSPI
+is not publicly available, but the following documents show how to use CryptoSPI
+to generate random numbers and create a hash: </p> <ul>
+<li id="GUID-6C8E6AEC-5E02-5608-A9D5-392138EB2538"><p><xref href="GUID-0CD273A2-434C-52E0-B840-CCF24B2853B8.dita">Generating
+random bytes</xref>  </p> </li>
+</ul> </section>
+</conbody></concept>

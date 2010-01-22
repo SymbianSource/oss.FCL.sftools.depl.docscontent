@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-2A39CCBD-CADB-56B7-872A-1EC617AC7D93"><title>How to Import Contact and Calendar Data</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The versit API can be used to import Contact and/or Calendar data from a file or stream. To do so, appropriate parser objects have to be created. That is, an object of <xref href="GUID-F4BEE3F4-F268-345D-B727-2C1D5E25F3F7.dita"><apiname>CParserVCard</apiname></xref> class to import vCards (represents contact data) and object of <xref href="GUID-6BEFF6A7-FBD8-306D-98A4-8711E788C702.dita"><apiname>CParserVCal</apiname></xref> class to import vCalendars (represents calendar data) need to be created. </p> <codeblock id="GUID-2CD26D6C-98A3-5741-BDE3-D55D22489355" xml:space="preserve">CParserVCard* vCardParser = CParserVCard::NewL(); //creates a pointer to CParserVCard object
+//OR
+CparserVCal* vCalParser = CParserVCal::NewL(); //creates a pointer to CParserVCal object</codeblock> <p>Once the parser objects are created, specify the stream from which the vCard or vCalendar are to be read. For example, let us assume that you have to import vCard or vCalendar from a file. In that case, create an object of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref> class to read the file, and an object of <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> class to create a file server session. You also have to create an object of <xref href="GUID-90A3AE1D-DCB2-3E98-8BE9-C48C15964E7D.dita"><apiname>RFileReadStream</apiname></xref> class, as the parser class is implemented to read data from a stream. </p> <codeblock id="GUID-7D51C9D8-6E64-5065-8458-7D92D650245C" xml:space="preserve">RFs iFsSession; // To create file server session.
+RFile file; // To access the vCard or vCal file from the file system.
+
+_LIT(KVCardFileJIS,"c:\\charsetJIS.vcf "); // String literal consisting the path of the file to be read.
+
+TInt err=file.Open(iFsSession, KVCardFileJIS, EFileRead); // Open the file to be read.
+
+// Checking for errors if any, before opening the file stream.
+if(err == KErrNone)
+  {
+  RFileReadStream stream(file); // Opens the file stream for the RFile object.
+  
+  vCardParser.InternalizeL(stream) // To import a vCard.
+  // OR
+  vCalParser.InternalizeL(stream) // To import a vCal.
+
+  stream.close(); // Close the file stream once the import is done.
+  }
+</codeblock> <p> <i>Note that you should include proper error checks in the above given code before using it for production.</i>  </p> <p>This code imports vCard and vCalendar data from the file to <codeph>CParserVCard</codeph> and <codeph>CParserVCal</codeph> objects respectively. </p> </conbody></concept>

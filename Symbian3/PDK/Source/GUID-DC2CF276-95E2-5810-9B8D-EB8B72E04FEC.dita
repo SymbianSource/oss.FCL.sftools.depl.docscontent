@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DC2CF276-95E2-5810-9B8D-EB8B72E04FEC" xml:lang="en"><title> Memory
+Dump Commands</title><shortdesc>Describes how to use the <codeph>m</codeph> command to get a dump
+of memory. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p/>
+<p>This command has two formats: </p>
+<codeblock id="GUID-FD4DF47B-6200-552F-987F-23F41C250476" xml:space="preserve">m start end</codeblock>
+<codeblock id="GUID-ACF95A5E-1EC9-50BE-93BE-EBE8E1EAF562" xml:space="preserve">m start+length</codeblock>
+<p>Using the first format you provide the start and end addresses that you
+want to inspect; for example: </p>
+<codeblock id="GUID-A9C1C18D-0B7C-5B8F-99AE-9C2773BA2342" xml:space="preserve">m 81240000 8124003F</codeblock>
+<p>Using the second form you provide the start address and the number of bytes
+to dump (in hex); for example: </p>
+<codeblock id="GUID-A1900018-03F8-5887-B7E2-73F31605512D" xml:space="preserve">m 81240000 +40</codeblock>
+<p>Both of the above examples dump 64 bytes from address 0x81240000. The output
+is a standard hex-dump: </p>
+<codeblock id="GUID-178A2669-9B71-503E-AA0C-B9F1E4DED957" xml:space="preserve">.m 81240000 +40
+81240000: 00 00 FF EB 08 01 BF D7 00 04 7D B6 02 00 BF EF ..........}.....
+81240010: 00 01 DF EE 0A 40 7F F7 00 80 BF FF 20 10 FF EA .....@...... ...
+81240020: 00 82 FF 77 04 24 FD FF 40 01 FF 7F 00 01 FF FF ...w.$..@.......
+81240030: 08 10 FF BF 08 00 BF DE 08 00 EF FB 00 00 FF DF ................
+</codeblock>
+<section id="GUID-8955F5AD-8E15-4698-A0DD-81949984D6C1"><title>Dumping the contents of classes</title> <p>You can use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-2A0D5950-F1A5-5EE1-87A3-840B1EAD6AAD">m</xref> command
+to inspect the contents of structures and class instances, but you need to
+be aware of a few things about the memory layout: </p> <ul>
+<li id="GUID-A06A2095-01D6-5AB9-B2CB-E5A9AA4A0BC0"><p>Symbian platform is
+little-endian, which means that all values are stored so that the least significant
+bytes are stored at the lower addresses in memory (or “backwards” as commonly
+perceived). </p> <p>For example, the value 0x1234ABCD would be shown in the
+memory dump as: </p> <codeblock id="GUID-6E679A58-26E5-594E-BCEE-D01EAD5C16D2" xml:space="preserve">CD AB 34 12</codeblock> </li>
+<li id="GUID-B6A8FFF7-7F7A-555E-AD5F-A75BCD87DA36"><p>The compiler may add
+padding between variables either to speed up access or to avoid alignment
+restrictions; for example, words cannot be on odd addresses. </p> <p>As an
+example, the following struct: </p> <codeblock id="GUID-01348886-FDDB-5B7A-8AB9-D0C2C18333FE" xml:space="preserve">struct SExample
+    {
+    TUint8    iByte;
+    TInt    iInteger;
+    };
+</codeblock> <p>would be laid out in memory as: </p> <codeblock id="GUID-5D747268-124C-58BF-ACEF-BB2537863F9D" xml:space="preserve">+0(1)    iByte
++1(3)    padding
++4(4)    iInteger
+</codeblock> <p>The padding and alignment is compiler-dependent. Generally,
+fields must be aligned on a boundary equal to their size; for example, a <xref href="GUID-F58A1C0D-1B36-37EA-8012-1C74B2D12CAD.dita"><apiname>TUint32</apiname></xref> is
+4 bytes wide so it must lie on a 4-byte boundary, i.e. the least significant
+two bits of the address must be zero. </p> <p>When using GCC, classes which
+derive from <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> will have a virtual table pointer as
+the first word in the class data and classes which derive from <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> will
+have a virtual table pointer as the second word in the class data. </p> <p>When
+using an EABI-compliant compiler, the virtual table pointer is always the
+first word of the class. </p> </li>
+</ul> </section>
+</conbody></concept>

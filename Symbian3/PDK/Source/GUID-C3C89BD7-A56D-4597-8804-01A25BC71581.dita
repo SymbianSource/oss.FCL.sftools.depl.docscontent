@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C3C89BD7-A56D-4597-8804-01A25BC71581" xml:lang="en"><title>Data
+Transfer between LDD and PDD</title><shortdesc>This document describes how LDDs and PDDs exchange data.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F65FC583-DDC7-40B6-B875-44A8D11A2971">      
+      <p>The device driver framework supplies each LDD with a pointer, <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-CF58D3F1-8185-3A91-A7E8-338B43D329A5"><apiname>DLogicalChannelBase::iPdd</apiname></xref>,
+through which it can access PDD functions. The pointer is initialised by the
+Kernel while creating a physical channel. </p> <p>An example of this pointer
+in use: </p> <codeblock id="GUID-55814834-E7CD-5F19-BA09-B91DA25C8FE3" xml:space="preserve">inline DExUartPhysicalChannel * DExDriverLogicalChannel::Pdd()
+    { return (DExUartPhysicalChannel *)iPdd; }
+
+// example use
+Pdd()-&gt;SetDfcQ();</codeblock> <p>Similarly, a PDD can access a LDD, though
+this access must be initialised by the LDD. In the following example, the
+physical channel declares a pointer to a logical channel, which the LDD sets.
+Callbacks to the LDD are done using this pointer. </p> <codeblock id="GUID-A4A52268-B5B9-53D4-9F69-B506F268201D" xml:space="preserve">// PDD channel class
+class DExH4PhysicalChannel: public DBase
+    {
+    ...
+public:
+    DExDriverLogicalChannel* iLdd;
+    }
+
+// Second stage constructor of Logical channel
+TInt DExDriverLogicalChannel::DoCreate(TInt /*aUnit*/, const TDesC8*
+        /*anInfo*/, const TVersion&amp; aVer)
+    {
+    ...
+    Pdd()-&gt;iLdd=this;
+    }
+
+// example use in PDD
+iLdd-&gt;ReceiveDataComplete(KErrNone);</codeblock> <p>The logical channel class, <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>,
+also has pointers to a logical device (<codeph>iDevice</codeph>) and a physical
+device (<codeph>iPhysicalDevice</codeph>). These pointers are initialised
+during the driver loading and channel open operations, so they can also be
+used to pass information between the LDD and PDD. </p> <codeblock id="GUID-4B86BED0-22CB-53BC-A1C7-9BEB0CEA1EDE" xml:space="preserve">class DLogicalChannelBase: public DObject
+    {
+    ...
+public:
+    DLogicalDevice* iDevice;
+    DPhysicalDevice* iPhysicalDevice;
+    DBase* iPdd;
+    }
+
+// example use
+TDynamicDfcQue* DExUartPhysicalChannelH4::DfcQ(TInt aUnit)
+    {    
+    ...
+    return ((DExH4PhysicalDevice*)
+            (iLdd-&gt;iPhysicalDevice))-&gt;iDfcQueue;    
+    }</codeblock>     </section>
+</conbody></concept>

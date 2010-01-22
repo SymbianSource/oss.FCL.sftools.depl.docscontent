@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-1941FC6C-4E2B-5549-96C8-6090DB0C40E1" xml:lang="en"><title>Activity
+Manager Tutorial</title><abstract><p>This section explains how to implement Activity Manager. </p><p>An
+object of the <codeph>CUserActivityManager</codeph> class must be included
+as a member of the component which need to react to activity and inactivity.</p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-725EB747-9C99-5E57-A016-D10DC436BD2B">
+<step id="GUID-F69BA9F9-AC38-5866-A67F-E652673B0580"><cmd/>
+<info>Create an object of <codeph>CUserActivityManager</codeph>. </info>
+</step>
+<step id="GUID-12BE60E0-5B72-5F55-933B-4447D704C8AA"><cmd/>
+<info>Create an activity callback function implementing the transition to
+device activity. </info>
+</step>
+<step id="GUID-A4D01DE0-8893-5B3D-BB77-7495CBA8149A"><cmd/>
+<info>Create an inactivity callback function implementing the transition to
+device inactivity. </info>
+</step>
+<step id="GUID-D88E0CAA-E804-5056-A2C6-13B763CCB3C5"><cmd/>
+<info>Call the <codeph>CUserActivityManager::StartL()</codeph> function using
+the object of <xref href="GUID-9159ADC6-DD8E-3DF7-A023-96E1ABCB14FC.dita"><apiname>CUserActivityManager</apiname></xref>. This function accepts
+the following three arguments: </info>
+<info><p><ul>
+<li><p>an integer representing the inactivity interval in seconds, </p></li>
+<li><p>the inactivity callback, and</p></li>
+<li><p>the activity callback.</p></li>
+</ul></p></info>
+<info>The callback arguments are instances of <xref href="GUID-6C5766BC-05DE-32A8-993D-6BB582931F43.dita"><apiname>TCallBack</apiname></xref>. </info>
+</step>
+</steps>
+<example><title>Activity manager example</title> <codeblock id="GUID-DBD2391D-F2DE-5905-9A8B-695C18699554" xml:space="preserve">#include &lt;activitymanager.h&gt;
+…
+// Activity Manager instance is created and started
+
+void CSomeComponent::ConstructL()
+    {
+    …
+    iActivityManager = CUserActivityManager::NewL( CActive::EPriorityStandard );
+
+    iActivityManager-&gt;StartL( iTimeout,
+                   TCallBack( HandleInactiveEvent, this ),
+                   TCallBack( HandleActiveEvent, this ) );
+    …
+    }
+…
+// Handles inactive event
+TInt CSomeComponent::HandleInactivityEvent( TAny* aPtr )
+    {
+    // Code to be executed in case of user inactivity
+    …
+    }
+
+// Handles active event
+TInt CSomeComponent::HandleActivityEvent( TAny* aPtr )
+    {
+    // Code to be executed in case of user activity after an inactivity period.
+    …
+    }
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-7FCDBDFB-6548-52D2-A18D-608FC8F151A3.dita"><linktext>Activity
+Manager Overview</linktext></link>
+</related-links></task>

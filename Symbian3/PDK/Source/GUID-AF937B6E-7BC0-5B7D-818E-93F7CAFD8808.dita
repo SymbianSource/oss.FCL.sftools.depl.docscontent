@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-AF937B6E-7BC0-5B7D-818E-93F7CAFD8808"><title>Parsing an XML document using Content Handler</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This section explains how to parse an XML document by implementing the content handler functionality of the parser framework. </p> <p> <xref href="GUID-A6B8386B-29F6-3BEC-9D77-D8E0900DEAC2.dita"><apiname>MContentHandler</apiname></xref> class defines the interface required by a client of the XML framework. It allows a client to be placed in a chain with other clients such as a Parser or a Validator, and therefore allows the flow of information within chain. It provides callbacks similar to that of the SAX 2.0 interface. </p> <section><title>Introduction</title> <p>Consider a scenario when an application with numerous settings require the settings being saved, so that when the application is restarted after a shutdown, the settings are available. This can be achieved (while ensuring the cross-platform compatibility) by saving the setting in an XML file, which the application parses on start-up. The application responds to the XML statements by implementing the <xref href="GUID-A6B8386B-29F6-3BEC-9D77-D8E0900DEAC2.dita"><apiname>MContentHandler</apiname></xref> interface. Since the parser detects tags and their content, it calls the associated content handler functions to respond with the required behaviour. </p> <p>The callback functions which an implementation of <xref href="GUID-A6B8386B-29F6-3BEC-9D77-D8E0900DEAC2.dita"><apiname>MContentHandler</apiname></xref> must provide are depicted in the table. These correspond to functions defined in the <codeph>ContentHandler</codeph> interface of the <xref scope="external" href="http://www.saxproject.org">SAX specification</xref>. The last parameter of each function is an error code. If no error has taken place, then the <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> null error code is returned by the framework. </p> <p> </p> <table id="GUID-BF14F3DB-7880-5299-874C-3B56554C8080"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>MContentHandler callback</entry> <entry>SAX specification function</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-6F240EEF-81FA-3A27-9593-A7ADC9118627.dita"><apiname>OnStartDocumentL()</apiname></xref>  </p> </entry> <entry><p> <codeph>startDocument() </codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-81F0FD8C-825D-3283-B998-6B44CC3294FE.dita"><apiname>OnEndDocumentL()</apiname></xref>  </p> </entry> <entry><p> <codeph>endDocument() </codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-5BFFB049-5C71-31FB-ADBE-89FF4296E125.dita"><apiname>OnStartElementL()</apiname></xref>  </p> </entry> <entry><p> <codeph>startElement()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-6F1E258D-CE57-3C22-BBDE-AF5B6D6C90EB.dita"><apiname>OnEndElementL()</apiname></xref>  </p> </entry> <entry><p> <codeph>endElement() </codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-37601F09-7C8A-3397-8750-92CE95C1B87B.dita"><apiname>OnContentL()</apiname></xref>  </p> </entry> <entry><p> <codeph>characters()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-DA03C829-A9E3-3A8E-9367-208545FA0721.dita"><apiname>OnStartPrefixMappingL()</apiname></xref>  </p> </entry> <entry><p> <codeph>startPrefixMapping()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-CC4C2F12-DC24-3F7F-BB5F-7D744F41E095.dita"><apiname>OnEndPrefixMappingL()</apiname></xref>  </p> </entry> <entry><p> <codeph> endPrefixMapping()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-92826CB4-B56E-3E9F-BD4B-31ADE3974D91.dita"><apiname>OnIgnorableWhiteSpaceL()</apiname></xref>  </p> </entry> <entry><p> <codeph> ignorableWhitespace()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-3D25881F-192F-3A21-B3DE-ECAB29C1D5CA.dita"><apiname>OnSkippedEntityL()</apiname></xref>  </p> </entry> <entry><p> <codeph>skippedEntity()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-7DAF7316-BD31-3AD4-9854-F8CB6319D3D4.dita"><apiname>OnProcessingInstructionL()</apiname></xref>  </p> </entry> <entry><p> <codeph>processingInstruction()</codeph>  </p> </entry> </row> <row><entry><p> <xref href="GUID-BF4510DE-7C8B-3404-91C0-FAC737AA1A07.dita"><apiname>OnError()</apiname></xref>  </p> </entry> <entry><p> </p> </entry> </row> <row><entry><p> <xref href="GUID-A03D96B2-56B2-33A7-AC51-E1F5D1CA681C.dita"><apiname>GetExtendedInterface()</apiname></xref>  </p> </entry> <entry><p> </p> </entry> </row> </tbody> </tgroup> </table> <p>The following table lists the classes that are parameter of functions that must be implemented: </p> <table id="GUID-B34320E0-B8B1-5992-94AE-DA6D587D84F1"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>Class</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-D79A2F59-8DC1-3493-92F6-2E1337CD9405.dita"><apiname>RDocumentParameters</apiname></xref>  </p> </entry> <entry><p>Contains the character set which the document uses. </p> </entry> </row> <row><entry><p> <xref href="GUID-58047BD6-FECF-3BF0-869B-65F833D972A4.dita"><apiname>RAttributeArray</apiname></xref>  </p> </entry> <entry><p>Consists of an array of <xref href="GUID-BAD00F6C-6E5C-3331-BA58-85A186F933E8.dita"><apiname>RAttribute</apiname></xref> objects. The array holds the name (as an <xref href="GUID-6CEDFB6D-16B6-3860-922B-15A23C182DB2.dita"><apiname>RTagInfo</apiname></xref> object), value and type of each attribute of the element. </p> </entry> </row> <row><entry><p> <xref href="GUID-6CEDFB6D-16B6-3860-922B-15A23C182DB2.dita"><apiname>RTagInfo</apiname></xref>  </p> </entry> <entry><p>Contains information about an XML tag, its namespace URI and prefix, and its local name. </p> </entry> </row> </tbody> </tgroup> </table> </section> <section id="GUID-948C5BEE-0E05-525A-B601-909A1818FDA0"><title>Procedure</title> <p>Follow the steps given below to understand how to parse an XML document by implementing the content handler functionality: </p> <ol id="GUID-9404AB58-0C3C-5CE9-A4BE-D15861B145E8"><li id="GUID-D4F71FA7-3DC7-5CB7-89D6-459E4F35D43E"><p>Implement the <codeph>MContentHandler</codeph> interface. </p> <p>The following code snippet illustrates how to implement <codeph>MContentHandler</codeph>: </p> <codeblock id="GUID-DE2A07E6-00BD-577D-AF67-83B85CD59572" xml:space="preserve">class CMyContentHandler : public CBase, public MContentHandler
+{
+public:
+    // A callback to indicate the start of the document. 
+    void CXmlExample::OnStartDocumentL( const RDocumentParameters&amp;, TInt )
+    {
+    iConsole-&gt;Printf( KOnStartDoc );
+    iConsole-&gt;Printf( KPressAKey );
+    iConsole-&gt;Getch();
+
+    iNumElements = 0;
+    iNumSkippedEntities = 0;
+    iNumPrefixMappings = 0;
+    iNumPrefixUnmappings = 0;
+    }
+    
+// A callback to indicate an element has been parsed.     
+void CXmlExample::OnStartElementL( const RTagInfo&amp;, const RAttributeArray&amp;, TInt )
+    {
+    iConsole-&gt;Printf( KOnStartEle );
+
+    if( iLeaveOnStartElement )
+        {    
+        if( iNumElements++ == 0 )
+                  {
+                  iConsole-&gt;Printf( KOnStartErr, KExpectedLeaveCode );
+            User::After( 1 );
+                  User::Leave( KExpectedLeaveCode );
+                  }
+
+           iNumElements++;
+        }
+    }
+  
+// implementations of the other callbacks
+// ...
+
+}</codeblock> </li> <li id="GUID-A6BB0985-37A3-526D-B678-266A55F57862"><p>Instantiate the <codeph>ContentHandler</codeph> object in the client application code and pass it to the constructor method of a parser object. </p> <codeblock id="GUID-14F1FCEB-7475-583B-867A-E7D19E8369B0" xml:space="preserve">...
+CMyContentHandler* ch = CMyContentHandler::NewL();
+CParser* parser = CParser::NewLC( KXmlMimeType,ch );
+parser-&gt;ParseL( myXMLdata ); // this will result in callbacks to ch
+...</codeblock> </li> </ol> </section> </conbody></concept>

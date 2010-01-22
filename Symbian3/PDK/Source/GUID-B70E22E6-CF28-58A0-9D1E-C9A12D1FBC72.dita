@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B70E22E6-CF28-58A0-9D1E-C9A12D1FBC72" xml:lang="en"><title>Using
+RPointerArray&lt;class T&gt;</title><shortdesc>This document covers the issues involved in using a RPointerArray.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F7FD2F4C-A187-5289-B28D-1A7A40A7EF4B"><title>Freeing all
+memory before the array goes out of scope</title> <p>By convention, class
+names starting with the letter <codeph>R</codeph> do not allocate memory on
+the heap. <codeph>RPointerArray&lt;class T&gt;</codeph> is an <i>exception</i> and
+this should be remembered when using the class. </p> <p>If an array is declared
+on the program stack, then its <codeph>Close()</codeph> or <codeph>Reset()</codeph> member
+function must be called to ensure that allocated memory is freed. </p> <p>Similarly,
+if <codeph>RPointerArray&lt;class T&gt;</codeph> is a data member of another
+class, then the destructor of that class must call <codeph>Close()</codeph> or <codeph>Reset()</codeph>. </p> <p>Another
+issue to remember is the ownership of objects whose pointers are contained
+within an <codeph>RPointerArray&lt;class T&gt;</codeph> array. If ownership of
+the objects lies elsewhere, then calling <codeph>Close()</codeph> or <codeph>Reset()</codeph> before
+the array goes out of scope is sufficient. If, however, ownership of these
+objects is vested in the array, and it is the intention that these objects
+be destroyed when the array is destroyed, then <codeph>ResetAndDestroy()</codeph> must
+be called before the array goes out of scope. </p> </section>
+<section id="GUID-7CBFF894-9704-5018-A062-6EB2DC2D181A"><title>Packaging the
+algorithm for ordering array objects</title> <p>A <codeph>RPointerArray&lt;class
+T&gt;</codeph> array allows its contained pointers to be ordered so that the
+objects themselves are in object order. The array provides the behaviour for
+inserting and sorting instances of pointers to the template class. To help
+with this, the template class must provide an algorithm for deciding how two
+template class objects are ordered. This algorithm is implemented by a function
+which must be wrapped in a <codeph>TLinearOrder&lt;class T&gt;</codeph> package. </p> <p>The
+function implementing the algorithm can be a static member of the class but
+need not necessarily be so. </p> <p>Here, we aim to build an array of <codeph>CMyTest</codeph> objects
+ordered in a way which makes sense for the <codeph>CTMyTest</codeph> class. </p> <codeblock id="GUID-46BBDDDA-9AF5-5A1D-80B0-7F9441D1DBF8" xml:space="preserve">class CMyTest
+ { 
+public 
+ ~CMyTest();
+ Static CMytest* NewL(const TDesC&amp; aText);
+ static TInt Compare(const CMyTest&amp; aFirst, const CMyTest&amp; Second);
+public:
+ HBufC* iText;
+ };</codeblock> <p>In this example, the algorithm is implemented by a static
+function called <codeph>Compare()</codeph>. It takes const references to two <codeph>CMyTest</codeph> objects
+and returns zero if the objects are equal, a negative value if <codeph>aFirst</codeph> is
+less than <codeph>aSecond</codeph> and a positive value if <codeph>aFirst</codeph> is
+greater than <codeph>aSecond</codeph>. </p> <codeblock id="GUID-FE525095-5A8F-52CB-A56C-6E0148011478" xml:space="preserve">TInt CMyTest::Compare(const CMyTest&amp; aFirst,const CMyTest&amp; aSecond)
+ {
+ TInt ret = (aFirst.iText)-&gt;Compare(*aSecond.iText);
+ if (ret &gt; 0)
+  return 1;
+ if (ret &lt; 0)
+  return -1;
+ return 0;
+ }</codeblock> <p>Construct three <codeph>CMyTest</codeph> objects and then
+construct an array object for an array of pointers to <codeph>CMyTest</codeph> objects;
+the array has default granularity. </p> <codeblock id="GUID-DA86C3D4-1D9C-5FAD-B418-9EB65DECB045" xml:space="preserve">_LIT(KTextOne,"First Text");
+_LIT(KTextTwo,"Second Text");
+_LIT(KTextThree,"Third Text");
+...
+CMyTest* one   = CMyTest::NewL(KTextOne);
+CMyTest* two   = CMyTest::NewL(KTextTwo);
+CMyTest* three = CMyTest::NewL(KTextThree);
+...
+RPointerArray&lt;CMyTest&gt; x;</codeblock> <p>There are at least three ways
+of proceeding, some of which are more efficient than others. </p> <ul>
+<li id="GUID-502B71BF-A649-5E1A-90C1-B7822FD61CF8"><p>Explicitly build a <codeph>TLinearOrder&lt;CMyTest&gt;</codeph> and
+pass this as a parameter to <codeph>InsertInOrder()</codeph>. </p> </li>
+</ul> <codeblock id="GUID-65DCB793-5FE3-59F7-B479-DCEDB2FEC5BC" xml:space="preserve">...
+TLinearOrder&lt;CMyTest&gt; order(CMyTest::Compare);
+...
+x.InsertInOrder(one,order);
+...</codeblock> <ul>
+<li id="GUID-A9BEE65B-EA73-57C8-8E3A-FCDAF7D7AFD3"><p>Construct a temporary <codeph>TLinearOrder&lt;CMyTest&gt;</codeph> on
+the call to <codeph>InsertInOrder()</codeph>. </p> </li>
+</ul> <codeblock id="GUID-A61509B0-8473-56BA-B343-3F62A9D54A0B" xml:space="preserve">...
+x.InsertInOrder(one,TLinearOrder&lt;CMyTest&gt;(CMyTest::Compare));
+...</codeblock> <ul>
+<li id="GUID-46064641-BA0A-5FE5-93A1-1C2F3981AB1B"><p>Implicitly construct
+a temporary <codeph>TLinearOrder&lt;CMyTest&gt;</codeph> on the call to <codeph>InsertOrder()</codeph>. </p> </li>
+</ul> <codeblock id="GUID-9B4DA4D7-2DAC-58C6-B958-EDC20ED785B6" xml:space="preserve">...
+x.InsertInOrder(one,CMyTest::Compare);
+...</codeblock> <p>This applies to all member functions of <codeph>RPointerArray&lt;class
+T&gt;</codeph> which take a <codeph>TLinearOrder&lt;class T&gt;</codeph> argument. </p> </section>
+</conbody></concept>

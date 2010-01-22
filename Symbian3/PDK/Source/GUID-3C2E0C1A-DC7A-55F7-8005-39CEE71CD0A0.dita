@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3C2E0C1A-DC7A-55F7-8005-39CEE71CD0A0" xml:lang="en"><title>Emulating
+stdin/stdout/stderr in STDLIB</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section briefly describes the process of emulating in STDLIB. </p>
+<section><title>Simple Mode - CCLocalSystemInterface</title><p>The following
+are the steps to emulate in simple mode: </p> <ol id="GUID-726C67E0-2339-5E20-9F44-3A2C821CFD7F">
+<li id="GUID-2E5FBA33-8E7B-5B08-A3AE-B22BE011C95D"><p>Create a single <codeph>CTtyDesc</codeph> object
+per thread and an instance of the basic console object. </p> </li>
+<li id="GUID-C4A3FBCF-2595-5E2C-8B30-BAC50502CCC0"><p>Attach the <codeph>CTtyDesc</codeph> object
+to <codeph>stdin</codeph>, <codeph>stdout</codeph> and <codeph>stderr</codeph>. </p> </li>
+<li id="GUID-09A00AD2-D349-531E-98FF-108CBE2C84B2"><p>Pass the Requests made
+on <codeph>stdin</codeph>, <codeph>stdout</codeph> and <codeph>stderr</codeph> to <codeph>CTtyDesc</codeph>. </p> </li>
+</ol> <p>There is a separate console per thread. Therefore, output is spread
+over a number of different consoles. </p> </section>
+<section><title>Complex Mode - CProcessSystemInterface</title><p>The following
+are the steps to emulate in complex mode: </p> <ol id="GUID-1515247F-07E1-53E9-9479-1B2F1D4C0F61">
+<li id="GUID-4803D30B-CB4D-5153-85CB-C7EE0CDA074D"><p>Start the POSIX server
+in the <codeph>crt0</codeph> glue code. </p> </li>
+<li id="GUID-A5F9DB72-C223-52F6-B24F-C3923CE801EF"><p>Create either a single
+instance of <codeph>CW32StreamDesc</codeph> or <codeph>CReDirDesc</codeph> in
+the POSIX server. </p> </li>
+<li id="GUID-F2D23AC7-A08C-5A1A-A4F0-410D8D14ABBE"><p>Attach it to <codeph>stdin</codeph>, <codeph>stdout</codeph> and <codeph>stderr</codeph>,
+which is used by all threads. </p> <p>Requests made on <codeph>stdin</codeph>, <codeph>stdout</codeph> and <codeph>stderr</codeph> are
+passed to the attached descriptor object. </p> </li>
+<li id="GUID-AAEC5A86-21D6-56DA-A834-A2C1743881E7"><p>Use <codeph>CW32StreamDesc</codeph> for
+the emulator only if the <codeph>RWin32Stream</codeph> server was started
+in the <codeph>crt0</codeph> glue code. </p> <p>If <codeph>CW32StreamDesc</codeph> cannot
+be used or code is compiled for hardware, then use<codeph>CRedirDesc</codeph> instead. </p> </li>
+<li id="GUID-31BC5DCD-4F01-5116-A139-123DBC4E217F"><p> <codeph>CReDirDesc</codeph> connects
+and passes the request to a redirection server. If connection fails the output
+to <codeph>stdout</codeph> and <codeph>stderr</codeph> is lost. Nothing is
+read from <codeph>stdin</codeph>. </p> </li>
+<li id="GUID-1A43C2BC-04D7-5DCF-84E6-CDC53F657564"><p>The client application
+(for example, Java RT or the Test application) starts the redirection server.
+The client also provides an implementation of <codeph>CStreamFactoryBase2</codeph>.
+This implementation deals with standard I/O data in a customised way. </p> </li>
+</ol> <p><b> Stdin/stdout on emulator in complex mode</b> </p> <p>A text EXE
+running on the emulator can either use the <codeph>wcrt0.lib</codeph> or <codeph>wwcrt0.lib</codeph> crt0
+libraries. These automatically start the <codeph>RWin32Stream</codeph> server
+to redirect <codeph>stdin</codeph>, <codeph>stdout</codeph> and <codeph>stderr</codeph> to
+the Win32 console. </p> <p><b>Stdin/stdout on hardware in complex mode</b> </p> <p>A
+test EXE running on target hardware has no default console. The test application
+requires application/client specific C++ code to be written to create a new
+thread and call <codeph>CRedirServer2::NewL()</codeph> to start the redirection
+server along with client specific derived classes to plumb the I/O to wherever
+it is required. The POSIX server will then connect to this server when stdXXX
+streams are used. </p></section>
+</conbody></concept>

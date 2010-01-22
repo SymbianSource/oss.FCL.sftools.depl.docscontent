@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-88E89E94-7C9E-5583-827C-84FADD50F97E" xml:lang="en"><title>Modifying
+your current setup for ethernet</title><shortdesc>Set up ethernet to incorporate ethernet with comms database settings.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You can also use the <xref href="GUID-3C6935E1-66C9-5115-901E-D3B1D0C2E783.dita">Quick
+ethernet configuration</xref>. </p>
+<ol id="GUID-F0D337D1-1E90-5FB9-B1BC-676042F792C7">
+<li id="GUID-3C2F7DF5-62C6-5B4E-8B66-CCAE76BBE96A"><p> <xref href="GUID-CDD1E761-6B28-5F69-BBEF-756DF45E59A2.dita">Install
+WinPcap</xref>  </p> <p> <i>WinPcap</i> is used by Symbian platform to send
+and receive ethernet frames to Windows OS. We recommend version 4.0 of this
+program </p> </li>
+<li id="GUID-7D079E8F-BDFC-5E96-959D-2DA53DFDB294"><p>Edit your current comms
+database as described in the following section. The <i>CED</i>, <i>CEDDUMP</i> and
+tools should be used to securely modify comms database entries; see Comms
+database configuration tools. </p> </li>
+<li id="GUID-9730B75A-0278-5D8E-BA95-DB123691E70A"><p>Run the <xref href="GUID-7B114A67-356A-5FCE-B57B-761F5477A2B2.dita">Configchange.pl</xref> script. </p> </li>
+</ol>
+<section id="GUID-21ED581C-3623-4BC9-A00F-A7D46C1AC59C"><title>Editing comms
+database settings for Ethernet</title> <p>Symbian platform stores many communication
+settings in its communications database. This database is used both in the
+emulator and real devices. It is primarily used by the communication subsystems
+within Symbian platform. </p> <p>The comms database is made up of a number
+of tables. Several tables are required to connect the emulator to the Internet
+via ethernet. </p> <p>Edit your current comms database as described below.
+The <i>CED</i> and <i>CEDDUMP</i> tools should be used to securely modify
+comms database entries; see Comms database configuration tools. </p> </section>
+<section id="GUID-191C55A1-B55C-4311-B956-C3AF2957A69F"><title>LAN Bearer table</title><p>The LAN bearer table contains information
+about physical connections to networks. The start of the LAN bearer table
+is indicated by the text <codeph>[LANBearer]</codeph>. It may be followed
+by a number of connections. One may be suitable for the emulator, otherwise
+add a new connection in a new <codeph>ADD_SECTION...END_ADD</codeph> section. </p> <p>If
+you are using Symbian platform with the EKA1 kernel then there should be a
+connection like the one below: </p> <codeblock id="GUID-DF5AB7B9-2D29-52C7-97F5-4EE568422901" xml:space="preserve">ADD_SECTION
+    Name=EKA1 Emulator Ethernet
+    Agent=nullagt.agt
+    IfName=ethint
+    LDDFilename=ethercard
+    LDDName=Ethercard
+    PDDFilename=etherwins
+    PDDName=Ethercard.wins
+    PacketDriverName=EtherPkt.drv
+    LastSocketActivityTimeout=-1
+    LastSessionClosedTimeout=-1
+    LastSocketClosedTimeout=-1
+    FIELD_COUNT=11
+END_ADD</codeblock> <p>If you are using EKA2 kernel then there should be a
+connection like this: </p> <codeblock id="GUID-AE57D4FA-90FE-5A74-BB85-0B7DB2398280" xml:space="preserve">ADD_SECTION
+    Name=EKA2 Emulator Ethernet
+    Agent=nullagt.agt
+    IfName=ethint
+    LDDFilename=enet
+    LDDName==Ethernet
+    PDDFilename=ethernet
+    PDDName=Ethernet.Wins
+    PacketDriverName=EtherPkt.drv
+    LastSocketActivityTimeout=-1
+    LastSessionClosedTimeout=-1
+    LastSocketClosedTimeout=-1
+    FIELD_COUNT=11
+END_ADD</codeblock> <p>The Symbian platform version number will tell you which
+kernel you are using. Version 7 or less indicates EKA1. Versions 8.0 and 8.1
+are written with a letter after them. An '<i>a</i>' indicates EKA1 and a '<i>b</i>'
+indicates EKA2. Versions 9.0 and later are EKA2. The version number is commonly
+available in <filepath>/epoc32/data/BuildInfo.txt</filepath>. </p></section>
+<section id="GUID-07D8E6DB-8E5A-4D24-B404-16D470B422F6"><title>LAN Service table</title><p>The LAN Service table contains
+address information. The start of the LAN service table is indicated by the
+text <codeph>[LANService]</codeph>. This may be followed by address information
+for one or more networks. You will need information for each network to which
+you want to connect. </p> <ul>
+<li id="GUID-0B6C8959-BDA2-5D5F-84C9-DA93BFD677F3"><p> <b>Ethernet with dynamic
+IP address</b>  </p> <p>Use this when your network uses DHCP. It allows the
+network to automatically allocate an IP address for the emulator every time
+it connects. Your network administrator will tell you whether you can use
+DHCP. </p> <p>In the <codeph>[LANService]</codeph> table, make sure there
+is a <codeph>ADD_SECTION...END_ADD</codeph> section in the table identical
+to the following. In particular, set the <codeph>IpAddrFromServer</codeph> and <codeph>IpDNSAddrFromServer</codeph> fields
+to <codeph>TRUE</codeph>, and set the two <codeph>ConfigDaemon</codeph> fields
+as shown in the following: </p> <codeblock id="GUID-F3D835BE-796B-5422-9072-299409D030A9" xml:space="preserve">ADD_SECTION
+    Name=Ethernet using DCHP
+    IfNetworks=ip
+    IpNetMask=
+    IpGateway=
+    IpAddrFromServer=TRUE
+    IpAddr=
+    IpDNSAddrFromServer=TRUE
+    IpNameServer1=
+    IpNameServer2=
+    ConfigDaemonManagerName=NetCfgExtnDhcp
+    ConfigDaemonName=DhcpServ
+    FIELD_COUNT=11
+END_ADD</codeblock> <p>Note: before v9.0, the value of <codeph>ConfigDaemonManagerName</codeph> was <codeph>ConfigDaemonManager</codeph>. </p> </li>
+<li id="GUID-0DA3C4DC-4951-59A1-9D23-3FABEC3D93DC"><p> <b>Ethernet with static
+IP address on networks without DHCP</b>  </p> <p>This describes how to set
+all your network settings manually. This will be necessary on networks that
+do not use DHCP. If your network uses DHCP then you can still set your settings
+manually if you wish. </p> <p>In the <codeph>[LANService]</codeph> table,
+make sure there is a <codeph>ADD_SECTION...END_ADD</codeph> section in the
+table similar to the one below: </p> <ul>
+<li id="GUID-5FE2A935-0F33-5223-ABB2-6D2A4540F81E"><p>Set the <codeph>IpAddrFromServer</codeph> and <codeph>IpDNSAddrFromServer</codeph> fields
+to <codeph>FALSE</codeph>, and leave the two <codeph>ConfigDaemon</codeph> fields
+empty </p> </li>
+<li id="GUID-55441AA2-8F31-5A81-8580-A5414E87D4E2"><p>Set the fields in the
+following table to suitable values: </p> <table id="GUID-AE300CB8-55DC-5A20-8E1C-E2F7B7A8586B">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Field</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>IpAddr </p> </entry>
+<entry><p>IP address </p> </entry>
+</row>
+<row>
+<entry><p>IpNetMask </p> </entry>
+<entry><p>IP subnet mask </p> </entry>
+</row>
+<row>
+<entry><p>IpGateway </p> </entry>
+<entry><p>Gateway IP address </p> </entry>
+</row>
+<row>
+<entry><p>IpNameServer1 and IpNameServer2 </p> </entry>
+<entry><p>Primary and secondary DNS server addresses </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Your network administrator may be able to supply you with an IP
+address. It must be in the same range of addresses as the other computers
+on the network, and it must not be in use already. </p> <p>For the other parameters,
+you can normally use the same values that Windows uses on your PC. To show
+Window's configuration, type the following from a command prompt: </p> <p><userinput>ipconfig
+/all</userinput> </p> </li>
+</ul> <p>Here is an example table: </p> <codeblock id="GUID-F2B36B36-09F9-5B5C-BEC5-BE29E7A39EBA" xml:space="preserve">ADD_SECTION
+    Name=Ethernet Static IP
+    IfNetworks=ip
+    IpNetMask=255.255.255.0
+    IpGateway=10.23.162.254
+    IpAddrFromServer=FALSE
+    IpAddr=10.23.162.200
+    IpDNSAddrFromServer=FALSE
+    IpNameServer1=10.16.59.515
+    IpNameServer2=10.23.58.12
+    ConfigDaemonManagerName=
+    ConfigDaemonName=
+    FIELD_COUNT=11
+END_ADD</codeblock> </li>
+<li id="GUID-C32365C7-E4E9-5FE1-8AA8-7A6515C50ACD"><p> <b>Ethernet with static
+IP address on DHCP networks</b>  </p> <p>This describes how to choose your
+own IP address, but to set all the other network settings (subnet mask, gateway
+and DNS servers) automatically when you connect. Your network must use DHCP
+for this. </p> <p> <note> Some DHCP servers do not support this configuration.
+Before using it, please ensure that your network's DHCP server supports the
+'<i>INFORM</i>' message. </note></p>In the <codeph>[LANService]</codeph> table,
+make sure there is a <codeph>ADD_SECTION...END_ADD</codeph> section in the
+table similar to the one in the following: <ul>
+<li id="GUID-3B0120F9-63F0-5759-9673-B56C87B2C06E"><p>Set the <codeph>IpDNSAddrFromServer</codeph> fields
+to <codeph>FALSE</codeph> and set the two <codeph>ConfigDaemon</codeph> fields
+as shown in the example below </p> </li>
+<li id="GUID-A7F1091C-E88F-51A0-B3D6-795DCEC5351B"><p>Set the <codeph>IpAddrFromServer</codeph> to <codeph>TRUE</codeph> and
+set <codeph>IpAddr</codeph> to an IP address for the emulator. Your network
+administrator may be able to supply you with an IP address. It must be in
+the same range of addresses as the other computers on the network, and it
+must not be in use already. </p> </li>
+</ul> <p>Here is an example table: </p> <codeblock id="GUID-374BD714-F158-52E8-BCDB-FCC5A46E8D52" xml:space="preserve">ADD_SECTION
+    Name=Ethernet Static IP
+    IfNetworks=ip
+    IpNetMask=
+    IpGateway=
+    IpAddrFromServer=FALSE
+    IpAddr=192.168.20.13
+    IpDNSAddrFromServer=TRUE
+    IpNameServer1=
+    IpNameServer2=
+    ConfigDaemonManagerName=NetCfgExtnDhcp
+    ConfigDaemonName=DhcpServ
+    FIELD_COUNT=11
+END_ADD</codeblock> <p>Note: before v9.0, the value of <codeph>ConfigDaemonManagerName</codeph> was <codeph>ConfigDaemonManager</codeph>. </p> </li>
+</ul></section>
+<section id="GUID-E46108D2-03E9-4B6C-A004-61A0A983EFE8"><title>Internet Access Point table</title><p>In the previous two
+sections you created a physical connection in the <codeph>[LANBearer]</codeph> table
+for either the EKA1 or EKA2 kernel, and you created your network's address
+information in the LAN Service table. Now you must link the two together in
+an <i>Internet Access Point (IAP)</i>. The combination of the two is all the
+emulator needs to connect to the network. </p> <p>The IAP table defines a
+number of IAPs. You must ensure that there is one suitable for the emulator
+on your network. The start of the IAP table is indicated by the text <codeph>[IAP]</codeph>.
+After this there will be a number of sections defining IAPs. If there is not
+a suitable IAP already then you must create one similar to the following: </p> <codeblock id="GUID-66CD685D-1193-54C8-85EC-9EED9E56E54F" xml:space="preserve">[IAP]
+ADD_SECTION
+       Name=Emulator Lan IAP
+       IAPService=2
+       IAPServiceType=LANService
+       IAPBearer=4
+       IAPBearerType=LANBearer
+       IAPNetwork=1
+       IAPNetworkWeighting=0
+       Location=1
+       FIELD_COUNT=8
+END_ADD</codeblock> <p>In each IAP, the <codeph>IAPBearer</codeph> and <codeph>IAPService</codeph> parameters
+define the sections to link. You need to enter a number in each of these fields: </p> <ul>
+<li id="GUID-CFB52AF7-B05E-5D5B-A8C2-CBB22F9B3B95"><p>Go to the LAN Service
+table and find the address information for your network. It will be in an <codeph>ADD_SECTION...END_ADD</codeph> table
+entry. Count the number of table entries from the beginning of the table until
+you reach your entry. Enter this number in the IAP's <codeph>IAPService</codeph> field. </p> <p>Note:
+the first entry in the table is number one, not zero. </p> </li>
+<li id="GUID-C7F2A24B-3491-59A5-8BCE-F430F9A1F74D"><p>Repeat the same for
+your network connection in the <codeph>[LANBearer]</codeph> table, entering
+the number into the <codeph>IAPBearer</codeph> field of the IAP. </p> </li>
+</ul> <p>The example above links the second network address section in the
+LAN Service table with the fourth physical connection in the <codeph>[LANBearer]</codeph> table. </p> <p>Copy
+the rest of the fields as shown above. </p></section>
+<section id="GUID-A1AF1DD2-C20E-4301-A210-307CAB47A41F"><title>Connection Preferences table</title><p>The Internet Access
+Point (IAP) table defines a number of method to connect to networks and the
+Internet. When a phone or the emulator wants to connect to a network, the
+Connection Preferences table defines how a IAP is chosen. </p> <p>The start
+of the connection preferences table is indicated by the text <codeph>[ConnectionPreferences]</codeph>.
+After this there will be a number of sections defining your preferences. </p> <p>You
+have two options: </p> <ul>
+<li id="GUID-1D0F662E-B4F3-57FE-8FA2-EED2E8F1ADFB"><p> <b>Ask which IAP to
+use each time you connect</b>  </p> <p>If the table contains a section like
+the one below then Symbian platform will ask you to choose an IAP before it
+connects. A dialog box will be displayed allowing you to make your choice.
+This is useful if you often connect to more than one network. </p> <p>You
+can ignore the <codeph>BearerSet</codeph> and <codeph>IAP</codeph> fields,
+but you must copy the others as shown: </p> <codeblock id="GUID-B9C41F22-30C6-5F11-831B-6F0C97179C1D" xml:space="preserve">ADD_SECTION
+    Ranking=1
+    Direction=OUTGOING
+    DialogPref=PROMPT
+    BearerSet=LAN
+    IAP=1
+    FIELD_COUNT=5
+END_ADD</codeblock> <p>Note the <codeph>Ranking=1</codeph> field. This indicates
+that this is the highest priority connection preference. </p> <p>Any sections
+with <codeph>Ranking=0</codeph> are ignored. Think of setting <codeph>Ranking=0</codeph> as
+'commenting out' a connection preference. </p> </li>
+<li id="GUID-2F7DFB97-C0A6-563B-B41D-9337749C9525"><p> <b>Always connect with
+the same IAP</b> <b>Define the IAP to use</b>  </p> <p>You can define the
+default IAP in the connection preferences table. When Symbian platform wants
+to connect, it always uses the IAP that you define here. No dialog box will
+appear on screen and you will not be able to choose an IAP before you connect. </p> <p>This
+is useful when you always connect to the same network. </p> <p>Add a section
+to the table like this: </p> <codeblock id="GUID-5DA76D4E-7305-5EFD-AD85-928B241C0BC0" xml:space="preserve">ADD_SECTION
+    Ranking=1
+    Direction=OUTGOING
+    DialogPref=DONOTPROMPT
+    BearerSet=LAN
+    IAP=1
+    FIELD_COUNT=5
+END_ADD</codeblock> <p>where the <codeph>IAP</codeph> field must be set to
+the desired IAP number. In this example we connect to the first IAP, which
+is the first <codeph>ADD_SECTION...END_ADD</codeph> after the text <codeph>[IAP]</codeph>.
+Copy the other fields as shown. </p> <p>You can specify a second, backup connection
+preference. If the first connection attempt fails then the backup connection
+is tried. Define a backup connection in a section similar to the following: </p> <codeblock id="GUID-7BBEE6A6-F723-56B1-A54E-8FC2C3E30469" xml:space="preserve">ADD_SECTION
+    Ranking=2
+    Direction=OUTGOING
+    DialogPref=DONOTPROMPT
+    BearerSet=LAN
+    IAP=3
+    FIELD_COUNT=5
+END_ADD</codeblock> <p>Note the <codeph>Ranking=2</codeph> field. This indicates
+that this is the second highest priority connection preference after the section
+with <codeph>Ranking=1</codeph>. Any sections with <codeph>Ranking=0</codeph> are
+ignored by Symbian platform. </p> </li>
+</ul></section>
+</conbody></concept>

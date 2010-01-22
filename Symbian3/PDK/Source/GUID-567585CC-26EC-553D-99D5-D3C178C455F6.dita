@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-567585CC-26EC-553D-99D5-D3C178C455F6" xml:lang="en"><title>Configuring
+DVB-H Signal Scanning</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic gives you information about the initial setup for DVB-H Signal
+Scanning. </p>
+<section><title>Purpose</title> <p>The purpose of this topic is to set and
+get the scan configuration for DVB-H Signals. </p> </section>
+<section><title>Required Background</title><p>You may wish to specify the
+scan parameters, before initiating a signal scan. But this step is optional
+and by default, if you do not specify any parameters hardware defaults are
+used. If you wish to set scan parameters, this is done by calling <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-B988EC58-EAB0-3644-8AF7-1DBCE06E3E7B"><apiname>RDvbhReceiver::SetScanConfiguration()</apiname></xref> with
+a <xref href="GUID-D84731C4-A3C8-37E3-887A-25906530E595.dita"><apiname>TDvbhScanConfiguration</apiname></xref> object containing the following
+information: </p> <ul>
+<li id="GUID-01EF5C12-BB71-57FA-B50F-7B13095F0367"><p>Start Frequency (in
+Hz) : First frequency to scan. </p> </li>
+<li id="GUID-507724E9-9BFB-5C31-B719-E76BAEF5442A"><p>End Frequency (in Hz)
+: Last frequency to scan. </p> </li>
+<li id="GUID-D053DDFC-B583-5003-9D0F-F551B68EC433"><p>Signal Bandwidth (in
+Hz) : Increment frequency is used to compute the next frequency to scan. </p> </li>
+<li id="GUID-15567754-A0FC-51EA-8FB9-8BF84F1621E3"><p>Scan Options: <xref href="GUID-176D1C2A-3D04-318B-9C57-EDFBB8CB4CF6.dita"><apiname>EDvbhScanOptionNormal</apiname></xref> to
+indicate that the user supplied parameters should be used or <xref href="GUID-78E062FD-A5FD-3231-84DE-BFFEAC3F373D.dita"><apiname>EDvbhScanOptionFullScan</apiname></xref> to
+indicate that hardware defaults are used. </p> </li>
+</ul> <p>You can determine the current scan configuration being used by the
+receiver by calling <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-10C24DC2-2E9A-3671-94D6-B1910B0FA4A2"><apiname>RDvbhReceiver::GetScanConfigurationRI()</apiname></xref>,
+and then passing in a reference to an unpopulated <xref href="GUID-D84731C4-A3C8-37E3-887A-25906530E595.dita"><apiname>TDvbhScanConfiguration</apiname></xref> object. </p></section>
+<section><title>Setup and Configuration Requirements</title><p>In order to
+initiate a signal scan, mobile TV middleware must implement <xref href="GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4.dita#GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4/GUID-5B931754-A048-3AB0-AC2E-C62472A56717"><apiname>MDvbhScanObserver::DvbhScanProgress()</apiname></xref>.
+This function is called by the receiver during the scan process, whenever
+it has results to report back to the client. Typically, it is called at least
+once each time the receiver finishes scanning a particular frequency. Its
+argument is a <xref href="GUID-3F9D2682-8DA6-3493-8B78-8AF1B841A895.dita"><apiname>TDvbhScanResult</apiname></xref> which contains the following
+parameters: </p> <ul>
+<li id="GUID-85F195A7-05BD-5852-9135-7782A58A087D"><p>Frequency scanned in
+Hz. </p> </li>
+<li id="GUID-6FE32282-3AEC-5F02-86E2-88248040FEB7"><p>Status of DVB-H signal
+frequency, as bitmap of TDvbhSignalStatus values. </p> </li>
+<li id="GUID-9DBFAF67-7C0D-5237-9316-370575D09F3E"><p>IP platform that was
+found on this frequency. If none was found, it is indicated in status field.
+If more than one is found, then <xref href="GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4.dita#GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4/GUID-5B931754-A048-3AB0-AC2E-C62472A56717"><apiname>MDvbhScanObserver::DvbhScanProgress()</apiname></xref> is
+called again for each platform found. </p> </li>
+<li id="GUID-06DD363E-9EA2-5F8B-A5CB-4151E242E90F"><p>DVB-H network that was
+found on frequency. If none was found, it is indicated in status field. If
+more than one is found, then <xref href="GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4.dita#GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4/GUID-5B931754-A048-3AB0-AC2E-C62472A56717"><apiname>MDvbhScanObserver::DvbhScanProgress()</apiname></xref> is
+called again for each network found. </p> </li>
+<li id="GUID-0C85DE38-6E66-524B-A96D-984DA4F4D944"><p>Progress of the scan
+is shown between 0 and 100 percentage representation. </p> </li>
+</ul> <p>To describe how you should implement <xref href="GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4.dita#GUID-7A97A0BE-1EDA-380F-B5BB-630E3E0614C4/GUID-5B931754-A048-3AB0-AC2E-C62472A56717"><apiname>MDvbhScanObserver::DvbhScanProgress()</apiname></xref> is
+beyond the scope of this document, but some typical tasks might be: </p> <ul>
+<li id="GUID-70312D47-0035-53AD-9E79-B15EDDCE4414"><p>Building up a list of
+frequencies on which DVB-H signals are found. </p> </li>
+<li id="GUID-B23013A9-C99B-5D84-9A99-5BE9091B87E1"><p>Building up a list of
+available IP platforms. </p> </li>
+<li id="GUID-8CDF854D-344D-5E5E-A694-D95BBDE85EDF"><p>Building up a list of
+available DVB-H networks. </p> </li>
+<li id="GUID-E86E8004-3964-5645-B985-7E8A7705760E"><p>Reporting scan progress
+to the end user. </p> </li>
+</ul></section>
+<section><title>Using DVB-H Signal Scanning </title> <p>The following task
+is performed:</p> <ul>
+<li id="GUID-D4C94859-AF9E-5F60-8728-3C57591A53C3"><p><xref href="GUID-82D16EB2-BFFE-4607-9DBA-640F062E1408.dita">Scanning
+for DVB-H signals</xref> </p> </li>
+</ul> </section>
+<section><title>Example</title><p>The example code for scanning DVB-H signals
+is shown below:</p><codeblock id="GUID-E23036B7-83BE-5A85-9475-60D1473F60BB" xml:space="preserve">
+
+//Context: The following takes place in some method of an active object
+//that implements MDvbhScanObserver (e.g. class CExampleClient :
+//public CActive, public MDvbhScanObserver). Its member iReceiver is an
+//RDvbhReceiver that has previously been initialised.Receiver state is NoPlatform
+
+User::LeaveIfError(iReceiver.Scan(*this, iStatus));
+SetActive();
+
+//While the active object is outstanding,
+//CExampleClient::DvbhScanProgress() will be called periodically by
+//the receiver, each time it has finished scanning a frequency.  When the
+//active object completes, if all went well, the object will have a list
+//of available IP Platforms at its disposal.
+
+// Example CExampleClient methods
+void CExampleClient::DvbhScanProgress(const TDvbhScanResult&amp;
+                                             aResult)
+    {
+    //Analyse aResult.
+    //Possibly add platform to list of available IP platforms.
+    //Possibly inform application/end user of current progress.
+    ...
+    }
+void CExampleClient::RunL()
+    {
+    //Called when Scan()completes.  Check iStatus for completion code.
+    //(KErrNone, KErrCancelled, KErrNotReady, etc.) and act accordingly,
+    //e.g. ReturnListOfPlatformsToApplication(GetListOfPlatforms());
+    ...
+    }
+
+</codeblock></section>
+<section><title>Cancelling a Scan</title> <p>If the signal scan takes a long
+time to complete due to bad reception conditions, the end user may wish to
+cancel it before it has completed. This is done by calling <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-C696FEFD-63F9-3654-8315-1FE2504AE037"><apiname>RDvbhReceiver::CancelScan()</apiname></xref>. </p> <p>If
+a scan is active when <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-C696FEFD-63F9-3654-8315-1FE2504AE037"><apiname>RDvbhReceiver::CancelScan()</apiname></xref> is called,
+request will complete with eroor this may lead to KErrCancelled for creating
+partial list of available IP platforms. If this happens, then scan data is
+valid. </p> <p>If a scan is not active when <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-C696FEFD-63F9-3654-8315-1FE2504AE037"><apiname>RDvbhReceiver::CancelScan()</apiname></xref> is
+called, nothing happens. </p> </section>
+</conbody><related-links>
+<link href="GUID-3C9BE2FF-8D5C-51D0-8BC1-BED7BC1288BA.dita"><linktext>Turn On Broadcast
+Receiver</linktext></link>
+<link href="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB.dita"><linktext>Turn Off
+Broadcast Receiver</linktext></link>
+<link href="GUID-0297CAF5-4EB7-5E84-8A8C-8758D6F3B75F.dita"><linktext>Setting Data
+Reception</linktext></link>
+<link href="GUID-743D3117-095B-58D5-947D-A8713475C9A5.dita"><linktext>Tuning IP
+Platform</linktext></link>
+<link href="GUID-F5FE22F3-B7C4-50B3-9B36-5CB8BC1BA18A.dita"><linktext>Receiving
+Broadcast Data</linktext></link>
+</related-links></concept>

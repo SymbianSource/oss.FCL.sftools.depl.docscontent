@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-88917386-AD48-4C76-A1C7-46F0B1E85A18" xml:lang="en"><title>Implementing
+UI text localization</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To allow your application to support different languages:</p>
+<ol>
+<li id="GUID-4C53C331-EDCB-49A6-A2AE-1946E0CBA85E"><p>In the resource
+file for your application, use unique symbolic IDs, also known as a logical
+name, for all UI texts that need to appear on the screen.</p>
+<note>
+<p>The Symbian platform provides some unique symbolic IDs that you can use
+in your code, which means that the UI texts used for these IDs match those
+used elsewhere in the device. Do not define any values for these symbolic
+IDs.</p>
+</note>
+</li>
+<li id="GUID-F64825B7-7A7F-4F07-ADFF-21C794534B39"><p>For each language
+your application supports, create a resource file as follows:</p>
+<ol>
+<li id="GUID-509946C5-B45A-4481-8D71-F74DF32EF18A"><p>Create a text
+file with the extension <parmname>lNN</parmname>, where NN is a two digit
+number that matches the Symbian OS language code for your target language.</p>
+<itemgroup>
+<p>The file naming suggestion reflects the Symbian platform convention, Symbian
+OS uses <parmname>&lt;application_name&gt;_NN.rls</parmname>.</p>
+</itemgroup>
+</li>
+<li id="GUID-256733D4-214F-40E9-9DF1-E60469A8E8BD"><p>Define all
+the symbolic IDs using the following syntax:</p>
+<codeblock id="GUID-5EBA1490-2538-4AFA-B348-8D12D0322820" xml:space="preserve">#define symbolicID "value in target language"</codeblock>
+<p>Each symbolic ID must be on its own line.</p></li>
+<li id="GUID-AB1ADD82-91F4-4FEF-97C3-D077E73F8A4B"><p>Repeat for
+each supported language.</p></li>
+</ol>
+</li>
+<li id="GUID-089BCEFD-8E83-4CAE-80C8-14461BC333DC"><p>Create a file
+to include the compiled localization files in your resource file, as follows:</p>
+<ol>
+<li id="GUID-44F02DD4-1502-4BAB-B128-5FC570CB6ABC"><p>Create a text
+file with the extension <parmname>loc</parmname>.</p><p>The file naming
+suggestion reflects the Symbian platform naming convention, Symbian OS uses <parmname>&lt;application_name&gt;.rls</parmname>.</p>
+</li>
+<li id="GUID-D40E9CEB-031F-405A-B031-3B5DDB84C1B2"><p>Add <parmname>#ifdef</parmname>, <parmname>#elif</parmname>,
+and <parmname>#include</parmname> statements for including the appropriate
+languages in your application resource files. An example syntax is as follows:</p>
+<codeblock id="GUID-702C92E6-EEE5-4C0F-8498-8C182C0F0097" xml:space="preserve">#ifndef __LOCALIZATION_LOC__
+#define __LOCALIZATION_LOC__
+                            
+#ifdef LANGUAGE_SC			// language code for default                                               
+#include "..\data\localization.l01"
+
+#elif LANGUAGE_01			// language code for UK
+#include "..\data\localization.l01"
+
+#endif 
+#endif</codeblock>
+</li>
+</ol>
+</li>
+<li id="GUID-3B918E68-258B-4724-9C15-58BC60713E75"><p>Include your <parmname>loc</parmname> file
+in your resource file.</p></li>
+<li id="GUID-E15A7374-0C92-48E8-8D47-955C974BFBB6"><p>Add your supported
+language codes to the <parmname>LANG</parmname> statement in your project <parmname>mmp</parmname> file.</p>
+</li>
+<li id="GUID-F185FF9B-A926-44E5-9FAD-AD9ABFC8C215"><p>Build your
+resource files</p>
+<note>
+<p>Some IDEs do not fully support building resource files for different
+languages, so you may need to use the command line interface of the Symbian
+build chain.</p>
+</note>
+</li>
+<li id="GUID-88D12169-4847-426C-A0AE-8107DE18183F"><p>Include the
+appropriate compiled resource files in your deployment package.</p><p>For
+more information on deploying, see <xref href="GUID-7369BBF7-5432-455D-BBB3-872D310358F2.dita"/>.</p>
+</li>
+</ol>
+<p> The following localization strategies are available:</p>
+<ul>
+<li><p>Create an installation package for each language your application
+supports and add only the appropriate compiled resource file to the package</p>
+</li>
+<li><p>Create an installation package that includes support for
+more than one language, which means there is more than one compiled resource
+file in the package. The mobile device user selects the desired language upon
+installation, and only the compiled resource file is installed</p></li>
+<li><p>Create an installation package that includes support for
+more than one language, which means there is more than one compiled resource
+file in the package.</p></li>
+</ul>
+</conbody></concept>

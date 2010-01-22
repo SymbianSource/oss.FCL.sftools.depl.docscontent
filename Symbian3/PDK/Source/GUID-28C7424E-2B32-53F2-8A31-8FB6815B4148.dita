@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-28C7424E-2B32-53F2-8A31-8FB6815B4148" xml:lang="en"><title>How
+to format currency values</title><shortdesc>Describes how to format currency values for current locale.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D09EB90D-6A64-46C8-A47D-1D122307AD4D"><title>From 6.1 onward</title> <p>From 6.1, the <xref href="GUID-53299759-C2DD-3ABC-A055-9AFE7C5081C6.dita"><apiname>TLocale</apiname></xref> class
+provides the <codeph>FormatCurrency()</codeph> functions that can format currency
+values into a descriptor. The functions can handle both small and large values.
+They render the currency amount as text, using the current locale's formatting
+requirements. These include items such as:</p> <ul>
+<li id="GUID-DC19903D-A39D-52D1-B1F7-06373F96F7CD"><p> the appropriate currency
+symbol</p> </li>
+<li id="GUID-518DBCEB-70B0-5E53-AB13-245403BF98C3"><p> whether the currency
+symbol is placed before or after the currency amount</p> </li>
+<li id="GUID-6BF3E2BC-1327-52FE-955D-E7D5BAF3CD8B"><p>whether there is space
+between the currency amount and the currency symbol</p> </li>
+<li id="GUID-340BC8A9-A189-56A2-9041-D3711041E436"><p>the number of decimal
+places</p> </li>
+<li id="GUID-9A7E86A9-6C2A-561A-AED0-BD513D128C54"><p>the way a negative currency
+value is rendered.</p> </li>
+</ul> <p>There are four overloaded variants of <codeph>FormatCurrency()</codeph>,
+two of which are suitable for rendering currency values that fit into a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> type,
+and the other two of which are suitable for rendering very large currency
+values that fit into a <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> type.</p> <p>Both pairs of
+functions behave in the same way, and the following code fragments will also
+apply to the <codeph>TInt64</codeph> variants.</p> <p>The first code fragment
+uses the <codeph>void FormatCurrency(TDes&amp;,TInt);</codeph> variant.</p> <codeblock id="GUID-537D91F4-9F9C-5466-8001-AEB490544E71" xml:space="preserve">...
+TLocale locale;
+
+TInt amount;
+TBuf&lt;64&gt; buffer;
+
+locale.set();
+locale.FormatCurrency(buffer,amount);
+...
+</codeblock> <p>On return, the descriptor buffer contains the currency value
+formatted as text using the currency symbol and formatting appropriate to
+the current locale. Note, however, that the caller is responsible for ensuring
+that the descriptor buffer is large enough. Too small a buffer results in
+a <codeph>USER 11</codeph> panic.</p> <p>The second code fragment uses the <codeph>void
+FormatCurrency(TDes&amp;,TDesOverflow&amp;,TInt);</codeph> variant.</p> <codeblock id="GUID-1E2BD59A-DD14-5E6A-87FB-E4DA19AA5813" xml:space="preserve">
+class TestOverflow : public TDesOverflow
+    {
+    void Overflow(TDes&amp; aBufferThatOverflowed);
+    };
+
+void TestOverflow::Overflow(TDes&amp; aBufferThatOverflowed)
+    {
+    _LIT(KTextOverflow,"Overflowed");
+    aBufferThatOverflowed = KTextOverflow;
+    }
+
+...
+TLocale locale;
+TestOverflow ovfl;
+
+TInt amount;
+HBufC* bufPtr;
+
+bufPtr = HBufC::NewL(10);
+
+locale.set();
+locale.FormatCurrency(*bufPtr,ovfl,amount);
+...</codeblock> <p>In this fragment, if the formatted text cannot fit into
+the buffer, <codeph>*bufPtr</codeph>, then <codeph>TestOverflow::Overflow()</codeph> is
+called which simply sets the text "Overflowed" into the buffer. In practice,
+application code would probably perform more sophisticated recovery which
+might include re-allocating the buffer and re-trying the <codeph>FormatCurrency()</codeph> operation.</p> </section>
+<section id="GUID-F82759A3-E704-474C-8A4D-3E2FB9F451BD"><title>Before 6.1</title> <p>Before 6.1, the <codeph>FormatCurrency()</codeph> function
+is not available and the procedure for formatting a currency value needs more
+code and explicitly uses more of the functionality of the <codeph>TLocale</codeph> class.</p> <p>In
+the following example code fragments, the formatting is done by a function
+called <codeph>foo()</codeph>. This function takes a descriptor that, on return,
+holds the formatted currency value. The function assumes that the descriptor
+is big enough to hold the formatted text. The example holds the currency value
+as a <xref href="GUID-2D851BBB-15A1-309A-813D-E397D55A6431.dita"><apiname>TReal</apiname></xref> value.</p> <p><codeph>foo()</codeph> uses the <codeph>AppendNum()</codeph> and <codeph>Append()</codeph> descriptor
+functions to format and append the currency value and symbol to <codeph>aBuffer</codeph> using
+an object of class <xref href="GUID-28F1EA9D-9F02-3E8C-A07F-4D65C955860C.dita"><apiname>TRealFormat</apiname></xref> to determine the character
+representation of the currency value.</p> <p>The code formats the following
+locale-dependent aspects of currency information: </p> <ul>
+<li id="GUID-3C344A41-3AA2-57A2-89F2-779D26FB37CE"><p>the number of decimal
+places</p> </li>
+<li id="GUID-1862BBE9-D48E-52AB-B8A8-4D0DF4F0C94D"><p>the decimal and thousands
+separators (<codeph>iPoint</codeph> and <codeph>iTriad</codeph>) </p> </li>
+<li id="GUID-E44611AA-8BC5-5907-9A71-D1375F68C5B5"><p>whether <keyword>triads</keyword> are
+allowed or not (<codeph>iTriLen</codeph>)</p> </li>
+<li id="GUID-A0713C22-602A-5FC2-9505-414DA4F4CFE9"><p>An <codeph>iTriLen</codeph> value
+of 1 signifies that triads are allowed throughout the currency amount. A value
+of zero means that no triads are allowed.</p> </li>
+</ul> <codeblock id="GUID-B557FADA-0BBC-55EC-945D-38B503F173D5" xml:space="preserve">void foo(TDes&amp; aBuffer, TReal aCurrencyAmount)
+    {
+            // get system locale settings
+    TLocale locale; 
+    TRealFormat realFormat; 
+    realFormat.iType=EFixed; 
+
+            // convert number to the general form "nnn.ddd" where
+            // "n" is the integer and "d" is the decimal portion.
+            // iWidth is the maximum number of characters allowed to represent the number
+    realFormat.iWidth=30; 
+    realFormat.iDecimalPlaces=locale.CurrencyDecimalPlaces(); 
+    realFormat.iPoint=locale.DecimalSeparator(); 
+    realFormat.iTriad=locale.ThousandsSeparator();
+    realFormat.iTriLen=(locale.CurrencyTriadsAllowed() ? 1 : 0);
+    ...</codeblock> <p>Note the following points:</p> <ul>
+<li id="GUID-E12C4EB4-F3E7-5262-BA23-EE1B83011624"><p>Use <codeph>CurrencySymbolPosition()</codeph> and <codeph>CurrencySpaceBetween()</codeph> to
+decide whether the currency symbol should be placed before or after the currency
+amount and whether or not to insert a space between the symbol and the amount.</p> </li>
+<li id="GUID-1F1A8FAD-E5AB-5570-B72E-9FECF0716B0A"><p>Use <codeph>CurrencyNegativeInBrackets()</codeph> to
+decide whether or not negative currency amounts should be enclosed in brackets.
+If this is the case, and the value is negative, an open bracket is appended
+and any minus sign is removed by appending the currency value to the buffer
+as a negative value.</p> </li>
+<li id="GUID-ABEABD32-AF6C-5265-BB39-D7BB075D2190"><p>Use <codeph>CurrencySpaceBetween()</codeph> to
+decide whether or not to insert a space between the currency symbol and the
+currency value.</p> </li>
+</ul> <codeblock id="GUID-87F2B73E-7E6C-5423-A08A-7C66443D11F1" xml:space="preserve">... 
+_LIT(KTxtOpenBracket,"(");
+_LIT(KTxtCloseBracket,")");
+_LIT(KTxtSpace," ");
+TCurrencySymbol symbol;
+
+    // Get system wide currency symbol setting
+symbol.Set(); 
+
+    // Append an open bracket, if the amount is negative and the locale demands it. 
+if ((aCurrencyAmount&lt;0) &amp;&amp; (locale.CurrencyNegativeInBrackets()))
+    {
+    aBuffer.Append(KTxtOpenBracket);
+    }
+
+    // Position the currency symbol before the currency value, and insert space between the
+    // symbol and the amount if the locale demands them.
+if (locale.CurrencySymbolPosition() == ELocaleBefore)
+    { 
+    aBuffer.Append(symbol);
+    if (locale.CurrencySpaceBetween())
+        {
+        aBuffer.Append(KTxtSpace); 
+        }
+    }
+
+    // Append negative currency value and remove the sign if the locale demands
+    // negative values in brackets
+if ((locale.CurrencyNegativeInBrackets()) &amp;&amp; (aCurrencyAmount&lt;0))
+    {
+    aBuffer.AppendNum(-aCurrencyAmount,realFormat);
+    }
+else
+    {
+    aBuffer.AppendNum(aCurrencyAmount,realFormat); 
+    }
+
+    // Position the currency symbol after the currency value, and insert space between the
+    // amount and the symbol if the locale demands them.
+if (locale.CurrencySymbolPosition() == ELocaleAfter)
+    {
+    if (locale.CurrencySpaceBetween())
+        {
+        aBuffer.Append(KTxtSpace);
+        }
+    aBuffer.Append(symbol);
+    }
+
+    // Finally, append the closing bracket, if the value is negative and
+    // the locale demands brackets around negative values.
+if ((aCurrencyAmount&lt;0) &amp;&amp; (locale.CurrencyNegativeInBrackets()))
+    {
+    aBuffer.Append(KTxtCloseBracket);
+    }
+}</codeblock> <p>Note that the currency symbol cannot be set using the <codeph>TLocale</codeph> class.
+Use <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-1CBBEEF4-0E5A-33AB-833F-6AF14BA57793"><apiname>User::SetCurrencySymbol()</apiname></xref> to do this.</p> </section>
+</conbody></concept>

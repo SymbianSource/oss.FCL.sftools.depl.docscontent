@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-812DEBEB-84D0-5BD4-A5BB-5AF6B8384CCF" xml:lang="en"><title>Entry
+Point Implementation</title><shortdesc>Describes how to implement the entry point function.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The DMA Framework implements its entry point function in the platform-specific
+layer. </p>
+<p>The entry point for a kernel extension is declared by a </p>
+<codeblock id="GUID-92670D2D-AB81-5BEA-8008-5BA7B0D23EF6" xml:space="preserve">DECLARE_STANDARD_EXTENSION()</codeblock>
+<p>statement, followed by the block of code that runs on entry to the DLL.
+The following code is typical for a port of the DMA Framework , and is taken
+from the port for the template reference platform: </p>
+<codeblock id="GUID-ED426309-D8FC-512C-B320-C29B37C74140" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+//
+// Creates and initializes a new DMA controller object on the kernel heap.
+//
+    {
+    __KTRACE_OPT2(KBOOT, KDMA, Kern::Printf("Starting DMA Extension"));
+
+    return Controller.Create();
+    }
+</codeblock>
+<p>where <codeph>Controller</codeph> is declared as writable static data: </p>
+<codeblock id="GUID-DA2508CF-BB22-5A48-B549-63D973E9EDB7" xml:space="preserve">static TTemplateDmac Controller;</codeblock>
+<p>Create() is a second-phase constructor defined in, and implemented by,
+the concrete class derived from <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref>. DMA channels are
+attributes of this concrete class because only the platform specific layer
+knows what kind of channel to use. This platform specific layer second phase
+constructor must call the platform independent layer second phase constructor, <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-9B0C8C35-F149-3358-90B8-B4670CFE888F"><apiname>TDmac::Create()</apiname></xref>,
+before doing anything else. </p>
+<p> <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-9B0C8C35-F149-3358-90B8-B4670CFE888F"><apiname>TDmac::Create()</apiname></xref> allocates the arrays containing the
+descriptors and descriptor headers using the information passed to it by the
+platform specific layer in the <xref href="GUID-4057074E-2543-3F01-B24A-7FF8A19F79AF.dita"><apiname>SCreateInfo</apiname></xref> struct. This
+includes information such as the number of descriptors to be allocated, whether
+hardware descriptors are supported and their size etc. </p>
+<p>Note that if hardware-specific descriptors are used, they are allocated
+in a hardware chunk. If pseudo-descriptors are used, they are allocated on
+the kernel heap. </p>
+</conbody></concept>

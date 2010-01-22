@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2624060D-A5E7-590A-9FA0-471AE42A9BE9" xml:lang="en"><title>Cnvtool
+Control File</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The control file is a text file which specifies the conversion algorithms
+used to convert (both ways) between ranges of characters. It is one of the
+input files used by <filepath>cnvtool</filepath> to create a Charconv plug-in
+DLL. </p>
+<p>The control file also specifies the code(s) of the character(s) to use
+to replace unconvertible Unicode characters, the endian-ness of the foreign
+character set (if single characters may be encoded by more than one byte)
+and the preferred character to use when a character has multiple equivalents
+in the target character set. </p>
+<p>The control file is case-insensitive. Comments begin with a # and extend
+to the end of the line. Additional blank lines and leading and trailing whitespace
+are ignored. </p>
+<section><title>Syntax</title> <p>There are four sections in the control file:
+the header, the foreign variable-byte data, the foreign-to-Unicode data and
+the Unicode-to-foreign data. </p> <p><b>The header</b> </p> <p>The header
+consists of two lines in fixed order. Their format is as follows (alternatives
+are separated by a <codeph>|</codeph>, single space characters represent single
+or multiple whitespace characters): </p> <codeblock id="GUID-1AE937FB-E7A5-5ECD-BCD3-2A0C24C8869D" xml:space="preserve">Endianness Unspecified|FixedLittleEndian|FixedBigEndian</codeblock> <codeblock id="GUID-1E1209FC-855C-5764-92C0-F4F984FA727F" xml:space="preserve">ReplacementForUnconvertibleUnicodeCharacters &lt;see-below&gt;</codeblock> <p>The
+value of <codeph>Endianness</codeph> is only an issue for foreign character
+sets where single characters may be encoded by more than one byte. The value
+of <codeph>ReplacementForUnconvertibleUnicodeCharacters</codeph> is a series
+of one or more hexadecimal numbers (not greater than 0xff) separated by whitespace,
+each prefixed with 0x. These byte values are output for each Unicode character
+that has no equivalent in the foreign character set (when converting from
+Unicode to foreign). </p> <p><b>The foreign variable-byte data</b> </p> <p>This
+section is contained within the following lines: </p> <codeblock id="GUID-8AE97A28-7224-53BE-9D65-AAEA02191665" xml:space="preserve">StartForeignVariableByteData</codeblock> <codeblock id="GUID-769E3B0B-B3E3-5685-90A7-77BEEB715CEB" xml:space="preserve">EndForeignVariableByteData</codeblock> <p>In
+between these lines are one or more lines, each consisting of two hexadecimal
+numbers (each prefixed with 0x and not greater than 0xff), followed by a decimal
+number. All three numbers are separated by whitespace. </p> <p>The two hexadecimal
+numbers are the start and end of the range of values for the initial foreign
+byte (inclusive). The decimal number is the number of subsequent bytes to
+make up a foreign character code. The way these bytes are put together to
+make the foreign character code is determined by the value of <codeph>Endianness</codeph> in
+the header of the control file. For example, if the foreign character set
+uses only a single byte per character and its first character has code 0x07
+and its last character has code 0xe6, the foreign variable-byte data would
+be: </p> <codeblock id="GUID-72F31554-6AB7-52F8-ACCA-640C9BAC9F1B" xml:space="preserve">StartForeignVariableByteData
+0x07 0xe6 0
+EndForeignVariableByteData</codeblock> <p><b>The foreign-to-Unicode data</b> </p> <p>This
+section is contained within the following lines: </p> <codeblock id="GUID-C09DAF0F-AC55-5F44-8183-CD50C52A0F9E" xml:space="preserve">StartForeignToUnicodeData</codeblock> <codeblock id="GUID-1AE31BA2-F49E-5287-BC2C-FD9D28ACB3F5" xml:space="preserve">EndForeignToUnicodeData</codeblock> <p>In
+between these two lines are one or more lines in format A (defined below).
+These may be optionally followed by one or more lines in format B (defined
+below), in which case the lines in format A and format B are separated by
+the line: </p> <codeblock id="GUID-1D099346-7111-5367-BE2C-6015F121D5B9" xml:space="preserve">ConflictResolution</codeblock> <p>Each
+line in format A indicates the conversion algorithm to be used for a particular
+range of foreign character codes. Lines in format A contain the following
+fields, each separated by whitespace: </p> <ul>
+<li id="GUID-BEA311EB-3633-57CF-8136-FD5DF64AE054"><p>first field and second
+field–reserved for future use and must be set to zero </p> </li>
+<li id="GUID-7A8CA63C-6C27-5E7B-96A4-BC463BE55AF2"><p>first input character
+code in the range–a hexadecimal number prefixed with 0x </p> </li>
+<li id="GUID-9CC95C68-0DB5-53A3-AE25-AA70D293C096"><p>last input character
+code in the range–a hexadecimal number prefixed with 0x </p> </li>
+<li id="GUID-B18A63F4-0CC8-518B-ADE7-31A86D3DC2F0"><p><xref href="GUID-2624060D-A5E7-590A-9FA0-471AE42A9BE9.dita#GUID-2624060D-A5E7-590A-9FA0-471AE42A9BE9/GUID-29B10367-F31D-5756-9DAA-8E4840BAB042">algorithm</xref> –one of <codeph>Direct</codeph>, <codeph>Offset</codeph>, <codeph>IndexedTable16</codeph> or <codeph>KeyedTable1616</codeph>  </p> </li>
+<li id="GUID-B8E84CFA-1047-5E98-A831-85F6073BDFD6"><p>parameters–if not applicable
+to any of the current choice of algorithms, set this to <codeph>{}</codeph>. </p> </li>
+</ul> <p>Lines in format B, if present, consist of two hexadecimal numbers,
+prefixed with 0x, separated by whitespace. The first of these is a foreign
+character code which has multiple equivalents in Unicode (according to the
+data in the source file), and the second is the code of the preferred Unicode
+character to which the foreign character should be converted. </p> <p><b>The
+Unicode-to-foreign data</b> </p> <p>This section is structured similarly to
+the foreign-to-Unicode data section. It is contained within the following
+lines: </p> <codeblock id="GUID-5F9DD42E-8676-53CB-B6B4-8CA8574DFD6A" xml:space="preserve">StartUnicodeToForeignData</codeblock> <codeblock id="GUID-5CEAE8E0-D098-54CF-B7AE-71766ADEC3C5" xml:space="preserve">EndUnicodeToForeignData</codeblock> <p>In
+between these two lines are one or more lines in format C (defined below).
+These may be optionally followed by one or more lines in format D (defined
+below), in which case the lines in format C and format D are separated by
+the line: </p> <codeblock id="GUID-DA74F595-BD77-540B-940B-6536A83940A3" xml:space="preserve">ConflictResolution</codeblock> <p>Format
+C is very similar to format A with one exception, which is an additional field
+to specify the size of the output character code in bytes (as this is a foreign
+character code). Each line in format C indicates the conversion algorithm
+to be used for a particular range of Unicode character codes. Lines in format
+C contains the following fields, each separated by whitespace: </p> <ul>
+<li id="GUID-0622493A-08F8-58E1-A7E3-F7F331C14DA7"><p>first field and second
+field–reserved for future use and must be set to zero </p> </li>
+<li id="GUID-DDC93F91-6911-591F-BDA6-4E4099180D12"><p>first input character
+code in the range–a hexadecimal number prefixed with 0x </p> </li>
+<li id="GUID-80C572A0-DB92-5281-AFA0-1215FA899289"><p>last input character
+code in the range–a hexadecimal number prefixed with 0x </p> </li>
+<li id="GUID-010F91D8-C408-5EF8-BEBD-DE5DE57D040F"><p><xref href="GUID-2624060D-A5E7-590A-9FA0-471AE42A9BE9.dita#GUID-2624060D-A5E7-590A-9FA0-471AE42A9BE9/GUID-29B10367-F31D-5756-9DAA-8E4840BAB042">algorithm</xref> –one of <codeph>Direct</codeph>, <codeph>Offset</codeph>, <codeph>IndexedTable16</codeph> or <codeph>KeyedTable1616</codeph>  </p> </li>
+<li id="GUID-4D6EEC55-A3D1-5193-B9B1-B16CDB4A903F"><p>size of the output character
+code in bytes (not present in format A)–a decimal number </p> </li>
+<li id="GUID-C3DF518F-5624-5618-B2BF-4CF230DAE3DE"><p>parameters–if not applicable
+to any of the current choice of algorithms, set this to <codeph>{}</codeph>. </p> </li>
+</ul> <p>Format D is analogous to format B (described above). Like format
+B, it consists of two hexadecimal numbers prefixed with 0x, separated by whitespace.
+However, the first of these is a Unicode character code which has multiple
+equivalents in the foreign character set (according to the data in the source
+file), and the second is the code of the preferred foreign character to which
+the Unicode character should be converted. </p> </section>
+<section><title>Multiple SCnvConversionData data structures</title> <p>The <filepath>cnvtool</filepath> generates
+the main <codeph>SCnvConversionData</codeph> data structure using the input
+from the source file and the control file. The <codeph>SCnvConversionData</codeph> data
+structure contains the character set conversion data. </p> <codeblock id="GUID-C7959166-28B4-5C77-9979-B0BDDEF85928" xml:space="preserve">
+....
+GLDEF_D const SCnvConversionData conversionData=
+    {
+    SCnvConversionData::EFixedBigEndian,
+        {
+        ARRAY_LENGTH(foreignVariableByteDataRanges),
+        foreignVariableByteDataRanges
+        },
+        {
+        ARRAY_LENGTH(foreignToUnicodeDataRanges),
+        foreignToUnicodeDataRanges
+        },
+        {
+        ARRAY_LENGTH(unicodeToForeignDataRanges),
+        unicodeToForeignDataRanges
+        },
+    NULL,
+    NULL
+    };
+...
+</codeblock> <p>It is sometimes desirable for further objects to be generated
+which provide a view of a subset of the main <codeph>SCnvConversionData</codeph> object.
+This is possible by inserting an extra pair of lines of the following form
+in both the foreign-to-Unicode data and the Unicode-to-foreign data sections
+in the control file: </p> <codeblock id="GUID-6D436751-1392-52C3-95CF-87DC6C440284" xml:space="preserve">StartAdditionalSubsetTable &lt;name-of-SCnvConversionData-object&gt;
+...
+EndAdditionalSubsetTable &lt;name-of-SCnvConversionData-object&gt;</codeblock> <p>These
+lines must be placed around the above pair with a name (<codeph>name-of-SCnvConversionData-object</codeph>).
+Only one pair of these lines can occur in each of the foreign-to-Unicode data
+and the Unicode-to-foreign data sections, and if a pair occurs in one, it
+must also occur in the other. Accessing one of these <codeph>SCnvConversionData</codeph> objects
+from handwritten C++ files is done by adding the following line at the top
+of the relevant C++ file. The named object can then be used as required. </p> <codeblock id="GUID-B6A0EFA5-66B8-5EF3-A42A-DEAF334F664F" xml:space="preserve">GLREF_D const SCnvConversionData &lt;name-of-SCnvConversionData-object&gt;;</codeblock> <p>Below
+is an example control file with subset tables defined in both the foreign-to-Unicode
+data and the Unicode-to-foreign data sections: </p> <codeblock id="GUID-EEB02661-CB3D-5270-8FEA-A86259D4CAC4" xml:space="preserve">
+...
+StartForeignToUnicodeData
+#        IncludePriority    SearchPriority    FirstInputCharacterCodeInRange    LastInputCharacterCodeInRange    Algorithm            Parameters
+    StartAdditionalSubsetTable jisRomanConversionData
+        6                6                0x00                            0x5b                            Direct                {}        # ASCII characters [1]
+        5                2                0x5c                            0x5c                            Offset                {}        # yen sign
+        4                5                0x5d                            0x7d                            Direct                {}        # ASCII characters [2]
+        3                1                0x7e                            0x7e                            Offset                {}        # overline
+        2                4                0x7f                            0x7f                            Direct                {}        # ASCII characters [3]
+    EndAdditionalSubsetTable jisRomanConversionData
+    StartAdditionalSubsetTable halfWidthKatakana8ConversionData
+        1                3                0xa1                            0xdf                            Offset                {}        # half-width katakana
+    EndAdditionalSubsetTable halfWidthKatakana8ConversionData
+EndForeignToUnicodeData
+
+StartUnicodeToForeignData
+#        IncludePriority    SearchPriority    FirstInputCharacterCodeInRange    LastInputCharacterCodeInRange    Algorithm            SizeOfOutputCharacterCodeInBytes    Parameters
+    StartAdditionalSubsetTable jisRomanConversionData
+        6                1                0x0000                            0x005b                            Direct                1                                    {}        # ASCII characters [1]
+        5                2                0x005d                            0x007d                            Direct                1                                    {}        # ASCII characters [2]
+        4                3                0x007f                            0x007f                            Direct                1                                    {}        # ASCII characters [3]
+        3                5                0x00a5                            0x00a5                            Offset                1                                    {}        # yen sign
+        2                6                0x203e                            0x203e                            Offset                1                                    {}        # overline
+    EndAdditionalSubsetTable jisRomanConversionData
+    StartAdditionalSubsetTable halfWidthKatakana8ConversionData
+        1                4                0xff61                            0xff9f                            Offset                1                                    {}        # half-width katakana
+    EndAdditionalSubsetTable halfWidthKatakana8ConversionData
+EndUnicodeToForeignData
+...</codeblock> <p>The generated C++ source file by <filepath>cnvtool</filepath> contains
+multiple <codeph>SCnvConversionData</codeph> data structures: </p> <codeblock id="GUID-A3664842-0671-5C04-9E73-726B64BC8D92" xml:space="preserve">GLDEF_D const SCnvConversionData conversionData=
+    {
+    SCnvConversionData::EFixedBigEndian,
+        {
+        ARRAY_LENGTH(foreignVariableByteDataRanges),
+        foreignVariableByteDataRanges
+        },
+        {
+        ARRAY_LENGTH(foreignToUnicodeDataRanges),
+        foreignToUnicodeDataRanges
+        },
+        {
+        ARRAY_LENGTH(unicodeToForeignDataRanges),
+        unicodeToForeignDataRanges
+        },
+    NULL,
+    NULL
+    };
+
+GLREF_D const SCnvConversionData jisRomanConversionData;
+GLDEF_D const SCnvConversionData jisRomanConversionData=
+    {
+    SCnvConversionData::EFixedBigEndian,
+        {
+        ARRAY_LENGTH(foreignVariableByteDataRanges),
+        foreignVariableByteDataRanges
+        },
+        {
+        5-0,
+        foreignToUnicodeDataRanges+0
+        },
+        {
+        5-0,
+        unicodeToForeignDataRanges+0
+        }
+    };
+
+GLREF_D const SCnvConversionData halfWidthKatakana8ConversionData;
+GLDEF_D const SCnvConversionData halfWidthKatakana8ConversionData=
+    {
+    SCnvConversionData::EFixedBigEndian,
+        {
+        ARRAY_LENGTH(foreignVariableByteDataRanges),
+        foreignVariableByteDataRanges
+        },
+        {
+        6-5,
+        foreignToUnicodeDataRanges+5
+        },
+        {
+        6-5,
+        unicodeToForeignDataRanges+5
+        }
+    };
+</codeblock> <p>Using this technique means that two (or more) foreign character
+sets–where one is a subset of the other(s)–can share the same conversion data.
+This conversion data would need to be in a shared-library DLL which the two
+(or more) plug-in DLLs would both link to. </p> </section>
+<section id="GUID-29B10367-F31D-5756-9DAA-8E4840BAB042"><title>Conversion
+algorithm</title> <p>There are four possible conversion algorithms: </p> <ul>
+<li id="GUID-028531BA-31F0-5D0F-9F1F-CDCDB362F80C"><p> <codeph>Direct</codeph> is
+where each character in the range has the same encoding in Unicode as in the
+foreign character set, </p> </li>
+<li id="GUID-F6124B2A-AA6F-560D-8BAC-1BF88E40EBF4"><p> <codeph>Offset</codeph> is
+where the offset from the foreign encoding to the Unicode encoding is the
+same for each character in the range, </p> </li>
+<li id="GUID-FF176CC1-0BA1-57EA-9F37-34C41601A037"><p> <codeph>Indexed table
+(16)</codeph> is where a contiguous block of foreign character codes maps
+onto a random collection of Unicode character codes (the 16 refers to the
+fact that each Unicode character code must use no more than 16 bits), </p> </li>
+<li id="GUID-202AA338-1610-5F81-B249-74678F6D42C5"><p> <codeph>Keyed table
+(16-16)</codeph> is where a sparse collection of foreign character codes map
+onto a random collection of Unicode character codes (the 16 refers to the
+fact that each foreign character code and each Unicode character code must
+use no more than 16 bits). </p> </li>
+</ul> <p>Of the four conversion algorithms listed above, the keyed table is
+the most general and can be used for any foreign character set. However, it
+is the algorithm requiring the most storage space, as well as being the slowest
+(a binary search is required), therefore it is best avoided if possible. The
+indexed table also requires storage space (although less than the keyed table),
+but is much faster. The direct and offset algorithms are the fastest and require
+negligible storage. It is thus necessary to choose appropriate algorithms
+to minimize storage and to maximize speed of conversion. </p> <p>Ranges of
+characters in the control file are permitted to overlap. This is useful as
+it means that a keyed table whose range is the entire range of the foreign
+character set (or the Unicode character set) can be used at the end of the
+foreign-to-Unicode data (or Unicode-to-foreign data) to <b>catch</b> all the
+characters that were not <b>caught</b> by the preceding ranges, which will
+have used better algorithms. </p> </section>
+</conbody></concept>

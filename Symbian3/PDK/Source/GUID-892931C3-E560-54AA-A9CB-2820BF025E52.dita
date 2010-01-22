@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-892931C3-E560-54AA-A9CB-2820BF025E52" xml:lang="en"><title>Fault
+Information Commands</title><shortdesc>Describes how to use the <codeph>f</codeph> command to get information
+about the fault type. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>There are two possibilities: </p>
+<ul>
+<li id="GUID-3929E483-85B8-5382-8467-632E4601281B"><p> <xref href="GUID-892931C3-E560-54AA-A9CB-2820BF025E52.dita#GUID-892931C3-E560-54AA-A9CB-2820BF025E52/GUID-02C96922-6987-50B3-9759-8F591ECA5C1B">an unhandled exception has occurred</xref>  </p> </li>
+<li id="GUID-EAA3FE0B-A66F-5505-BDE6-C5E9E6AB1370"><p> <xref href="GUID-892931C3-E560-54AA-A9CB-2820BF025E52.dita#GUID-892931C3-E560-54AA-A9CB-2820BF025E52/GUID-16FEDD9F-2E27-5FB8-AAD3-E61589FC3CC1">a panic has occurred</xref>  </p> </li>
+</ul>
+<p>To start, use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D5F2E0AF-EF03-5150-813B-DF989F12C47B">f</xref> command.
+You will see something like this: </p>
+<codeblock id="GUID-05D1AE94-2DA3-50EE-8EB8-E3C5645E5329" xml:space="preserve">Fault Category: Exception  Fault Reason: 10000000
+ExcId 00000001 CodeAddr f800415c DataAddr 00000000 Extra 00000005
+Exc 1 Cpsr=60000013 FAR=00000000 FSR=00000005
+ R0=64007328  R1=00000000  R2=00000000  R3=00000001
+ R4=64007328  R5=640074c0  R6=00000000  R7=f8047ba4
+ R8=64006f80  R9=64006fec R10=00000013 R11=64006ec4
+R12=00000001 R13=000029b4 R14=0000016c R15=f800415c
+R13Svc=64006ea8 R14Svc=f8002b2c SpsrSvc=600000ff
+</codeblock>
+<p>The <i>Fault Category</i> field shows the type of fault, in this case an
+exception. </p>
+<section id="GUID-02C96922-6987-50B3-9759-8F591ECA5C1B"><title> Unhandled
+exceptions</title> <p>If the <i>Fault Category</i> is <i>Exception</i>, then
+the fault is caused by an unhandled processor exception. You can get further
+information on the type of exception by looking at the first three lines of
+the generated output: </p> <codeblock id="GUID-C294FEB9-EFAE-56E9-B882-1CA4B0A3D9FB" xml:space="preserve">Fault Category: Exception  Fault Reason: 10000000
+ExcId 00000001 CodeAddr f800415c DataAddr 00000000 Extra 00000005
+Exc 1 Cpsr=60000013 FAR=00000000 FSR=00000005</codeblock> <p>The <codeph>CodeAddr</codeph> and <codeph>DataAddr</codeph> fields
+show the address of the instruction that caused the exception and, depending
+on the type of exception and instruction, the address of the data the instruction
+was trying to access. You can use the <codeph>CodeAddr</codeph> value to find
+the function which was being executed by <xref href="GUID-DA62FD4F-2E74-5B2F-B703-4A40DF5F01CA.dita">using
+the MAKSYM tool</xref>. </p> <p>The number after <codeph>ExcId</codeph> is
+the type of exception, in hexadecimal, and is one of the <xref href="GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4.dita#GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4/GUID-567330BE-A308-50CD-9EB8-891E45FA8294">ARM exception types</xref>. The meaning of the numbers depends on the type
+of processor. </p> <ul>
+<li id="GUID-7EA2C471-63B5-5D22-A8EE-A24ADFB326DE"><p>If the exception is
+a prefetch abort, then the code address is invalid. </p> </li>
+<li id="GUID-F04A8010-64F7-5D52-8066-3A446DF0C645"><p>A data abort means that
+the code address is invalid. </p> </li>
+</ul> <p>The number after <codeph>FAR</codeph> is the fault address register;
+this is the address that caused the fault. </p> <p>The number after FSR is
+the <xref href="GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4.dita#GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4/GUID-E55E7DA9-61DC-57D9-9678-05D490FEE604">fault
+status register value</xref> and shows why the MMU raised an exception. </p> <p>The
+number after CPSR is the value of the CPU's CPSR register when the exception
+occurred. The 5 least-significant bits of the CPSR register indicate the <xref href="GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4.dita#GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4/GUID-BFA2235C-1598-59E6-9F1F-A8281F13A957">ARM
+processor modes (CPSR register)</xref>. </p> </section>
+<section id="GUID-16FEDD9F-2E27-5FB8-AAD3-E61589FC3CC1"><title>Panics</title> <p>If
+the <i>Fault Category</i> is not <i>Exception</i>, then the fault is due to
+a panic. In this case the only other valid field is the <i>Fault reason</i>;
+the values of all other fields are meaningless. </p> <p>The panic number is
+the low 16-bits of the fault reason, shown in hexadecimal. </p> <p>For example,
+a KERN 27 panic would generate: </p> <codeblock id="GUID-F1335B4B-F7AB-5502-8C3C-E1CB6774E1B4" xml:space="preserve">Fault Category: KERN  Fault Reason: 0000001b
+ExcId ffffee5e CodeAddr ffff99a9 DataAddr bfff3e54 Extra fffec4cd
+</codeblock> <p>If the panic is KERN 4, then a thread or process marked as
+protected has panicked. For other panics, kernel side code has panicked; this
+code is either in the kernel itself or in a device driver. </p> <p>See <xref href="GUID-1E822A8F-3144-509D-A949-BDAF4BB9634A.dita">Kernel State Information
+Commands</xref> to find out which process and thread were running at the time
+of the panic. </p> </section>
+</conbody></concept>

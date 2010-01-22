@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C" xml:lang="en"><title>Supplier
+API Tutorial </title><shortdesc>The Supplier API handles the delivery and transformation of Digital
+Rights Management (DRM) protected content. It transforms imported DRM content
+in a device into a secure format for storage. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Supplier API comprises of <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier</apiname></xref> and <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile</apiname></xref>. </p>
+<section id="GUID-17D59A99-1491-513C-BC41-BB4ECA22B931"><title>Introduction</title> <p>The
+Supplier API allows Content Access (CA) agents to publish the supported content
+MIME types that can be handled by Content Access Framework (CAF). When a file
+arrive on a device (for example, through a browser), applications check for
+its MIME types and import the file into CAF. The agent transforms the file
+into a secure format for using it in the device. </p> <p>The transformation
+may not be required because the files arrive in a format fit for use in the
+device. However, some agents might require to protect (encrypt) the content
+at the moment it arrives, and Supplier API manages this protection. </p> </section>
+<section><title>Procedure</title><p>The following steps illustrate how to
+use Supplier API: </p> <ol id="GUID-A2CD1699-28D5-530C-9552-59277385E353">
+<li id="GUID-DF9A5E76-B282-568C-A5A1-654A88698B0B"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-7501DF89-76B6-52A2-AD3A-6391832F3C5A">Start a new import session</xref>  </p> </li>
+<li id="GUID-2E539668-4A7B-5F55-83D2-1A092ECBCE7E"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-74C3F4CF-2D85-568D-B935-B93E1F857F78">Prepare to import a file</xref>  </p> </li>
+<li id="GUID-CAAA7C49-B8FD-51CF-9973-2676B3E01837"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-4023F3AD-6CA3-59E3-8148-F9D76480A05E">Import the file</xref>  </p> </li>
+<li id="GUID-5D182213-F5AF-5052-BDB4-D940F61BCDFA"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-52D00B05-3EB5-5C10-A3BC-8AC12B968FF0">Transfer the file to the Content Access Agent</xref>  </p> </li>
+<li id="GUID-3078BA87-4D9D-5707-8F7F-107EFD372CD0"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-5436E5BC-793C-5373-B9A9-404D6ECC2EBA">Complete the import</xref>  </p> </li>
+<li id="GUID-A74B75B3-3A21-5BC0-A24C-186A915C5EAC"><p><xref href="GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C.dita#GUID-1B20D403-5FC9-5A61-9D2B-8ACB9D73423C/GUID-EDAB286B-FBC9-5DAF-A466-7B07F2A2FC29"> Check the output file, if necessary</xref>. </p> </li>
+</ol> </section>
+<section id="GUID-7501DF89-76B6-52A2-AD3A-6391832F3C5A"><title>Start a new
+import session</title> <p>Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier</apiname></xref> to
+import files into CAF. </p> <p>Create an instance of <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CSupplier</apiname></xref> to
+start an import session and set the output path according to an application's
+requirements. </p> <codeblock id="GUID-BCD346E6-9077-546A-81DA-E4CE1706CB88" xml:space="preserve">// Create Supplier 
+CSupplier *mySupplier = CSupplier::NewL(); 
+
+// Set output path for DRM protected content 
+_LIT(KPath,"C:\\myOutputFiles");
+mySupplier-&gt;SetOutputDirectoryL(KPath());</codeblock><note><ul>
+<li id="GUID-25C5C79D-B6C9-59FE-82D7-A5A04950D94A"><p>It is not necessary
+to set the output path if the application provides output file handles to
+the CA agent. </p> </li>
+<li id="GUID-B4029DD4-9A76-5647-9DBB-18A2D64E6089"><p> <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier</apiname></xref> uses
+its <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CAgentResolver</apiname></xref> member
+to determine which CA agent must be used to import each file. For more information,
+see <xref href="GUID-9993D750-9116-55B2-812A-7A92C50F467F.dita">Apparc Recognizer
+for CAF</xref>. </p> </li>
+</ul></note> </section>
+<section id="GUID-74C3F4CF-2D85-568D-B935-B93E1F857F78"><title>Prepare to
+import the file</title> <p>Preparing to import a DRM protected file includes
+the following steps: </p> <ol id="GUID-5EEA53C8-1B3F-50A9-8C22-8D61B11CE28B">
+<li id="GUID-960C7AB2-5241-521C-BBBE-5B09294F43C0"><p>Checking for supported
+MIME types </p> </li>
+<li id="GUID-C949EF2E-7B80-5E30-9D0A-AD912579E595"><p>Creating a <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CMetaDataList</apiname></xref> object </p> </li>
+</ol> <p><b>Checking for supported MIME types</b> </p> <p>Before importing
+a file into the content access framework, an application must check if the
+MIME type of the file is supported. Each agent publishes a list of supported
+MIME types and the list is configured in the agent's resource file. Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier::IsImportSupported()</apiname></xref> to
+check the list of supported MIME type of files. </p> <codeblock id="GUID-EB6353F1-D53C-578A-BE4C-B569C4719960" xml:space="preserve">if(!mySupplier-&gt;IsImportSupported(myMimeType)) 
+    { 
+    return; 
+    }</codeblock> <p><b>Creating a CMetaDataList object </b> </p> <p>The <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CMetaDataList</apiname></xref> object stores information
+associated with an import file, and it is passed to the CA agent. For example,
+OMA DRM 1.0 files might contain HTTP header<codeph>              X-Oma-Drm-Separate-Delivery</codeph>,
+which informs the agent about the time duration within which rights are expected
+for the content. </p> <p>The following code snippet shows creating a <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CMetaDataList</apiname></xref> object and information
+about the duration (for example, 12 seconds) in which rights are expected </p> <codeblock id="GUID-A371B670-1E6D-5513-8D5D-D6559170ED1F" xml:space="preserve">// Create meta-data array 
+CMetaDataArray *metaDataArray = new (ELeave) CMetaDataArray(); 
+CleanupStack::PushL(metaDataArray);
+
+// Add any useful information we can think of.... 
+metaDataArray-&gt;AddL(_L("Content Type"),_L("application/vnd.oma.drm.dm")); 
+metaDataArray-&gt;AddL(_L("X-Oma-Drm-Separate-Delivery"),_L("12"));</codeblock> </section>
+<section id="GUID-4023F3AD-6CA3-59E3-8148-F9D76480A05E"><title>Import a file</title> <ol id="GUID-8FC14D51-FB3B-5FC2-A24D-72AB9244CC93">
+<li id="GUID-D1491E70-F9DF-5697-810A-9C91EFF5FF21"><p>Create the <codeph>CImportFile</codeph> object </p> </li>
+<li id="GUID-F178800B-A2D5-50BC-B2D7-C363FBDDF43E"><p>Generate output files </p> </li>
+</ol> <p><b>Creating the CImportFile object</b> </p> <p> <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile()</apiname></xref> allows
+to write a file to CAF. Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier::ImportFileL()</apiname></xref> to
+create a <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile</apiname></xref> object
+for importing a file. The parameters supplied must indicate whether the agent
+generates the output files or if the application generates the output files
+for the agents on demand. </p> <codeblock id="GUID-D5A84DF4-6175-5F56-97EE-2EDEA2E772B9" xml:space="preserve">// Create the import object, passing in the metaDataArray created earlier 
+// The application must supply the output files 
+            
+CImportFile *import = mySupplier-&gt;ImportFileL(sourceMimeType, *metaDataArray);</codeblock> <p>Applications
+use the <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile</apiname></xref> object
+to transfer the content to CAF. </p> <p> <b>Note</b>: </p> <ul>
+<li id="GUID-8B63B854-B857-5AC9-90BC-4A777B31A1E5"><p>You must create new <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile</apiname></xref> objects to import multiple
+files. </p> </li>
+<li id="GUID-FC33D732-6026-56DC-9047-A25188E4384A"><p>You can transfer only
+one file in an instance, even if multiple output files are produced. </p> </li>
+</ul> <p><b>Generating output files</b> </p> <p>Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CSupplier::ImportFileL()</apiname></xref> to
+generate the output files and specify the appropriate parameters. By default,
+application generates the output file. Otherwise, the agent or application
+can generate the output file based on the specified parameters. </p> <p><i>Agents
+generating output files</i> </p> <p>Applications must specify the following
+information if they require agents to generate the output files: </p> <ul>
+<li id="GUID-E5B68249-133C-5C82-97AA-D47EFD73D984"><p>Specify the file name
+in <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CSupplier::ImportFileL()</apiname></xref> indicating
+that agent must generate output files. </p> </li>
+<li id="GUID-3AEBE53D-B67F-58EA-A51E-E608851EA15B"><p>Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CSupplier::SetOutputDirectoryL()</apiname></xref> to
+specify the directory for the files to be generated. Optionally, applications
+can decide to store the output files in their private directory. </p> </li>
+<li id="GUID-9A4FA11A-CA72-5D46-89DE-8D086F788892"><p>Check for the number
+of generated output files and their stored location, when the import operation
+is complete. </p> </li>
+</ul> <p><i>Applications generating output files</i></p> <p>If the filename
+is not passed to the agent, applications provide output files to the agents.
+This allows applications to open files in their own private directory and
+ask the CAF agent to store the output in those files. This involves the following
+considerations: </p> <ul>
+<li id="GUID-F48701C5-8FAA-5B36-BF87-118B2D7D6784"><p>If an agent requires
+a new output file handle in order to continue during import, a call to <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::WriteData()</apiname></xref> or <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::WriteDataComplete()</apiname></xref> returns
+an error code of <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>KErrCANewFileHandleRequired</apiname></xref>. </p> </li>
+<li id="GUID-CD957292-7438-53D2-9960-9648F07F017C"><p>Applications must open
+a new output file with write access and call <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::ContinueWithNewOutputFile()</apiname></xref> to
+supply the new handle to the agent. IF handles are required further, <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::ContinueWithNewOutputFile()</apiname></xref> returns <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>KErrCANewFileHandleRequired</apiname></xref> and the
+application must repeat this step with another file. </p> <p>The agent must
+cache its state before returning <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>KErrCANewFileHandleRequired</apiname></xref>. </p> </li>
+<li id="GUID-CC0B5AF5-C1F0-5AFE-ACA9-5365CA3DAA45"><p>The application must
+not resend the same <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::WriteData()</apiname></xref> or <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>CImportFile::WriteDataComplete()</apiname></xref> call. </p> </li>
+</ul><note> At the end of the import operation the output files are listed
+irrespective of whether they were supplied by the application or the agent.</note> </section>
+<section id="GUID-52D00B05-3EB5-5C10-A3BC-8AC12B968FF0"><title>Transfer the
+file to the Content Access Agent</title><p>Use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile</apiname></xref> to
+write the file data to CAF. <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CSupplier</apiname></xref> creates <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile</apiname></xref> which
+only imports a single file. An application must call <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>WriteData()</apiname></xref> to
+transfer a field in chunks to the CAF. </p> <p>The following code snippet
+explains this. </p> <codeblock id="GUID-513744BC-F54A-55F5-A9BD-CA5463CB9DB1" xml:space="preserve">// importing the file data
+ImportFile *import; 
+TFileName fileName; 
+TPath outputfileName; 
+TBuf8 data &lt;128&gt; 
+_LIT(KDirectoryPath, "C:\\private\\12345678\\");
+... 
+
+while(!endofsource) 
+    {
+    source.read(data); 
+    err = import-&gt;WriteData(data); 
+
+    // When application supplies file handles it must always check to see if 
+    // the agent needs a new file handle 
+
+    while(err == KErrCANewFileHandleRequired) 
+        {               
+        RFile newFile; 
+        import-&gt;GetSuggestedOutputFileName(fileName); 
+        outputFileName.Copy(KDirectoryPath); 
+        outputFileName.Append(fileName);
+        newFile.Open(outputFileName, EFileWrite); 
+        err = import-&gt;ContinueWithNewOutputFile(newFile, outputFileName); 
+
+        // It is possible that the agent needs yet another file handle
+        newFile.Close(); // agent makes a copy so we don't need to keep our file handle 
+        }
+    }</codeblock> </section>
+<section id="GUID-5436E5BC-793C-5373-B9A9-404D6ECC2EBA"><title>Complete the
+import</title> <p>When the data is written, use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile::WriteDataComplete()</apiname></xref> to
+inform the agent that data transfer is complete, allowing it to perform any
+final processing. </p> <p>The following code snippet explains this step: </p> <codeblock id="GUID-1843B2F1-A862-52DB-998F-AE6224726EFB" xml:space="preserve">err = import-&gt;WriteDataComplete(); 
+
+// When the application supplies file handles it must always check to see if 
+// the agent needs a new file handle 
+while(err == KErrCANewFileHandleRequired) 
+    {
+    RFile newFile; 
+    import-&gt;GetSuggestedOutputFileName(fileName); 
+    outputFileName.Copy(KDirectoryPath); 
+    outputFileName.Append(fileName);  
+    newFile.Open(outputFileName, EFileWrite);  
+    err = import-&gt;ContinueWithNewOutputFile(newFile, outputFileName);
+    // It is possible that the agent needs yet another file handle 
+    newFile.Close(); // agent makes a copy so we don't need to keep our file handle
+    }
+
+// Finished
+//At this stage all the agent's work is done and the CImportFile object can be deleted. </codeblock> </section>
+<section id="GUID-EDAB286B-FBC9-5DAF-A466-7B07F2A2FC29"><title>Check the output
+file</title> <p>When import is complete, use <xref href="GUID-E6562DDC-C872-3ADA-BF1C-4A04291E8CF9.dita"><apiname>ContentAccess::CImportFile::OutputFileL()</apiname></xref> to
+list all the output files produced. The output files can be either content
+files or receipts for DRM rights. </p> <codeblock id="GUID-A4C87E1E-719D-53CF-9A2F-7EEE8A16919D" xml:space="preserve">// loop over all the output files produced 
+for(TInt I =0; I &lt; import-&gt;OutputFileCountL(); I++) 
+    {
+    // Can now retrieve filename, type of file (receipt or content) and MIME type for the file produced
+    TPtr filename = import-&gt;OutputFileL(I).FileName(); 
+    TOutputType type = import-&gt;OutputFileL(I).OutputType();
+    TPtr8 mimetype = import-&gt;OutputFileL(I).MimeType(); 
+    }</codeblock> <p> <b>Note</b>: </p> <p>The MIME type and the file extension
+of the output files can be different to the MIME type and file extension of
+the imported file. </p> </section>
+</conbody><related-links>
+<link href="GUID-84B6389A-55CC-53EB-8725-65F753FD7217.dita"><linktext> CAF Overview</linktext>
+</link>
+</related-links></concept>

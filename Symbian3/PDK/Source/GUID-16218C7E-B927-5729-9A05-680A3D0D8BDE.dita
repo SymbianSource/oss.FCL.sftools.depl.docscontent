@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-16218C7E-B927-5729-9A05-680A3D0D8BDE" xml:lang="en"><title>File Data
+Provider Configuration Parameters</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The File Data Provider plug-in can be configured using the <codeph>MTP_FILEDP_CONFIG</codeph> resource. <codeph>MTP_FILEDP_CONFIG</codeph> is
+then used as the <codeph>opaque_resource</codeph> within an <codeph>MTP_DATA_PROVIDER</codeph> resource.
+These resources are defined in <filepath>mtpfiledp_config.rss</filepath> as
+shown below. The file is compiled and exported as <filepath>z:/resource/mtp/102827B0.rsc</filepath>  </p>
+<section><title>Syntax</title><p>The configurable parameters are: </p><ul>
+<li id="GUID-A72A150C-4297-5FEF-8E74-C4B398028699"><p> <b>Object Enumeration
+Iteration Length</b>: This parameter configures object store enumeration by
+specifying the maximum number of data objects to be enumerated on each iteration
+of the process. Its purpose is to ensure that reasonable active scheduler
+RunL durations are maintained. </p> </li>
+<li id="GUID-32798FE7-C471-510E-99EA-5ADFD23B778C"><p> <b> File Format Exclusion
+List</b>: This parameter specifies the set of Symbian file system file formats
+which are excluded from the object enumeration process. </p> </li>
+<li id="GUID-35441470-D26D-59EB-9E13-334E0361A88F"><p> <b>Extension Map</b>:
+This parameter specifies the set of the mapping file extensions for the file
+codes in the <codeph>format_exclusion_list</codeph>. </p> </li>
+</ul> </section>
+<example><codeblock xml:space="preserve">#include &lt;ecom/registryinfo.rh&gt;
+#include &lt;mtp/mtpdpinfo.rh&gt;
+#include "mtpfiledp_config.rh"
+
+RESOURCE MTP_DATA_PROVIDER dpConfig
+    {
+    type = EMtpDataTypeEcom;
+    major_version = 1;
+    object_enumeration_persistent = 0;
+    supported_modes = KMtpModeMTP;  
+    server_name = "";
+    server_image_name = "";
+    opaque_resource = fileConfig;
+    }
+
+RESOURCE MTP_FILEDP_CONFIG fileConfig
+    {
+    enumeration_iteration_length = 32;
+    format_exclusion_list = {
+        // Association 
+        0x3009  //mp3 code added to exclusion list, handled by Music Data Provider.
+        };
+
+    extension_map = {
+   
+   MTP_FILEDP_EXTENSION_MAP // mp3 added to extension map, handled by Music Data Provider.
+   {
+   file_extension = "mp3";
+   mtp_object_format = 0x3009;
+   },
+   ...
+        };
+    }
+...</codeblock></example>
+</conbody></concept>

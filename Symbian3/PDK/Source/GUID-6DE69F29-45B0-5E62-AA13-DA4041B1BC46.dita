@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6DE69F29-45B0-5E62-AA13-DA4041B1BC46" xml:lang="en"><title>Factory
+Implementation</title><shortdesc>Describes how to implement a factory.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Serial Port Driver PDD must provide a factory class to create channels.
+The purpose of the PDD factory is to create the physical channel. For the
+Uart, this is defined by the <codeph>DDriverComm</codeph> class, which is
+derived from <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref>. The class is defined in the
+Uart source code: </p>
+<codeblock id="GUID-15ED5794-BC8A-5CF0-BE5D-8620AFDEDEEA" xml:space="preserve">class DDriverComm : public DPhysicalDevice
+    {
+public:
+    DDriverComm();
+    virtual TInt Install();
+    virtual void GetCaps(TDes8 &amp;aDes) const;
+    virtual TInt Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* anInfo, const TVersion &amp;aVer);
+    virtual TInt Validate(TInt aUnit, const TDesC8* anInfo, const TVersion &amp;aVer);
+    };
+</codeblock>
+<p>This implements the four virtual functions that the base class defines,
+as well as a default constructor. </p>
+<section id="GUID-5A36A559-CBB6-4495-A1ED-0C4F9289F9B0"><title>Install()</title> <p> <codeph>Install()</codeph> sets the
+driver name. The name is the way that the physical device is identified. The
+name is the same as the LDD name, but followed by a dot and a short string
+to represent the physical device. If you have similar existing source, just
+copy from there. The function is implemented as: </p> <codeblock id="GUID-6988B583-5060-5CE7-9404-C631C40B188A" xml:space="preserve">TInt DDriverComm::Install()
+    {
+    return SetName(&amp;KPddName);
+    }
+</codeblock> <p>In the template port, the name is the string <codeph>Comm.Template</codeph>. </p> <p>See
+also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-0065FAAF-D734-3ED2-816A-CCE9BF607BAB"><apiname>DPhysicalDevice::Install()</apiname></xref>  </p> </section>
+<section id="GUID-CBFB3280-3C16-4F15-A7DB-EDCA278562F6"><title>GetCaps()</title> <p> <codeph>GetCaps()</codeph> returns the
+capabilities of the physical driver <i>factory</i> (not the driver object).
+Since driver factories all produce polymorphic objects there is no point in
+differentiating between them so the function should ignore the passed in descriptor
+reference. The driver object’s capabilities are returned by the <codeph>DComm</codeph> derived <codeph>Caps()</codeph> function. </p> <p>GetCaps()
+can be implemented as a stub function, i.e.: </p> <codeblock id="GUID-338ECD13-DD25-55E0-812F-3ED3A49826CD" xml:space="preserve">Void DDriverComm::GetCaps(TDes8&amp;  /* aDes */)
+    {
+    }</codeblock> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-CA336905-B068-3CFB-80D7-4DF29B92BF4F"><apiname>DPhysicalDevice::GetCaps()</apiname></xref>  </p> </section>
+<section id="GUID-70BBF195-3943-4ABE-9EFB-FCC2BDAC52DD"><title>Validate()</title> <p> <codeph> Validate()</codeph> verifies
+that the physical driver version is compatible with the caller’s version.
+This function can be copied in its entirety from any current driver source.
+It also checks that the unit number used to create a physical channel object
+is valid, typically checking that the number lies within a valid range. </p> <codeblock id="GUID-03DC2E07-FEBF-5F52-B3A5-7F52C855FC06" xml:space="preserve">TInt DDriverComm::Validate(TInt aUnit, const TDesC8* /*anInfo*/, const TVersion&amp; aVer)
+    {
+    if (
+        (!Kern::QueryVersionSupported(iVersion,aVer)) || 
+        (!Kern::QueryVersionSupported(aVer,TVersion(KMinimumLddMajorVersion,KMinimumLddMinorVersion,KMinimumLddBuild)))
+       )
+    return KErrNotSupported;
+    if (aUnit&lt;UART_UNIT_OFFSET || aUnit&gt;=(UART_TOTAL_NUMBER_UNITS+UART_UNIT_OFFSET))
+        return KErrNotSupported;
+    return KErrNone;
+    }
+</codeblock> <p>Note that <codeph>iVersion</codeph> is a data member in the
+base class <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref>. </p> <p>See also: </p> <ul>
+<li id="GUID-0EF9F2F1-EC2A-50E3-9E1B-2D6112FE8623"><p> <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-70B6293C-9000-31D9-AE9E-441C9760B92E"><apiname>DPhysicalDevice::Validate()</apiname></xref>  </p> </li>
+<li id="GUID-4ED7473E-D789-5813-9404-0F6BDCB83D3F"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A28757CC-B89B-3F63-AD39-9955FBE7533B"><apiname>Kern::QueryVersionSupported()</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-48EF94F9-ACBC-58DA-9F0E-4034E56C6C74"><title>Create()</title> <p> <codeph>Create()</codeph> creates
+and returns a pointer to the physical channel object through the <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> *&amp;
+type argument. In the case of serial device drivers, a physical channel is
+an instance of a class derived from <codeph>DComm</codeph>, which is itself
+derived from <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref>. </p> <p>Implementing this function
+may involve: </p> <ul>
+<li id="GUID-D6D5111E-22E1-5EA2-B217-EAC3BA5B9599"><p>setting up any port
+related hardware; for example, defining GPIO pins as UART port I/O </p> </li>
+<li id="GUID-6769D49B-478C-5282-A918-6D659F823B95"><p>initialising the UART
+device itself; for example, enabling UART clock sources </p> </li>
+<li id="GUID-BFEC3036-6F9C-5499-81AF-7A5D01BDD890"><p>binding any interrupt
+resources to the UART Interrupt Service Routine (ISR). </p> </li>
+</ul> <p>The function sets a reference argument to point to the newly instantiated
+physical channel object, but returns an error code if object allocation or
+initialisation fails, i.e. the call to the physical channel object’s <codeph>DoCreate()</codeph> function
+fails. Error codes are returned to the caller. </p> <p>This code is typical,
+and can be copied from any current source. </p> <codeblock id="GUID-E93C6DEA-852D-5B5F-8531-CA4B76B91879" xml:space="preserve">TInt DDriverComm::Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* anInfo, const TVersion&amp; aVer)
+    {
+    DCommXXX* pD=new DCommXXX;
+    aChannel=pD;
+    TInt r=KErrNoMemory;
+    if (pD)
+        r=pD-&gt;DoCreate(aUnit,anInfo);
+    return r;
+    }
+</codeblock> <p>where <codeph>DCommXXX</codeph> is a <codeph>DComm</codeph> derived
+class. </p> <p>Customisation depends on the functions in the <codeph>DCommXXX::DoCreate()</codeph> function. </p> </section>
+</conbody><related-links>
+<link>
+<desc><xref href="GUID-3C34724F-B476-5329-B0B1-6D5A34294979.dita">Interrupt Dispatcher
+Tutorial</xref></desc>
+</link>
+</related-links></concept>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D76C7759-739D-5C98-B718-7297687FE630" xml:lang="en"><title>Extended
+Bitmaps</title><shortdesc>The Font and Bitmap Server provides a framework for device creators
+to add support for their own types of bitmap compression. Bitmaps that use
+compression formats that are provided by device creators are known as extended
+bitmaps. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref> and <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<section><title>Natively supported bitmap formats</title> <p>Traditionally
+Symbian has provided native support for bitmaps in relatively simple formats,
+including the standard uncompressed bitmap format and bitmaps compressed using
+simple Run-Length Encoding (RLE). The uncompressed format stores scan lines
+as a sequence of individual colors, one for each pixel. The RLE compression
+instead breaks each scan line into runs of consecutive pixels of the same
+color. For each run it stores the color and the number of times it is repeated.
+The exact details of the compression formats are internal to Symbian. </p> <p>The
+natively-supported compression types are enumerated in <xref href="GUID-6E40B867-F7C6-35EA-8C6F-F54AB11BDD6E.dita"><apiname>TBitmapfileCompression</apiname></xref>.
+You can use the Bitmap Conversion Tool to generate compressed bitmaps. In
+addition, you can compress bitmaps at runtime by calling <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-A6DEEA44-5EFF-3260-B003-35A6C9B0E70B"><apiname>CFbsBitmap::Compress()</apiname></xref> and <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-0098D4B6-35F3-31DB-ADCE-9586601AAAFA"><apiname>CFbsBitmap::CompressInBackground()</apiname></xref>. </p> </section>
+<section><title>The extended bitmap approach</title> <p>The extended bitmap
+framework allows device creators to define and add their own compression formats.
+Bitmaps that are created using this framework are known as <b>extended bitmaps</b>.
+The Font and Bitmap Server simply stores the compressed data and does not
+interpret it in any way. </p> <p>The key features of extended bitmaps are: </p> <ul>
+<li id="GUID-57B99A75-79AB-50FD-BC32-E9B3D6D4D4BA"><p>They are read-only. </p> </li>
+<li id="GUID-32159A2F-DEF7-562D-BAC7-0C782F292E8C"><p>They have a type, which
+is unique ID (UID) that identifies the proprietary data format. </p> </li>
+<li id="GUID-D972ECDE-FDDC-5518-999B-591FC22C5BE6"><p>There are no restrictions
+on the data format. </p> </li>
+<li id="GUID-47813A67-8550-51FB-8DFA-E911322EE9DC"><p>When an extended bitmap
+cannot be decompressed for some reason, it is rendered as solid white. </p> </li>
+</ul> <p>There are two ways that the bitmap can be decompressed prior to rendering.
+Which one is used depends on whether the application draws the extended bitmap
+by using the Window Server API (such as <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref>) for
+on-screen rendering or the BitGDI API for off-screen rendering and Direct
+Screen Access (DSA). </p> <p>To illustrate how it works, let us consider a
+scenario in which extended bitmaps are used to store SVG data. (In the broadest
+sense, you can consider SVG data to be a type of compression of bitmap data.)
+The following diagram shows how an extended bitmap that represents an icon
+is ultimately displayed on the screen. </p> <fig id="GUID-690043B5-EF70-59BB-87D4-8B0B6EEA3F31">
+<title>              Example extended bitmap scenario            </title>
+<image href="GUID-970A2948-5A72-5E92-84C0-86DDEE59A569_d0e233664_href.png" placement="inline"/>
+</fig> <p>This is how it works: </p> <ol id="GUID-2B3B99F0-BF43-5F1C-A86E-5E9605460D7E">
+<li id="GUID-77F3E86D-7FC1-5682-90C0-EE83C8C39A22"><p>An engine or server
+(the Theme Server in this example) creates an extended bitmap that stores
+the icon's SVG data. </p> </li>
+<li id="GUID-3F46695F-DAD7-58D8-822A-18EB89A0D119"><p>To the application,
+the bitmap appears like an ordinary compressed XIP ROM-based bitmap. The application
+simply calls <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-1A360BAF-D2EF-3D96-8E6A-C399631EFBB9"><apiname>CWindowGc::DrawBitmap()</apiname></xref> in the normal way,
+passing in the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> handle. (Applications should
+not inspect the data inside the bitmap.) </p> </li>
+<li id="GUID-557E0CDF-6B80-5D9F-B64B-2CA6571F7474"><p>The Window Server passes
+the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> handle to the <xref href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita">render
+stage chain</xref>. </p> </li>
+<li id="GUID-7519E0F4-37FA-5B52-8060-73EE6E347C89"><p>The render stage identifies
+the bitmap as an extended bitmap, interprets the SVG data and generates the
+pixel data that is ultimately displayed on the screen. </p> </li>
+</ol> <p>The internal steps are different when an application uses the BitGDI
+API to draw the bitmap—for example, when an application draws the bitmap to
+an off-screen bitmap by using the BitGDI graphic context class, <xref href="GUID-4A501086-7EFF-376D-8901-6D9B2EB4EFF2.dita"><apiname>CFbsBitGc</apiname></xref>.
+For this to work, the device creator must provide an extended bitmap rasterizer
+DLL that converts the compressed data to pixel data. However, this is also
+transparent to the application. </p> <p>Extended bitmaps have the following
+advantages: </p> <ul>
+<li id="GUID-BAF6B974-AD40-58C2-AF10-9A9A894F8AAB"><p>Existing applications
+can use extended bitmaps without modification. </p> </li>
+<li id="GUID-33427210-B60D-55C0-BB00-02BE2559FD56"><p>Extended bitmaps provide
+a mechanism for using compressed formats (such as vector data) that are much
+more compact than raster data. This is an important consideration for high
+screen resolutions. </p> </li>
+</ul> </section>
+<section><title>Architecture</title><p>The following diagram shows the main
+participants in the extended bitmap framework. It is the device creator's
+responsibility to provide appropriate support for the extended
+bitmap format in the render stage and a suitable extended bitmap rasterizer
+DLL, if support for drawing the extended bitmap through the BitGDI API is
+required.</p><fig id="GUID-3A965E47-106D-4EC3-BCFA-E2D40EDB2647">
+<title>The main participants in the extended bitmap framework, showing the
+dependencies </title>
+<image href="GUID-A67FFE7B-9573-543B-B3EA-0539278FE4AB_d0e233744_href.png" placement="inline"/>
+</fig><p>Although it is not possible to have more than one extended bitmap
+rasterizer DLL on a device, an extended bitmap rasterizer DLL can support
+more  than one type of proprietary data. Similarly, support for multiple data
+formats can be added to render stages.</p><p> The data format can be identified
+from the type UID. When you implement  the extended bitmap feature in a device,
+you must obtain UIDs for the format(s) that you want to support from Symbian
+Signed in the normal way. </p><p>The Symbian platform does not define any
+compression formats apart from those that are supported natively. It therefore
+does not provide an implementation of an extended bitmap rasterizer. However,
+it does provide a stub implementation and an example implementation, which
+device creators can  use as a reference when creating their own extended bitmap
+rasterizers.</p></section>
+<section><title>Related APIs</title> <p>This section summarizes the extended
+bitmap APIs. Note that the extended bitmap feature is new in Symbian^3. </p> <p><b>TBitmapfileCompression </b> </p> <p>The <xref href="GUID-6E40B867-F7C6-35EA-8C6F-F54AB11BDD6E.dita"><apiname>TBitmapfileCompression</apiname></xref> enum has a new value, <codeph>EProprietaryCompression</codeph>, which represents
+an extended bitmap. </p> <p><b>CFbsBitmap </b> </p> <p>The following table
+provides a summary of the new <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> functions that
+provide support for extended bitmaps. </p> <table id="GUID-7CF90E7D-1908-50FB-84AB-36F04B04E2DF">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Function</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-F2AAAC53-3D74-3C9F-B275-58BD5FF81C85"><apiname>CFbsBitmap::CreateExtendedBitmap()</apiname></xref>  </p> </entry>
+<entry><p>Creates an extended bitmap. There are two overloads of this function.
+They both have a parameter for the UID of the proprietary data format. One
+takes a pointer to the raw data, whereas the other takes a pointer to an initializer,
+which is an implementation of the <xref href="GUID-C950A55E-B52A-3680-B897-04E7C3A7BB71.dita"><apiname>MFbsExtendedBitmapInitializer</apiname></xref> interface.
+The second overload is the recommended approach because it avoids unnecessary
+memory copying. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-9274BB13-2BE4-3B3B-A55C-2500E2FE432C"><apiname>CFbsBitmap::ExtendedBitmapType()</apiname></xref>  </p> </entry>
+<entry><p>Gets the UID of the proprietary data format. Returns null if it
+is not an extended bitmap. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-BF789218-A647-3D94-AF56-05265C45F7E7"><apiname>CFbsBitmap::DataSize()</apiname></xref>  </p> </entry>
+<entry><p>Returns the size in bytes of the data stored in the bitmap. For
+an extended bitmap this is the size of the proprietary data (not the size
+of the rasterized pixel data). </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Here is a code snippet that shows how a content provider can create
+an extended bitmap: </p> <codeblock id="GUID-4511B5FF-1A17-5B8B-8471-C6F696D049F3" xml:space="preserve">const TUid KUidMyProprietaryFormat = { &lt;UID in hex&gt; };
+const TSize KSize(640, 480);
+const TInt KDataSize = 100;
+    
+// Only needed if not connected to the Window Server.
+User::LeaveIfError(RFbsSession::Connect());
+    
+CFbsBitmap* bmp = new(ELeave) CFbsBitmap();
+    
+CleanupStack::PushL(bmp);
+    
+MFbsExtendedBitmapInitializer* initializer = GetMyInitializerL();
+    
+User::LeaveIfError(bmp-&gt;CreateExtendedBitmap(KSize, EColor16MAP, KUidMyProprietaryFormat, 
+                                             KDataSize, *initializer));</codeblock> <p>The
+following <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> functions provide support for extended
+bitmaps, provided a suitable extended bitmap rasterizer DLL is available: </p> <ul>
+<li id="GUID-6ABAA42C-1270-5F5C-9D4E-7F1750C05659"><xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-838CF3C5-C513-33B7-9C81-0EBCE075F6B7"><apiname>CFbsBitmap::GetPixel()</apiname></xref> </li>
+<li id="GUID-876BA701-AE33-515F-8756-6052A37991F8"><xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-D24300BA-20D7-34E6-BD23-ED281A0D957E"><apiname>CFbsBitmap::GetScanLine()</apiname></xref> </li>
+<li id="GUID-152C155E-94DB-5462-80EE-AF409C001B49"><xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-57BC8EB1-B9F4-39A9-A18B-594CFB7786B6"><apiname>CFbsBitmap::GetVerticalScanLine()</apiname></xref> </li>
+</ul> <p>It is possible to access the proprietary data inside an extended
+bitmap by calling the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-2AB943ED-7DBE-3FDA-82AF-317F152EDB03"><apiname>CFbsBitmap::DataAddress()</apiname></xref> function.
+For example, the render stage that decompresses the extended bitmap makes
+use of this function. Note that clients must not modify the proprietary data. </p> <p><b>CFbsRasterizer </b> </p> <p>This
+is an interface for which the extended bitmap rasterizer DLL must provide
+an implementation. See <xref href="GUID-E6E6A439-B3CC-5FEA-9148-2DB5F37003F2.dita">Creating
+an Extended Bitmap Rasterizer</xref> for more information. </p> </section>
+</conbody><related-links>
+<link href="GUID-E6E6A439-B3CC-5FEA-9148-2DB5F37003F2.dita"><linktext> Creating
+an Extended Bitmap Rasterizer</linktext></link>
+<link href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita"><linktext>Render Stages</linktext>
+</link>
+<link href="GUID-71DADA82-3ABC-52D2-8360-33FAEB2E5DE9.dita"><linktext>Font and
+Bitmap Server Overview</linktext></link>
+</related-links></concept>

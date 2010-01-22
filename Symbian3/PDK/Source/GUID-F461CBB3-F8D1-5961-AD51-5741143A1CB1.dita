@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1" xml:lang="en"><title>Client
+of Slave Channel Tutorial</title><shortdesc>This document describes a simple implementation of a client of
+an IIC slave channel. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-803E9D3A-19F4-58EA-A3F8-1912C7223FE2"><title>Required background</title> <p>Before
+you start, you must: </p> <ul>
+<li id="GUID-E20D2D65-CB2C-52A0-B694-B26EC96B6F99"><p>Have installed the platform
+specific implementation of IIC channels that is required to support the IIC
+API. </p> </li>
+<li id="GUID-F675A381-8125-5077-8D9E-70188B1ACA6C"><p>Ensure that the <filepath>IIC.dll</filepath> has
+been included in the kernel.iby file. </p> </li>
+<li id="GUID-638684A5-4938-5F60-9BB1-97F5AFD199B4"><p>Include the <filepath>iic.h</filepath> and <filepath>iic_channel.h</filepath> header
+files. </p> </li>
+</ul> </section>
+<section id="GUID-D71B8CE6-AD6B-56A4-835F-44B80FB2E0A6"><title>Introduction</title> <p>An
+application communicates over an IIC channel by operating as a client of the
+channel. When the channel uses a slave node, a transmission must be conducted
+at the level of the transfer because slaves react to transfers between it
+and a master node. For this reason, a large part of the client functionality
+is implemented as a callback function which is passed to the channel object
+and placed on the client thread’s DFC queue for execution. The callback notifies
+the client of the individual transfers and is the entry point to the application
+functionality which uses the data being transmitted. The other client API
+functions control the transmission as a whole. </p> </section>
+<section id="GUID-F6E864D9-F951-4A2D-B933-166F5DE4F5C3"><title>Procedure for writing a client</title> <ol id="GUID-E1360AA1-59E2-53FE-9CED-967D731F17CA">
+<li id="GUID-D8ABA659-47A9-536E-9EC6-E8741909CAFF"><p>Capture the channel
+by calling <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-0078D2B4-07B7-3936-8CB2-6A967C9B1FCD"><apiname>IicBus::CaptureChannel()</apiname></xref>. </p> <ol id="GUID-A0A19CF5-5A45-588A-8C15-A11C12800055">
+<li id="GUID-37BA179D-1D7F-560C-8C81-6C9EE7674459"><p>Pass the channel Id
+as its <codeph>TInt aBusId</codeph> parameter. </p> </li>
+<li id="GUID-BF8B3291-626A-59F1-897A-25A73D22FCCD"><p>Pass the channel configuration
+header as <codeph>TDes8*                      aConfigHdr</codeph>. </p> </li>
+<li id="GUID-E1BA9A5F-81CE-522E-8CC0-CF38D0BC474B"><p>Pass a pointer to the
+callback function as <codeph>TIicBusSlaveCallback* aCallback</codeph>. </p> </li>
+<li id="GUID-DB6262F2-51D4-5D2D-857B-7F54E6EF1521"><p>Pass the boolean <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> as <codeph>TBool
+                     aAsynch</codeph> to specify asynchronous channel capture
+and otherwise pass <xref href="GUID-A759CA2D-8327-348F-9337-4886E619D920.dita"><apiname>EFalse</apiname></xref>. </p> </li>
+</ol> <p><codeblock id="GUID-713BDFF9-83E2-5A63-BD3A-A36556E5A70C" xml:space="preserve">
+    TInt channelId = 0;
+    // capture channel..
+    r = IicBus::CaptureChannel(TInt aBusId, &amp;header, iSlaveCallback, channelId, aAsynch);
+    if (r != KErrNone)
+        {
+        __KTRACE(Kern::Printf("Error capturing the channel, r %d", r));
+        }
+</codeblock> </p> <p>In synchronous transmission when the function returns
+the parameter <codeph>TInt&amp; aChannelId</codeph> is set to a token value,
+the channel Id, which is used by the other functions to acquire the exclusive
+use of the channel. In asynchronous transmission the channel Id is set immediately
+before calling the client callback. </p> </li>
+<li id="GUID-1D366FFE-DEE0-59E1-9FC7-507C06C58964"><p>Register receive and
+transmit buffers by calling <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-E6D971CA-E09C-36B2-92B2-759CC81AF3F1"><apiname>IicBus::RegisterRxBuffer()</apiname></xref> and <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-E885DF1D-2192-3BC7-8165-1E5A194ABA28"><apiname>IicBus::RegisterTxBuffer()</apiname></xref>. </p> <ol id="GUID-7722A592-4EB3-5701-9F7F-79EEB8E6221D">
+<li id="GUID-520C3DF1-91AE-5FAC-AFFC-806361672660"><p>Pass the channel Id
+as the <codeph>aChannelId</codeph> parameter. </p> </li>
+<li id="GUID-E4971790-1830-5CA3-90DB-89F3FA169758"><p>A buffer is represented
+by a descriptor containing a point to the start of the buffer, its total size
+in bytes and an indication of how much of it is in use. Initialise a descriptor
+with these values and pass it as <codeph>TPtr8 aRxBuffer</codeph>, and similarly
+for <codeph>TPtr8 aTxBuffer</codeph>  </p> </li>
+</ol> <p><codeblock id="GUID-6585AF43-450D-5A6A-A55E-39CEDACF0CA1" xml:space="preserve">
+    TPtr8 rxBuf(0, 0);
+    TPtr8 txBuf(0, 0);
+
+    rxBuf.Set((TUint8*) iRxBuf.Ptr(), iSlaveBufSize, iRxBuf.MaxLength());
+    txBuf.Set((TUint8*) iTxBuf.Ptr(), iSlaveBufSize, iTxBuf.MaxLength());
+
+    r = IicBus::RegisterRxBuffer(iChannelId, rxBuf, 8, iSlaveBufSize, 0);
+    if(r != KErrNone)
+        {
+        __KTRACE(Kern::Printf("Error Register Rx Buffer, r %d", r));
+        }
+    else
+        {
+        r = IicBus::RegisterTxBuffer(iChannelId, txBuf, 8, iSlaveBufSize, 0);
+        }
+
+    return r;
+</codeblock> </p> </li>
+<li id="GUID-BC801368-74D3-504D-95D6-A802C34062C9"><p>Call <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-8FD1E53D-5C7C-38ED-8B2C-59B4BCF8940B"><apiname>IicBus::SetNotificationTrigger()</apiname></xref>.
+This function informs the channel of the conditions under which the callback
+is to be called. </p> <ol id="GUID-FB921A67-1B9D-5B7A-9B9E-1587F32328A6">
+<li id="GUID-4DB389EA-2BC7-5275-AF4C-D6EE411B2400"><p>Pass the channel Id
+as <codeph>TInt&amp; aChannelId</codeph>. </p> </li>
+<li id="GUID-0F57322E-3D82-5E67-932C-9C6145B4E7C6"><p>The callback is called
+when the state of the channel satisfies one of a number of conditions called
+triggers which are specified in the enumeration <xref href="GUID-5216FF3E-19BA-3862-B188-A3871D7D1BF5.dita"><apiname>TIicBusSlaveTrigger</apiname></xref>.
+Determine which triggers are appropriate, create a bitmask of them and pass
+it as <codeph>TInt                      aTrigger</codeph>. </p> </li>
+</ol> <p><codeblock id="GUID-03217DC6-FD76-5786-8103-55BB847533CB" xml:space="preserve">
+/*
+    ERxAllBytes            = 0x01,    // Master has written the required number of bytes
+    ERxUnderrun            = 0x02,    // Master has written less than the required number of bytes, and ceased transmitting
+    ERxOverrun            = 0x04,    // Master has written the required number of bytes and is continuing to transmit
+    ETxAllBytes            = 0x08,    // Master has read the required number of bytes
+    ETxUnderrun            = 0x10,    // Master has read the required number of bytes and is continuing to read
+    ETxOverrun            = 0x20,    // Master has read less than the required number of bytes, and ceased reading
+    EGeneralBusError    = 0x40,    // An error has occurred during a transaction
+    EAsyncCaptChan        = 0x80     // Completion of asynchronous CaptureChannelr = IicBus::SetNotificationTrigger(iChannelId, aTrigger);
+*/
+ r = SetNotificationTrigger(iChannelId, aTrigger);
+    if (r != KErrNone)
+        {
+        __KTRACE(Kern::Printf("Error setting notification trigger, r %d", r));
+        }
+
+    return r;
+</codeblock> </p> <p>The transmission of data will now take place, controlled
+by the mechanism of callback and triggers. Different buses signal that a transmission
+has been completed in different ways: for instance I2C uses a stop bit and
+SPI changes the voltage on Chip Select. </p> </li>
+<li id="GUID-488F34BF-E6E8-5316-8484-14560A689CD8"><p>When you have finished
+using the channel, release it by calling <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-C1B69722-1316-3C7D-BB8B-0E54B8F44C5D"><apiname>IicBus::ReleaseChannel()</apiname></xref> with
+the channel Id as its argument. </p> <p><codeblock id="GUID-06528860-5B5D-5909-BBD5-BABE2146F616" xml:space="preserve">
+        r = IicBus::ReleaseChannel(iChannelId);
+        if (r == KErrNone)
+            {
+   // resetting channel Id
+            iChannelId = 0;
+            if(iSlaveCallback)
+                {
+    // callback object no longer needed, so delete
+                delete iSlaveCallback;
+                iSlaveCallback = NULL;
+                }
+
+            }
+</codeblock> </p> </li>
+</ol> </section>
+<section id="GUID-C82AB1DF-2988-4E29-92D1-235662B0485C"><title>Next steps</title> <ul>
+<li id="GUID-FD946C48-CC78-5E04-A682-65DAC3CF31C2"><p>Implement
+the callback as a function containing a series of conditions on the triggers.
+Its prototype must match the typedef for (*<xref href="GUID-7EB83085-7D28-3914-802B-44D8260E9074.dita"><apiname>TIicBusSlaveCbFn</apiname></xref>). </p> <codeblock id="GUID-A0F3DD87-11B7-5AD1-B3F1-F5515B4A97BD" xml:space="preserve">typedef void (*TIicBusSlaveCbFn)(TInt   /*aChannelId*/,
+                                 TInt   /*aReturn*/,
+                                 TInt   /*aTrigger*/,
+                                 TInt16 /*aRxWords*/,
+                                 TInt16 /*aTxWords*/,
+                                 TAny*  /*aParam*/);
+</codeblock> <p>These
+functions serve three purposes. </p> <ul>
+<li id="GUID-7E871B53-4DA7-5C38-9485-A7FAD2ACCC4B"><p>The callback must react
+to the completion of an asynchronous transmission between it and the bus master. </p> </li>
+<li id="GUID-068201FA-B27E-55F5-AF14-CBA53A8D1AAD"><p>It must implement the
+actual functionality of the application by doing something with the data which
+is written to or read from the buffers. </p> </li>
+<li id="GUID-7F9AFCB8-6C3F-51C4-B1B9-C5DA492ED039"><p>It must react to cases
+where the physical transfer of the data has not taken place exactly as expected.
+For example there may be more data to transfer than had been anticipated. </p> </li>
+</ul> <ul>
+<li id="GUID-74EA3A8B-8DEE-57E8-90F3-606FE671588A"><p>Implement
+the reaction to a completed asynchronous transmission as a conditional statement
+where <xref href="GUID-DAAA6E18-9E78-3ED2-A686-EC28E5C92A24.dita"><apiname>EAsyncaptChan</apiname></xref> is true. The callback should return
+and control should revert to the client. </p> <codeblock id="GUID-F6ECA83D-E4D8-5015-A88C-B76228DA74BB" xml:space="preserve">
+  // aTrigger and aReturn are the arguments provided to the clients 
+  // callback functions as defined by TIicBusSlaveCbFn
+        if(aTrigger &amp; (EAsyncCaptChan))
+            {
+            if(aReturn == KErrCompletion)
+                {
+    // a is a pointer to the client's object
+    // which stores the channel Id, client Id etc
+                a-&gt;iChannelId = aChannelId;
+                __KTRACE(Kern::Printf("channelId %d", aChannelId));
+                }
+
+            Kern::RequestComplete(a-&gt;iClient, a-&gt;iSlaveReqStatus, aReturn);
+            return;
+            }
+</codeblock> </li>
+<li id="GUID-16448D59-2A11-5D89-806F-763D96CEFEC6"><p>Implement
+the actual functionality of the application as a conditional statement where <xref href="GUID-CC0F0C9A-25B6-3A18-93D1-EC0710DFB6A7.dita"><apiname>EAllBytes</apiname></xref> is
+true. The callback should return at the end of this condition. </p> <codeblock id="GUID-905D54F9-A19E-51C9-98A5-A95471BAFB53" xml:space="preserve">
+        if(aReturn &amp; (ETxAllBytes | ERxAllBytes))
+            {
+            Kern::RequestComplete(a-&gt;iClient, a-&gt;iSlaveReqStatus, KErrNone);
+            }
+
+        if(aTrigger &amp; (/*ERxAllBytes |*/ ETxAllBytes))
+            {
+            Kern::RequestComplete(a-&gt;iClient, a-&gt;iSlaveReqStatus, KErrNone);
+            }
+        }
+</codeblock> </li>
+<li id="GUID-9725BAF2-14B1-5CC7-8DE4-46FB3DDF609E"><p>Implement
+the other cases as conditional statements where the other triggers in <xref href="GUID-5216FF3E-19BA-3862-B188-A3871D7D1BF5.dita"><apiname>TIicBusSlaveTrigger</apiname></xref> are
+true. In the event of <xref href="GUID-1D10124D-F27E-33C3-B803-FEBDEB2B7964.dita"><apiname>EGeneralBusError</apiname></xref> the callback should
+simply complete. The other triggers involve buffer underruns and overruns
+which may require new buffers which the unexpected data can be read from and
+written to. </p> <ul>
+<li id="GUID-67BAE1C9-1A2B-524D-B3D0-7E28CC309BDA"><p>Register
+the new buffers by calling <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-E6D971CA-E09C-36B2-92B2-759CC81AF3F1"><apiname>IicBus::RegisterRxBuffer()</apiname></xref> and <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-E885DF1D-2192-3BC7-8165-1E5A194ABA28"><apiname>IicBus::RegisterTxBuffer()</apiname></xref> as
+explained before. </p> <ul>
+<li id="GUID-C6711DE9-F3B1-53F2-B0F9-03B3550F1487"><p>Start
+data transfer to and from the new buffers by calling <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-8FD1E53D-5C7C-38ED-8B2C-59B4BCF8940B"><apiname>IicBus::SetNotificationTrigger()</apiname></xref> as
+explained before. </p> <p>The channel is implemented as a state machine as
+illustrated. The channel starts and finishes in the <codeph>EInactive</codeph> state.
+During operation it alternates between the two states <codeph>EWaitForClient</codeph> and <codeph>EWaitForMaster</codeph> as
+the client notifies the channel of new triggers and the channel reacts to
+them. There is a timer on these two states and the state machine returns to <codeph>EInactive</codeph> either
+when there are no triggers remaining to be detected or the timers time out.
+When the client fails to respond on time it enters the state <xref href="GUID-68E03A23-AE1E-3412-B831-7770882B8C2B.dita"><apiname>EClientTimeout</apiname></xref>. </p> </li>
+</ul> </li>
+</ul> <codeblock id="GUID-73A80A1E-4C07-55DB-AFCF-608B48B68460" xml:space="preserve">
+        if(aTrigger &amp; ETxUnderrun)
+            {
+            TPtr8 txBuf(0, 0);
+
+            txBuf.Set((TUint8*) a-&gt;iTxBuf.Ptr(), a-&gt;iTxBuf.MaxLength(), a-&gt;iTxBuf.MaxLength());
+
+   // if there is more data to transmit
+            // use aTxWords as an offset..
+             if(aTxWords + 32 &lt;= KMaxSlaveTestBufferSize)
+                {
+    // register the next buffer
+                r = IicBus::RegisterTxBuffer(a-&gt;iChannelId, txBuf, 8, 32, aTxWords);
+    // check it was successful
+                if (r != KErrNone)
+                    {
+                     Kern::Printf("Error Register Tx Buffer, r %d", r);
+                    }
+                else
+                    {
+     // set the trigger to transmit the required number of bytes
+                    r = IicBus::SetNotificationTrigger(a-&gt;iChannelId, ETxAllBytes);
+     // check the request was accepted
+                    if (r != KErrNone)
+                        {
+                        Kern::Printf("Error setting notification trigger, r %d", r);
+                        }
+                    }
+
+                // updated the buffer - so return..
+                return;
+                }
+            }
+</codeblock> </li>
+</ul> </li>
+</ul> <fig id="GUID-2A41FE33-8734-5A13-ACB0-B971E4429C85">
+<title>              Client state machine 1            </title>
+<image href="GUID-4BB26644-D90F-5FD1-B093-FACDFBFED991_d0e276452_href.png" placement="inline"/>
+</fig> <fig id="GUID-2178C529-1F08-5504-9C04-C46D59F4951F">
+<image href="GUID-2F9279AF-857E-5EFA-BE26-00E56884D44F_d0e276457_href.png" placement="inline"/>
+</fig> <fig id="GUID-FB2C9F89-6148-5AE2-A07A-C0D643407044">
+<title>              Client state machine 3            </title>
+<image href="GUID-FC7B8C86-BC65-517E-A39B-4DB83758451E_d0e276465_href.png" placement="inline"/>
+</fig> </section>
+</conbody><related-links>
+<link href="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1.dita"><linktext>Client of
+IIC Master Channel                 Implementation Tutorial</linktext></link>
+<link href="GUID-B2F86F54-EF50-56DB-ADF7-15325AC9324D.dita"><linktext>IIC Guide</linktext>
+</link>
+<link href="GUID-99FC067C-0AED-5373-AF63-8DB7FF5C1F7E.dita"><linktext>SPI Technology
+Guide</linktext></link>
+<link href="GUID-3A30DA16-ECA8-5639-A9DC-6BE2AD55420B.dita"><linktext>I2C Technology
+Guide</linktext></link>
+</related-links></concept>

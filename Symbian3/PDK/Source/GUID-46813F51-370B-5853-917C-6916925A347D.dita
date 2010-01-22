@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-46813F51-370B-5853-917C-6916925A347D" xml:lang="en"><title>Rendering
+to an RWindow Tutorial</title><shortdesc>This tutorial describes the high level steps that you need to take
+when writing applications using EGL to create a window surface for on-screen
+rendering. The code snippets use C style conventions. To avoid unnecessary
+complexity, they do not contain complete error handling. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-2ACDC160-AB4B-42D0-9F05-ED2048D1C3F6"><title>Required background</title> <p>This tutorial assumes a background
+knowledge of the following: </p> <ul>
+<li id="GUID-134D7EED-0E51-5197-BE4F-2F6EF72C61B4"><xref href="GUID-DC8BFEF5-DA50-52DA-8CE2-5729A4A005F6.dita">EGL
+Collection Overview</xref></li>
+<li id="GUID-ADC0E050-7602-5B71-AAB4-B26D7C5B1313"> <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface Overview</xref></li>
+<li id="GUID-E7DFA26B-CDA3-545C-B01F-A5BBE383D6CF"> <xref href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita">Symbian-Specific
+EGL Behavior</xref></li>
+<li id="GUID-71D99620-55D7-519D-996D-35A2962D9F84"> <xref href="GUID-04D917A1-E1A0-5149-9660-80A1146D0984.dita">OpenGL
+ES</xref></li>
+</ul> </section>
+<section id="GUID-F95DA0B0-1DC8-4F8C-BF04-66004DA8B2DB"><title>Procedure</title> <ol id="GUID-9678FE93-DB7E-5BB2-A386-4E663F93F87A">
+<li id="GUID-4795FDF0-C603-5664-87D9-8BDC987CF424"><p>You must get and initialize
+the <codeph>EGLDisplay</codeph> prior to calling most other EGL or client
+API functions. You only need to do this once. </p> <codeblock id="GUID-72B8ADB6-2D10-52AE-9E35-C5F1CE6AB024" xml:space="preserve">EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+eglInitialize(display, NULL, NULL); 
+</codeblock> </li>
+<li id="GUID-00811F4A-48D9-5A82-A81C-A3DD82C22FCC"><p>EGL has the concept
+of <b>current rendering API</b>. To make one of the EGL client APIs the current
+rendering API for the thread, call <codeph>eglBindAPI()</codeph> passing <codeph>EGL_OPENVG_API</codeph> or <codeph>EGL_OPENGLES_API</codeph> as
+required. For example: </p> <codeblock id="GUID-684E7CFF-9C43-596E-B948-FA4BEED09F41" xml:space="preserve">// Set OpenGL ES as the current rendering API for the thread
+eglBindAPI(EGL_OPENGLES_API); 
+</codeblock> </li>
+<li id="GUID-9947988E-9F8D-5003-8814-4AAC53D83D39"><p>Use the <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita#GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F/GUID-7FC7E115-F659-5EA0-9BD0-AFFA717C2C00">eglChooseConfig()</xref> method to get the <codeph>EGLConfig</codeph> that
+matches a list of attributes. In order to render to an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>,
+these must include the <codeph>EGL_WINDOW_BIT</codeph>. </p> <codeblock id="GUID-7FD2D6BD-C86A-5F4D-BB4F-A395FB4C5190" xml:space="preserve">// List of attributes to pass to eglChooseConfig.
+const EGLint    KColorRGB565AttribList[] =
+    {
+    EGL_RED_SIZE,         5,
+    EGL_GREEN_SIZE,       6,
+    EGL_BLUE_SIZE,        5,
+    EGL_SURFACE_TYPE,     EGL_WINDOW_BIT,
+    EGL_RENDERABLE_TYPE,  EGL_OPENGL_ES_BIT,
+    EGL_NONE
+    };
+    
+EGLint numConfigs;
+EGLConfig chosenConfig = 0;
+    
+// Get the config to use.
+eglChooseConfig(display, KColorRGB565AttribList, &amp;chosenConfig, 1, &amp;numConfigs);
+    
+if (numConfigs == 0)
+    {
+    RDebug::Printf("No matching configs found");
+    User::Leave(KErrNotSupported);
+    }</codeblock><p><i>Note:</i> By default the <codeph>EGL_SURFACE_TYPE</codeph> has
+the <codeph>EGL_SWAP_BEHAVIOR_PRESERVED_BIT</codeph> set for window surfaces
+in order to support the preserve buffer option. You can set this explicitly
+like this: </p><codeblock xml:space="preserve">EGL_SURFACE_TYPE,     EGL_WINDOW_BIT|EGL_SWAP_BEHAVIOR_PRESERVED_BIT,</codeblock> </li>
+<li id="GUID-AC10CA88-95F3-5335-9EA4-E77DC54344B3"><p>To create an on-screen
+rendering surface, you first need to create a Symbian Window Server window
+(<xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>). This window is then passed as the third argument
+to <codeph>eglCreateWindowSurface()</codeph> along with an <codeph>EGLConfig</codeph> that
+has the <codeph>EGL_WINDOW_BIT</codeph> set. </p> <codeblock id="GUID-3CB64FD0-2D1C-5983-B885-AFE210612220" xml:space="preserve">// Create a window surface to draw to.
+winSurface = eglCreateWindowSurface(display, chosenConfig, &amp;iWindow, NULL);</codeblock> </li>
+<li id="GUID-3C5CE6E3-753E-4C9C-860E-0F1B8908349E"><p>Set the surface attribute <codeph>EGL_SWAP_BEHAVIOR
+to EGL_BUFFER_PRESERVED</codeph>. This step is only required if you want to
+enable the preserve buffer option.</p><codeblock xml:space="preserve">EGLBoolean queryResult = eglSurfaceAttrib(display, winSurface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);</codeblock></li>
+<li id="GUID-C4B3E5FA-E0BF-5923-AB10-32BE18BD3B59"><p>To create a rendering
+context for the current rendering API, call the <codeph>eglCreateContext()</codeph> with
+the <codeph>share_context</codeph> parameter set to <codeph>EGL_NO_CONTEXT</codeph>.
+If this method succeeds, it initializes the context to the initial state defined
+for the current rendering API, and returns a handle to it. </p> <codeblock id="GUID-9DB529FE-3DFB-5E8F-9B83-89E3EB17C4FF" xml:space="preserve">// Create a context to store the current rendering API settings.
+contextGL = eglCreateContext(display, chosenConfig, EGL_NO_CONTEXT, NULL);</codeblock> </li>
+<li id="GUID-A5A3E17B-CB73-53E6-AFA3-3098F96B0AE7"><p>In order to allow the
+context to render to a given surface, you need to call <codeph>eglMakeCurrent()</codeph>.
+After doing this you can call EGL client functions, which need a current surface
+and context. </p> <codeblock id="GUID-DF027C4F-D0A5-5B2D-A1E9-2910D0D1E77C" xml:space="preserve">// Make the context current on the surface and the display
+eglMakeCurrent(display, winSurface, winSurface, contextGL); 
+</codeblock> </li>
+<li id="GUID-2F5A701F-8D0C-5C11-9DAD-297FE8D01888"><p>You are now ready to
+perform your OpenGL ES drawing commands. </p> <p>The main thing to understand
+is that the EGL window surface is double-buffered. This means that the drawing
+commands are drawn into a back buffer and you need to call <codeph>eglSwapBuffers()</codeph> in
+order to make the drawing appear on the screen in the window. This mechanism
+has the advantage that it stops flicker. </p> <codeblock id="GUID-C5190E0A-7B93-5041-9CC0-6DDF7519571B" xml:space="preserve">eglSwapBuffers(display, winSurface);</codeblock><p>Because you enabled the preserve buffer option in step 5, the <codeph>eglSwapBuffers()</codeph> promotes
+the back buffer to the front for display as usual, and also copies the content
+to the new back buffer. This means the client application can provide incremental
+drawing commands instead of creating the entire new scene.</p></li>
+<li id="GUID-3944687A-E53A-503F-8CCC-7B0C11698341"><p>To release the current
+context and surface without assigning a new one, set the context parameter
+to <codeph>EGL_NO_CONTEXT</codeph> and set the draw and read surfaces to <codeph>EGL_NO_SURFACE</codeph>.
+This flushes the current context for the current rendering API and marks it
+as no longer current. The current rendering API does not have a current context
+after <codeph>eglMakeCurrent()</codeph> returns. </p> <codeblock id="GUID-5AB57D6A-DC82-5092-8F81-8E9A61939988" xml:space="preserve">eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);</codeblock> </li>
+<li id="GUID-F1D7FCF5-8DB3-5C9F-A5F3-89AD110ED3BB"><p>You destroy the rendering
+context by calling <codeph>eglDestroyContext()</codeph>. All resources associated
+with the context are marked for deletion as soon as possible. If the context
+is current to any thread, resources are not actually released while the context
+remains current. </p> <codeblock id="GUID-45F64C22-608E-57D7-B607-1D04FD20F0F3" xml:space="preserve">eglDestroyContext(display, contextGL); 
+</codeblock> </li>
+<li id="GUID-139B4B87-5B83-57ED-A5A0-001475450D2B"><p>You destroy the <codeph>EGLSurface</codeph> by
+calling <codeph>eglDestroySurface()</codeph>. All resources associated with
+the surface are marked for deletion as soon as possible. If the surface is
+current to any thread, the resources are not actually released while the surface
+remains current. </p> <codeblock id="GUID-D9E034F1-F6F5-5C8A-A5D5-D34CCE813340" xml:space="preserve">eglDestroySurface(display, winSurface); 
+</codeblock> </li>
+<li id="GUID-EFEF57E1-49CC-5689-8A90-2208CC62322E"><p>Perform final cleanup
+by first terminating the <codeph>EGLDisplay</codeph> using <codeph>eglTerminate()</codeph> and
+then releasing any resources still held by EGL by calling <codeph>eglReleaseThread()</codeph>. </p> <codeblock id="GUID-DB4DB0EF-B8B3-516E-9641-CC412C2F221B" xml:space="preserve">eglTerminate(display);
+eglReleaseThread();</codeblock> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita"><linktext>EGL Interface
+Overview</linktext></link>
+<link href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita"><linktext>Symbian-Specific
+Behavior</linktext></link>
+</related-links></concept>

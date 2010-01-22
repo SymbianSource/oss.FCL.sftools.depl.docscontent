@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E2AF923A-D796-5DA9-B678-C6E2ABF7A6CC" xml:lang="en"><title>Call
+Completion to Busy Subscriber Tutorial</title><shortdesc>This tutorial describes how to get the Call Completion to Busy
+Subscriber (CCBS) supplementary service information from the network. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>GSM network (CCBS) supplementary service repeatedly calls a destination
+that is busy at the time of the initial call attempt.</p><p>The <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> methods
+are at phone-level because the mobile station must interrogate the network
+for the status of all CCBS requests at once. Each CCBS subscriber can have
+up to five CCBS requests outstanding at a time.  
+</p><p/><p>The high level steps to get the CCBS information are shown here:
+
+</p></context>
+
+
+<steps id="GUID-53D0919A-7B45-5DAA-A58E-E717FCF94F06">
+<step id="GUID-4C86EF37-6EB1-5463-A79F-1EAF52DF53BC"><cmd>Get the current
+status of the CCBS service using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetCCBSStatus()</apiname></xref>. </cmd>
+
+<info>Status is described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCCBSStatus</apiname></xref>. </info>
+</step>
+<step id="GUID-28C7BCA8-C0C3-5AE5-A883-5545B3135D41"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCCBSStatusChange()</apiname></xref> to
+get the notification of any changes in the status of the CCBS service. </cmd>
+</step>
+<step id="GUID-48C0C143-6AB9-5231-AE00-F23E1FB82C3B"><cmd>Deactivate all CCBS
+requests using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::DeactivateCCBS()</apiname></xref>  </cmd>
+</step>
+<step id="GUID-FC7666E8-49C8-53EA-877B-59A6BA9D591A"><cmd>Get a list of active
+CCBS requests using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CRetrieveMobilePhoneCcbsList</apiname></xref>. </cmd>
+<info>The list of active CCBS requests is a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CMobilePhoneCcbsList</apiname></xref> object
+that contains: </info>
+<substeps id="GUID-0EE16687-BBCB-4B88-BE49-ABFD930EC4E5">
+<substep id="GUID-AD3D87FD-73EB-47F8-8809-57BDB2E99A2E"><cmd/>
+<info>0 or more <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCCBSEntryV1</apiname></xref> objects
+for each request </info>
+</substep>
+<substep id="GUID-FA73FFA0-A911-4256-9A83-5AEF5C9253A0"><cmd/>
+<info>the name of the call that represents the CCBS request </info>
+</substep>
+<substep id="GUID-07733205-6808-457F-9250-78F6F939D21E"><cmd/>
+<info>the service group </info>
+</substep>
+<substep id="GUID-490C5986-3D8A-4D3A-B8A9-269EB482A0F9"><cmd/>
+<info>a network-allocated index number </info>
+</substep>
+<substep id="GUID-AA835788-558E-4685-9CED-2FEDF2166468"><cmd/>
+<info>the phone number of the remote party </info>
+</substep>
+</substeps>
+</step>
+</steps>
+<example><title>CCBS example</title> <p>The following code gets the list of
+active CCBS requests and prints the remote number for each. </p> <p>The code
+assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-33E4DB3B-EE3F-5186-B01F-AF9DD4760ACF" xml:space="preserve">void CClientApp::CCBSL()
+    {
+
+    // Create and start CCBS retriever
+    CRetrieveMobilePhoneCcbsList* retrieveCCBSList = CRetrieveMobilePhoneCcbsList::NewL(iMobilePhone);
+
+    CleanupStack::PushL(retrieveCCBSList);
+
+    TRequestStatus status;
+    retrieveCCBSList-&gt;Start(status);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    // Get the list of active CCBS requests
+    CMobilePhoneCcbsList* ccbsList = retrieveCCBSList-&gt;RetrieveListL();
+    CleanupStack::PushL(ccbsList);
+
+    // Print each remote number for which a CCBS request is active
+    TInt nEntries = ccbsList-&gt;Enumerate();
+    RMobilePhone::TMobilePhoneCCBSEntryV1 ccbsEntry;
+
+    for (TInt i=0; i&lt;=nEntries; i++)
+        {
+         ccbsEntry = ccbsList-&gt;GetEntryL(i);
+         console-&gt;Printf(_L("CCBS request to %S active\n"), ccbsEntry.iDestination.iTelNumber);
+        }
+
+    // Clean up
+    CleanupStack::PopAndDestroy(2); // ccbsList, retrieveCCBSList    
+
+    }
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-2318B1DC-D258-5BA2-90C0-5DF368D80933.dita"><linktext>Multimode
+lists</linktext></link>
+<link href="GUID-0B743C31-9B99-54A0-AF7B-22AFA823101B.dita"><linktext>CCBS Control
+Tutorial</linktext></link>
+</related-links></task>

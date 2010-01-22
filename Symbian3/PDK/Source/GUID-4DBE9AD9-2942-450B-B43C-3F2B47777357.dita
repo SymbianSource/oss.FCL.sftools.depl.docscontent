@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-4DBE9AD9-2942-450B-B43C-3F2B47777357" xml:lang="en"><title>Scaling
+Channel Data Values</title><shortdesc>The value of a channel data item can represent the actual or relative
+value of the measured quantity. The relative value is a scaled value that
+lies within the maximum and minimum values of the measured quantity.</shortdesc><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section id="GUID-D46EE015-C2B6-44AA-B021-F6AC1BB76F02">       <p>The <codeph>KSensrvPropIdChannelDataFormat</codeph> property
+defines if channel data items are in a scaled format. For scaled data items,
+the <codeph>KSensrvPropIdScaledRange</codeph> property defines range of the
+data item value and the <codeph>KSensrvPropIdMeasureRange</codeph> property
+defines range of the measured quantity.</p>     </section>
+<example><p>The following example explains how the sensor data can be scaled
+by reading the maximum value of measure range for data items (<codeph>KSensrvPropIdScaledRange</codeph>)
+and the maximum value of the measured quantity (<codeph>KSensrvPropIdMeasureRange</codeph>).
+The example considers that the <codeph>KSensrvPropIdMeasureRange</codeph> property
+is defined as an array property. </p><codeblock xml:space="preserve">TSensrvProperty property;
+    TInt  channelDataFormat( ESensrvFormatAbsolute );
+    TInt  channelDataScaledRange( 1 );
+    TReal channelDataMeasureRangeMaxValue( 1 );
+
+    //Read channel data format
+    iSensorChannel-&gt;GetPropertyL( KSensrvPropIdChannelDataFormat, KSensrvItemIndexNone, property );
+    property.GetValue( channelDataFormat );
+
+    if( ESensrvFormatScaled == channelDataFormat )
+        {
+        //Read data item scaled range
+        iSensorChannel-&gt;GetPropertyL( KSensrvPropIdScaledRange, KSensrvItemIndexNone, property );
+        property.GetMaxValue( channelDataScaledRange );
+
+        //Read data item measure range
+        iSensorChannel-&gt;GetPropertyL( KSensrvPropIdMeasureRange, KSensrvItemIndexNone, property );
+
+        if( ESensrvArrayPropertyInfo == property.GetArrayIndex() )
+            {
+            TInt arrayIndex( 0 );
+            property.GetValue( arrayIndex );//Value points to array index currently in use
+            iSensorChannel-&gt;GetPropertyL( KSensrvPropIdMeasureRange,
+                                          KSensrvItemIndexNone,
+                                          arrayIndex,
+                                          property );
+            }
+        else
+            {
+            //Single property
+            }
+        property.GetMaxValue( channelDataMeasureRangeMaxValue );
+        }
+    else
+        {
+        //No scaling needed.
+        //Value of the data item represents actual value of the measured quantity.
+        }</codeblock><p>You can convert the scaled channel data item value
+to the absolute value by dividing the channel data item value with the maximum
+value of scaled range of the channel and multiplying it with the maximum value
+of the measured quantity. </p><p>For example, if the accelerometer channel
+provides the following properties: </p><ul>
+<li><p><codeph>KSensrvPropIdChannelDataFormat</codeph> with value <codeph>ESensrvFormatScaled</codeph></p></li>
+<li><p><codeph>KSensrvPropIdScaledRange</codeph> with maximum value of 127</p></li>
+<li><p><codeph>KSensrvPropIdMeasureRange</codeph> with maximum value of 2
+g</p></li>
+<li><p><codeph>KSensrvPropIdChannelUnit</codeph> with value <codeph>ESensrvUnitGravityConstant</codeph></p></li>
+</ul><p>then the accelerometer channel data item value of 64 is equal to an
+absolute value of 1.01g (that is, 64 / 127 * 2g = 1.01g).</p></example>
+</refbody></reference>

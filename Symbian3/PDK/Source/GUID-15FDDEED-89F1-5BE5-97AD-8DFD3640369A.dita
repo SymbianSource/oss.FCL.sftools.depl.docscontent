@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-15FDDEED-89F1-5BE5-97AD-8DFD3640369A" xml:lang="en"><title>Playback
+operation</title><shortdesc>Describes the operation of the Sound Driver for sound playback. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AECB2CE7-CB57-4AB2-B030-62E0A65851C9"><title>Normal operation</title> <p>The client calls <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-DA119B93-6E4D-36DA-878A-D6709039E0EA"><apiname>RSoundSc::PlayData()</apiname></xref> to
+issue an audio request. </p> <p>The LDD breaks the audio request into manageable
+fragments and transfers them to the PDD by calling <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref>. </p> <p>When
+the PDD has transmitted the fragment it calls <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref> to
+signal to the LDD that it has finished transfer of a fragment. When the client
+request has been completed, the LDD calls <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-FDBEFD98-EE11-3358-869C-DECC3B5CF83A"><apiname>DSoundScPdd::StopTransfer()</apiname></xref> to
+stop the PDD transmitting data and to release any transfer specific resources. </p> <p>To
+ensure uninterrupted playback, a client must have multiple play requests pending
+on the driver. As soon as one request completes, the client issues a further
+request until the end of the track. Typically, a client issues a series of
+calls to <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-DA119B93-6E4D-36DA-878A-D6709039E0EA"><apiname>RSoundSc::PlayData()</apiname></xref> to play an audio track. </p> <p>Each <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-DA119B93-6E4D-36DA-878A-D6709039E0EA"><apiname>RSoundSc::PlayData()</apiname></xref> request
+is handled in the context of the driver's Deferred Function Call (DFC) thread.
+Assuming that the driver is not already in the process of playing data when
+the first request is received, the LDD checks whether the client has specified
+or supplied a <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita">shared
+chunk</xref> to the <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">Driver
+channel</xref> and also whether the audio configuration and volume have both
+been set. If the chunk configuration has not been specified, then the driver
+cannot proceed and returns <codeph>KErrNotReady</codeph>. However, if the
+audio configuration or volume has not been specified, then the LDD simply
+applies default settings to the audio hardware device. These values are returned
+by the PDD functions <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-39AA2B2D-E98B-33A0-9C46-08B783413860"><apiname>DSoundScPdd::SetConfig()</apiname></xref> and <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-D893A29B-1A4B-35AF-876B-84D74B7E783C"><apiname>DSoundScPdd::SetVolume()</apiname></xref> when
+called by the LDD. </p> <p>The LDD may need to break the play request down
+into fragments to support the maximum amount of data that the PDD can handle
+in a single transfer. The function <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-534D46F4-2CB1-3130-9E72-A1C3BF085865"><apiname>DSoundScPdd::MaxTransferLen()</apiname></xref> returns
+this maximum value. The LDD queues as many transfer fragments on the PDD as
+it can accept with a call to <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> for
+each fragment. </p> <p>To support uninterrupted transfer of audio data, the
+PDD must be able to accept at least two transfer fragments simultaneously:
+the first being actively transferred by the audio hardware device, the other
+being queued for transfer on the same device. Therefore, as long as the LDD
+has transfer fragments still to queue, it continues to call <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> on
+the PDD until this signals that it has temporarily reached its capacity, by
+returning <codeph>KErrNotReady</codeph>. </p> <p>If the PDD accepts all the
+fragments for this initial play request then the LDD moves on to process the
+subsequent requests from the client. These are also fragmented until either
+the PDD reaches its capacity or all pending play requests are queued. </p> <p>Each
+time the PDD completes the transfer of a fragment from a play buffer, it must
+signal this event back to the LDD by calling the function <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref>.
+This must always be called in the context of the driver DFC thread so there
+are no synchronisation problems. For example, where transfer completion interrupts
+the processing of new play requests from the client. </p> <p>In executing <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref>,
+the LDD checks whether the entire transfer for the current request is now
+complete. If so, it signals completion back to the client. Also within the <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref> function,
+the LDD will attempt to queue further fragments on the PDD, by calling <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref>,
+as the PDD should now have the capability to accept more transfers. The PDD
+must be written to handle calls to <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> within
+its callback to <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-8440330E-E7B1-3B43-B3C9-2290E24241E3"><apiname>DSoundScLdd::PlayCallBack()</apiname></xref>. </p> <p>If,
+on completing a request from the client, the LDD discovers that there are
+no further play requests pending from the client, then this is treated as
+an underflow situation and <codeph>KErrUnderflow</codeph> is returned to the
+client. If however, the client specified <codeph>KSndFlagLastSample</codeph> as
+the <codeph>aFlag</codeph> argument of the <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-DA119B93-6E4D-36DA-878A-D6709039E0EA"><apiname>RSoundSc::PlayData()</apiname></xref> function
+then an underflow is expected after this request completes. </p> <p>When the
+audio request has been completed the LDD calls <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-FDBEFD98-EE11-3358-869C-DECC3B5CF83A"><apiname>DSoundScPdd::StopTransfer()</apiname></xref> on
+the PDD. This allows the PDD to release any resources necessary for transfer. </p> </section>
+<section id="GUID-E0C18DE6-E5FD-48D2-87A2-4E4C15C10BC0"><title>Pausing and resuming audio playback</title> <p>The client
+may temporarily halt the progress of audio playback at any time by issuing <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-D912620F-9C51-3AFC-8A59-31AF9455AC4A"><apiname>DSoundScLdd::Pause()</apiname></xref>.
+In order to configure the audio hardware device to halt playback, the LDD
+calls <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-0608766F-2645-3E28-B804-BD4B953DB5FF"><apiname>DSoundScPdd::PauseTransfer()</apiname></xref> on the PDD. Ideally,
+playback should be suspended in such a way that it can be resumed later, starting
+from <i>next</i> sample following the one last played. </p> <p>The client
+requests resumption of playback by calling <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-86BF7277-0CDE-3DCE-8157-DCCD8E8D60F0"><apiname>DSoundScLdd::Resume()</apiname></xref> on
+the LDD. The LDD, in turn tells the PDD to re-commence playback by calling <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-C692BF61-FA3D-3B85-BCC6-1248C9C7D9BF"><apiname>DSoundScPdd::ResumeTransfer()</apiname></xref>  </p> <p>Since
+access to the hardware is required in both cases, pause and resume are handled
+in the context of the driver DFC thread. </p> </section>
+<section id="GUID-A65EF976-2523-4CE0-BDE6-1F6AF8B5DDC4"><title>Error handling during playback</title> <p>If the PDD reports
+an error when setting up the audio device for playback then the LDD immediately
+completes the first play request back to the client returning the error value
+as the result. For example, if the PDD returns a value other than <codeph>KErrNone</codeph> from
+a call to the function <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-54D3CC19-0C00-3FFA-BD1A-62618D36EB20"><apiname>DSoundScPdd::StartTransfer()</apiname></xref>. The
+LDD attempts to re-start playback data transfer when it processes any further
+play requests from the client. </p> <p>If the PDD reports an error when commencing
+transfer or as the result of the transfer of a playback fragment, then the
+LDD ceases transfer of the associated request and instead immediately completes
+the request back to the client returning the error value as the result. </p> <p>Unexpected
+errors from the PDD are returned to the LDD via the functions <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> and <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref>. The <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> function signals that
+an error has occurred when setting up the transfer of a playback fragment
+by returning an error value other than <codeph>KErrNone</codeph> or <codeph>KErrNotReady</codeph>.
+The <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-16853E0D-60E8-3BEC-9E3E-9563BA7CAECE"><apiname>DSoundScLdd::PlayCallback()</apiname></xref> function called by the
+PDD at the end of a transfer, signals an error to the LDD if the value passed
+is not equal to <codeph>KErrNone</codeph>. </p> <p>The LDD does not cancel
+the transfer of other fragments for the same request which are already queued
+on the PDD, but it ignores their outcome. However, the LDD does try to carry
+on with the transfer of subsequent play requests queued by the client. </p> <p>In
+any of the above situations, the client may choose to terminate playback operation
+by cancelling all outstanding play requests when it detects a playback error. </p> </section>
+</conbody></concept>

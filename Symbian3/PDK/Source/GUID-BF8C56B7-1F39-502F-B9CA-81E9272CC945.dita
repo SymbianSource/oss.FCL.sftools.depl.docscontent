@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-BF8C56B7-1F39-502F-B9CA-81E9272CC945"><title>Reading a Skipped Alarm Instances Property</title><shortdesc>This topic provides an example of how to get information about a skipped Calendar alarm instance. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>A Calendar client can create a Calendar entry with an associated alarm. Calendar registers the associated alarm with the Alarm Server. If an alarm is skipped a subscriber to Calendar can be notified of this and then query information about the skipped alarm. </p> <p>The Publish and Subscribe property <codeph>KSkippedAlarmInstancesPubSubKey</codeph> supplies additional information that is required to search the Calendar store for instances with skipped alarms. </p> <p>The Alarm Server publishes an integer value for <codeph>KSkippedAlarmInstancesPubSubKey</codeph> when an environment change causes a Calendar alarm to be skipped. The value of the <codeph>KSkippedInstancesPubSubKey</codeph> property is a <codeph>TASShdAlarmedInstanceParams</codeph> structure, defined in <filepath>ASShdAlarm.h</filepath>. </p> <p> <xref href="GUID-D3BEF713-C69E-3115-8CEB-2A746D338B95.dita"><apiname>TASShdAlarmTimeType</apiname></xref> identifies whether the skipped alarm is a floating time alarm or a fixed time alarm. Coordinated Universal Time (UTC) offset changes cannot cause fixed alarms to be skipped. </p> </context> <steps id="GUID-A33DD61C-8961-58DA-ADEE-417EBCDB12FA"><step id="GUID-2B618E17-C0A9-5303-BFD7-13E98ADE5481"><cmd/><info>The Calendar client function <xref href="GUID-D3BEF713-C69E-3115-8CEB-2A746D338B95.dita"><apiname>CSKippedAlarmsObserver</apiname></xref> gets the data stored in the <codeph>KSkippedAlarmInstancesPubSubKey</codeph> property to retrieve a list of instances whose alarms are in the specified time range from Calendar. </info> </step> <step id="GUID-1820F371-40EF-5568-A290-2DA7573A2BA6"><cmd/><info>A list of skipped alarms is then displayed by <xref href="GUID-D3BEF713-C69E-3115-8CEB-2A746D338B95.dita"><apiname>RetrieveListOfInstancesL()</apiname></xref>. </info> <stepxmp><codeblock id="GUID-994D73E2-037A-512E-AF11-22DE11215B2A" xml:space="preserve">#include &lt;ASShdAlarm.h&gt;  // For TASShdAlarmedInstanceParams etc.
+#include &lt;calinstance.h&gt; // For CCalInstance.
+#include &lt;…&gt;
+…
+void CSkippedAlarmsObserver::HandleSkippedAlarmsL()
+    {
+    TPckgBuf&lt;TASShdAlarmedInstanceParams&gt; instanceParamsBuf; 
+    RProperty::Get(KAlarmServerPubSubCategory, 
+        KSkippedAlarmInstancesPubSubKey, instanceParamsBuf);
+    
+    // Use the information provided in TASShdAlarmedInstanceParams
+    // data structure to retrieve a list of instances whose alarms fall
+    // in the time range from the calendar.
+    RPointerArray&lt;CCalInstance&gt; instanceList;
+    RetrieveListOfInstancesL(instanceList, instanceParamsBuf());
+    …
+    }
+</codeblock> </stepxmp> </step> </steps> </taskbody><related-links><link href="GUID-B144DB6C-EEE2-5610-8C22-4A30F5423AB9.dita"><linktext>Working with Skipped
+                Calendar Alarms</linktext> </link> <link href="GUID-CA933F35-7508-5C98-9DB6-2492803A2183.dita"><linktext>Reading a Skipped Alarm
+                Property</linktext> </link> <link href="GUID-E3981A14-DD2C-5582-A250-C2AD358729FD.dita"><linktext>Retrieving Alarmed
+                Calendar Instances</linktext> </link> </related-links></task>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-453CFE84-B2BA-56E6-BCB2-1162432B2358" xml:lang="en"><title>Pixmap
+Implementation</title><shortdesc>This topic provides an introduction to implementing EGL pixmap
+surfaces on the Symbian platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<p>According to the EGL specification, <xref href="GUID-97F2884C-44A0-348F-9AC1-BDF95BCD020A.dita"><apiname>EGLNativePixmapType</apiname></xref> is
+defined by the platform, which in this case is Symbian. Historically, Symbian
+has defined <codeph>EGLNativePixmapType</codeph> as being a <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> pointer.
+It is possible to create an <codeph>EGLSurface</codeph> to render to
+a <codeph>CFbsBitmap</codeph>.</p>
+<section><title>CFbsBitmap</title> <p>The <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> interface
+is used to represent standard bitmaps that are owned by the <xref href="GUID-A03FB1BF-F67B-519D-A904-74CA3F8375D9.dita">Font
+and Bitmap Server</xref>. <codeph>CFbsBitmap</codeph> can be drawn to a window
+through <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> or drawn to an off-screen target through <codeph>CFbsBitGc</codeph>.
+There are several different types and formats of <codeph>CFbsBitmap</codeph>.
+An EGL implementation may support a subset of these types and formats. </p> <ul>
+<li id="GUID-7B427C9B-174E-535F-9C94-866E83546667"><p>Some EGL implementations
+may support only a type of <codeph>CFbsBitmap</codeph> known as a <b>hardware-bitmap</b>,
+created by using <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-75E31D3C-842B-303A-B754-0703A5A9A496"><apiname>CFbsBitmap::CreateHardwareBitmap()</apiname></xref>. This
+type of bitmap is implemented under the Screen Driver interface known as <xref href="GUID-DE8E21D9-FF93-358D-A479-F84435DBECAD.dita"><apiname>RHardwareBitmap</apiname></xref> and
+can be hardware accelerated. However, there are some limitations as described
+in <xref href="GUID-37393245-6AA1-528F-A5C1-EC114779791E.dita">Screen Driver Graphics
+Acceleration Support</xref>. </p> </li>
+<li id="GUID-C289487D-0591-5503-BD42-C54563B2B89B"><p>The Symbian reference
+EGL supports rendering to a <codeph>CFbsBitmap</codeph> created through the
+standard <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-465F68BD-A68F-365F-872D-43F5DF3E1794"><apiname>CFbsBitmap::Create()</apiname></xref> function. EGL implementations
+are not required to support rendering to this type of bitmap. </p> </li>
+<li id="GUID-43736F4A-28ED-515F-A71B-8886F6447D7B"><p>ROM bitmaps are intrinsically
+unsuitable as render targets. </p> </li>
+<li id="GUID-1FDD2AB9-E5AD-5189-AA65-A69FB42FC359"><p>Similarly compressed
+bitmaps are not intended to be used by EGL. </p> </li>
+</ul> <p>Implementations are encouraged to identify and reject unsupported
+bitmap types as early as possible—for example, during <codeph>eglCreatePixmapSurface</codeph>. </p> <p>EGL
+implementations vary in their support for <codeph>CFbsBitmap</codeph> pixel
+formats. The Symbian reference EGL supports creating a pixmap surface from
+a <codeph>CFbsBitmap</codeph> of the following formats: </p> <ul>
+<li id="GUID-8556AB58-BD80-5B00-BFFC-1737D90354AB"><xref href="GUID-A50F9766-76DC-358D-A2FC-BE822C4774D5.dita"><apiname>EColor64K</apiname></xref> </li>
+<li id="GUID-CD96E964-0F13-52B5-B37F-3520E5A0A923"><xref href="GUID-11760566-DDF2-3AA3-A7A4-9CF473C6A11B.dita"><apiname>EColor16MU</apiname></xref> </li>
+<li id="GUID-A0E93806-019B-593B-A57E-AEF3DE8C951B"><xref href="GUID-2F3E2034-9222-3C26-A9AB-DFB02FAD637E.dita"><apiname>EColor16MAP</apiname></xref> </li>
+</ul> <p>The <xref href="GUID-A03FB1BF-F67B-519D-A904-74CA3F8375D9.dita">Font and
+Bitmap Server</xref> is a singleton process that owns bitmaps. <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> objects
+are actually client-side handles to the bitmap objects, which are stored on
+a globally visible chunk. </p> <p>During any period of access to a bitmap's
+data, you need to bound access to the data as follows: </p> <ol id="GUID-D7891923-A5C5-5D6A-8D1A-93FD0BEE1871">
+<li id="GUID-8A438667-9878-54D5-B8DD-C04E5C1B7B3B"><p>Call <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-AF99611F-27E5-305F-B680-F549F7DCA051"><apiname>CFbsBitmap::BeginDataAccess()</apiname></xref>. </p> </li>
+<li id="GUID-02BEEE91-F2EE-5098-9C86-8173121FA535"><p>Call <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-2AB943ED-7DBE-3FDA-82AF-317F152EDB03"><apiname>CFbsBitmap::DataAddress()</apiname></xref>,
+which returns a pointer. (This remains valid until you call <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-0C2D1B5F-46A8-32A1-9558-24BC8A413258"><apiname>CFbsBitmap::EndDataAccess()</apiname></xref>.) </p> </li>
+<li id="GUID-35EB58B0-A855-57E8-A3B7-C31D72C98F8E"><p>Manipulate the data
+using the pointer returned from <codeph>DataAddress()</codeph>. </p> </li>
+<li id="GUID-B1D818B5-7698-5CB9-8E91-6F581B05C7BE"><p>Call <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-0C2D1B5F-46A8-32A1-9558-24BC8A413258"><apiname>CFbsBitmap::EndDataAccess()</apiname></xref>. </p> </li>
+</ol> <p>Some hardware-accelerated implementations of OpenGL ES may require
+hardware-accelerated bitmaps in order to operate correctly. In this case the <codeph>eglCreatePixmapSurface</codeph> function
+can use <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita#GUID-683A1D42-2764-3EB7-BD19-9E12559199AB/GUID-EAFCDDBF-F121-3324-93D2-6702FC423B69"><apiname>CFbsBitmap::HardwareBitmapHandle()</apiname></xref> to discover
+whether a bitmap is actually a hardware bitmap and can be written to by a
+hardware accelerator. </p> </section>
+</conbody><related-links>
+<link href="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14.dita"><linktext>EGL Porting
+Guide</linktext></link>
+<link href="GUID-A03FB1BF-F67B-519D-A904-74CA3F8375D9.dita"><linktext>Font and
+Bitmap Server</linktext></link>
+</related-links></concept>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-0D49DE9F-AE0D-552F-8769-D056BC505FC1"><title>How to use the Quality Profile API</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Purpose</title> <p>This document describes how to use the <xref href="GUID-87E9656E-CBB4-5023-B6BC-148A2957AFFC.dita">Quality Profile API</xref> to get quality parameter values from the quality profiles defined in the file <filepath>lbsprofile.ini</filepath>. </p> </section> <section><title>Using the API</title> <p>The code below demonstrates how to use the API to obtain all the values from a quality profile with ProfileID = 1 defined in <filepath>lbsprofile.ini</filepath>. </p> <p><b>Creating a CLbsQualityProfileApi object </b> </p> <p>A client uses the static constructor <xref href="GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D.dita#GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D/GUID-0D1A5179-7D4E-3EFA-96C2-DE456627EECC"><apiname>CLbsQualityProfileApi::NewL()</apiname></xref> to create an API object and defines some variables to store the quality profile values. </p> <codeblock id="GUID-A72E7F26-F0CD-5EEB-8985-ABEB51EBCD16" xml:space="preserve">#include &lt;lbsqualityprofileapi.h&gt;
+
+CLbsQualityProfileApi* profileApi = CLbsQualityProfileApi::NewL();
+CleanupStack::PushL(profileApi);
+
+TReal32 hAccuracy;
+TReal32 vAccuracy;
+
+TTimeIntervalMicroSeconds maxFixTime;
+TTimeIntervalMicroSeconds initialFixTime;
+TTimeIntervalMicroSeconds intermedFixTime;
+TTimeIntervalMicroSeconds finalLagTime;
+
+...
+</codeblock> <p><b>Getting horizontal and vertical accuracy </b> </p> <p>A client calls <xref href="GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D.dita#GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D/GUID-4CC90CA9-E483-3995-8230-CFD23D097A80"><apiname>CLbsQualityProfileApi::Get()</apiname></xref> passing one of the following as the second parameter: </p> <ul><li id="GUID-A7B81292-7716-53E7-B597-78A46FEA6492"><p> <codeph>KLbsQualityProfileHorizontalAccuracy</codeph> to get the horizontal accuracy in metres </p> </li> <li id="GUID-14DA2292-589E-54D7-A074-B0BCC13D9141"><p> <codeph>KLbsQualityProfileVerticalAccuracy</codeph> to get the vertical accuracy in metres </p> </li> </ul> <codeblock id="GUID-7B4FC624-FF31-5EC4-B5BE-8E4AA0F85FF6" xml:space="preserve">...
+
+// Get horizontal accuracy
+TInt err = profileApi-&gt;Get(1, KLbsQualityProfileHorizontalAccuracy, hAccuracy);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+
+// Get vertical accuracy
+err = profileApi-&gt;Get(1, KLbsQualityProfileVerticalAccuracy, vAccuracy);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+
+...
+</codeblock> <p><b>Getting the times to obtain a location fix or GPS measurements </b> </p> <p>A client class calls <xref href="GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D.dita#GUID-163A58F0-D4F4-3362-BAF4-59106D6FEE8D/GUID-4CC90CA9-E483-3995-8230-CFD23D097A80"><apiname>CLbsQualityProfileApi::Get()</apiname></xref> passing one of the following as the second parameter: </p> <ul><li id="GUID-B3A4FE3C-521B-5A09-95D5-05A285617EE0"><p> <codeph>KLbsQualityProfileMaxFixTime</codeph> to get the time to obtain a location fix </p> </li> <li id="GUID-11015778-751B-5CCD-B3A6-DEBEC1B54500"><p> <codeph>KLbsQualityProfileMeasurementInitialFixTime</codeph> to get the time to get the first GPS measurements </p> </li> <li id="GUID-8120F558-5680-52A7-BD53-38BE83E5CE3E"><p> <codeph>KLbsQualityProfileMeasurementIntermediateFixTime</codeph> to get the time to get subsequent GPS measurements </p> </li> <li id="GUID-7E7A3FA4-3B17-54C4-A952-5E1BF64CA7AD"><p> <codeph>KLbsQualityProfileFinalNetPositionLag</codeph> to get the time required to obtain the final position from the network. </p> </li> </ul> <codeblock id="GUID-D1E1BB2E-0ADF-535A-9B94-AAD812ADF70E" xml:space="preserve">...
+
+// Get max fix time
+err = profileApi-&gt;Get(1, KLbsQualityProfileMaxFixTime, maxFixTime);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+
+// Get initial measurements fix time
+err = profileApi-&gt;Get(1, KLbsQualityProfileMeasurementInitialFixTime, initialFixTime);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+
+// Get intermediate measurements fix time
+err = profileApi-&gt;Get(1, KLbsQualityProfileMeasurementIntermediateFixTime, intermedFixTime);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+
+// Get time required to get final network position lag time
+err = profileApi-&gt;Get(1, KLbsQualityProfileFinalNetPositionLag, finalLagTime);
+if (err != KErrNone) {
+ // Handle error
+ ...
+}
+        
+CleanupStack::PopAndDestroy(profileApi);
+</codeblock> </section> <section><title>See also</title> <p> <xref href="GUID-87E9656E-CBB4-5023-B6BC-148A2957AFFC.dita">Quality Profiles</xref>  </p> <p> <xref href="GUID-5E6CA805-6861-54B1-8687-B997A6F4E6EE.dita">Quality Profile API</xref>  </p> </section> </conbody></concept>

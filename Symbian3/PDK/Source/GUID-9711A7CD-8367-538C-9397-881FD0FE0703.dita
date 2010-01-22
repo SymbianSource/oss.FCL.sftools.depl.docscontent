@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9711A7CD-8367-538C-9397-881FD0FE0703"><title> How to send location to a remote party</title><shortdesc>This document describes how to send a location to a remote party. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Purpose</title> <p>This document explains how to send a mobile device's location to a remote party using the <xref href="GUID-33BACB23-5BEB-5A1A-85B2-71E6AA7730C4.dita">Transmit Location API</xref>. </p> </section> <section><title>Sending position to a remote party</title> <p>To send location to a remote party, a client application: </p> <ul><li id="GUID-ED193E6D-2880-51EB-9B44-FFAD0166289F"><p>Creates a session with the transmit position server </p> </li> <li id="GUID-B3C319A2-F8CD-532D-AD3E-D3161DCA3C40"><p>Sets a timeout period (if required) </p> </li> <li id="GUID-40D40FD8-AFA6-533D-AE8F-50A28F3BBE86"><p>Makes a request on the transmit position server to send location data </p> </li> <li id="GUID-64D0D738-73CE-5F8D-BC83-C5B569FEB935"><p>Receives notification of the request success, failure or timeout (notification of receipt of assistance data from the network may be received if required). </p> </li> <li id="GUID-9E721B7A-958F-53D9-957A-7572E467F369"><p>Closes the server session </p> </li> </ul> <p>Applications that use the Transmit Location API include <filepath>LbsX3P.h</filepath> and link with <filepath>Lbsx3p.lib</filepath> and must have the <codeph>Location</codeph> and <codeph>NetworkServices</codeph> capabilities. </p> <p><b>Creating a session and subsession </b> </p> <p>To create a session to send location data, a client application: </p> <ul><li id="GUID-F2786423-825F-5BBB-8FF9-848A4089DEDF"><p>Makes a connection to the transmit position server by calling <xref href="GUID-97CFE236-9DAD-3455-8969-6D0B4C484E0B.dita#GUID-97CFE236-9DAD-3455-8969-6D0B4C484E0B/GUID-F7EAB107-1581-3E38-8C18-91AE8410C906"><apiname>RLbsTransmitPositionServer::Connect()</apiname></xref> to create a server session. </p> </li> <li id="GUID-366DC232-01C6-57C1-BD73-CAE615BC5590"><p>Makes a subsession by calling <xref href="GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF.dita#GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF/GUID-E6EBB988-6822-364D-A0B8-100DA0DCE232"><apiname>RLbsTransmitPosition::Open()</apiname></xref>, passing the <codeph>RLbsTransmitPositionServer</codeph> reference as a parameter. </p> </li> </ul> <p>This is the standard procedure for using a Symbian server, shown in the code example below. </p> <codeblock id="GUID-4986D56D-E27A-54A0-A3F9-981F5144B76E" xml:space="preserve">
+#include &lt;lbsx3p.h&gt;
+#include &lt;lbspositioninfo.h&gt;
+
+RLbsTransmitPositionServer server;
+RLbsTransmitPosition transmitter;
+    
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+    
+User::LeaveIfError(transmitter.Open(server));
+CleanupClosePushL(transmitter);
+
+...
+</codeblock> <p><b>Setting a timeout period </b> </p> <p>A client application can set a timeout period if required. If the LBS subsystem is unable to send location data before the timeout, then the client request is cancelled. </p> <p>The code fragment below sets a timeout of 5 seconds. </p> <codeblock id="GUID-85B5B4DF-DD3F-55D6-9E0E-C8ECE3E2A8C7" xml:space="preserve">
+TLbsTransmitPositionOptions transmitPositionOptions(5000000);
+transmitter.SetTransmitOptions(transmitPositionOptions);
+
+...
+</codeblock> <p><b>Sending the location </b> </p> <p>An application must specify the destination to which the location is to be sent. The destination is specified when the location data is sent by calling <xref href="GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF.dita#GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF/GUID-EB88EBE8-0B6A-359C-895C-15D063CAD4AA"><apiname>RLbsTransmitPosition::TransmitPosition()</apiname></xref>. </p> <p>See <xref href="GUID-33BACB23-5BEB-5A1A-85B2-71E6AA7730C4.dita">Sending location to a remote party</xref> for more details about the two <codeph>TransmitPosition()</codeph> methods. In the code example below, the simplest method is used that notifies only when the final calculated location is sent to the network. </p> <codeblock id="GUID-2DC7D886-10D3-5BEF-BCAE-34943AFCA3FF" xml:space="preserve">    
+// Transmit location to remote party
+    
+TRequestStatus status;
+TPositionInfo posInfo;
+    
+// Use an email address as the destination in this example
+// A contact phone number could also be used
+
+_LIT(destination, "someone@somewhere.com");
+TInt priority = 0;
+    
+// Transmit location 
+transmitter.TransmitPosition(destination, priority, status, posInfo);
+
+// Simple example of waiting on this thread...
+User::WaitForRequest(status);
+    
+if (status != KErrNone)
+ {
+ if (status == KErrTimedOut)
+  {
+  // Handle timeout...
+  }
+  else 
+  {
+  // Handle other possible errors...
+  } 
+ }
+
+...
+</codeblock> <p><b>Cancelling a request </b> </p> <p>A request can be cancelled by calling <xref href="GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF.dita#GUID-10A380F1-7550-336E-BAE4-8CB889C5BACF/GUID-C7DC5CEC-A96C-3FBD-A0F5-FB986EC912DE"><apiname>RLbsTransmitPosition::CancelTransmitPosition()</apiname></xref>. When a request is cancelled, the <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> variable is set to <codeph>KErrCancel</codeph>. Note however, that the location may still be sent to the network soon after <codeph>CancelTransmitPosition()</codeph> is called. </p> <p><b>Closing the server session </b> </p> <p>The server session should be closed when the application has finished sending location data to remote parties. The code example below uses the cleanup stack methods to do the cleanup. </p> <codeblock id="GUID-F6F21180-8DE7-52B1-8C14-D6322EE12AF3" xml:space="preserve">
+CleanupStack::PopAndDestroy(&amp;transmitter);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </section> <section><title>See also</title> <p><xref href="GUID-33BACB23-5BEB-5A1A-85B2-71E6AA7730C4.dita">Sending location to a remote party</xref>  </p> </section> </conbody></concept>

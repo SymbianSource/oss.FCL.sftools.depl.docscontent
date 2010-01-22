@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BF1AAA0D-DF2F-4E1D-A0D2-F419BD32F97A" xml:lang="en"><title>Creating
+registration resource files</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You need to register your applications in order to make them visible
+to the application menu and to provide other information to the underlying
+system. To register, you need to provide a registration resource file, typically
+named <parmname>&lt;application_name&gt;_reg.rss</parmname>, that contains the
+non-localized information for your application. You also need to provide the <xref href="GUID-9F90A2F0-9C76-4871-A766-D1AE0FC42C08.dita">localizable registration
+information</xref>. The registration resource file is compiled during the
+build process and included in the <xref href="GUID-7F1B2577-2FEF-45F9-B32F-745DFE0F0D95.dita"><parmname>pkg</parmname></xref> file
+used to make the <parmname>sis</parmname> <xref href="GUID-61EE2BE0-7B86-42CD-A03F-857DD8FAC246.dita">installation
+file</xref>.</p>
+<p>To create a registration resource file:</p>
+<ol>
+<li id="GUID-D97F1C74-A29A-4EF1-92C1-8FBAF2EE6F2F"><p>Determine
+the requirements of your application.</p></li>
+<li id="GUID-41830892-AA07-44F7-BCEE-4FACD88932FF"><p>Create a text
+file with the name <parmname>&lt;application_name&gt;_reg.rss</parmname>.</p>
+</li>
+<li id="GUID-7EE5ADE9-C5D4-43E0-BB94-977CB064CF2D"><p>Include the
+appropriate header files. Typically, you need to include the following files:</p>
+<itemgroup>
+<ul>
+<li><p><parmname>appinfo.rh</parmname>, which is the resource header
+file that includes the data structure declaration for the resource statement
+used in the registration resource file</p></li>
+<li><p>compiled resource header file for the resource file with
+the symbolic ID for the<xref href="GUID-9F90A2F0-9C76-4871-A766-D1AE0FC42C08.dita"> localizable
+registration information</xref></p></li>
+<li><p>localization file, depending on you implementation of the
+registration resource file</p></li>
+</ul>
+<p>For more information on pre-processor statement syntax, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/ToolsAndUtilities94/DevTools-ref/ResourceFileFormat/Tool_Ref_RSS-file-format.preprocess.html#DevTools%2dref%2erss%2e3" format="application/java-archive">C++ pre-processor statements</xref>.</p>
+</itemgroup>
+</li>
+<li id="GUID-42A15A31-6A2C-4937-9615-A128068E2F76"><p>Add a statement
+for the UID2 value for the registration resource file as follows:.</p>
+<itemgroup>
+<codeblock id="GUID-A82F0146-5B48-48C8-A5F5-F200D08A6C4D" xml:space="preserve">UID2 KUidAppRegistrationResourceFile</codeblock>
+<p>UID2 always has the same value in registration resource files.</p>
+</itemgroup>
+</li>
+<li id="GUID-4C96D57D-FBA2-4BF6-A1AF-715467663A27"><p>Add a statement
+for the <xref href="GUID-EA05F9B6-52C7-4BD9-8B9A-4BA3456E70B5.dita">UID3</xref> value
+of the application as follows</p>
+<itemgroup>
+<codeblock id="GUID-EA7F044D-2BB2-4552-B768-3248DF6DAF7F" xml:space="preserve">UID3 &lt;uid3 value for application&gt;</codeblock>
+</itemgroup>
+</li>
+<li id="GUID-6A8002EA-AFF5-4750-833C-81ED5F355C6C"><p>Create a <parmname>APP_REGISTRATION_INFO</parmname> resource
+for your application. The definition for the registration code block is as
+follows:</p>
+<itemgroup>
+<codeblock id="GUID-EF44E298-635E-40BD-8FBE-8A6712FCA0FB" xml:space="preserve">
+RESOURCE  APP_REGISTRATION_INFO
+	{
+	app_file = ""; // name of application binary file (not including extension) - mandatory
+	attributes = 0;
+	localisable_resource_file = ""; // path (not including drive) and name of localisable resource file
+	localisable_resource_id = r_name36;
+	hidden = KAppNotHidden;
+	embeddability = KAppNotEmbeddable;
+	newfile = KAppDoesNotSupportNewFile;
+	launch = KAppLaunchInForeground;
+	group_name(KAppMaxGroupName) = "";
+	default_screen_number = 0;
+	datatype_list[]; // SUPPORTED DATATYPES
+	file_ownership_list[]; // FILE_OWNERSHIP_INFO
+	service_list[]; // SERVICE_INFO
+	opaque_data = 0;	// use for opaque data to send to non-native application launchers i.e. MIDlet id
+	}</codeblock>
+<p>where,</p>
+<ul>
+<li><p><parmname>app_file</parmname> indicates the name of the application
+executable binary file without the extension</p></li>
+<li><p><parmname>localisable_resource_file</parmname> indicates
+the path and name of the localizable resource file for the application</p>
+</li>
+<li><p><parmname>localisable_resource_id</parmname> indicates the
+symbolic name of the resource for the <xref href="GUID-9F90A2F0-9C76-4871-A766-D1AE0FC42C08.dita">localizable
+registration resource</xref></p></li>
+<li><p><parmname>newfile</parmname> indicates whether the application
+is document-based and supports the creation of new files. The default value
+is <parmname>KAppDoesNotSupportNewFile</parmname>.</p></li>
+<li><p><parmname>embeddability</parmname> indicates whether an application
+is embeddable.</p>
+<itemgroup>
+<p>The default value is <parmname>KAppNotEmbeddable</parmname>.</p>
+<p>For more information on embeddability, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/faqSDK/faq_1129.html" format="application/java-archive">FAQ-1129 What is an embeddable application?</xref>.</p>
+</itemgroup>
+</li>
+</ul>
+<p>The header file for the registration resource files is <parmname>appinfo.rh</parmname> and
+is located in the <parmname>./epoc32/include</parmname> folder.</p>
+<p>For more information on the other values in the resource, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/ToolsAndUtilities94/DevTools/RegFiles/Tool_Guide_Reg_Properties.html#DevTools%2eRegProperties" format="application/java-archive">Defining application icons, captions and properties</xref>.</p>
+</itemgroup>
+</li>
+</ol>
+<p>For a commented example, see <xref href="GUID-C99BA704-4E9F-482C-942F-1B4D7F385BD8.dita">HelloWorldBasic_reg.rss</xref>.</p>
+</conbody></concept>

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-3319E01A-F500-5F5C-9798-351C6F3EC583" xml:lang="en"><title>Updating
+the GPS/A-GPS Central Repository Initialisation File </title><shortdesc>This shows how to modify the settings of the GPS/A-GPS PSY and
+the A-GPS Integration Module so that they do not conflict with each other. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>As described in <xref href="GUID-D0C20045-FCC5-53CB-BBDB-7AA058C9139E.dita">GPS/A-GPS
+PSY Overview</xref>, the GPS/A-GPS PSY does not integrate directly with positioning
+hardware. It uses the A-GPS Location Manager with an A-GPS Integration Module
+to connect the Location Server (<codeph>eposserver.exe</codeph>) to positioning
+hardware. </p> <p>The same A-GPS Integration Module can be used by both the
+GPS PSY and the A-GPS PSY, potentially at the same time. There are two places
+that information about the properties of the GPS/A-GPS PSY and A-GPS Integration
+Module are stored: </p> <ul>
+<li id="GUID-E71A7995-B0EA-523A-BEF3-D677086C18B8"><p>The GPS/A-GPS PSY registers
+itself as a PSY with the LBS subsystem using a Central Repository initialisation
+file with keys defined by the <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning
+Plug-in Information API</xref>. The GPS PSY and the A-GPS PSY have separate
+initialisation files. </p> </li>
+<li id="GUID-ADDBC706-ACE3-544F-9CD4-EC5F4DD95445"><p>The A-GPS Location Manager
+uses a <codeph>.ini</codeph> file that specifies the properties
+of the A-GPS Integration Module. </p> </li>
+</ul> <p>The description of the properties of the PSY and the Integration
+Module must be the same in both files. </p><p>The following procedure assumes
+you have created an A-GPS Integration Module for your device's positioning
+hardware and have created a module .ini file that correctly describes the
+properties of the positioning hardware. The format of the .ini file is described
+in <xref href="GUID-5DD17088-1F9C-5810-8143-5067A2B18330.dita">A-GPS Location Data
+Source API</xref>. An example file containing some typical values is shown
+below. Your A-GPS Integration Module may have different parameters: </p><codeblock xml:space="preserve"># example_datasource.ini
+[1]
+Version= 0.2.1		#
+ModuleId= 271064388	# dec
+ModuleName= "Example_AGPS_Module”
+TechnologyType= 0101	# binary
+DeviceLocation= 1	# binary
+Capabilities= 11111	# binary
+ClassesSupported= 111111	# binary
+TimeToFirstFix= 90000	# ms
+TimeToNextFix= 1000	# ms
+HorizontalAccuracy= 5.4 # real
+VerticalAccuracy= 5.4 # real
+CostIndicator= 2	# dec
+PowerConsumption= 2	# dec
+DataSourceId= 271065673	# dec
+ExecutableName= "lbsgpslocmanager.exe"
+DeviceGpsModeCaps=1011	# binary - Exclusive TA OR TB (+ Autonomous)</codeblock> </context>
+<steps id="GUID-20C3ADEC-CF35-5A8E-903E-E32D7CDD004B">
+<step id="GUID-E4B40CA8-FFC8-570D-87BA-530E796695E5"><cmd>If you want to use
+the A-GPS PSY with your Integration Module, modify the Central Repository
+initialisation file(s) for the PSY so that the values are the same as those
+in your Integration Module .ini file. </cmd>
+<info>The Central Repository initialisation file for the A-GPS PSY implementation
+supplied with the Symbian platform is in <filepath>datasourcemodules\lbsposfwadaptation\lbsgpsagpspsy\lbsagpspsy\cenrep\10285abc.txt</filepath>.
+The version supplied with the Symbian platform contains the following: </info>
+<stepxmp><codeblock id="GUID-3EB956AB-8D32-548E-A9FF-E6712631B43A" xml:space="preserve">
+cenrep
+version 1
+[owner]
+0x101f97b2
+[defaultmeta]
+ 0
+[platsec]
+ cap_rd=ReadDeviceData cap_wr=WriteDeviceData
+[Main]
+0x1 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x2 int 0 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x3 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x4 int 90000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x5 int 1000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x6 real 5.4 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x7 real 5.4 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x8 int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x9 int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xa int 5 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xb int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xc int 31 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xd int 31 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xe int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xf string "\\resource\\lbsagpspsy_name.rsc" 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x10000000 int 2000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+</codeblock> </stepxmp>
+<info>For a full description of the meanings of these keys, see <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning
+Plug-in Information API</xref>. </info>
+<info>The important keys for this task are as shown in the following table: </info>
+<stepxmp><table id="GUID-A227F71E-9B87-54D7-ABDF-4C29D1CF6F37">
+<tgroup cols="4"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry>Key name</entry>
+<entry>Key value</entry>
+<entry>Meaning</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>KPSYTimeToFirstFix</codeph>  </p> </entry>
+<entry><p> <codeph>0x4</codeph>  </p> </entry>
+<entry><p>Time to First Fix </p> </entry>
+<entry><p>This must be the same time as the <codeph>TimeToFirstFix</codeph> value
+in your Integration Module .ini file. </p> <p> <b>Important note: In the PSY
+file the time is specified in microseconds. In the Integration Module .ini
+file the time is specified in milliseconds.</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYTimeToNextFix</codeph>  </p> </entry>
+<entry><p> <codeph>0x5</codeph>  </p> </entry>
+<entry><p>Time to Next Fix </p> </entry>
+<entry><p>This must be the same time as the <codeph>TimeToNextFix</codeph> value
+in your Integration Module .ini file. </p> <p> <b>Important note: In the PSY
+file the time is specified in microseconds. In the Integration Module .ini
+file the time is specified in milliseconds.</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYHorizontalAccuracy</codeph>  </p> </entry>
+<entry><p> <codeph>0x6</codeph>  </p> </entry>
+<entry><p>Horizontal Accuracy </p> </entry>
+<entry><p>This must be the same as the <codeph>HorizontalAccuracy</codeph> value
+in your Integration Module .ini file. The value is specified in metres. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYVerticalAccuracy</codeph>  </p> </entry>
+<entry><p> <codeph>0x7</codeph>  </p> </entry>
+<entry><p>Vertical Accuracy </p> </entry>
+<entry><p>This must be the same as the <codeph>VerticalAccuracy</codeph> value
+in your Integration Module .ini file. The value is specified in metres. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYCostIndicator</codeph>  </p> </entry>
+<entry><p>0x8 </p> </entry>
+<entry><p>Cost Indicator </p> </entry>
+<entry><p>This must be the same as the <codeph>CostIndicator</codeph> value
+in your Integration Module .ini file. The value is an integer taken from the <xref href="GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D.dita#GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D/GUID-78C084A0-43F8-3040-BD98-70E2E62A5D45"><apiname>TPositionQuality::TCostIndicator</apiname></xref> enum. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYPowerConsumption</codeph>  </p> </entry>
+<entry><p> <codeph>0x9</codeph>  </p> </entry>
+<entry><p>Power Consumption </p> </entry>
+<entry><p>This must be the same as the <codeph>PowerConsumption</codeph> value
+in your Integration Module .ini file. The value is an integer taken from the <xref href="GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D.dita#GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D/GUID-AD77543D-625A-39CF-A1D5-F5B5636E17F7"><apiname>TPositionQuality::TPowerConsumption</apiname></xref> enum. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYTechnologyType</codeph>  </p> </entry>
+<entry><p> <codeph>0xa</codeph>  </p> </entry>
+<entry><p>Technology Type </p> </entry>
+<entry><p>This must be the same as the <codeph>TechnologyType</codeph> value
+in your Integration Module .ini file. The value is taken from the <xref href="GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26.dita#GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26/GUID-03AF8C51-1CAF-3F4C-BED1-17844FAE8423"><apiname>TPositionModuleInfo::_TTechnologyType</apiname></xref> enum. </p> <p> <b>Important
+note: In the PSY file the value is specified as decimal integer. In the Integration
+Module .ini file the value is specified in binary.</b>  </p> <p>In the files
+shown above, the value of 5 for this key specifies that the PSY/Integration
+Module supports a technology type of <codeph>ETechnologyTerminal</codeph> + <codeph>ETechnologyAssisted</codeph> =
+1 + 4 = 0101 in binary. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYCapabilities</codeph>  </p> </entry>
+<entry><p> <codeph>0xc</codeph>  </p> </entry>
+<entry><p>Device Capabilities </p> </entry>
+<entry><p>This must be the same as the <codeph>Capabilities</codeph> value
+in your Integration Module .ini file. The value is taken from the <xref href="GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26.dita#GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26/GUID-4A84D57F-D202-3F79-8094-139D69630C6D"><apiname>TPositionModuleInfo::_Capabilities</apiname></xref> enum. </p> <p> <b>Important
+note: In the PSY file the value is specified as a decimal integer. In the
+Integration Module .ini file the value is specified in binary.</b>  </p> <p>In
+the files shown above the value of 31 for this key specifies that the PSY/Integration
+Module supports the capabilities: <codeph>ECapabilityHorizontal + ECapabilityVertical
++ ECapabilitySpeed +                         ECapabilityDirection + ECapabilitySatellite </codeph> =
+31 decimal or 11111 in binary. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KPSYClassesSupported</codeph>  </p> </entry>
+<entry><p> <codeph>0xd</codeph>  </p> </entry>
+<entry><p>Supported Positioning classes </p> </entry>
+<entry><p>This must be the same as the <codeph>ClassesSupported</codeph> value
+in your Integration Module .ini file. The value is taken from the <xref href="GUID-BC8B2D08-1B64-35BB-8F58-4E7123650BD7.dita"><apiname>_TPositionInfoClassType</apiname></xref> enum. </p> <p> <b>Important
+note: In the PSY file the value is specified as decimal integer. In the Integration
+Module .ini file the value is specified in binary.</b>  </p> <p>In the files
+shown above the value of 31 for this key specifies that the PSY/Integration
+Module supports the positioning classes: <codeph>EPositionGpsMeasurementInfoClass
++ EPositionCourseInfoClass +                         EPositionGenericInfoClass
++ EPositionInfoClass</codeph> = 31 decimal or 11111 in binary. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </stepxmp>
+</step>
+<step id="GUID-CFB743FE-C90C-569D-B1CD-433930702B07"><cmd>If you want to use
+the GPS PSY with your Integration Module, modify the Central Repository initialisation
+file(s) for the PSY so that the values are the same as those in your Integration
+Module .ini file. </cmd>
+<info>The Central Repository initialisation file for the GPS PSY implementation
+with the Symbian platform is <filepath>datasourcemodules\lbsposfwadaptation\lbsgpsagpspsy\lbsagpspsy\cenrep\102869C7.txt</filepath>.
+It contains the following: </info>
+<stepxmp><codeblock id="GUID-63A5B375-F712-5515-A985-5F54BCD52AD9" xml:space="preserve">
+cenrep
+version 1
+[owner]
+0x101f97b2
+[defaultmeta]
+ 0
+[platsec]
+ cap_rd=ReadDeviceData cap_wr=WriteDeviceData
+[Main]
+0x1 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x2 int 0 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x3 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x4 int 90000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x5 int 1000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x6 real 5.4 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x7 real 5.4 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x8 int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x9 int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xa int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xb int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xc int 31 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xd int 31 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xe int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xf string "\\resource\\lbsgpspsy_name.rsc" 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x10000000 int 2000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+</codeblock> </stepxmp>
+<info>This is the same as the repository file for the A-GPS implementation
+[1], except the value for key <codeph>0xa</codeph> (Technology Type) is <codeph>ETechnologyTerminal</codeph> =
+1, to indicate that the PSY uses autonomous GPS. </info>
+<info>See step 1 above for details about which values you may need to change
+so that this file accurately describes the properties of your A-GPS Integration
+Module. </info>
+</step>
+<step id="GUID-CC2CC449-7A14-5143-9B87-80D1D887234E"><cmd>Make a binary version
+of the Central Repository initialisation file(s) and install them on the device. </cmd>
+<info>The LBS build process makes a binary version of the PSY Central Repository
+initialisation files and copies them to <filepath>epoc32\winscw\c\private\10202BE9</filepath>. </info>
+<info>To rebuild the A-GPS PSY Central Repository initialisation file you
+can use the makefile <filepath>createlbsagpspsyrep.mk</filepath> in <filepath>datasourcemodules\lbsposfwadaptation\lbsgpsagpspsy\lbsagpspsy\group</filepath>. </info>
+<info>To rebuild the GPS PSY Central Repository initialisation file you can
+use the makefile <filepath>createlbsgpspsyrep.mk</filepath> in <filepath>datasourcemodules\lbsposfwadaptation\lbsgpsagpspsy\lbsgpspsy\group</filepath>. </info>
+<info>Use the <xref href="GUID-9BB4A44E-6870-5A25-8EA8-0B0F1565213F.dita">ROM macros</xref> to
+copy the GPS/A-GPS PSY DLL and the repository files into a device ROM. </info>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-D0C20045-FCC5-53CB-BBDB-7AA058C9139E.dita"><linktext>GPS/A-GPS
+PSY Overview</linktext></link>
+<link href="GUID-9BB4A44E-6870-5A25-8EA8-0B0F1565213F.dita"><linktext>Include the
+GPS/A-GPS PSY in ROM</linktext></link>
+</related-links></task>

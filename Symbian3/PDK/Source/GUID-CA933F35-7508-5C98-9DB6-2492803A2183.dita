@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-CA933F35-7508-5C98-9DB6-2492803A2183"><title>Reading a Skipped Alarm Property</title><prolog><metadata><keywords/></metadata></prolog><taskbody>  <context><p>The Publish and Subscribe framework enables a client to receive notification from the Alarm Server about the skipped alarm. </p> <p>The value associated with the <xref href="GUID-16FF12E5-A508-3994-9341-CBB779D35796.dita"><apiname>KMissingAlarmPubSubKey</apiname></xref> property is a <xref href="GUID-16FF12E5-A508-3994-9341-CBB779D35796.dita"><apiname>TMissedAlarmPubSubData</apiname></xref> structure. </p> <p> <codeph>KMissingAlarmPubSubKey</codeph> contains data about environmental changes and whether or not they have resulted in a skipped alarm. </p> </context> <steps id="GUID-DFBB138D-81D2-5F11-8B43-BD6E29B37D4B"><step id="GUID-512549FF-A361-5795-A6EE-B5DC8834F8B4"><cmd/><info>The <xref href="GUID-16FF12E5-A508-3994-9341-CBB779D35796.dita"><apiname>KMissingAlarmPubSubKey</apiname></xref> property value indicates if there are skipped alarms. </info> </step> <step id="GUID-39061A23-6BB8-56E8-BDF3-0E583D16CAA9"><cmd/><info>The subscriber reads the current value of the property to determine if there are skipped alarms. A client more usually subscribes to the property and responds to any changes by calling the <xref href="GUID-16FF12E5-A508-3994-9341-CBB779D35796.dita"><apiname>ReadSkippedAlarmPropertyL()</apiname></xref> function. </info> </step> <step id="GUID-39EAE174-4784-57B6-8E44-29BDC9B29348"><cmd/><info> <codeph>iValue</codeph> stores an integer that indicates if there are skipped alarms. </info> <stepxmp><codeblock id="GUID-790D9FB8-8C30-5461-9926-ADAB0706B773" xml:space="preserve">#include &lt;ASShdAlarm.h&gt; // For TMissedAlarmPubSubData etc.
+#include &lt;…&gt;
+…
+void CSkippedAlarmsObserver::ReadSkippedAlarmPropertyL()
+    {
+    TPckgBuf&lt;TMissedAlarmPubSubData&gt; skippedAlarmBuf;
+
+    User::LeaveIfError(RProperty::Get(KAlarmServerPubSubCategory, KMissingAlarmPubSubKey, skippedAlarmBuf));
+
+    if (skippedAlarmBuf().iValue == 2)
+        {
+        HandleSkippedAlarmsL();
+        }
+    }
+</codeblock> </stepxmp> <info>This example illustrates the steps required to use the property value to establish if there are skipped alarms. </info> <info> Note: The example does not describe the procedure required to subscribe to the property. </info> </step> </steps> </taskbody><related-links><link href="GUID-B144DB6C-EEE2-5610-8C22-4A30F5423AB9.dita"><linktext>Working with Skipped
+                Calendar Alarms</linktext> </link> <link href="GUID-BF8C56B7-1F39-502F-B9CA-81E9272CC945.dita"><linktext>Reading a Skipped Alarm Instances
+                Property</linktext> </link> <link href="GUID-E3981A14-DD2C-5582-A250-C2AD358729FD.dita"><linktext>Retrieving Alarmed
+                Calendar Instances</linktext> </link> </related-links></task>

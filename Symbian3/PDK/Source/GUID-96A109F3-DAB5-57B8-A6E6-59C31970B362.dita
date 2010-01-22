@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-96A109F3-DAB5-57B8-A6E6-59C31970B362"><title> MTP Client Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The MTP Client controls the startup and termination of MTP services and MTP transports. </p> <section><title>MTP Client library details</title> <p>The DLL that provides the functionality and the library to which your code must link is identified below. </p> <table id="GUID-3FFA9A5E-41D3-5E57-A97D-8947EBA9037C"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry>DLL</entry> <entry>LIB</entry> <entry>Short description</entry> </row> </thead> <tbody><row><entry><p> <filepath>mtpclient.dll</filepath>  </p> </entry> <entry><p> <filepath>mtpclient.lib</filepath>  </p> </entry> <entry><p>These files are used to start and stop an MTP transport plug-in. </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title>Architecture</title> <p>MTP Client is a standard IPC client derived from <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita"><apiname>RSessionBase</apiname></xref>. It is implemented as a standard Symbian client interface. The server side is the MTP daemon process (<filepath>mtpserver.exe</filepath>). For more information about the MTP architecture, refer to <xref href="GUID-F1DD8800-389C-5A88-A5EB-138359EF7DC5.dita">MTP Framework Overview</xref>. </p> </section> <section><title>Using MTP Client </title> <p>To start or stop an MTP transport transport, pass the transport plug-in UID to the <codeph>StartTransport()</codeph> or <codeph>StopTransport()</codeph> function. </p> <codeblock id="GUID-678CE9FC-A9CF-57C6-A576-DE8807120DF5" xml:space="preserve">// iMTPSession is an instance of RMTPClient 
+RMTPClient iMTPSession;
+iMTPSession.Connect();
+
+    // Start the USB transport
+        err = iMTPSession.StartTransport(TUid::Uid(KMTPUsbTransportImplementation));
+        if (err != KErrNone) 
+            {
+            ...
+            User::Leave(err);
+            }
+ ...
+    // Stop the USB transport
+err = iMTPSession.StopTransport(TUid::Uid(KMTPUsbTransportImplementation));
+    if(err != KErrServerTerminated)
+        {
+        if (err != KErrNone) 
+            {
+            ...
+            User::Leave(err);
+            }
+iMTPSession.Close();</codeblock> <p>For the host to communicate with the daemon through MTP, any one transport plug-in must be loaded. Only one transport plug-in may be loaded at a given time. </p> <p>At least one client must be connected for the MTP Daemon to be running. When the last client closes the daemon starts a timer. When the timer expires the daemon shuts itself down. </p> </section> </conbody><related-links><link href="GUID-9EC375CD-A021-5DD0-93A9-748AC80356EE.dita"><linktext>Enabling MTP over USB</linktext> </link> </related-links></concept>

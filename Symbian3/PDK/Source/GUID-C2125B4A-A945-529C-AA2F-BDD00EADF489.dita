@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-C2125B4A-A945-529C-AA2F-BDD00EADF489"><title>Configuring the Communications Database for the DUT Tutorial</title><shortdesc>This topic describes how to configure the communications database for the Device Under Test (DUT). </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>The <i>Communications Database</i> for the <i>DUT</i> measures the delays on the communications framework. To create a Communications Database configuration it is necessary to know: </p> <ul><li id="GUID-14491609-62FA-56AF-A7ED-F8F068D48814"><p>the device to test </p> </li> <li id="GUID-EB6B1448-3FA3-520B-B60E-0111096D5AA0"><p>the bearer to use as a test channel </p> </li> <li id="GUID-4E1BBEA9-42DC-53CE-88A6-92D9B3979E39"><p>the bearer to use for the control channel, if the control channel is in use. </p> </li> </ul> <p>It is not necessary to change the configuration of <i>Communications Database</i> if it is already configured by a previous test run on the <i>DUT</i> and an existing test channel is in use. </p> </context> <steps id="GUID-64BE5DA9-C20D-5A89-8175-44D8193E1EEF"><step id="GUID-1FA6E719-72D1-5137-9AE4-494FAEF8F1A5"><cmd>To configure the hardware reference board, the NetPerftest suite is distributed with a set of sample communications database. This sample configuration is stored in <codeph>%EPOCROOT%epoc32\tools\netperf\data</codeph>. </cmd> <info>The configuration file can be in one of the two formats, XML or CFG. An XML file is a standard Communications Database configuration file. This file is recommended for <codeph>ced</codeph>, as the XML interface performs more validation than the CFG interface. </info> </step> <step id="GUID-60B3A6FF-75AA-5B20-932F-4EE3C2C5C436"><cmd/><info>To adapt the communications database configuration to your device, use the export command <codeph>ceddump</codeph> on the DUT. </info> </step> <step id="GUID-7AE66D55-AAF1-5197-8CB5-9A8E94E2FE9A"><cmd/><info>To insert the NetPerf Delay Plug-in, declare the <codeph>delaymeter</codeph> protocol in the protocol table: </info> <stepxmp><codeblock id="GUID-3A42AD20-8E37-5370-B57C-C1373B6A63DA" xml:space="preserve">
+############################################################
+## ProtocolTable
+## 
+[ProtocolTable]
+## .. existing sections...
+
+ADD_SECTION
+# COMMDB_ID = 11   [ the ID should be 1 more than the highest existing value ]
+    Id=11
+    Name=delaymeter
+    ProtocolUid=271003463
+    FIELD_COUNT=3
+END_ADD
+</codeblock> </stepxmp> </step> <step id="GUID-7AB5A4CB-30F3-5945-834D-9E3C3821EFD7"><cmd/><info>To configure the communications database manually, use the <codeph>ced</codeph> utility: </info> <stepxmp><codeblock id="GUID-6E4F0807-5B2F-5DB7-AA85-9F26DC804C7E" xml:space="preserve">
+ced -I &lt;config_file_name&gt;
+</codeblock> </stepxmp> <info>The command <codeph>ced</codeph> creates a log file <codeph>c:\ced.log</codeph>. The argument <codeph>config_file_name</codeph> is the full path to the configuration file. This is done with the XML or CFG interface. To confirm the successful configuration, check the log file that contains the word "<codeph>SUCCESS</codeph> " in the last line. </info> <info>If a ROM is built for the automated tests, then it replaces the Communications Database settings automatically. </info> </step> <step id="GUID-0532E70C-4368-513A-BCCB-ECBCABC032A4"><cmd/><info>To set up a connection on the Test Controller PCrequires administration rights. The sample configuration files that contains the common connection types NT-RAS and Ethernet needs to be configured on the Test Controller PC and Net Monitor PC. </info> </step> <step id="GUID-02E1F5A2-2FB0-504E-AA5B-C14DF2190307"><cmd/><info>To establish a connection, use the "<codeph>ping</codeph> " command. Ping the Test Controller PC from the DUT first and ping the DUT from the Test Controller PC. </info> </step> </steps> </taskbody><related-links><link href="GUID-D1B54263-1637-5D4E-8FE1-92612AB2851C.dita"><linktext>Network Performance Test</linktext> </link> <link href="GUID-5CDD2D09-33B2-501B-A060-784C401CA373.dita"><linktext>Building a ROM for Development
+                Board</linktext> </link> <link href="GUID-72F3CFD2-DDE4-56F1-907A-7C455BEDF674.dita"><linktext>Running the NetPerf Test
+                Suite</linktext> </link> </related-links></task>

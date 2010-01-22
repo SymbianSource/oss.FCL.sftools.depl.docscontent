@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-20419A98-3787-5F10-9CAD-2BC5D7560776"><title>OpenVG Porting Guide</title><shortdesc>This topic provides a guide for implementers of OpenVG on the Symbian platform. It is designed to be used in conjunction with the EGL Porting Guide. It does not specify how to implement OpenVG itself. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref> and <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay</xref>. <b>Target audience</b>: Device creators. </p> <section><title> Required functionality </title> <p>The implementation DLL must implement all of the standard functions declared in the <xref href="GUID-7EFBEEAD-3E74-5165-B305-313F7DE4BEB4.dita">OpenVG Interface component</xref> and optionally any implementation-specific functions. Alternatively, implementation-specific functions can be placed into a separate DLL. </p> <p>The reserved ordinal entry points are only for use by Symbian in order to avoid future binary compatibility issues. Therefore you must not use them for implementation-specific functions. </p> <p>The header files are provided for both OpenVG 1.0 and OpenVG 1.1. Stub <filepath>openvg.h</filepath> and <filepath>vgu.h</filepath> files redirect to the OpenVG 1.0 headers by default. However a variability point can be used to expose the OpenVG 1.1 headers. See <xref href="GUID-E007CDD5-4263-5020-BB6F-B39F44647519.dita">OpenVG Version Variability Point</xref> for information. </p> </section> <section><title> LIB files</title> <ul><li id="GUID-12537188-9338-5211-B37C-16E569806D21"><p>The OpenVG specification specifies that the VGU implementation is not guaranteed to be available at runtime. However, Symbian recommends that the VGU library is provided on all smartphones that support OpenVG. Providing the VGU library means that the size of application binaries can be reduced whilst maintaining broad compatibility. </p> </li> <li id="GUID-C5E4270C-DC8E-5E77-958B-DA914E29735D"><p>The OpenVG implementation must <b>not</b> deliver the LIB files, because they are provided by the <xref href="GUID-7EFBEEAD-3E74-5165-B305-313F7DE4BEB4.dita">OpenVG Interface component</xref>. To prevent LIB files being automatically generated, place the <codeph>NOEXPORTLIBRARY</codeph> directive in the MMP project file that builds the implementation DLL. </p> </li> <li id="GUID-92A1827C-863E-5C6D-A521-ECD81B8A7FDE"><p>The LIB file provides exports all of the OpenVG 1.0 and OpenVG 1.1 functions. See <xref href="GUID-E007CDD5-4263-5020-BB6F-B39F44647519.dita">OpenVG Version Variability Point</xref> for information about controlling which version is exposed. </p> </li> <li id="GUID-9C925D94-CB51-5388-AF3F-CEF29F139CBC"><p>The <filepath>libOpenVG.lib</filepath> file includes only OpenVG standard functions and no implementation-specific functions. This means that client programs do not link to functions that are specific to a particular OpenVG implementation and therefore allows client program portability to other OpenVG implementations. </p> </li> </ul> </section> <section><title> Extension functions</title> <p>If an OpenVG implementation provides an extension to OpenVG, clients must use the standard EGL function <xref href="GUID-5A746F75-8674-3EC4-B37B-6C32CA85FACB.dita"><apiname>eglGetProcAddress</apiname></xref> to access such functionality. This mechanism allows client programs to access the extension function regardless of which ordinal position has been chosen by the OpenVG vendor. </p> </section> <section><title> Internal functions </title> <p>Sometimes internal access to the OpenVG implementation is required—for example, in a bench marking or regression test for the OpenVG implementation. To avoid tight coupling with a specific implementation in these circumstances, Symbian recommends that the OpenVG implementation provides a separate vendor-specific LIB file containing the internal API calls. Then appropriate clients can link to the internal LIB file when required. This mechanism ensures that normal clients never see the internal API calls. </p> </section> <section><title>UIDs</title> <p>Symbian platform libraries are given unique identifiers when they are built. The following UIDs have been allocated for OpenVG implementations: </p> <table id="GUID-DE1E3606-589B-53B4-AD30-8AA5820E1D23"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry>Library</entry> <entry>UID2</entry> <entry>UID3</entry> </row> </thead> <tbody><row><entry><p>OpenVG </p> </entry> <entry><p>0x1000008d </p> </entry> <entry><p>0x10281AB9 </p> </entry> </row> <row><entry><p>VGU </p> </entry> <entry><p>0x1000008d </p> </entry> <entry><p>0x10281C47 </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title> ROM building </title> <p>Building a ROM image for a target platform involves using IBY files. There is a generic IBY file called <filepath>openvg.iby</filepath> for the OpenVG implementation. This must not be replaced. However, you can create an implementation-specific IBY file. This should have a unique name in the format <filepath>openvg_adaptation.iby</filepath>, where <filepath>adaptation</filepath> is replaced by the vendor's name. For example: </p> <codeblock id="GUID-AD5F0116-2874-57EE-B4FD-CBEC4E0B8DE7" xml:space="preserve">// OPENVG_VENDOR.IBY
+     
+#ifndef __OPENVG_VENDOR_IBY__
+#define __OPENVG_VENDOR_IBY__
+    
+REM OpenVG implementation
+    
+file=ABI_DIR/BUILD_DIR/libOpenVG.dll   sys/bin/libOpenVG.dll
+file=ABI_DIR/BUILD_DIR/libOpenVGU.dll  sys/bin/libOpenVGU.dll
+    
+#endif
+</codeblock> <p>This IBY file must be exported by the <filepath>bld.inf</filepath> file to the <filepath>/epoc32/rom/include/</filepath> folder. </p> <p>You include the implementation-specific IBY file in a device ROM configuration file by defining the <xref href="GUID-D889F9B1-74D5-31B4-8BCB-DF94D743D86F.dita"><apiname>OPENVG_DRV</apiname></xref> macro in a top-level OBY file or in the <codeph>buildrom</codeph> command. For example, in a top-level OBY file, declare the following: </p> <codeblock id="GUID-3213BBE7-F554-5215-94AD-5A1322A3CC46" xml:space="preserve">#define OPENVG_DRV &lt;openvg_vendor.iby&gt;</codeblock> <p>See <xref href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita">Selection of Adaptations</xref> for more information. </p> </section> <section><title>Example project (MMP) file </title> <p>The MMP file brings the details described above together. For example: </p> <codeblock id="GUID-C0A92FD2-C3BD-5686-BBF8-102782029163" xml:space="preserve">#include "/epoc32/include/platform/vg/openvguids.hrh"                // For UIDs
+    
+// These statements are always required:
+target          libOpenVG.dll                               // Destination filename
+targettype      dll                                         // Binary build type
+uid             KUidSharedDllUidValue KUidOpenVGDllUidValue // File UIDs
+capability      All –Tcb
+vendorid        &lt;your vendor id in hex&gt;
+noexportlibrary
+DEFFILE         libegl13U.def
+    
+// These statements are examples and may vary:
+userinclude     ../include                                  // Local include files
+systeminclude   /epoc32/include                             // General Symbian include files
+    
+sourcepath      ../openvg                                   // Relative path to source files
+    
+source          context.cpp                                 // Source files
+source          image.cpp
+source          path.cpp
+    
+library         euser.lib             
+library         fbscli.lib                                  // For CFbsBitmap, etc
+library         bitgdi.lib                                  // For CFbsBitmapDevice, CFbsBitGc, etc
+library         ws32.lib                                    // For RWindow, Direct Screen Access, etc</codeblock> </section> <section><title> Example bld.inf file</title> <p>The <filepath>bld.inf</filepath> file specifies the exports and the MMP files. For example: </p> <codeblock id="GUID-143F988A-BE6F-5B56-8921-F5DD731921C9" xml:space="preserve">PRJ_PLATFORMS
+DEFAULT    
+    
+PRJ_EXPORTS
+openvg_vendor.iby  /epoc32/rom/include/openvg_vendor.iby
+    
+PRJ_MMPFILES
+./openvg.mmp
+</codeblock> </section> </conbody><related-links><link href="GUID-E007CDD5-4263-5020-BB6F-B39F44647519.dita"><linktext>OpenVG Version Variability Point</linktext> </link> <link href="GUID-1A8ED0EB-B3B7-553F-95E3-2120D877966B.dita"><linktext>OpenVG Collection Overview</linktext> </link> <link href="GUID-7EFBEEAD-3E74-5165-B305-313F7DE4BEB4.dita"><linktext>OpenVG Interface Overview</linktext> </link> <link href="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14.dita"><linktext>EGL Porting Guide</linktext> </link> </related-links></concept>

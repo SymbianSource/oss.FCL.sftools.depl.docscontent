@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-6526C440-34EA-50C2-B550-2C655DCC2ED8" xml:lang="en"><title>Network
+Privacy API Tutorial</title><shortdesc>This document describes how to use the Network Privacy API. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>The reader must be familiar with the Privacy Protocol Module and
+the Network Privacy API. </p> </prereq>
+<context><p>When LBS is configured to load the Privacy Protocol Module, it
+handles only privacy requests and does not calculate position fixes. It is
+the responsibility of licensee domestic OS components to obtain the device's
+position. The <xref href="GUID-B3000A78-3BE5-5E0A-A718-87BC9BA03726.dita">Network
+Privacy API</xref> provides the means to send privacy requests into the LBS
+subsystem. </p> <p>To use the Network Privacy API a licensee must create a
+client component that runs in the licensee domestic OS. This component receives
+privacy and location requests from the network and forwards them to the LBS
+subsystem via the Network Privacy API. </p> <p>The Network Privacy API is
+only available with the Privacy Protocol Module. The first privacy request
+sent via the Network Privacy API causes the LBS subsystem components to be
+started. </p> <p>Many of the implementation details of creating a Network
+Privacy API client are device creator specific (such as how to connect to
+a network).</p> </context>
+<steps id="GUID-3EF2F3E8-48AF-534D-BE16-B6D78A349007">
+<step id="GUID-267A5A69-D06F-5236-A905-595F81689FCB"><cmd/>
+<info>Listen for privacy and location requests received from the network. </info>
+</step>
+<step id="GUID-99086B43-517E-5044-9732-A0E66836B9EA"><cmd/>
+<info>Use the Network Privacy API to forward privacy requests to the LBS subsystem. </info>
+</step>
+<step id="GUID-F95C9B65-7CF7-50F7-ACEF-F337EAD9F5DF"><cmd/>
+<info>Receive responses to privacy requests from the LBS subsystem via the
+Network Privacy API and return them to the network. </info>
+</step>
+<step id="GUID-53AD01C6-87BE-58D0-9875-5D45FAC6FF76"><cmd/>
+<info>If a privacy request is accepted, forward the subsequent location request
+to a component in the licensee domestic OS so that a position fix can be obtained. </info>
+</step>
+<step id="GUID-50B398C7-DC81-5BDA-B631-DE32E497A597"><cmd>To use the Network
+Privacy API create a Network Privacy API Client. </cmd>
+
+<substeps id="GUID-ACC2FFC4-815E-506B-A141-6F8A73D897EC">
+<substep id="GUID-0300AD43-69EE-5193-B260-31A9C31658E1"><cmd/>
+<stepxmp>Define a Network Privacy API <xref href="GUID-9A3406EF-3FEF-3F6F-9CB1-DFC1D09782B6.dita"><apiname>MPosVerificationObserver</apiname></xref> subclass </stepxmp>
+<info>The code example below shows a simple implementation of an <xref href="GUID-9A3406EF-3FEF-3F6F-9CB1-DFC1D09782B6.dita"><apiname>MPosVerificationObserver</apiname></xref> subclass
+that uses the Network Privacy API. Such a class could be the basis of an observer
+class in a licensee client application. </info>
+<stepxmp><codeblock id="GUID-1DFD707A-9701-533A-B85F-318F458660BD" xml:space="preserve">#ifndef CMYNETWORKLISTENER_H_
+#define CMYNETWORKLISTENER_H_
+
+#include &lt;EPos_MPosVerificationObserver.h&gt;
+#include &lt;EPos_CPosNetworkPrivacy.h&gt;
+#include &lt;EPos_CPosGSMPrivacyRequestInfo.h&gt;
+
+class CMyNetworkObserver : public MPosVerificationObserver
+{
+
+public:
+    static CMyNetworkObserver* NewL();
+
+public:
+    CMyNetworkObserver();
+    virtual ~CMyNetworkObserver();
+
+public:
+    void GSMVerifyPrivacyRequestL(const TDesC* aLCSClient, const TDesC* aRequestor,
+                               CPosNetworkPrivacy::TRequestDecision aTimeoutAction);
+    void CancelPrivacyRequestL(TInt aRequestId, CPosNetworkPrivacy::TCancelReason aCancelReason);
+    void GSMNotifyLocationRequestL(TDesC* aLCSClient, TDesC* aRequestor);
+    void GSMTimeoutPrivacyRequestL(const TDesC* aLCSClient, const TDesC* aRequestor, 
+                                 TInt aRequestId, CPosNetworkPrivacy::TRequestDecision aTimeoutAction);
+
+    
+public:
+    // Method from MPosVerificationObserver
+    void HandleVerifyComplete(TInt aRequestId, TInt aCompletionCode);
+    
+private:
+    CPosNetworkPrivacy* iPrivacy;
+    TInt iRequestId; // This demo client just stores a single request ID
+    void ConstructL();
+
+};
+
+
+#endif /*CMYNETWORKLISTENER_H_*/
+</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-9418AB61-9C1B-5398-9CFA-E57BBE5AB204"><cmd/>
+<stepxmp>Create an instance of CPosNetworkPrivacy in the client constructor </stepxmp>
+<info>The code below shows the creation of a <xref href="GUID-F5E959D8-3457-3385-9978-96FDD917D767.dita"><apiname>CPosNetworkPrivacy</apiname></xref> object
+in the second phase constructor of the observer. Note that in the Standalone
+Privacy Mode configuration the LBS subsystem is transient, and creating an
+instance of this class does not cause the LBS subsystem to be started. </info>
+<stepxmp><codeblock id="GUID-E786D160-E0C7-5071-8443-A24BF4C59828" xml:space="preserve">
+CMyNetworkObserver* CMyNetworkObserver::NewL()
+{
+    CMyNetworkObserver* listener = new (ELeave) CMyNetworkObserver();
+    CleanupStack::PushL(listener);
+    listener-&gt;ConstructL();
+    CleanupStack::Pop(listener);
+    return listener;
+}
+
+void CMyNetworkObserver::ConstructL()
+{
+    iPrivacy = CPosNetworkPrivacy::NewL();
+}
+</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+<step id="GUID-E8E50631-18C4-5891-8323-D450D65A2C0C"><cmd>Write code to send
+a privacy verification request. </cmd>
+<info>The licensee client receives a privacy verification request from the
+network. The privacy request requires user verification. The following describes
+the steps the licensee client application performs for a privacy verification
+request: </info>
+
+<substeps id="GUID-097A1946-E3C7-55F8-B9CC-9CCFEFCA86BD">
+<substep id="GUID-9545A3E4-5B95-53B4-8DDD-7A06943DD02A"><cmd/>
+<info>The client creates an instance of <xref href="GUID-32DA9EFC-D11D-3A56-A70E-045F7F0E849A.dita"><apiname>CPosGSMPrivacyRequestInfo</apiname></xref> or <xref href="GUID-1C0102CD-2F1C-3E8C-9357-06CFED618936.dita"><apiname>CPosSUPLPrivacyRequestInfo</apiname></xref>.
+The class of object that the client creates depends on whether the privacy
+request was received from the network via GSM or via SUPL. </info>
+</substep>
+<substep id="GUID-BB1AB089-99F5-5897-8AED-4AB30216B7C6"><cmd/>
+<info>The client calls <xref href="GUID-F5E959D8-3457-3385-9978-96FDD917D767.dita#GUID-F5E959D8-3457-3385-9978-96FDD917D767/GUID-E90DFB64-8087-3039-805D-F556F9E60B57"><apiname>CPosNetworkPrivacy::VerifyPrivacyRequest()</apiname></xref>.
+This method is asynchronous and non-blocking. The client can process multiple
+privacy requests by calling <codeph>VerifyPrivacyRequest()</codeph> multiple
+times. Each request is identified by a unique request ID. The LBS subsystem
+is started if it is not running when a request is made. </info>
+</substep>
+<substep id="GUID-22B92688-D233-5EE6-97B8-E4BF330147E7"><cmd/>
+<info>When the privacy request is completed, the method <xref href="GUID-9A3406EF-3FEF-3F6F-9CB1-DFC1D09782B6.dita#GUID-9A3406EF-3FEF-3F6F-9CB1-DFC1D09782B6/GUID-D1BDF319-CCFD-33CB-8779-CF56849BAA5B"><apiname>MPosVerificationObserver::HandleVerifyComplete()</apiname></xref> is
+called on the client observer. The client sends the privacy response to the
+network. </info>
+</substep>
+</substeps>
+<info>The following code example demonstrates how to use the Network Privacy
+API to verify a privacy request received over a GSM network. </info>
+<stepxmp><codeblock id="GUID-745D5AF8-8B3A-5DBC-BC51-23434FF9EE5B" xml:space="preserve">
+// Send a privacy request to LBS
+void CMyNetworkObserver::GSMVerifyPrivacyRequestL(const TDesC* aLCSClient, const TDesC* aRequestor,
+                                                  CPosNetworkPrivacy::TRequestDecision aTimeoutAction)
+    {
+
+    // Create a new CPosGSMPrivacyRequestInfo object
+    CPosGSMPrivacyRequestInfo* info = CPosGSMPrivacyRequestInfo::NewLC();
+    
+    // In this example, aLCSClientName is a proper name and aRequestor is a phone number
+    info-&gt;SetLCSClientL(*aLCSClient, CPosGSMPrivacyRequestInfo::EIdTypeLogicalName);
+    info-&gt;SetRequestorL(*aRequestor, CPosGSMPrivacyRequestInfo::EIdTypeMSISDN);
+    
+    // In this example set the request type to single shot
+    info-&gt;SetRequestType(CPosNetworkPrivacyRequestInfo::ERequestSingleShot);
+    
+    // Client has an iRequestId member variable (a production client may need an array to track multiple requests)
+    //iRequestId is set when VerifyLocationRequestL is called
+    iPrivacy-&gt;VerifyLocationRequestL(*info, iRequestId, *this, aTimeoutAction);
+    
+    CleanupStack::PopAndDestroy(info);
+    
+    }
+          </codeblock> </stepxmp>
+</step>
+<step id="GUID-F5BADBBF-0B90-5388-BF34-95D8EC936F52"><cmd>Write code to send
+a privacy notification request. </cmd>
+<info>The licensee client receives a privacy request from the network. The
+privacy request does not require verification. The following describes the
+steps the licensee client application performs for a privacy notification
+request: </info>
+
+<substeps id="GUID-1ECCD9AA-EFE0-5B68-A9D1-DF25FE675EB4">
+<substep id="GUID-02C81461-9F94-56EA-8B26-C4514004E603"><cmd/>
+<info>The client creates an instance of <xref href="GUID-32DA9EFC-D11D-3A56-A70E-045F7F0E849A.dita"><apiname>CPosGSMPrivacyRequestInfo</apiname></xref> or <xref href="GUID-1C0102CD-2F1C-3E8C-9357-06CFED618936.dita"><apiname>CPosSUPLPrivacyRequestInfo</apiname></xref>.
+The class of object that the client creates depends on whether the privacy
+request was received from the network via GSM or via SUPL. </info>
+</substep>
+<substep id="GUID-80934AC7-05ED-5BCB-A1B2-1B50E1E954F2"><cmd/>
+<info>The client calls <xref href="GUID-F5E959D8-3457-3385-9978-96FDD917D767.dita#GUID-F5E959D8-3457-3385-9978-96FDD917D767/GUID-A387994C-49AD-36A2-9C17-78425AF3E124"><apiname>CPosNetworkPrivacy::NotifyLocationRequest()</apiname></xref>.
+This method is asynchronous and non-blocking. The client can process multiple
+requests by calling <codeph>NotifyLocationRequest()</codeph> multiple times.
+Multiple requests are queued within the LBS subsystem. Each request is identified
+by a unique request ID. The LBS subsystem is started if it is not running
+when a request is made. </info>
+</substep>
+</substeps>
+<info>The following code example demonstrates how to use the Network Privacy
+API to notify LBS of a location request received over a GSM network. </info>
+<stepxmp><codeblock id="GUID-E801B01E-DA61-5B7D-884C-BF59071ADC29" xml:space="preserve">
+// Notify LBS of a location request
+void CMyNetworkObserver::GSMNotifyLocationRequestL(TDesC* aLCSClient, TDesC* aRequestor)
+    {
+    
+    // Create a new CPosGSMPrivacyRequestInfo object
+    CPosGSMPrivacyRequestInfo* info = CPosGSMPrivacyRequestInfo::NewLC();
+
+    // In this example, aLCSClientName is a proper name and aRequestor is a phone number
+    info-&gt;SetLCSClientL(*aLCSClient, CPosGSMPrivacyRequestInfo::EIdTypeLogicalName);
+    info-&gt;SetRequestorL(*aRequestor, CPosGSMPrivacyRequestInfo::EIdTypeMSISDN);
+
+    // In this example set the request type to single shot
+    info-&gt;SetRequestType(CPosNetworkPrivacyRequestInfo::ERequestSingleShot);
+    
+    // Client has an iRequestId member variable (a production client may need an array to track multiple requests)
+    //iRequestId is set when NotifyLocationRequestL is called
+    iPrivacy-&gt;NotifyLocationRequestL(*info, iRequestId);
+    
+    CleanupStack::PopAndDestroy(info);
+    
+    }
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-0D76D936-0105-5A42-983D-EE8ACA54FB06"><cmd>Write code to cancel
+a pending privacy verification request. </cmd>
+<info>The code example below shows how a client can cancel an outstanding
+request by calling <xref href="GUID-F5E959D8-3457-3385-9978-96FDD917D767.dita#GUID-F5E959D8-3457-3385-9978-96FDD917D767/GUID-BA814E0E-5397-3583-9030-C7234C549594"><apiname>CPosNetworkPrivacy::CancelRequest()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-FE23688D-33B2-5D85-9181-30C3E4EFBC74" xml:space="preserve">
+// Cancel an outstanding request
+void CMyNetworkObserver::CancelPrivacyRequestL(TInt aRequestId, CPosNetworkPrivacy::TCancelReason aCancelReason)
+    {
+    
+    // TCancelReason may be e.g. CPosNetworkPrivacy::ECancelReasonTimeout
+
+    iPrivacy-&gt;CancelVerifyLocationRequest(aRequestId, aCancelReason);
+    
+    }
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-619AA8B0-69B9-51F0-887B-E3CDA6EB6F6E"><cmd>Write code to send
+a timeout notification to LBS. </cmd>
+<info>The code example below shows how a request can be timed out. The network
+can timeout the request and the client forwards this to the LBS subsystem
+by calling <xref href="GUID-F5E959D8-3457-3385-9978-96FDD917D767.dita#GUID-F5E959D8-3457-3385-9978-96FDD917D767/GUID-E0A6F960-2EBD-3BBA-95B8-AA3203D250B5"><apiname>CPosNetworkPrivacy::NotifyVerificationTimeoutL()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-2CC875F4-8489-5D66-BD49-C7CEAB170859" xml:space="preserve">// Notify LBS that a completed privacy request has timed out
+void CMyNetworkObserver::GSMTimeoutPrivacyRequestL(const TDesC* aLCSClient, const TDesC* aRequestor,
+                                                  TInt aRequestId, CPosNetworkPrivacy::TRequestDecision aTimeoutAction)
+    {
+    
+    // Create a new CPosGSMPrivacyRequestInfo object    
+    CPosGSMPrivacyRequestInfo* info = CPosGSMPrivacyRequestInfo::NewLC();
+
+    // In this example, aLCSClientName is a proper name and aRequestor is a phone number
+    info-&gt;SetLCSClientL(*aLCSClient, CPosGSMPrivacyRequestInfo::EIdTypeLogicalName);
+    info-&gt;SetRequestorL(*aRequestor, CPosGSMPrivacyRequestInfo::EIdTypeMSISDN);
+
+    iPrivacy-&gt;NotifyVerificationTimeoutL(*info, aRequestId, aTimeoutAction);
+    
+    CleanupStack::PopAndDestroy(info);
+    
+    }
+</codeblock> </stepxmp>
+<stepxmp><codeblock id="GUID-B6107B5B-329D-5A7A-8AE2-BB9835827593" xml:space="preserve">
+// Handle verify complete messages from LBS
+void CMyNetworkObserver::HandleVerifyComplete(TInt aRequestId, TInt aCompleteCode)
+    {
+    
+    // The privacy request identified by aRequestId is complete
+    // Inform the network...
+
+    }
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-4144B5F1-9F86-5D7C-949B-10A5C151A8E5"><cmd>Define client capabilities </cmd>
+<info>The following is a simple MMP file for the client. The header files
+for the Network Privacy API are located at <filepath>\epoc32\include\lbs</filepath> and
+the client links to <filepath>eposnwprv.lib</filepath>. A client requires
+the capabilities <codeph>Location</codeph>, <codeph>NetworkServices</codeph> and <codeph>ReadDeviceData</codeph>. </info>
+<stepxmp><codeblock id="GUID-DCAA7242-6F9E-55A5-8BCD-40E8C809BFCC" xml:space="preserve">/*
+============================================================================
+ Name        : NetworkPrivacyAPI_Example.mmp
+ Author      : 
+ Copyright   :
+ Description : 
+============================================================================
+*/
+
+TARGET          NetworkPrivacyAPI_Example.exe
+TARGETTYPE      exe
+UID             0 0xE3DC328A
+
+USERINCLUDE     ..\inc
+SYSTEMINCLUDE   \epoc32\include \epoc32\include\lbs
+
+SOURCEPATH      ..\src
+SOURCE          NetworkPrivacyAPI_Example.cpp CMyNetworkListener.cpp
+
+LIBRARY         euser.lib eposnwprv.lib
+
+
+CAPABILITY Location NetworkServices ReadDeviceData</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-B3000A78-3BE5-5E0A-A718-87BC9BA03726.dita"><linktext>Network Privacy
+API</linktext></link>
+<link href="GUID-746866CE-809A-5598-BA60-2947763E5EE9.dita"><linktext>Network Privacy
+API Reference</linktext></link>
+</related-links></task>

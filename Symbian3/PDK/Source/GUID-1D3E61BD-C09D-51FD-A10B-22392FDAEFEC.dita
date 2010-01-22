@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC" xml:lang="en"><title>Inactivity
+Monitoring and Peripheral Low Power States</title><shortdesc>Peripheral inactivity can be defined as the state when that peripheral’s
+driver has no pending request and is not performing background tasks.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>It is recommended that peripheral drivers monitor peripheral inactivity
+because they are in the best position to understand the current hardware requirement. </p>
+<p>The preferred approach is to implement inactivity monitoring in the platform
+specific portion of peripheral drivers. However it is not always possible
+to safely do it that way. In this case, an interface between the platform
+specific and generic portions of the driver might need to be devised leading
+to, in the future, inactivity monitoring functionality or assistance being
+included in generic components. </p>
+<p>In some cases the developer of the driver might decide to implement inactivity
+monitoring with a grace delay, using timers. For example, consider a peripheral
+used as a data input device. If the only way that the platform specific layer
+of the peripheral driver has any knowledge that an input request is pending,
+and that data is arriving, is when an incoming unit of data causes an interrupt,
+then the resulting ISR (or deferred DFC) could re-start a timer with a suitable
+period. Inactivity could be monitored in the timer callback. This guarantees
+that if another unit of data arrives before the timer expiration, the peripheral
+is still in its operational power state. </p>
+<ul>
+<li id="GUID-D72B1509-0CFD-55D2-B4D3-84A6130AC3C8"><p> <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-1817A738-2351-526F-881D-7EB479E93C4C">Peripheral Power States</xref> </p> </li>
+<li id="GUID-C6CAE535-2406-53FF-85C6-18552831DB94"><p> <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-1E31C6B9-6F69-50C5-908A-BCC648D4D8B1">Peripheral standby</xref> </p> </li>
+<li id="GUID-36E6FC1E-C3E8-5A78-AF77-D54486719BFF"><p> <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-DCB8EA90-9B5F-5BA1-8D22-124980AC6B34">Moving peripherals to a low power state</xref> </p> </li>
+<li id="GUID-927DF4E2-18A3-51B5-9A46-02C63013954C"><p> <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-81231D49-0F35-582D-BDB3-DC1A08C2E448">High latency low power states and non-transparent transitions</xref> </p> </li>
+<li id="GUID-9DC49460-BE85-5979-B52D-DB6AC7E218D5"><p> <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-CA1BB80F-5A1C-5B66-8091-84625A0A9CFB">Peripheral power state diagram and transitions</xref> </p> </li>
+</ul>
+<section id="GUID-1817A738-2351-526F-881D-7EB479E93C4C"><title>Peripheral
+Power States</title> <p>It is possible that a particular ASSP allows peripheral
+hardware blocks to be independently transitioned to a low power state. From
+the point of view of power consumption, the base port might consider that
+those peripherals have three logical power states: </p> <ul>
+<li id="GUID-49BC931A-15BE-5AC3-8F8F-1C3EFBFC0806"><p> <i>Operational Power</i> –
+the peripheral is either processing some request, or performing a background
+task with data transactions to or from it, or the peripheral is being kept
+in this state in anticipation that data will be input to it, and is drawing
+an amount of power corresponding to one of its possible modes of operation. </p> </li>
+<li id="GUID-93AA050E-44F7-5B73-A8A2-4F70A2067E42"><p> <i>Low Power</i> –
+the peripheral is “idling” after a period of inactivity has been detected,
+drawing a minimal amount of power required to preserve its internal state.
+The peripheral should be able to keep its internal state and transition from
+this to the Operational Power state with a negligible delay and with no impact
+on the performance of either the peripheral driver or the upper layer components
+that use it. </p> </li>
+<li id="GUID-8A39F42D-B928-5DE2-B79A-A1EABBF696E4"><p> <i>Off</i> – the peripheral
+power has been cut off, and only leakage accounts for power consumption. No
+state is preserved and the delay to a return to full power is not negligible. </p> </li>
+</ul> <p>Note that peripheral power states are a notion that only applies
+to the peripheral hardware block, and not to the driver. The peripheral driver
+is the component that requests the peripheral to transition between these
+states. </p> <p>Note also that both Operational and Low Power states are subsets
+of the Peripheral "Active" state. In some cases the differences in power consumption
+between the Operational and Low Power modes might not be significant as, with
+some hardware, only part of the peripheral needs to be operational to service
+a particular type of request. </p> </section>
+<section id="GUID-1E31C6B9-6F69-50C5-908A-BCC648D4D8B1"><title>Peripheral
+standby</title> <p>Some ASSPs make provision for a peripheral standby mode,
+where individual peripherals can be transitioned to a low power consumption
+mode of operation under software control, usually by writing to an ASIC internal
+register. </p> <p>If the peripheral is capable of keeping its internal state,
+and the transition out of this mode is either done automatically on hardware,
+or controlled by software, but has no impact on the performance of the peripheral
+driver or on the users of this peripheral, and can be done with negligible
+delay, then the peripheral standby mode could be considered a low power state
+as above. </p> </section>
+<section id="GUID-DCB8EA90-9B5F-5BA1-8D22-124980AC6B34"><title>Moving peripherals
+to a low power state</title> <p>It is assumed that peripherals can be transitioned
+between power states under the peripheral driver's software control. However,
+transitioning peripherals to a low power state should only be performed if
+it can be done transparently to the users and consumers of the services provided
+by that peripheral. Negligible interactive delays may be acceptable, data
+loss is not acceptable. </p> <p>The transition of a peripheral to a low power
+state can be requested by the platform-dependent layers of that peripheral
+driver after inactivity, as defined above, has been detected. That request
+usually assumes the form of a request to turn a controllable power resource
+off. The request should be handled by the ASSP/Variant component that manages
+platform power resources (the resource manager). </p> <p>It can also assume
+the form of an operation required to put the peripheral in standby mode. In
+this case the peripheral driver is totally responsible for handling the transition
+to the low power state. </p> </section>
+<section id="GUID-81231D49-0F35-582D-BDB3-DC1A08C2E448"><title>High latency
+low power states and non-transparent transitions</title> <p>This guide is
+only concerned with peripheral low power states that can be reached and left
+with no impact on system performance. However, it is possible that transitions
+to and from a peripheral low power state are long enough to have an impact
+on system performance, or cause loss of data, or the peripheral is not capable
+of detecting the hardware events required to guarantee correct operation while
+in a low power state. If this is the case, then the decision to transition
+to a low power state cannot be taken solely by the peripheral driver, and
+will have to be taken in agreement with the users and consumers of the services
+provided by this peripheral. </p> </section>
+<section id="GUID-CA1BB80F-5A1C-5B66-8091-84625A0A9CFB"><title>Peripheral
+power state diagram and transitions</title> <fig id="GUID-A1F2E1D2-FA3B-55C3-B7A3-1AECBDC37453">
+<title>Peripheral power state diagram</title>
+<image href="GUID-E55B594F-CC84-5984-9307-9819F6EBEB7F_d0e379829_href.png" placement="inline"/>
+</fig> <p>It can be assumed that when the peripheral driver is loaded, the
+peripheral is put into the <i>Low Power</i> state. If a new request is asserted
+on that peripheral driver from a user of that peripheral (which can include
+another dependent peripheral driver or user side Engine/server/application),
+the peripheral should move to its <i>Operational Power</i> state. The driver
+can then start monitoring for peripheral inactivity, and when that is detected,
+and no other dependent peripheral is using this peripheral, it can move the
+peripheral back to the <i>Low Power</i> state. </p> <p>If, however, the power
+manager requests the driver to power down the peripheral and no other dependent
+peripheral is using it, it then moves into its <i>Off</i> state from which
+it can only return to the <i>Operational Power</i> state when the power manager
+issues a power up request. Moving from the <i>Off</i> state to the <i>Operational
+Power</i> state is a relatively lengthy operation and requires resetting the
+internal state of the peripheral. </p> <p>If another dependent peripheral
+is using this peripheral, and the power manager issues a power down request,
+then the driver keeps the peripheral in its operational power state until
+the dependent peripheral relinquishes its request on it. </p> <p>From the <i>Low
+Power</i> state, a peripheral can also be turned Off (unconditionally) if
+the power manager so requests. It can be moved back to the <i>Operational
+Power</i> state on an internal event (Interrupt, Timer). </p> <fig id="GUID-C5AED7DE-18A1-5FBF-B1E4-44067F246CC2">
+<title>Peripheral power states</title>
+<image href="GUID-EFEACBE5-B9E1-5315-88CA-DA3B7C1BFCE0_d0e379876_href.png" placement="inline"/>
+</fig> </section>
+</conbody></concept>

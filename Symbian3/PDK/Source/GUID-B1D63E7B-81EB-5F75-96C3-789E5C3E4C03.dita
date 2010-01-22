@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B1D63E7B-81EB-5F75-96C3-789E5C3E4C03" xml:lang="en"><title>How to
+construct and manipulate a doubly linked list</title><shortdesc>This document describes how to construct and use a doubly linked
+list.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The following code fragments show how a doubly linked list can be constructed
+and manipulated. The list consists of <codeph>CItem</codeph> objects. In this
+example, a <codeph>CItem</codeph> object can contain an item of text implemented
+as an <codeph>HBufC</codeph>. The <codeph>CItem</codeph> objects can form
+elements of a doubly linked list using the <codeph>iDlink</codeph> data member
+as the link object. </p>
+<p>The class is declared as:</p>
+<codeblock id="GUID-F98B0D2C-486A-59C5-B487-A0F1D7D022FD" xml:space="preserve">class CItem : public CBase
+    {
+public  :
+    static CItem* NewL(const TDesC&amp; aText);
+    static CItem* NewLC(const TDesC&amp; aText); 
+    virtual       ~CItem();
+public   :
+    static const  TInt iOffset;
+private  :
+    void          ConstructL(const TDesC&amp; aText);
+private  :
+    TDblQueLink  iDlink;
+    HBufC*       iText;
+    friend class CXy;
+    };</codeblock>
+<p>The <codeph>CItem</codeph> member functions are implemented as:</p>
+<codeblock id="GUID-1DAC73DB-A599-5BAC-AAB5-707BA89B8382" xml:space="preserve">const TInt CItem::iOffset = _FOFF(CItem,iDlink);</codeblock>
+<codeblock id="GUID-6FEA34D4-0937-56E3-ACA5-3912E1595511" xml:space="preserve">CItem* CItem::NewLC(const TDesC&amp; aText)
+    {
+    CItem* self = new (ELeave) CItem;
+    CleanupStack::PushL(self);
+    self-&gt;ConstructL(aText);
+    return self;
+    }</codeblock>
+<codeblock id="GUID-75110620-3EDC-5B4D-84EB-C4D6C78BF2F9" xml:space="preserve">CItem* CItem::NewL(const TDesC&amp; aText)
+    {
+    CItem* self = CItem::NewLC(aText);
+    CleanupStack::Pop();
+    return self;
+    }</codeblock>
+<codeblock id="GUID-8EABC406-6C95-5139-9A97-AB467D526019" xml:space="preserve">void CItem::ConstructL(const TDesC&amp; aText)
+    {
+    iText    = aText.AllocL();
+    }</codeblock>
+<codeblock id="GUID-235AC477-3C7E-52E2-B85B-57C404C8BC08" xml:space="preserve">CItem::~CItem()
+    {
+    delete (iText);
+    }</codeblock>
+<p>As part of its construction process, a <codeph>CItem</codeph> constructs
+an <codeph>HBufC</codeph> of the correct length and copies the content of
+the descriptor parameter into it.</p>
+<p>A <codeph>CXy</codeph> object maintains the list by:</p>
+<ul>
+<li id="GUID-048EFEF6-B2EC-5333-A835-BC735C334220"><p> creating <codeph>CItem</codeph> objects
+and adding them into the list</p> </li>
+<li id="GUID-310AB703-85C5-5DFC-8AB6-2A0938095134"><p>removing <codeph>CItem</codeph> objects
+from the list and then destroying them</p> </li>
+</ul>
+<p>The class is declared as:</p>
+<codeblock id="GUID-F5CF044D-650A-5446-9713-BE84362FD793" xml:space="preserve">class CXy : public CBase
+    {
+public :
+    CXy();
+    virtual ~CXy();
+    void    DoItems();
+    TBool   AddItem(const TDesC&amp; anItem,TItemPos aPos);
+private :
+    TDblQue&lt;CItem&gt;     iHdr; 
+    TDblQueIter&lt;CItem&gt; iIter;
+    };</codeblock>
+<p>Here, the list header, <codeph>iHdr</codeph>, and the iterator, <codeph>iIter</codeph>,
+are declared as data members of the class and are constructed when the <codeph>CXy</codeph> object
+is constructed. A C++ constructor must be supplied so that <codeph>iIter</codeph> can
+be properly constructed. (<codeph>TDblQueIter</codeph> has no default constructor).</p>
+<p>Specifically:</p>
+<ul>
+<li id="GUID-36B75BBC-B6EA-5717-9E88-8C1FFB4F9119"><p><codeph>AddItem()</codeph> constructs
+a new <codeph>CItem</codeph> and adds it to the list, either after the current
+item or at the end of the list.</p> </li>
+<li id="GUID-B85DEE50-218E-5CC9-B60D-D6EA2176643F"><p><codeph>DoItems()</codeph> scans
+through the list, removing and destroying each element from the list.</p> </li>
+</ul>
+<p>The <codeph>CXy</codeph> member functions are implemented as:</p>
+<codeblock id="GUID-910891C0-DBEF-592F-8CA3-FC354DE16B3E" xml:space="preserve">CXy::CXy()
+    : iHdr(CItem::iOffset),iIter(iHdr) //construct header &amp; iterator
+    {}</codeblock>
+<codeblock id="GUID-C471B1FC-05A6-56AD-B3D6-C65FB045B864" xml:space="preserve">CXy::~CXy()
+    {
+    CItem*  anyitem;
+    
+    iIter.SetToFirst();
+    while ((anyitem = iIter++) != NULL)
+        {
+        anyitem-&gt;iDlink.Deque();
+        delete anyitem;
+        };
+    }</codeblock>
+<p>Before destroying a <codeph>CXy</codeph> object, the list is destroyed.
+This is achieved using the iterator. The iterator pointer is set to point
+to each element in turn, removing that element from the list before destroying
+it.</p>
+<p>Once the iterator has reached the end of the list, the operator<codeph>++</codeph> returns <codeph>NULL</codeph>.</p>
+<p>The destruction process is safe if the list is empty; the statement <codeph>iter.SetToFirst()</codeph> is
+harmless, the operator<codeph>++</codeph> returns <codeph>NULL</codeph> and
+execution of the body of the <codeph>while</codeph> loop never happens.</p>
+<codeblock id="GUID-8E2FD32B-B8FF-5F37-9C66-20695B296079" xml:space="preserve">TBool CXy::AddItem(const TDesC&amp; aText,TItemPos aPos)
+    {
+    CItem* newitem;
+    
+    TRAPD(leavecode,newitem = CItem::NewL(aText));
+    if (leavecode != KErrNone)
+        return EFalse;              // Cannot create a CItem</codeblock>
+<codeblock id="GUID-6A38CF3D-9547-562D-BB4C-F53938943D15" xml:space="preserve">    switch (aPos)
+        {
+    case EAtEnd:
+        iHdr.AddLast(*newitem);     // Add at back of list
+        return ETrue;
+
+    case EAfterCurrent:
+        CItem* currentitem = iIter; 
+        if (currentitem)
+            {
+            newitem-&gt;iDlink.Enque(&amp;currentitem-&gt;iDlink);
+            iIter.Set(*newitem);
+            }
+        else
+            {
+            iHdr.AddFirst(*newitem);
+            iIter.SetToFirst();    
+            }
+        return ETrue;
+        }
+                
+    return EFalse;
+        }</codeblock>
+<p>This member function creates a new <codeph>CItem</codeph> and then, depending
+on the value of <codeph>aPos</codeph>, either adds it at the back of the list
+or after the current element. <codeph>TItemPos</codeph> is just an enumeration
+taking the enumerators <codeph>EAtEnd</codeph> and <codeph>EAfterCurrent</codeph>.</p>
+<p>The statement:</p>
+<codeblock id="GUID-FBCE5C8F-D42A-50E6-BA1E-A6B2887AF0C1" xml:space="preserve">newitem-&gt;iDlink.Enque(&amp;currentitem-&gt;iDlink);</codeblock>
+<p>inserts the newly created <codeph>CItem</codeph> with pointer <codeph>newitem</codeph>, <i>after</i> the
+existing item with pointer <codeph>currentitem</codeph>.</p>
+<p>Note also that the statement:</p>
+<codeblock id="GUID-F875FA76-2768-5713-8462-44610B17F35A" xml:space="preserve">CItem* currentitem = iIter; 
+</codeblock>
+<p>implicitly uses the conversion operator <codeph>T*()</codeph> where, in
+general, <codeph>T</codeph> is the class forming elements of the list. In
+this specific example, the conversion operator returns a pointer to the current
+element, of type <codeph>CItem</codeph>, in the list. Immediately after construction
+of the iterator <codeph>iIter</codeph>, the value of <codeph>currentitem</codeph> is <codeph>NULL</codeph>.</p>
+<codeblock id="GUID-96C01CEC-29F5-537B-9E44-531A313D8796" xml:space="preserve">void CXy::DoItems()
+    {
+    CItem* currentitem;
+
+    iIter.SetToFirst();
+
+    while((currentitem = iIter++) != NULL)
+        {
+        // do something with the text;
+        currentitem-&gt;iDlink.Deque();
+        delete currentitem;
+        };
+    }</codeblock>
+<p>The <codeph>DoItems()</codeph> member function iterates through the whole
+list, removing each <codeph>CItem</codeph> object in turn before destroying
+it. This member function could be modified to include extra functionality
+before the removal and destruction of the <codeph>CItem</codeph> element.</p>
+<p>If the list is empty on entry to this function, the <codeph>iter.SetToFirst()</codeph> statement
+is safe, <codeph>currentitem</codeph> is <codeph>NULL</codeph> on the first
+execution of the <codeph>while</codeph> condition and the body of the <codeph>while</codeph> loop
+is never executed.</p>
+<p>Executing the code:</p>
+<codeblock id="GUID-081282AE-93D7-59FB-93A7-93D7E1F2080C" xml:space="preserve">    {
+    _LIT(KTxtOne,"one");
+    _LIT(KTxtTwo,"two");
+    _LIT(KTxtThree",three");
+    _LIT(KTxtFour,"four");
+    _LIT(KTxtFive,"five");
+    _LIT(KTxtSix,"six");
+
+    CXy* items;
+
+    items = new CXy;
+
+    items-&gt;AddItem(KTxtone,EAfterCurrent);
+    items-&gt;AddItem(KTxttwo,EAtEnd);
+    items-&gt;AddItem(KTxtthree,EAfterCurrent);
+    items-&gt;AddItem(KTxtfour,EAtEnd);
+    items-&gt;AddItem(KTxtfive,EAfterCurrent);
+    items-&gt;AddItem(KTxtsix,EAtEnd);
+    ...
+</codeblock>
+<p>results in the construction of a doubly linked list of <codeph>CItem</codeph> objects
+each containing a pointer to an <codeph>HBufC</codeph> descriptor containing
+the text as shown:</p>
+<fig id="GUID-10DC05B0-64A2-52D0-ABC6-ACD231F402C4">
+<title/>
+<image href="GUID-03AC137D-173A-558C-A2F3-9522870AC43C_d0e306198_href.png" placement="inline"/>
+</fig>
+<p>The following code destroys the list elements and the <codeph>CXy</codeph> object
+containing the list header and iterator:</p>
+<codeblock id="GUID-37EF4182-834F-51BF-9250-61B479BFD3D1" xml:space="preserve">    ...
+    items-&gt;DoItems();
+    delete items;
+    }</codeblock>
+<p>There are a number of other possible ways to proceed, depending on the
+precise needs of an application. In the previous example, the list header
+and the iterator are declared as members of the class.</p>
+<p>Some situations may demand that a list be created, used and destroyed within
+the scope of a member function. Because list headers and iterators are “<codeph>T</codeph> ”
+types, they can be declared on the stack; for example:</p>
+<codeblock id="GUID-E29EDC0D-C7DE-5E35-B39F-DA63110DF630" xml:space="preserve">void CXy::SomeFunction();
+    {
+    TDblQue&lt;CItem&gt;     iHdr(CItem::iOffset); 
+    TDblQueIter&lt;CItem&gt; iIter(iHdr);
+
+    // the body of the function
+    //
+
+    }
+</codeblock>
+<p>The list header and the iterator go out of scope at the end of the function
+and are destroyed. Unless the list elements themselves are “<codeph>T</codeph> ”
+types and exist on the stack, make sure that they are explicitly destroyed
+before the function terminates.</p>
+</conbody></concept>

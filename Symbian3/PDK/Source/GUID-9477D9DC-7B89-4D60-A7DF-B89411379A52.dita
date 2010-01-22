@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-9477D9DC-7B89-4D60-A7DF-B89411379A52" xml:lang="en"><title>Use
+Agent-Specific Commands</title><shortdesc>This is an extension mechanism to allow a client to perform an
+agent-specific function. The application needs to know the extended commands
+that the agent supports and the format of the input and output buffers used
+in the command. All of this is specified by the CAF agent, not the Content
+Access Framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq>       <p>The manager object must be created using the <xref href="GUID-7F3D9E35-A8FC-35A6-8036-23396BAADFDC.dita#GUID-7F3D9E35-A8FC-35A6-8036-23396BAADFDC/GUID-2F4CB027-777F-3F16-AE9A-8902F4AE87E7"><apiname>CManager::NewL()</apiname></xref> function. </p> 
+   </prereq>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-24-1-1-6-1-5-1-5-1-6-1-4-1-6-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-7-1-24-1-1-6-1-5-1-5-1-6-1-4-1-6-1-3-2-1"><cmd>The buffers allow
+agent specific objects to be externalized by an application, passed through
+CAF and internalized by the agent. The same principle applies for data returned
+from the agent to the application.</cmd>
+<info><codeblock xml:space="preserve">TInt FancyApplicationFunction(CManager&amp; aManager, CAgent&amp; aAgent, CFancyAgentInputObject&amp; aInputObject, CFancyAgentOutputObject&amp; aOutputObject)
+    {
+    // Buffer large enough to hold the expected output object 
+    TBuf &lt;1000&gt; outputBuffer; 
+
+    // Dynamic buffer to serialize aInputObject 
+    CBufFlat* inputBuffer = CBufFlat::NewL(50); 
+    CleanupStack::PushL(inputBuffer); 
+    RBufWriteStream streamIn(*inputBuffer); 
+    CleanupClosePushL(streamIn); 
+
+    // write aInputObject to the dynamic buffer 
+    aInputObject.ExternalizeL(streamIn); 
+    CleanupStack::PopAndDestroy(&amp;streamIn); 
+
+    // Call the agent specific function #42 
+    aManager.AgentSpecificCommand(aAgent, 42 ,inputBuffer-&gt;Ptr(0), outputBuffer); 
+
+    // Don't need the input buffer any longer 
+    delete *inputBuffer; 
+    inputBuffer = NULL; 
+
+    // Create a stream object to read the output buffer             
+    RDesReadStream streamOut(outputBuffer); 
+
+    // Build the output object from the output stream 
+    aOutputBuffer.InternalizeL(streamOut); 
+    }</codeblock></info>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-E99E0092-5F1D-5715-945E-E83C307357C3.dita"><linktext>Managing
+CAF Agents</linktext></link>
+</related-links></task>

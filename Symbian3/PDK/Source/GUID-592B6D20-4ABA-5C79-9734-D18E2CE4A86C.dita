@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-592B6D20-4ABA-5C79-9734-D18E2CE4A86C" xml:lang="en"><title>Writable
+Data Paging Overview</title><shortdesc>Overview of data paging, the next phase in Symbian's implementation
+of demand paging. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-B1D8D3AD-4438-4C51-B900-1DD2B55202BC"><title>Purpose</title> <p>Writable
+data paging allows the demand paging of any user-side data (for example thread
+stacks and heaps). Writable data paging makes use of a fixed size backing
+store to page out data. The backing store may use a NAND flash partition or
+an embedded MMC (eMMC). </p> <p>The aim of data paging is to enable more memory-hungry
+use cases without increasing the amount of physical RAM present in the device. </p> <p>For
+example, data paging enables: </p> <ul>
+<li id="GUID-F3B36258-F661-5562-A641-1875D33600B7"><p>running applications
+that are not designed with the memory constraints of embedded devices in mind,
+for example applications ported from other environments with writable data
+paging (such as a PC). </p> </li>
+<li id="GUID-7BB35E5C-6E38-50E6-B27E-094948F0F6A8"><p>running multiple applications
+at the same time where previously there would not have been enough memory. </p> </li>
+</ul> <p> <note> Data paging offers no performance increase, unlike code paging
+which can speed up application loading by reading only the necessary pages
+into RAM. </note></p> <p> </p> <p>However, writable data paging does have
+the following limitations: </p> <ul>
+<li id="GUID-EB2514D7-CE57-52F2-91D5-E790A41D12B2"><p>It is only possible
+to page the following types of memory: </p> <ul>
+<li id="GUID-9C9002DF-BF9B-5656-A57F-84C442E855B7"><p>user heaps, </p> </li>
+<li id="GUID-8F6AC93B-F1BE-5CA6-899E-8433E2055013"><p>user thread stacks, </p> </li>
+<li id="GUID-0EC7E799-24CC-590E-A67D-DAA014825A1E"><p>private chunks, </p> </li>
+<li id="GUID-9789A61F-CB01-5AD8-8886-41CA74EA564F"><p>global chunks, </p> </li>
+<li id="GUID-1C8479BE-B4E6-5E6D-83C0-D23E8DC6F9CF"><p>static data. </p> </li>
+</ul> </li>
+<li id="GUID-E11A66FB-C2DF-5DE7-B074-0CBDFC7EBE6D"><p>A single memory object
+(e.g. a heap, stack, DLL or chunk) is the smallest granularity at which paging
+can be configured </p> </li>
+<li id="GUID-06F9012E-85CE-587C-B0E9-6BF7EE37A39F"><p>No attempt will be made
+to page kernel-side data </p> </li>
+<li id="GUID-88EE2287-EF50-5B7C-B63E-C2D172A1EA80"><p>No attempt will be made
+to implement memory mapped files (e.g. posix's mmap) </p> </li>
+<li id="GUID-C79316F5-BFF4-569E-8D44-AF5BDCBD0811"><p>No attempt will be made
+to implement any kind of paging on the emulator. </p> </li>
+</ul> </section>
+<section id="GUID-9E27B27E-898B-43DA-8614-4AAEEE0A294E"><title>Required background</title> <p>This
+document assumes that the reader is familiar with the concept of <xref href="GUID-F123D574-44DE-528A-806C-DB64229BCEA2.dita">Demand
+Paging</xref>, and the existing implementation of ROM and code paging in Symbian
+platform. </p> </section>
+<section id="GUID-1028A9E3-C9D7-4A4B-9DD4-B719475D09E5"><title>Key concepts
+and terms</title> <dl>
+<dlentry>
+<dt>Page</dt>
+<dd><p>Memory is managed in fixed size units called pages. The size of a page
+is usually determined by the hardware, and for ARM architectures this is 4K. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Paged in or Paged out</dt>
+<dd><p>If a given page of memory is present in RAM it is said to be <i>paged
+in</i> (or just 'present'), as opposed to <i>paged out</i>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Paging in</dt>
+<dd><p>The process of moving a page of memory from being paged out to being
+paged in. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Paging out</dt>
+<dd><p>The process of moving a page of memory from being paged in to being
+paged out. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>backing store</dt>
+<dd><p>The external media used to hold <i>paged out</i> pages is referred
+to as the <i>swap area</i>. This area may be much larger than physical RAM,
+although a factor of around twice as large is considered normal in existing
+systems. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Working set</dt>
+<dd><p>The term <i>working set</i> is defined as the memory accessed during
+a given time period. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Pinning</dt>
+<dd><p> <i>Pinning</i> pages refers to paging in demand-paged memory and forcing
+it to remain in RAM until it is <i>unpinned</i> at a later time. </p> </dd>
+</dlentry>
+</dl> </section>
+<section id="GUID-AED67EBB-6176-4357-BC22-4A0B4E518265"><title>Classes</title> <p>The
+following classes are affected by the use of writable data demand paging: </p> <p>The
+following classes are involved in the use of threads and processes: </p> <table id="GUID-24779260-DE34-5184-9A58-560F06F0DE9D">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Class </p> </entry>
+<entry><p>Description </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita"><apiname>RThread</apiname></xref>  </p> </entry>
+<entry><p>This class is used to handle threads. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita"><apiname>RProcess</apiname></xref>  </p> </entry>
+<entry><p>This class is used to handle processes. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-1D0D14AD-43CF-3B52-AD8D-641F75B8098C.dita"><apiname>TThreadCreateInfo</apiname></xref>  </p> </entry>
+<entry><p>Used to specify the attributes of a new thread. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>These classes are used in handling memory: </p> <table id="GUID-ACCA6C7E-92B5-51BE-B86E-D94E9FB0FF9F">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Class </p> </entry>
+<entry><p>Description </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref>  </p> </entry>
+<entry><p>Handle a chunk. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita"><apiname>TChunkCreateInfo</apiname></xref>  </p> </entry>
+<entry><p>A structure that specifies the type and properties of the chunk
+that is to be created. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-3DCB92FB-9C74-3B73-B229-BF7944087EE9.dita"><apiname>TChunkHeapCreateInfo</apiname></xref>  </p> </entry>
+<entry><p>A structure that specifies the type and properties of a chunk with
+a heap within it. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-C5D0C7E7-061F-3BA5-AE24-B83237684B01.dita"><apiname>UserHeap</apiname></xref>  </p> </entry>
+<entry><p>A set of functions that are used to create heaps. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The following classes are used in client/server communication: </p> <table id="GUID-E823BA5C-620C-5B58-9945-8135EF7D39D1">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Class </p> </entry>
+<entry><p>Description </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref>  </p> </entry>
+<entry><p>The abstract base class for servers. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref>  </p> </entry>
+<entry><p>A client/server class that clients use to package arguments that
+are to be sent to a sever. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody><related-links>
+<link href="GUID-9D66A168-AF11-51D9-903C-4A6C6D31DA3D.dita"><linktext>Flexible
+Memory Model Overview</linktext></link>
+</related-links></concept>

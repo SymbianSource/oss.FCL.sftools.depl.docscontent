@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7" xml:lang="en"><title>State
+Machines</title><shortdesc>Description of the structure and operation of state machines.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The MultiMediaCard Controller uses state machines to manage the interactions
+with the MultiMediaCard hardware. </p>
+<p>State machines allows the controller to maintain the state of each submitted
+session – allowing it to schedule a second session when the first becomes
+blocked, for example. </p>
+<p>To handle the complex sequence of bus operations involved, the controller
+implements a state machine stack, allowing a parent state machine function
+to invoke a child state machine function. The state machine stack allows nesting
+of children down to a depth of 10 levels. </p>
+<p>Each session object has its own individual state machine stack because
+each session runs its own sequence of bus operations, with the controller
+managing these multiple sequences. This means that each session object has
+a state machine object, an instance of the <xref href="GUID-022AC0FE-86EE-3908-A9F8-4A33D04A68A5.dita"><apiname>TMMCStateMachine</apiname></xref> class. </p>
+<fig id="GUID-3CD3F1EF-FB6A-5D5D-B806-75536F8DF533">
+<image href="GUID-4592D493-A47C-5622-8C03-F24FABB4381C_d0e383692_href.png" placement="inline"/>
+</fig>
+<p>The state machine remembers the next state and child function name, and
+moves to that state as soon as control returns to the session. </p>
+<p>The stack chooses the next session to be handled and manages the state
+machine through the state machine dispatcher. </p>
+<ul>
+<li id="GUID-76BEBC23-FC9D-5244-A3EA-2A5424FC02D7"><p> <xref href="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7.dita#GUID-80E0DB93-A96A-54A8-A201-E11935418BE7/GUID-44473E52-82B4-55E7-AE85-15AC88CE5BEB">Structure of the state machine stack</xref> </p> </li>
+<li id="GUID-0A56A8B9-65D7-54CB-A584-8C3C9AEFE339"><p> <xref href="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7.dita#GUID-80E0DB93-A96A-54A8-A201-E11935418BE7/GUID-E8FCFD65-4664-52EE-B658-FCABF50D501D">Structure of a state machine function</xref> </p> </li>
+<li id="GUID-85E36E04-60CD-5560-93DE-5C15E8DBDD45"><p> <xref href="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7.dita#GUID-80E0DB93-A96A-54A8-A201-E11935418BE7/GUID-667C5A70-0ABB-525F-A309-58102E380400">Example of a state machine calling sequence</xref> </p> </li>
+</ul>
+<section id="GUID-44473E52-82B4-55E7-AE85-15AC88CE5BEB"><title>Structure of
+the state machine stack</title> <p>The stack itself is represented as an array
+of <xref href="GUID-DDCE8054-1656-34EF-9CBC-53C796BFD5A6.dita"><apiname>TMMCMachineStackEntry</apiname></xref> objects contained within the state
+machine object <xref href="GUID-022AC0FE-86EE-3908-A9F8-4A33D04A68A5.dita"><apiname>TMMCStateMachine</apiname></xref>. </p> <p>The state machine
+maintains a "pointer", <xref href="GUID-022AC0FE-86EE-3908-A9F8-4A33D04A68A5.dita#GUID-022AC0FE-86EE-3908-A9F8-4A33D04A68A5/GUID-5EC9B7D0-A3A9-35DF-A91D-65920372C9A4"><apiname>TMMCStateMachine::iSP</apiname></xref>, to the current
+state entry. This is not a true pointer, but just a value that indexes into
+the array. However, for all practical purposes it has the effect of a pointer.
+Each state entry in the stack is thought of as having a parent-child relationship
+with the other. </p> <p>Each state entry maintains three pieces of information: </p> <ul>
+<li id="GUID-81454E68-4603-5211-8F9F-70F0F2F4B95D"><p>A pointer to the state
+machine function. </p> </li>
+<li id="GUID-B20834EB-3EAE-5D79-8564-8B2A5490A057"><p>A variable containing
+the current state; the value and meaning of the state is defined by the state
+machine function. </p> </li>
+<li id="GUID-32AFB296-0D5F-5FF7-9ECD-C9F798E04542"><p>A bitmask of <xref href="GUID-FF4AB1CF-7A2C-3FC6-B123-D6819E1BCDCA.dita"><apiname>TMMCErr</apiname></xref> defined
+error conditions; these are set by the parent state machine function so that
+it gets the chance to trap those errors if the child state machine function
+returns those errors. Errors are propagated up the stack, and any error conditions
+not trapped at any level in the state machine hierarchy leads to the state
+machine terminating with that error value. </p> </li>
+</ul> <fig id="GUID-064C53DB-6A96-5C6D-B3CD-B40A0251EF66">
+<image href="GUID-D8911BE6-100D-588A-8E5C-A429A72AFCDA_d0e383777_href.png" placement="inline"/>
+</fig> <p>In general, the overall state of the state machine reflects the
+state of the current state entry; for example, <xref href="GUID-E32D6BC3-F8D9-3F7E-94F6-56633B645D6A.dita#GUID-E32D6BC3-F8D9-3F7E-94F6-56633B645D6A/GUID-48F37107-2D11-3550-890B-D79844A97DBF"><apiname>TMMCStatemachine::State()</apiname></xref> returns
+the state held in the current state entry. </p> <p>While the flow of control
+through a stack can be complex, the following diagram shows a short example
+snapshot. Here, the current state in the current stack entry is <codeph>Sn</codeph> and
+is handled by the function <codeph>PF()</codeph>. The code decides to pass
+control to the child function <codeph>CF()</codeph>, but ensures that, on
+completion, the next state in the current stack entry will be <codeph>Sn+1</codeph>. </p> <fig id="GUID-6ACBC49E-14EE-526B-A1A3-426B64BF8476">
+<image href="GUID-D2D41326-BA88-5A02-805B-5EAEC29ADB5D_d0e383804_href.png" placement="inline"/>
+</fig> <p>For example, the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-F71A4421-2F9E-39FD-A352-97ECAAFE822D"><apiname>DMMCStack::CIMUpdateAcqSM()</apiname></xref> function
+implements the CIM_UPDATE_ACQ macro as defined by the <i>MultiMediaCard System
+Specification</i>, and is a typical state machine function. </p> <p>Most commands
+and macros involve one or more asynchronous operations and while such operations
+are outstanding, a session is blocked. While a session is blocked, its state
+machine dispatch function is not called. As soon an asynchronous event removes
+the blocking condition, control returns to the state machine. </p> </section>
+<section id="GUID-E8FCFD65-4664-52EE-B658-FCABF50D501D"><title>Structure of
+a state machine function</title> <p>State machine functions are defined and
+implemented in the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita"><apiname>DMMCStack</apiname></xref> class in pairs: one as a static
+function, and the other as a member function. The static variant takes a <codeph>TAny*</codeph> pointer
+that is cast to a <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita"><apiname>DMMCStack</apiname></xref> pointer, and the <codeph>DMMCStack</codeph> member
+function is then called: </p> <codeblock id="GUID-F5EEA20F-2312-5394-84C4-5E568995291A" xml:space="preserve">TMMCErr DMMCStack::FunctionNameSMST( TAny* aPtr )
+    {
+    return( STATIC_CAST(DMMCStack*,aPtr)-&gt;FunctionNameSM() );
+    }
+</codeblock> <codeblock id="GUID-3C01127E-4EBA-59AC-91F8-1F004A74E45B" xml:space="preserve">TMMCErr DMMCStack::FunctionNameSM()
+    {
+    enum states {EStBegin=0, EStNext,…, EStEnd };    // Enumeration of states for this state machine
+    DMMCSession&amp; s = Session();
+
+    SMF_BEGIN
+    // State EStBegin
+    // Actions for state EStBegin
+
+    SMF_STATE( EStNext )
+    // State EStNext
+    // Actions for state EStNext
+
+    SMF_END
+    }
+</codeblock> <p>A state machine function can release control and wait to be
+re-entered by returning zero. If its session is not blocked then that will
+happen immediately. If the state machine function returns non-zero, the session
+will be completed with that error code unless the parent state machine function
+has explicitly intercepted such an error by setting the trap mask. </p> <ul>
+<li id="GUID-BEE3954A-733D-55CE-B09C-4B49304B44E1"><p> <xref href="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7.dita#GUID-80E0DB93-A96A-54A8-A201-E11935418BE7/GUID-901D8456-F8D3-5E92-B3DA-EFE556D8C48B">Important points to note</xref> </p> </li>
+<li id="GUID-DA29FD1E-93EF-56C1-9650-8CE22B655897"><p> <xref href="GUID-80E0DB93-A96A-54A8-A201-E11935418BE7.dita#GUID-80E0DB93-A96A-54A8-A201-E11935418BE7/GUID-DBBA1450-AE5A-50E5-9B8C-F697CEFAD590">Blocking on an asynchronous request</xref> </p> </li>
+</ul> <p id="GUID-901D8456-F8D3-5E92-B3DA-EFE556D8C48B"><b>Important points to note</b> </p> <p>Each
+state machine function must define a list of states that can exist. States
+are defined as an enumeration whose first and last values <i>must</i> be labelled <codeph>EStBegin</codeph> and <codeph>EStEnd</codeph>,
+respectively. <codeph>EStBegin</codeph> must have the value zero. Any other
+intermediate states are program defined. </p> <p>To make the state machine
+functions more readable, a number of macros exist to help with the layout
+of the function code, and to control program flow. The most basic macros are <xref href="GUID-C095E583-3E71-31F3-B092-627357D72958.dita"><apiname>SMF_BEGIN</apiname></xref>, <xref href="GUID-38811BD9-F27C-3408-A04F-053314A2CF84.dita"><apiname>SMF_STATE</apiname></xref> and <xref href="GUID-C1089896-DD68-399C-BF34-2495C51A0CA1.dita"><apiname>SMF_END</apiname></xref> that expand into a switch statement. The above code expands
+to: </p> <codeblock id="GUID-16AE9141-5BE1-5B54-B083-7F60133DD018" xml:space="preserve">TMMCErr DMMCStack::FunctionNameSM()
+{
+enum states {EStBegin=0, EStNext,…, EStEnd };    // Enumeration of states for this state machine
+DMMCSession&amp; s = Session();
+
+TMMCStateMachine&amp; m = Machine();            //SMF_BEGIN
+const TMMCErr err = m.SetExitCode( 0 );        //SMF_BEGIN
+for(;;)                                        //SMF_BEGIN
+    {                                        //SMF_BEGIN
+    switch(m.State())                        //SMF_BEGIN
+        {                                    //SMF_BEGIN
+        case EStBegin:                        //SMF_BEGIN
+            {                                //SMF_BEGIN
+            if(err) (void)0;                //SMF_BEGIN 
+            // State EStBegin
+            // Actions for state EStBegin
+
+            }                                //SMF_STATE
+        case EStNext:                        //SMF_STATE
+            {                                //SMF_STATE
+            // State EStNext
+            // Actions for state EStNext
+
+        case EStEnd:                                                //SMF_END
+            break;                                                    //SMF_END
+            default:                                                //SMF_END
+            DMMCController::Panic(DMMCController::EMMCMachineState);//SMF_END
+        }                                                            //SMF_END
+        break;                                                        //SMF_END
+    }                                                                //SMF_END
+return(m.Pop());                                                    //SMF_END
+}</codeblock> <p>Notes: </p> <ul>
+<li id="GUID-7542D030-2641-5A15-A5AF-A02C491B24BB"><p>be aware that SMF_BEGIN
+generates an open curly bracket while SMF_STATE generates a corresponding
+close bracket, and SMF_END closes the switch statement. </p> </li>
+</ul> <p>You need to be aware of the code that is generated by these macros.
+In particular, some such as SMF_BEGIN generate an opening curly brace, while
+others such as SMF_STATE generate a corresponding close curly brace. Also,
+you need to know whether a macro generates a <codeph>break;</codeph> or a <codeph>return;</codeph> statement.
+Lack of awareness here may cause code to be generated that flows from one
+case statement to another, which may not be your intent. </p> <ul>
+<li id="GUID-7C57CF3E-0EB9-56A4-A07A-86027F5B42BA"><p> <xref href="GUID-C095E583-3E71-31F3-B092-627357D72958.dita"><apiname>SMF_BEGIN</apiname></xref> </p> </li>
+<li id="GUID-9A87EEA6-6D40-53E1-BCEE-F9A20C22D51D"><p> <xref href="GUID-C1089896-DD68-399C-BF34-2495C51A0CA1.dita"><apiname>SMF_END</apiname></xref> </p> </li>
+<li id="GUID-3ADD2CCB-4C83-54EC-80DB-3C8CFDDDCB7A"><p> <xref href="GUID-2BA7F4A7-ECB0-3839-809B-4C32D4F451BA.dita"><apiname>SMF_NEXTS</apiname></xref> </p> </li>
+<li id="GUID-41D972A7-18DE-5CE5-B0D6-039B0126199C"><p> <xref href="GUID-ACD776A5-5439-3BE9-8DD8-B537D8C2C637.dita"><apiname>SMF_CALL</apiname></xref> </p> </li>
+<li id="GUID-87C8FC8C-F810-5B3F-A7CC-99D6515F8F04"><p> <xref href="GUID-3802119E-0FC0-3B7C-9582-21563EC9AF61.dita"><apiname>SMF_CALLWAIT</apiname></xref> </p> </li>
+<li id="GUID-89669A58-5168-508A-AF9F-34C3347F0A69"><p> <xref href="GUID-2B6FA032-F8F9-3205-9CBB-EFB96691ACC9.dita"><apiname>SMF_CALLMYS</apiname></xref> </p> </li>
+<li id="GUID-A6C9952A-223E-5687-B67C-D89D50070BDB"><p> <xref href="GUID-C1D65C79-F781-3E22-AA73-F75BA2516F6F.dita"><apiname>SMF_CALLMEWR</apiname></xref> </p> </li>
+<li id="GUID-7FF0DFC9-D9DC-5E08-B668-4BC62B6E50EC"><p> <xref href="GUID-A143CA61-AA6B-3C5F-9E58-50BAF3786262.dita"><apiname>SMF_INVOKES</apiname></xref> </p> </li>
+<li id="GUID-F02BE381-0BA2-5E9D-AFB7-9064FBADC64C"><p> <xref href="GUID-A73CAEB2-2413-371E-A56F-2757C0723514.dita"><apiname>SMF_INVOKEWAITS</apiname></xref> </p> </li>
+<li id="GUID-A39E56F8-DE55-5EDE-A955-24E198026F39"><p> <xref href="GUID-94214574-2CCD-3BE4-ABD4-6A58328B29A2.dita"><apiname>SMF_WAIT</apiname></xref> </p> </li>
+<li id="GUID-1CB69F09-3BAC-5C41-B20E-5A2896C0E18E"><p> <xref href="GUID-33FBF199-09B8-32C3-BAD6-92D277722DB3.dita"><apiname>SMF_WAITS</apiname></xref> </p> </li>
+<li id="GUID-46D7BB96-3EC7-5207-BEE4-1E3ABB145D6B"><p> <xref href="GUID-B13D0665-AD49-348F-8795-67E8761B0BC8.dita"><apiname>SMF_RETURN</apiname></xref> </p> </li>
+<li id="GUID-A9A4DB91-2648-534D-BEA3-57A23147D750"><p> <xref href="GUID-2BA73A03-7379-394C-B9E8-4525316AF91F.dita"><apiname>SMF_EXIT</apiname></xref> </p> </li>
+<li id="GUID-E75E1BF0-CD8B-5EEA-98EA-13176AE0A308"><p> <xref href="GUID-57CF6330-1EA6-36A9-B2A1-2BB360B1E7FD.dita"><apiname>SMF_EXITWAIT</apiname></xref> </p> </li>
+<li id="GUID-D0617F39-4CF6-5FA7-995C-50688A82E703"><p> <xref href="GUID-6E9EF7EB-A9A2-3FA1-902D-188B4930927F.dita"><apiname>SMF_JUMP</apiname></xref> </p> </li>
+<li id="GUID-83791CBF-298A-5B5F-A9A0-8FB902AE81EB"><p> <xref href="GUID-85E63D6B-521B-309A-A1B1-18FDFCF626A0.dita"><apiname>SMF_JUMPWAIT</apiname></xref> </p> </li>
+<li id="GUID-F657F501-47AE-57D0-BEB6-A051176FC279"><p> <xref href="GUID-BF735A08-6E69-374F-8052-EF6CA101A3C3.dita"><apiname>SMF_GOTONEXTS</apiname></xref> </p> </li>
+<li id="GUID-F7D1B6D8-51A2-5C73-A709-1BB10CD27620"><p> <xref href="GUID-AA215584-34D9-36DA-A05A-8A4DF4636D5E.dita"><apiname>SMF_GOTOS</apiname></xref> </p> </li>
+<li id="GUID-042539CB-3019-57A2-B0AD-F1417756F842"><p> <xref href="GUID-38811BD9-F27C-3408-A04F-053314A2CF84.dita"><apiname>SMF_STATE</apiname></xref> </p> </li>
+<li id="GUID-ADD382E6-32C0-5773-8958-057F440C3FEC"><p> <xref href="GUID-11B9D102-4548-3321-8318-26E940273880.dita"><apiname>SMF_BPOINT</apiname></xref> </p> </li>
+</ul> <p id="GUID-DBBA1450-AE5A-50E5-9B8C-F697CEFAD590"><b> Blocking on an asynchronous
+request</b> </p> <p>The state machine can be made to block. This is done so
+that you can wait for an asynchronous operation to complete. When the operation
+completes, it unblocks the state machine. There are two stages to blocking
+a state machine: </p> <ul>
+<li id="GUID-544A1BE8-2896-5CEB-ADEB-4F63E26389C4"><p>Call <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E7B38752-F9AB-3A66-8FB6-E321717A63B5"><apiname>DMMCStack::BlockCurrentSession()</apiname></xref> to
+indicate that the state machine associated with the current session is to
+be blocked </p> </li>
+<li id="GUID-BDB03808-C220-5518-B0E7-232845FD0AD6"><p>Execute one of the SMF_xxxWAIT
+macros to return from the current state machine function and wait. </p> </li>
+</ul> <p>Note that the state machine function <i>must</i> return by calling
+one of the SMF_xxxWAIT macros. It must not poll or sit in a loop! The state
+machines are not threaded, and this means that CPU time can only be given
+to other tasks if the function returns. </p> <p> <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E7B38752-F9AB-3A66-8FB6-E321717A63B5"><apiname>DMMCStack::BlockCurrentSession()</apiname></xref> takes
+an argument describing the type of block. The state machine will only unblock
+when an unblock request with the matching argument is called. In the platform
+specific layer of the MultiMediaCard controller, you should always set the <xref href="GUID-8A9A2DD2-C630-3651-8374-17BCF2A09AC4.dita"><apiname>KMMCBlockOnASSPFunction</apiname></xref> bit
+in the argument passed to <codeph>BlockCurrentSession()</codeph>. </p> <p>To
+unblock the state machine, call <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E1FEFAD3-CD02-38AF-8E45-41099192D583"><apiname>DMMCStack::UnBlockCurrentSession()</apiname></xref> setting
+the <xref href="GUID-8A9A2DD2-C630-3651-8374-17BCF2A09AC4.dita"><apiname>KMMCBlockOnASSPFunction</apiname></xref> bit in the flags argument passed
+to the function, and also an error code. This will invoke the state machine
+scheduler, which will re-start the state machine. </p> <p>Note that further
+state machine processing must take place in a DFC rather than within the interrupt
+service routine (ISR), and this can be forced by ORing the session status, <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-252B39FE-C203-37AD-82A4-63E9BFFD3473"><apiname>DMMCSession::iState</apiname></xref>,
+with the <xref href="GUID-5CF9ED11-2F3A-3E9B-9BFF-87DBE261F097.dita"><apiname>KMMCSessStateDoDFC</apiname></xref> bit <i>before</i> unblocking
+the session. The bit has the effect of queueing a DFC to resume the state
+machine at some later stage, before returning to the ISR. </p> <p>The following
+code shows the idea: </p> <codeblock id="GUID-C4C8C8EA-4A16-5E9C-A64D-194D7D17403C" xml:space="preserve">TMMCErr DMMCStackAssp::DoSomethingSM()
+    {
+    enum states {EStBegin=0, EStDone,EStEnd };    // enumeration of states for this state machine
+
+    SMF_BEGIN
+    // start the asynchronous operation
+    BlockCurrentSession( KMMCBlockOnASSPFunction );
+    StartAsynchronousOp();
+
+    // block and wait. Go to state EStDone when the asynchronous op is complete
+    SMF_WAITS( EStDone );
+    
+    SMF_STATE( EStDone )
+    // operation is complete, check for errors and return from state machine
+    TInt errors = CheckForHardwareErrors();
+    SMF_RETURN( errors );
+
+    SMF_END
+    }
+</codeblock> <codeblock id="GUID-5CE18C2D-2780-5966-BC26-DD33D31BB5B3" xml:space="preserve">void TMMCInterrupt::Service( TAny* aParam )
+    {
+    Session().iState |= KMMCSessStateDoDFC;
+    UnBlockCurrentSession(KMMCBlockOnASSPFunction, KMMCErrNone);
+    }
+</codeblock> </section>
+<section id="GUID-667C5A70-0ABB-525F-A309-58102E380400"><title>Example of
+a state machine calling sequence</title> <p>This shows the state machine calling
+sequence that implements the reading of a single block on a MultiMediaCard,
+where the card is not yet selected. Note that the lowest level state machine
+function called is <codeph>IssueMMCCommandSM()</codeph>, which is implemented
+by the base port. </p> <fig id="GUID-A67E1B8E-322A-5AC8-9EEA-AC24C8868E81">
+<image href="GUID-A51C3E48-3ED0-519B-A128-C5175D7E175B_d0e384203_href.png" placement="inline"/>
+</fig> </section>
+</conbody></concept>

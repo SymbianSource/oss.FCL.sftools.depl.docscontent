@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-059326DB-E7A4-5CB8-BCA7-FF0C71D9D1C7" xml:lang="en"><title>How
+to access elements</title><shortdesc>The elements of an array can be accessed by specifying the position
+of the element in the array.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The elements of an array can be referenced using the indexing  <codeph>operator[]</codeph> and
+specifying the position of the element.</p>
+<p>For all arrays <i>except</i> the <codeph>RArray&lt;class T&gt;</codeph> and <codeph>RPointerArray&lt;class T&gt;</codeph> types,
+the <codeph>At()</codeph> member function can also be used.</p>
+<p>All of the following code fragments use a <codeph>CArrayFixFlat&lt;class T&gt;</codeph> array.</p>
+<p>This code constructs a fixed flat array containing the required number
+of <codeph>TInt</codeph> type elements - in this case four.</p>
+<p>The indexing operator is used to fetch the value of the second element.
+This element is then changed, showing two different methods for changing the
+element: the <codeph>At()</codeph> function and the <codeph>[]</codeph> operator.</p>
+<codeblock id="GUID-44519EEA-85BA-54CF-9F4A-E67B043C8837" xml:space="preserve">CArrayFixFlat&lt;TInt&gt;* array;
+array = new CArrayFixFlat&lt;TInt&gt;(4);
+...
+for (TInt value = 0; value &lt; 4; value++)
+ array-&gt;AppendL(value);
+...
+TInt somevalue = (*array)[1];  //fetch the element
+TInt somevalue = array-&gt;At(1);  //... alternative way
+(*array)[1]    = 21;    //change the element
+array-&gt;At(1)   = 21;    // ... alternative way</codeblock>
+<section id="GUID-DD4808A9-0989-4A2E-B83C-B735BEDE0677"><title>Accessing functions</title> <p>If the array elements are objects
+of a class with member functions, these functions can be easily accessed as
+shown in the following code fragment:</p> <codeblock id="GUID-DD0C968E-B164-5EAA-9188-F0A323197652" xml:space="preserve">class TMyClass
+ {
+public :
+ void SetValue(TInt aval);
+ TInt GetValue();
+private
+ TUint iValue;
+ };</codeblock> <codeblock id="GUID-39DDFF64-B1FC-5D93-8552-9D0FF4E5B6BD" xml:space="preserve">CArrayFixFlat&lt;TMyClass&gt;* array;          // an array of
+                                         // TMyClass objects
+TMyClass myclass;
+array = new CArrayFixFlat&lt;TMyClass&gt;(1);
+array-&gt;AppendL(myclass);
+(*array)[0].SetValue(21);</codeblock> </section>
+<section id="GUID-B2AE92D8-239C-4711-AA85-EEE9D333288C"><title>Accessing functions of CBase derived objects</title> <p>Where
+the elements are pointers to <codeph>CBase</codeph> derived objects (i.e.
+elements of an array of type <codeph>CArrayPtrFlat</codeph> or <codeph>CArrayPtrSeg</codeph>),
+the members of those <codeph>CBase</codeph> derived objects can easily be
+accessed. For example, an array of pointers to <codeph>CElement</codeph> objects
+can be accessed as follows:</p> <codeblock id="GUID-D35D517A-0DB1-59A8-A6A3-BFDDF1C4610B" xml:space="preserve">CArrayPtrFlat&lt;CElement&gt;* ptrflat;
+...
+ptrflat = new (ELeave) CArrayPtrFlat&lt;CElement&gt;(16)
+...
+...   // add elements to ptrflat
+...
+(*ptrflat)[0]-&gt;SetTextL(_LIT("New text for the first CElement"));
+ptrflat-&gt;At(1)-&gt;SetTextL(_LIT("New text for the second CElement"));</codeblock> <p>(where <codeph>SetTextL()</codeph> is
+a member function of <codeph>Celement)</codeph>.</p> <p>Note that both <codeph>At()</codeph> and
+the index <codeph>operator[]</codeph> return a reference to the object in
+the array. </p> </section>
+<section id="GUID-C8FB1FAE-F331-4B1D-9FEA-982A14986E42"><title>Refreshing the pointer</title> <p>If a pointer to the referenced
+object is taken, be aware that the pointer value may become invalid once elements
+are added to, or removed from the array. In this event, always refresh the
+pointer. </p> <codeblock id="GUID-FE89CB4A-821E-515D-B963-58D4C288E385" xml:space="preserve">class TMyClass
+ {
+public :
+ void SetValue(TInt aval);
+ TInt GetValue();
+private
+ TUint iValue;
+ };</codeblock> <codeblock id="GUID-D727EFF4-DA87-54F8-8E4C-761F11E5726A" xml:space="preserve">CArrayFixFlat&lt;TMyClass&gt;* array;
+...
+TMyClass myclass;
+array = new CArrayFixFlat&lt;TMyClass&gt;(16);
+...
+for (TInt val = 0; val &lt; 10; val++)
+ {
+ myclass.SetValue(val)
+ array-&gt;AppendL(myclass;
+ }
+...
+TMyClass* myptr;
+myptr = &amp;(array-&gt;At(9));
+myptr-&gt;GetValue();  // references the tenth element
+array-&gt;Delete(0,4); // Delete first four elements
+array-&gt;Compress();  
+myptr-&gt;GetValue();  // myptr is invalid. An exception may occur
+...</codeblock> <p>After deleting the first four elements, <codeph>myptr</codeph> points
+to a location outside the logical array. Once the array has been compressed,
+the pointer is invalid. </p> </section>
+</conbody></concept>

@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5" xml:lang="en"><title>Thread
+Synchronisation</title><shortdesc>Kernel-side techniques to protect critical regions in code or to
+allow safe access to shared data.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Kernel-side code can use a number of techniques to perform thread synchronisation,
+to protect critical regions within threads or to ensure that shared data can
+be safely read or modified. </p>
+<ul>
+<li id="GUID-F76D1379-CEA0-5CEA-A050-88CCF23AFAC6"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-86E98109-EC1A-58B7-8AB2-EFD100739261">Mutexes</xref>  </p> </li>
+<li id="GUID-614F64B3-04C0-5ED0-9286-C64B8B1C4235"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-00E1F006-3D2C-52A3-BFCB-4D6A59321B26">Semaphores</xref> </p> </li>
+<li id="GUID-7970F858-7480-5EEB-A924-2157E40FB44E"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-7E632FD5-03B6-5D39-8A97-8F1948F2BB5B">Thread critical section</xref>  </p> </li>
+<li id="GUID-A3BFB534-95F0-5B32-A996-955AE40C19E6"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-7AECE882-9D48-5109-AE38-38BF0F8F717F">Atomic operations</xref>  </p> </li>
+<li id="GUID-C4B47444-2A35-5E0C-92EF-C33DDD68D0E1"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-A0FB7718-F39C-5FB3-B67C-430B490F6430">The system lock</xref>  </p> </li>
+<li id="GUID-ECFF18B2-9279-5B68-9939-78C897F32FB8"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-1806CDC5-9941-5CFC-B1F1-82BBA8D4F65B">The kernel lock</xref>  </p> </li>
+<li id="GUID-AF3CD2DE-B4FD-5D1B-B9CC-FB2E32380D38"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-961912E5-2D89-518A-A6EA-3AAC15D17B81">Disabling interrupts</xref>  </p> </li>
+</ul>
+<section id="GUID-86E98109-EC1A-58B7-8AB2-EFD100739261"><title>Mutexes</title> <p>A
+mutex (mutual exclusion) is a mechanism to prevent more than one thread from
+executing a section of code concurrently. The most common use is to synchronise
+access to data shared between two or more threads. </p> <p>There are two types
+of mutex: the fast mutex, and a more general heavyweight mutex - the Symbian
+platform mutex. Which one you use depends on the needs of your code and the
+context in which it runs. </p> <ul>
+<li id="GUID-737BE53A-9A91-5CEA-9073-E47D3B3DB9E8"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-09377BC3-770A-5558-B3A9-A7E2CE11EBC3">The fast mutex</xref>  </p> </li>
+<li id="GUID-5952D847-0802-5B05-9CE8-6316DCA96245"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-F5B59A23-48E0-5596-B589-10DD2549F124">The Symbian platform mutex</xref>  </p> </li>
+</ul> <p id="GUID-09377BC3-770A-5558-B3A9-A7E2CE11EBC3"><b>The fast mutex</b> </p> <p>A
+fast mutex is the fundamental way of allowing mutual exclusion between <i>nanokernel</i> threads.
+Remember that a Symbian platform thread, and a thread in a personality layer
+are also nanokernel threads. </p> <p>A fast mutex is represented by a <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref> object.
+It is designed to be as fast as possible, especially in the case where there
+is no contention, and is also designed to occupy as little RAM as possible.
+A fast mutex is intended to protect <i>short</i> critical sections of code </p> <ul>
+<li id="GUID-646DB0EC-1627-5BDF-8068-D6717106DB17"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-4EE0B5C4-0473-54CD-A585-F2905FA76968">Rules</xref> </p> </li>
+<li id="GUID-3C470241-DD9E-52CF-B58D-C86A9301BEEE"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-083C9D63-A69D-5E66-9274-178F329F8445">How to use</xref>  </p> </li>
+<li id="GUID-D7C801A7-B0C1-5AF1-8594-CB994BDECF7B"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-111E74A3-8442-5598-8BB9-F78E2A77610A">Example using NFastmutex to protect a critical region</xref>  </p> </li>
+</ul> <p id="GUID-4EE0B5C4-0473-54CD-A585-F2905FA76968"><b>Rules</b> </p> <p>A
+fast mutex is, be definition, fast and the price to be paid is that there
+are a few rules that must be obeyed: </p> <ul>
+<li id="GUID-25FC4814-1BBB-5C6D-90FB-12E75274C388"><p>a thread can only hold
+one fast mutex at a time, i.e. a thread cannot wait on a fast mutex if it
+already holds another fast mutex </p> </li>
+<li id="GUID-693AB846-4629-5E3C-A14C-53A0879F1DB8"><p>a thread cannot wait
+on the same fast mutex more than once </p> </li>
+<li id="GUID-11EEC812-0BC7-5FFA-8D7B-DBD400CA5958"><p>a thread must not block
+or exit while holding a fast mutex because the thread is in an implied <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-7E632FD5-03B6-5D39-8A97-8F1948F2BB5B">critical
+section</xref>. </p> </li>
+</ul> <p>In the moving memory model, the user address space is not guaranteed
+to be consistent while a kernel thread holds a fast mutex. </p> <p id="GUID-083C9D63-A69D-5E66-9274-178F329F8445"><b>How
+to use</b> </p> <p>Typically you declare a fast mutex in a class declaration,
+for example: </p> <codeblock id="GUID-D1839B94-A1AF-5693-841F-F58C583F5D7E" xml:space="preserve">class DImpSysTest : public DLogicalChannelBase
+    {
+    ...
+public:
+    ...
+    NFastMutex iMutex;
+    ...
+    };
+</codeblock> <p>When you want to get hold of the fast mutex, i.e. when you
+are about to enter a section of code that no other thread is executing concurrently,
+you wait on that fast mutex. If no other thread has the mutex, then your thread
+gets the mutex, and control flows into your critical code. On exiting the
+section of code, you signal the fast mutex, which relinquishes it. </p> <p>If,
+on the other hand, another thread already has the fast mutex, then your thread
+blocks, and only resumes when the other thread exits the code section by signalling
+the fast mutex. </p> <p>Getting and relinquishing the mutex is done using
+the <codeph>Wait()</codeph> and <codeph>Signal()</codeph> functions of the <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref> class.
+However, you will normally use the nanokernel functions: </p> <ul>
+<li id="GUID-E2D93FB0-7E2B-5497-AAC1-DF1F2DA388E0"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-133C9428-F0BE-399E-A986-5AE72460C720"><apiname>NKern::FMWait()</apiname></xref>  </p> </li>
+<li id="GUID-4E620FA6-4146-5C90-8B67-20050A1A88D1"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-FBD38D01-21A1-3E92-BA1D-719EBCC7AF1D"><apiname>NKern::FMSignal()</apiname></xref>  </p> </li>
+</ul> <p>respectively, passing a pointer to your <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref> object. </p> <p>The
+kernel lock must be held when <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-76E5AE32-9A70-344A-9E6B-5B439622715A"><apiname>NFastMutex::Wait()</apiname></xref> and <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-CA8C65D8-E59A-385A-92B8-2B22A4A2F1CB"><apiname>NFastMutex::Signal()</apiname></xref> are
+called. <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-133C9428-F0BE-399E-A986-5AE72460C720"><apiname>NKern::FMWait()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-FBD38D01-21A1-3E92-BA1D-719EBCC7AF1D"><apiname>NKern::FMSignal()</apiname></xref> do
+this for you. They make sure that the kernel lock is on while <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-76E5AE32-9A70-344A-9E6B-5B439622715A"><apiname>NFastMutex::Wait()</apiname></xref> and <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-CA8C65D8-E59A-385A-92B8-2B22A4A2F1CB"><apiname>NFastMutex::Signal()</apiname></xref> are
+called by wrapping them in a pair of <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-A1A42137-906C-30F1-AF61-4F786FC372DE"><apiname>NKern::Unlock()</apiname></xref> calls. </p> <p>Although
+this sounds like you will be blocking while holding the kernel lock, in reality
+you do not because the thread is not blocked until after the kernel lock is
+released. </p> <p>Be aware however that there may be situations where you
+already have the kernel lock, or in the case of IDFCs, you do not need to
+acquire it as no preemption can occur. In these cases, you just call <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-76E5AE32-9A70-344A-9E6B-5B439622715A"><apiname>NFastMutex::Wait()</apiname></xref> and <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita#GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953/GUID-CA8C65D8-E59A-385A-92B8-2B22A4A2F1CB"><apiname>NFastMutex::Signal()</apiname></xref>. </p> <p>The following diagram illustrates the general principle: </p> <fig id="GUID-30A0EA62-83CF-5AB9-A07E-525D0972E55B">
+<title>Fast mutex</title>
+<image href="GUID-3AFE0D8B-FB9B-5355-A63B-FB71DD13E7D0_d0e281988_href.png" placement="inline"/>
+</fig> <p>There are a number of assumptions here, one of which is that the
+priorities are such that thread T1 does not run until a reschedule occurs,
+after T2 has been interrupted. </p> <p id="GUID-111E74A3-8442-5598-8BB9-F78E2A77610A"><b>Example
+using NFastmutex to protect a critical region</b> </p> <p>The file <filepath>...\f32test\nkern\d_implicit.cpp</filepath> is
+a device driver that contains 3 threads and 3 separate sub-tests. The third
+test, identified as <codeph>ETestDummy</codeph>, shows how to protect a critical
+region using a nanokernel fast mutex. </p> <p>The mutex itself is declared
+in the channel class: </p> <codeblock id="GUID-7EFD970B-9500-5F68-8BAD-21718F3953BC" xml:space="preserve">class DImpSysTest : public DLogicalChannelBase
+    {
+    ...
+public:
+    ...
+    NFastMutex iMutex;
+    ...
+    };
+</codeblock> <p>The function <codeph>Start()</codeph> takes an argument that
+sets the test number. This function initialises some test variables, creates
+three threads, and also initialises the mutex: </p> <codeblock id="GUID-A131C888-FAE0-53D3-BF12-E06D54E6A093" xml:space="preserve">TInt DImpSysTest::Start(TInt aTest)
+    {
+    ...
+    new (&amp;iMutex) NFastMutex;
+    ...    
+    }
+</codeblock> <p>The overloaded <codeph>new</codeph> operator is called with
+the existing mutex as its argument, with the side effect of calling the constructor
+to initialise the mutex. There is also a corresponding <codeph>Stop()</codeph> function
+to kill the threads and return the results to the caller. </p> <p>Look at
+the test case for <codeph>iTestNum == ETestDummy</codeph>, where thread 1
+and thread 3 use the mutex as if sharing a critical resource. </p> <codeblock id="GUID-A97F5CF0-F7D8-5A08-9033-908AEF2AE576" xml:space="preserve">void DImpSysTest::Thread1(TAny* aPtr)
+    {
+    DImpSysTest&amp; d=*(DImpSysTest*)aPtr;
+    ...    
+    FOREVER
+        {
+        NKern::FMWait(&amp;d.iMutex);
+        // this is a critical region protected by d.iMutex
+        NKern::FMSignal(&amp;d.iMutex);
+        ...
+        }
+    }</codeblock> <codeblock id="GUID-8D0EA108-B735-5189-99EE-0FE895B3A933" xml:space="preserve">void DImpSysTest::Thread3(TAny* aPtr)
+    {
+    DImpSysTest&amp; d=*(DImpSysTest*)aPtr;
+    ...
+    if (d.iTestNum==RImpSysTest::ETestPriority)
+        {
+        ...
+        }
+    else if (d.iTestNum==RImpSysTest::ETestDummy)
+        {
+        FOREVER
+            {
+            ...
+            if (x&lt;85)
+                {
+                ...
+                }
+            else
+                {
+                NKern::FMWait(&amp;d.iMutex);
+                // this is a critical region protected by d.iMutex
+                NKern::FMSignal(&amp;d.iMutex);
+                }
+            }
+        }
+    }
+</codeblock> <p>Each thread takes a pointer to the channel object as an argument,
+this is the <codeph>aPtr</codeph> value passed to both <codeph>Thread1()</codeph> and <codeph>Thread3()</codeph> and
+each thread dereferences it to find the mutex. The important point is that
+there is only one mutex object, which is accessed by all interested threads. </p> <p>Before
+entering the critical region, the threads call <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-133C9428-F0BE-399E-A986-5AE72460C720"><apiname>NKern::FMWait()</apiname></xref> to
+gain ownership of the mutex. Before leaving the critical region, they call <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-FBD38D01-21A1-3E92-BA1D-719EBCC7AF1D"><apiname>NKern::FMSignal()</apiname></xref> to
+relinquish ownership. </p> <p id="GUID-F5B59A23-48E0-5596-B589-10DD2549F124"><b>The
+Symbian platform mutex</b> </p> <p>The Symbian platform mutex provides mutual
+exclusion between Symbian platform threads without the restrictions imposed
+by the fast mutex. </p> <p>The Symbian platform mutex is represented by a <codeph>DMutex</codeph> object. </p> <ul>
+<li id="GUID-AAE481BE-1ABB-5E0E-AB89-1D53393B0C5B"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-94F9C4EF-24D5-514A-BD21-B10B1A83CE28">Characteristics</xref> </p> </li>
+<li id="GUID-BDA5D5F8-B508-5D9D-97DC-65AE2166817F"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-61387415-4A5B-5C98-A028-F62DA7114790">How to use</xref>  </p> </li>
+<li id="GUID-7DF42A70-D80B-5883-B96D-3452A11CD137"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-EF2F2EBB-CDC2-5367-957A-2A004453F6C7">Example using DMutex to protect critical regions</xref>  </p> </li>
+</ul> <p id="GUID-94F9C4EF-24D5-514A-BD21-B10B1A83CE28"><b>Characteristics</b> </p> <p>Operations
+on a <codeph>DMutex</codeph> are more complicated, and therefore slower, than
+those on a <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref>. However, a <codeph>DMutex</codeph> gives
+you the following: </p> <ul>
+<li id="GUID-62A9B213-D77A-5151-B50A-8DA2EBA88433"><p>it is possible to wait
+on a Symbian platform mutex multiple times, provided it is signalled the exact
+same number of times </p> </li>
+<li id="GUID-EEB436F1-3F54-50BC-9009-E1EAB055199A"><p>It is possible to hold
+several Symbian platform mutexes simultaneously, although care is needed to
+avoid deadlock situations </p> </li>
+<li id="GUID-324BD7DC-7CDB-57DD-879B-E88CEA7CD194"><p>A thread can block while
+holding a Symbian platform mutex </p> </li>
+<li id="GUID-EA7C07F8-58D3-59C9-9C2A-6D82D4F6FC3B"><p>A Symbian platform mutex
+provides priority inheritance, although there is a limit on the number of
+threads that can wait on any <codeph>DMutex</codeph> (currently this is 10). </p> </li>
+</ul> <p>When a Symbian platform mutex is created it is given an 'order' value.
+This is a deadlock prevention mechanism, although it is used only in debug
+builds. When waiting on a mutex the system checks that the order value is
+less than the order value of any mutex that the thread is already waiting
+on. </p> <p>In general, most code written for device drivers should use values
+which are greater than any used by the kernel itself. There are 8 constants
+defined in <filepath>kernel.h</filepath> that are available for this purpose: <xref href="GUID-815054D8-4894-3DAB-9272-C8AAF3A11FD1.dita"><apiname>KMutexOrdGeneral0</apiname></xref> through <xref href="GUID-52E535B0-67FC-3353-89F7-BC2AF3947635.dita"><apiname>KMutexOrdGeneral7</apiname></xref>. </p> <p>The kernel faults with “Mutex Ordering Violation” if you try to
+wait on a mutex that violates the ordering rules. </p> <p>Note: the only time
+when these values would not be suitable is when the kernel calls back into
+non-kernel code while a mutex is already held by the kernel. This occurs in
+only two cases: </p> <ul>
+<li id="GUID-BE5D7153-03EC-5E07-9E50-6A164ED7976F"><p>The debug event handler
+callback </p> </li>
+<li id="GUID-C13DA224-565F-582C-8255-872D87D31CC2"><p>The various timer classes
+like <xref href="GUID-342B7499-4702-3C0F-B42A-66A5CA515F85.dita"><apiname>TTimer</apiname></xref>. This should not be an issue because device
+drivers should use the <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita"><apiname>NTimer</apiname></xref> class which does not callback
+while <codeph>DMutexes</codeph> are held. </p> </li>
+</ul> <p id="GUID-61387415-4A5B-5C98-A028-F62DA7114790"><b>How to use</b> </p> <p>Typically
+you declare the mutex in a class declaration, for example: </p> <codeblock id="GUID-1704CB00-7A0E-54AB-8197-23264A487621" xml:space="preserve">class DCrashHandler : public DKernelEventHandler
+    {
+    ...
+private:
+    DMutex* iHandlerMutex;
+    ...
+    };
+
+</codeblock> <p>You do not create a <codeph>DMutex</codeph> object directly;
+instead you use the kernel function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FEBBDA4F-412E-3AE5-9098-8E2F6BF3E969"><apiname>Kern::MutexCreate()</apiname></xref>.
+You pass a <codeph>DMutex*</codeph> type to the kernel function, which creates
+the <codeph>DMutex</codeph> object and returns a reference to it through the <codeph>DMutex</codeph> pointer. </p> <p>Getting
+and relinquishing the mutex is done using the kernel functions: </p> <ul>
+<li id="GUID-703EEF8E-D70F-57F6-8ED8-56CCC7EA00DB"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-1F0C28A8-9E9A-3AA3-A441-BA8406B3A06A"><apiname>Kern::MutexWait()</apiname></xref>  </p> </li>
+<li id="GUID-A80C8CA6-8E2C-5174-BC2A-EB3B1F18C49A"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-B8080F86-1342-31EA-9A28-205354CA0CB9"><apiname>Kern::MutexSignal()</apiname></xref>  </p> </li>
+</ul> <p>respectively, passing a reference to the <codeph>DMutex</codeph> object
+created earlier. Note that although you pass a <codeph>DMutex</codeph> object
+around, the member functions and member data of the class are considered as
+internal to Symbian platform. However, you can call <codeph>Open()</codeph> and <codeph>Close()</codeph> on <codeph>DMutex</codeph> as
+they are members of the base class <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>. </p> <p id="GUID-EF2F2EBB-CDC2-5367-957A-2A004453F6C7"><b>Example
+using DMutex to protect critical regions</b> </p> <p>This example code fragment
+uses two <codeph>DMutex</codeph> objects to protect a critical region of code
+in a device driver. It implements a minimal debug agent in a device driver.
+When a channel is opened to the device driver, the <codeph>DoCreate()</codeph> function
+creates a crash handler (in 2 phases). The <codeph>DCrashHandler</codeph> class
+contains two <codeph>DMutex</codeph> objects: </p> <codeblock id="GUID-C8EE7472-E897-53EC-BAC5-C8C6299ED512" xml:space="preserve">class DCrashHandler : public DKernelEventHandler
+    {
+    ...
+private:
+    DMutex* iHandlerMutex;    // serialise access to crash handler
+    ...
+    DMutex* iDataMutex;    // serialise access to following members
+    ...
+    };</codeblock> <p>The two <codeph>DMutex</codeph> objects are created
+in the second phase of the crash handler creation, i.e. when the member function <codeph>DCrashHandler::Create()</codeph> is
+called. Here's the code: </p> <codeblock id="GUID-A23289A3-3E5D-595A-A039-E4BE73A133D8" xml:space="preserve">TInt DCrashHandler::Create(DLogicalDevice* aDevice)
+    {
+    TInt r;
+    ...
+    r = Kern::MutexCreate(iHandlerMutex, KHandlerMutexName, KMutexOrdDebug);
+    ...
+    r = Kern::MutexCreate(iDataMutex, KDataMutexName, KMutexOrdDebug-1);
+    ...
+    }</codeblock> <p>The names of the mutexes are passed as the literal descriptors: <codeph>KHandlerMutexName</codeph> and <codeph>KDataMutexName</codeph>, and have the values <i>CtHandlerMutex</i> and <i>CtDataMutex</i> respectively. </p> <p>Notice
+that the data mutex has an order value less than the handler mutex. This guards
+against deadlock - we are asking the kernel to check that any thread waits
+on the handler mutex before it waits on the data mutex. </p> <p>When a thread
+panics, or an exception occurs, program control eventually reaches <codeph>DCrashHandler::HandleCrash()</codeph>.
+The device driver is derived from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>,
+and the current thread is the one that crashed and this is a Symbian platform
+thread, which means that it can wait on a <codeph>DMutex</codeph>. In fact,
+it waits on two mutexes, and does so in the order mentioned above. The mutexes
+are signalled further on in the same function. </p> <codeblock id="GUID-2F3C91C3-3323-5025-B7C3-2490595463FB" xml:space="preserve">void DCrashHandler::HandleCrash(TAny* aContext)
+    {
+    ...
+    // Ensure that, at any time, at most one thread executes the
+    // following code.  This simplifies user-side API.
+    Kern::MutexWait(*iHandlerMutex);
+    ...
+    Kern::MutexWait(*iDataMutex);
+    ...
+    // access crash handler data &lt;-------------------------------------
+    ...
+    Kern::MutexSignal(*iDataMutex);
+    ...
+    Kern::MutexSignal(*iHandlerMutex);
+    }</codeblock> <p> <codeph> iHandlerMutex</codeph> ensures that only one
+thread at a time uses the above code. <codeph>iDataMutex</codeph> protects
+a smaller critical region where the crash handler’s data is accessed. This
+data is also protected by <codeph>iDataMutex</codeph> in the <codeph>DCrashHandler::Trap()</codeph> function. </p> <codeblock id="GUID-D202D9A0-FB4B-5BD2-BE7A-5B843AC83A97" xml:space="preserve">void DCrashHandler::Trap(TRequestStatus* aRs, TAny* aCrashInfo)
+    {
+    ...
+    Kern::MutexWait(*iDataMutex);
+    ...
+    // access crash handler data &lt;-------------------------------------
+    ...
+    Kern::MutexSignal(*iDataMutex);
+    ...
+    } 
+</codeblock> <p>A <codeph>DMutex</codeph> is a reference counting object,
+and is derived from <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>. This means that once you have
+finished with it, you must call <codeph>Close()</codeph> on it to reduce the
+number of open references. </p> <p>In this example, both <codeph>DMutex</codeph> objects
+are closed in the <codeph>DCrashHandler</codeph> destructor: </p> <codeblock id="GUID-9FAC3B34-D484-53FA-87D9-9AF5EC5C21D2" xml:space="preserve">DCrashHandler::~DCrashHandler()
+    {
+    ...
+    if (iDataMutex)
+        {
+        iDataMutex-&gt;Close(NULL);
+        }
+    if (iHandlerMutex)
+        {
+        iHandlerMutex-&gt;Close(NULL);
+        }
+    ...
+    }</codeblock> </section>
+<section id="GUID-00E1F006-3D2C-52A3-BFCB-4D6A59321B26"><title>Semaphores</title> <p>A
+semaphore is synchronisation primitive that you can use: </p> <ul>
+<li id="GUID-FDB08035-E850-54D3-8D4B-3F589AAC66EC"><p>to signal one thread
+from another thread </p> </li>
+<li id="GUID-A9E08C05-C149-5E6A-8062-D26A00BAFBA4"><p>to signal a thread from
+an Interrupt Service Routine using an IDFC. </p> </li>
+</ul> <p>In EKA2, there are two types of semaphore: the fast semaphore, and
+a more general semaphore - the Symbian platform semaphore. Which one you use
+depends on the needs of your code and the context in which it is runs. </p> <ul>
+<li id="GUID-381F815A-4B74-519E-AC95-2DF5983DAED2"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-371EE12E-56D6-5520-8FB9-B9B2CE8AB0E1">The fast semaphore</xref>  </p> </li>
+<li id="GUID-EF9B5D15-914F-5E6B-B47E-BE93612DC322"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-6132B7FF-C664-5E21-8BF5-1BC9BAF00061">The Symbian platform semaphore</xref>  </p> </li>
+</ul> <p id="GUID-371EE12E-56D6-5520-8FB9-B9B2CE8AB0E1"><b>The fast semaphore</b> </p> <p>A
+fast semaphore is a fast lightweight mechanism that a thread can use to wait
+for events. It provides a way of posting events to a single thread because
+the semaphore can keep count of the number of events posted. </p> <p>A fast
+semaphore is represented by a <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref> object, and
+this is implemented by the <i>nanokernel</i>. Remember that a Symbian platform
+thread, and a thread in a personality layer are also nanokernel threads. </p> <ul>
+<li id="GUID-F5F04369-2F0B-5FEA-B49A-E90C7C1CAF2D"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-DF231F3F-A702-50DC-9E98-199808D228FD">Rules</xref> </p> </li>
+<li id="GUID-4AF23A2C-FD0C-557F-93A9-BCDF9D8EC162"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-E75C6B54-64D2-5936-BF38-9AF40F9F7400">How to use</xref>  </p> </li>
+<li id="GUID-73BE532A-3A55-5995-8615-BE50C615C3BF"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-1F74B3EC-A2E3-5B1E-9C8E-FFF15084C6DF">Example using NFastSemaphore and the NKern functions</xref>  </p> </li>
+<li id="GUID-45269DDA-FE9C-5075-BEAB-8030A5DC2DC0"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-2C0E4009-3E15-5197-B327-06699BFE2221">Example using the NFastSemaphore::Signal() function</xref>  </p> </li>
+</ul> <p id="GUID-DF231F3F-A702-50DC-9E98-199808D228FD"><b>Rules</b> </p> <p>Because
+of its lightweight structure, only the <i>owning thread</i> is allowed to
+wait on it. </p> <p id="GUID-E75C6B54-64D2-5936-BF38-9AF40F9F7400"><b>How
+to use</b> </p> <p>Typically you declare a fast semaphore in a class declaration,
+for example: </p> <codeblock id="GUID-7C06D593-07EC-5A00-950A-FA71A0611753" xml:space="preserve">class DCrashHandler : public DKernelEventHandler
+    {
+    ...
+private:
+    NFastSemaphore iSem;
+    ...
+    };
+
+</codeblock> <p>You need to initialise the <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref> by: </p> <ul>
+<li id="GUID-76AA23BF-787E-5F02-9293-651D6A2ABCD4"><p>constructing the semaphore </p> </li>
+<li id="GUID-9DCCF8D9-8196-540F-A843-3E8771CFBBDC"><p>setting the thread that
+owns the semaphore, i.e. the thread that will be allowed to wait in it. </p> </li>
+</ul> <p>The semaphore is initialised when its constructor is called. However,
+setting the owning thread requires explicit code. For example, the following
+code fragment is typical and sets the owning thread to be the current thread: </p> <codeblock id="GUID-CF5E165F-3512-57C1-9CC3-8EE3077904CA" xml:space="preserve">iSem.iOwningThread = (NThreadBase*)NKern::CurrentThread();</codeblock> <p>Waiting
+and signalling the fast semaphore is done by using the <codeph>Wait()</codeph> and <codeph>Signal()</codeph> functions
+of the <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref> class. However, you will normally
+use the nanokernel functions: </p> <ul>
+<li id="GUID-238D3B34-3E98-5388-8B33-F0FB47679CDD"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-D2691899-C802-3A4F-9E72-487B07E6E1D0"><apiname>NKern::FSWait()</apiname></xref>  </p> </li>
+<li id="GUID-94485609-3EAC-5986-ACE6-8485942D2273"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-B4B058FF-F077-3F0A-A344-F6FB36D987C6"><apiname>NKern::FSSignal()</apiname></xref>  </p> </li>
+</ul> <p>respectively, passing a pointer to your <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref> object. </p> <p>The
+kernel lock must be held when <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-F6262C01-5999-36D1-AF7D-F7E3741ED411"><apiname>NFastSemaphore::Wait()</apiname></xref> and <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-B1104DF4-7490-33D9-BB64-83E16D9BA723"><apiname>NFastSemaphore::Signal()</apiname></xref> are
+called. <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-D2691899-C802-3A4F-9E72-487B07E6E1D0"><apiname>NKern::FSWait()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-B4B058FF-F077-3F0A-A344-F6FB36D987C6"><apiname>NKern::FSSignal()</apiname></xref> do
+this for you. They make sure that the kernel lock is on while <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-F6262C01-5999-36D1-AF7D-F7E3741ED411"><apiname>NFastSemaphore::Wait()</apiname></xref> and <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-B1104DF4-7490-33D9-BB64-83E16D9BA723"><apiname>NFastSemaphore::Signal()</apiname></xref> are called by wrapping them in a pair of <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-A1A42137-906C-30F1-AF61-4F786FC372DE"><apiname>NKern::Unlock()</apiname></xref> calls. </p> <p>Although
+this sounds like you will be blocking while holding the kernel lock, in reality
+you do not because the thread is not blocked until after the kernel lock is
+released. </p> <p>Be aware however that there may be situations where you
+already have the kernel lock, or in the case of IDFCs, you do not need to
+acquire it as no preemption can occur. In these cases, you just call <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-F6262C01-5999-36D1-AF7D-F7E3741ED411"><apiname>NFastSemaphore::Wait()</apiname></xref> and <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-B1104DF4-7490-33D9-BB64-83E16D9BA723"><apiname>NFastSemaphore::Signal()</apiname></xref>. </p> <p>You can use use a fast semaphore to block a thread until an interrupt
+occurs, but you cannot signal the semaphore directly from the interrupt service
+routine (ISR) that services that interrupt; instead, you must queue an IDFC,
+and signal from there. </p> <p id="GUID-1F74B3EC-A2E3-5B1E-9C8E-FFF15084C6DF"><b>Example
+using NFastSemaphore and the NKern functions</b> </p> <p>This is an example
+that synchronises threads using the <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref> class,
+and is part of code that implements a minimal debug agent in a device driver.
+The full code for this can be found in <filepath>...\e32utils\d_exc\minkda.cpp</filepath>. </p> <p>When
+a channel is opened, the <codeph>DoCreate()</codeph> function creates a crash
+handler (in 2 phases).This is a <codeph>DCrashHandler</codeph> object, and
+importantly, contains a <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref>. </p> <codeblock id="GUID-C092DA58-C4AF-528C-B648-481A3B6EC5A6" xml:space="preserve">class DCrashHandler : public DKernelEventHandler
+    {
+    ...
+private:
+    NFastSemaphore iSuspendSem; // for suspending crashed thread
+    ...
+    };</codeblock> <p>When a thread panics, or an exception occurs, program
+control eventually reaches <codeph>DCrashHandler::HandleCrash()</codeph>.
+It is in this function that the owning thread is set – to the current nanokernel
+thread (i.e. the one that crashed). This is the only thread allowed to wait
+on the semaphore. The wait is just a few lines further down in the same function: </p> <codeblock id="GUID-B3543353-C441-542E-B0AA-737F5DFA1ADA" xml:space="preserve">void DCrashHandler::HandleCrash(TAny* aContext)
+    {
+    DThread* pC = &amp;Kern::CurrentThread();
+    ...
+    if (iTrapRq != NULL)
+        {
+        iCrashedThread = pC;
+        iSuspendSem.iOwningThread = &amp;(iCrashedThread-&gt;iNThread);
+        ...
+        }
+    ...
+    if (iCrashedThread)
+        {
+        ...
+        NKern::FSWait(&amp;(iSuspendSem)); // Waits on the semaphore
+        ...
+        }
+    ...
+    }</codeblock> <p>At a later time, the debugger calls the driver’s <codeph>Request()</codeph> function
+with either the <codeph>ECancelTrap</codeph> or <codeph>EKillCrashedThread</codeph> parameters.
+One or other of the corresponding functions is called; each function is implemented
+to signal the semaphore. </p> <codeblock id="GUID-E1D04D58-4614-58B1-B5A4-CA898B58B0E6" xml:space="preserve">void DCrashHandler::CancelTrap()
+    {
+    ...
+    if (iCrashedThread != NULL)
+        {
+        NKern::FSSignal(&amp;(iSuspendSem));
+        }
+    ...
+    }</codeblock> <codeblock id="GUID-FB4B9BE1-272B-5F62-8C88-13FAF89BAE88" xml:space="preserve">void DCrashHandler::KillCrashedThread()
+    {
+    ...
+    NKern::FSSignal(&amp;iSuspendSem);
+    }</codeblock> <p id="GUID-2C0E4009-3E15-5197-B327-06699BFE2221"><b>Example
+using the NFastSemaphore::Signal() function</b> </p> <p>This is an example
+code fragment taken from <filepath>...\e32test\misc\d_rndtim.cpp</filepath>. </p> <p>This
+a device driver that uses a timer. The driver's logical channel can start
+the timer, and it can wait for the timer to expire. The expiry of the timer
+results in an interrupt; this results in a call to an ISR that schedules an
+IDFC, which, in turn, signals the driver's logical channel. </p> <p>Because
+the kernel is implicitly locked when the IDFC runs, there is no need to explicitly
+lock the kernel, and <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-B1104DF4-7490-33D9-BB64-83E16D9BA723"><apiname>NFastSemaphore::Signal()</apiname></xref> can be called
+instead of <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-B4B058FF-F077-3F0A-A344-F6FB36D987C6"><apiname>NKern::FSSignal()</apiname></xref>. </p> <p>The relevant part
+of the driver's logical channel class is: </p> <codeblock id="GUID-30E361DA-817C-5792-8E61-6CEB37F28FB3" xml:space="preserve">class DRndTim : public DLogicalChannelBase
+    {
+    ...
+public:
+    NFastSemaphore iSem;
+    ...
+    };</codeblock> <p>The semaphore's owning thread is set in the logical
+channel's constructor. Note that the constructor is called in the context
+of the client thread, and it is this thread that is the owner of the semaphore.
+This must also be the thread that waits for the semaphore, which it does when
+at some later time it sends an <codeph>EControlWait</codeph> request to the
+device driver to wait for the timer to expire. </p> <codeblock id="GUID-D32ABAEB-32C2-5D68-B76E-7C45D5828EED" xml:space="preserve">DRndTim::DRndTim()
+    {
+    iThread=&amp;Kern::CurrentThread();
+    iThread-&gt;Open();
+    iSem.iOwningThread = &amp;iThread-&gt;iNThread;
+    ...
+    }</codeblock> <p>The following code shows the implementation of this wait.
+Note that it assumes that the timer has already been started, which we have
+not shown here. </p> <p>The wait is initiated using the <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-D2691899-C802-3A4F-9E72-487B07E6E1D0"><apiname>NKern::FSWait()</apiname></xref> function
+as the kernel must be locked when the wait operation is done on the <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita"><apiname>NFastSemaphore</apiname></xref>. </p> <codeblock id="GUID-52D3817F-3214-5166-A998-35C468CC9BBE" xml:space="preserve">TInt DRndTim::Request(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    TInt r = KErrNotSupported;
+    switch (aFunction)
+        {
+    case RRndTim::EControlWait:
+        NKern::FSWait(&amp;iSem);
+        r = KErrNone;
+        break;
+        ...
+        }
+    ...
+    }</codeblock> <p>When the timer expires, the ISR runs, and this schedules
+the IDFC, which in turn signals the client thread. The following code is the
+IDFC implementation. </p> <codeblock id="GUID-907D7F1C-BEE5-5651-9F2A-F7E3421E4BA0" xml:space="preserve">void DRndTim::IDfcFn(TAny* aPtr)
+    {
+    DRndTim* d = (DRndTim*)aPtr;
+    d-&gt;iSem.Signal();
+    }</codeblock> <p>Note that this calls <xref href="GUID-22982E51-E746-37CB-9672-97B58C2672BF.dita#GUID-22982E51-E746-37CB-9672-97B58C2672BF/GUID-B1104DF4-7490-33D9-BB64-83E16D9BA723"><apiname>NFastSemaphore::Signal()</apiname></xref> rather
+that <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-B4B058FF-F077-3F0A-A344-F6FB36D987C6"><apiname>NKern::FSSignal()</apiname></xref> because IDFCs are called with the
+kernel locked. </p> <p id="GUID-6132B7FF-C664-5E21-8BF5-1BC9BAF00061"><b>The
+Symbian platform semaphore</b> </p> <p>Symbian platform semaphores are standard
+counting semaphores that can be used by one or more Symbian platform threads.
+The most common use of semaphores is to synchronise processing between threads,
+i.e. to force a thread to wait until some processing is complete in one or
+more other threads or until one or more events have occurred. </p> <p>The
+Symbian platform semaphore is represented by a <xref href="GUID-48D9A672-11AA-3F21-8AB6-AB01032C52A5.dita"><apiname>DSemaphore</apiname></xref> object. </p> <ul>
+<li id="GUID-FE9B937B-9B60-5C92-A1CA-6FDE7E1623EE"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-A396E34A-2B84-5EFC-8FE8-6DBE68A21A80">Characteristics</xref> </p> </li>
+<li id="GUID-3880A591-1512-518E-8607-E5737C7B84A5"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-6131CDB0-6249-5B9A-A969-9B25F8BCECF5">Rules</xref> </p> </li>
+<li id="GUID-B97B8B09-CD5B-57E2-9E7F-AD1DD90847AA"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-915A061E-C85E-5165-A12F-B3B214756AE0">How to use</xref>  </p> </li>
+</ul> <p id="GUID-A396E34A-2B84-5EFC-8FE8-6DBE68A21A80"><b>Characteristics</b> </p> <p>A
+Symbian platform semaphore is based on the value of a count, which the <codeph>DSemaphore</codeph> object
+maintains. The value of the count indicates whether there are any threads
+waiting on it. The general behaviour is: </p> <ul>
+<li id="GUID-D71A8532-4D3B-5748-81C5-8E40C91FB4D3"><p>if the count is positive
+or zero, then there are no threads waiting </p> </li>
+<li id="GUID-8C86A1DF-14D4-55DD-8511-FA51C4706FBF"><p>if the count is negative,
+the magnitude of the value is the number of threads that are waiting on it. </p> </li>
+</ul> <p>There are two basic operations on semaphores: </p> <ul>
+<li id="GUID-4193B915-82FB-5648-AD41-C1D5E345A8F1"><p>WAIT - this decrements
+the count atomically. If the count remains non-negative the calling thread
+continues to run; if the count becomes negative the calling thread is blocked. </p> </li>
+<li id="GUID-F39A0E98-8662-5B7B-B266-027885DB3F6A"><p>SIGNAL - this increments
+the count atomically. If the count was originally negative the next highest
+priority waiting thread is released. </p> </li>
+</ul> <p>Waiting threads are released in descending order of priority. Note
+however that threads that are explicitly suspended as well as waiting on a
+semaphore, are not kept on the semaphore wait queue; instead they are kept
+on a separate suspended queue. Such threads are not regarded as waiting for
+the semaphore; this means that if the semaphore is signalled, they will not
+be released, and the semaphore count will just increase and may become positive. </p> <p>Symbian
+platform semaphore operations are protected by the <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-A0FB7718-F39C-5FB3-B67C-430B490F6430">system lock</xref> fast mutex rather than by locking the kernel. To guarantee
+this, semaphore operations are done through kernel functions. </p> <p>Although
+somewhat artificial, and not based on real code, the following diagram nevertheless
+shows the basic idea behind Symbian platform semaphores. </p> <fig id="GUID-505BC4A5-BBCB-5A63-9795-C751719661BB">
+<title>Symbian platform semaphore</title>
+<image href="GUID-0FE0B646-A62F-55A8-A6E6-587D0909CE19_d0e282855_href.png" placement="inline"/>
+</fig> <p id="GUID-6131CDB0-6249-5B9A-A969-9B25F8BCECF5"><b>Rules</b> </p> <p>There
+are a few rules about the use of Symbian platform semaphores: </p> <ul>
+<li id="GUID-B850F00A-D7E6-5542-9D9D-F07F2625E29B"><p>Only Symbian platform
+threads are allowed to use Symbian platform semaphores </p> </li>
+<li id="GUID-C848306E-7407-5397-8638-DB6AB7250A4E"><p>An IDFC is not allowed
+to signal a Symbian platform semaphore. </p> </li>
+</ul> <p id="GUID-915A061E-C85E-5165-A12F-B3B214756AE0"><b>How to use</b> </p> <p>Typically
+you declare the Symbian platform semaphore in a class declaration, for example: </p> <codeblock id="GUID-19168C17-C570-5FEE-9339-FEA37E6D0043" xml:space="preserve">class X
+    {
+    ...
+private:
+    DSemaphore* iSemaphore;
+    ...
+    };
+
+</codeblock> <p>You cannot create a <codeph>DSemaphore</codeph> object directly;
+instead you must use the kernel function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8D0C749E-BB1E-3DC1-85CD-945313F07146"><apiname>Kern::SemaphoreCreate()</apiname></xref>.
+You pass a <codeph>DSemaphore*</codeph> type to the kernel function, which
+creates the <codeph>DSemaphore</codeph> object and returns a reference to
+it through the <codeph>DSemaphore</codeph> pointer. </p> <p>Waiting on the
+semaphore and signalling the semaphore are done using the kernel functions: </p> <ul>
+<li id="GUID-258E8300-3E13-502F-95C4-42DBA956BA0E"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-B7442064-FD21-3DCE-A412-4233D36A8D10"><apiname>Kern::SemaphoreWait()</apiname></xref>  </p> </li>
+<li id="GUID-4FF62788-06FB-5F71-A8AE-3539E498E05A"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F25FACED-5030-304D-95FA-8A1AE48565F3"><apiname>Kern::SemaphoreSignal()</apiname></xref>  </p> </li>
+</ul> <p>respectively, passing a reference to the <codeph>DSemaphore</codeph> object
+created earlier. Note that although you pass a <codeph>DSemaphore</codeph> object
+around, the member functions and member data of the class are considered as
+internal to Symbian platform, and indeed the member functions are not exported
+and are not accessible except to the kernel itself. However, you can call <codeph>Open()</codeph> and <codeph>Close()</codeph> on <codeph>DSemaphore</codeph> as they are members of the base class <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>. </p> </section>
+<section id="GUID-7E632FD5-03B6-5D39-8A97-8F1948F2BB5B"><title>Thread critical
+section</title> <p>Putting a thread into a thread critical section prevents
+it being killed or panicked. Any kill or panic request is deferred until the
+thread leaves the critical section. </p> <p>A thread critical section is used
+to protect a section of code that is changing a global data structure or some
+other global resource. Killing a thread that is in the middle of manipulating
+such a global data structure might leave it in a corrupt state, or marked
+is being "in use". </p> <p>A thread critical section only applies to code
+that is running on the kernel side but in the context of a user thread. Only
+user threads can be terminated or panicked by another thread. </p> <p>In practice,
+a thread critical section only applies to code implementing a <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-FD4DA73F-45E7-37BE-9380-1D8ED36114F7"><apiname>DLogicalChannelBase::Request()</apiname></xref> function
+or a HAL function handler. </p> <p id="GUID-F66BB67F-DFC4-5580-966B-C9F94359474A"><b>How
+to use</b> </p> <p>Enter a thread critical section by calling: <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-841D587C-E9E6-34EE-8ED0-E9A206F64379"><apiname>NKern::ThreadEnterCS()</apiname></xref>. </p> <p>Exit
+a thread critical section by calling: <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2C897BA5-2BD7-3ABA-9F2B-F0B1AC14D1AE"><apiname>NKern::ThreadLeaveCS()</apiname></xref>. </p> <p>Note: </p> <ul>
+<li id="GUID-370A2F89-8D66-5328-8805-211EF1E46601"><p>it is important that
+you only hold a thread critical section for the absolute minimum amount of
+time it takes to access and change the resource. </p> </li>
+<li id="GUID-85613CB2-247E-5030-A971-2942B948FF09"><p>you do not need to be
+in a critical section to hold a <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-09377BC3-770A-5558-B3A9-A7E2CE11EBC3">fast
+mutex</xref> because a thread holding a fast mutex is implicitly in a critical
+section. </p> </li>
+</ul> <p>There are a large number of examples scattered throughout Symbian
+platform source code. </p> </section>
+<section id="GUID-7AECE882-9D48-5109-AE38-38BF0F8F717F"><title>Atomic operations</title> <p>There
+are a number of functions provided by the <i>nanokernel</i> that allow you
+to do atomic operations, and may be useful when synchronising processing or
+ensuring that data is safely read and/or updated. </p> <p>This is a list of
+the functions that are available. The function descriptions provide sufficient
+information for their use. </p> <ul>
+<li id="GUID-24420BA8-DC26-5B60-86B5-6D5511C7212E"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-D8F0CA07-9810-3AE0-8473-546D91D43572"><apiname>NKern::SafeSwap()</apiname></xref>  </p> </li>
+<li id="GUID-105922AC-FC67-59B8-A945-E7CEF77B3DEF"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-D953B3A2-5C7A-30E2-9917-3C4DD33DCEF4"><apiname>NKern::SafeSwap8()</apiname></xref>  </p> </li>
+<li id="GUID-D71AF10C-7251-58A7-A4C5-0B3D54CD518C"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-605C9857-3E5F-3202-B0CC-02F5C717B872"><apiname>NKern::LockedInc()</apiname></xref>  </p> </li>
+<li id="GUID-AE5C0560-D159-5AC9-804E-11F8EB9F9677"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-91FFC47D-2350-35A9-B3EA-F045902B68FE"><apiname>NKern::LockedDec()</apiname></xref>  </p> </li>
+<li id="GUID-414F83A6-6934-567C-BD90-AB5818BE76A5"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2E36C0A3-D0EC-36AF-A018-4F4C793C1EF4"><apiname>NKern::LockedAdd()</apiname></xref>  </p> </li>
+<li id="GUID-DB617589-FED2-53A4-83A8-97089AC6F67E"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-0B55EEDB-942D-3F5F-BF81-6FD52EEBBE0F"><apiname>NKern::LockedSetClear()</apiname></xref>  </p> </li>
+<li id="GUID-18F0D485-0FD6-5532-94C8-3A1B7182CE66"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-0AD0756E-41BE-33CF-A3D3-7802A15534B4"><apiname>NKern::LockedSetClear8()</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-A0FB7718-F39C-5FB3-B67C-430B490F6430"><title>The system
+lock</title> <p>The system lock is a specific fast mutex that only provides
+exclusion against other threads acquiring the same fast mutex. Setting, and
+acquiring the system lock means that a thread enters an implied critical section. </p> <p>The
+major items protected by the system lock are: </p> <ul>
+<li id="GUID-F7AF7E09-EE89-5B0E-B220-355E19F2C5DD"><p> <codeph>DThread</codeph> member
+data related to thread priority and status. </p> </li>
+<li id="GUID-BFF35EE1-7173-5827-BCE1-0A6AF9473289"><p>the consistency of the
+memory map. On the kernel side, the state of user side memory or the mapping
+of a process is not guaranteed unless one or other of the following conditions
+is true: </p> <ul>
+<li id="GUID-1A853DAF-83D9-5787-BD55-E33153248B0B"><p>you are a thread belonging
+to the process that owns the memory. </p> </li>
+<li id="GUID-2ADC2FDE-75F8-5E50-B4E7-9699559CADEB"><p>you hold the system
+lock. </p> </li>
+</ul> </li>
+<li id="GUID-6F41B4EB-C060-5FC6-BF74-DBFDFA0E3343"><p>the lifetime of <codeph>DObject</codeph> type
+objects and references to them, including handle translation in Exec dispatch. </p> </li>
+</ul> <p>Note that the system lock is different from the kernel lock; the
+kernel lock protects against any rescheduling. When the system lock is set,
+the calling thread can still be preempted, even in the locked section. </p> <ul>
+<li id="GUID-CD6EB1A4-E0D1-5D3B-8351-954C2612E1E8"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-87724201-9A89-5AFB-A035-D07A7DC0510F">How to use</xref>  </p> </li>
+<li id="GUID-9B6B6A29-9AC7-5048-A1CF-0F4EC6C929E8"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-3337309D-C048-57D5-9A86-7F3BFF5E239C">When to use</xref>  </p> </li>
+</ul> <p id="GUID-87724201-9A89-5AFB-A035-D07A7DC0510F"><b>How to use</b> </p> <p>The
+system lock is set by a call to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-B3837744-B8CC-3DC0-BA1D-417016E88EE9"><apiname>NKern::LockSystem()</apiname></xref>. </p> <p>The
+system lock is unset by a call to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-63B882C8-C5D0-3595-BBF1-74E942A5060A"><apiname>NKern::UnlockSystem()</apiname></xref>  </p> <p id="GUID-3337309D-C048-57D5-9A86-7F3BFF5E239C"><b>When to use</b> </p> <p>Only
+use the system lock when you access a kernel resource that is protected by
+the system lock. Generally you will not access these directly but will use
+a kernel function, and the preconditions will tell you whether you need to
+hold the system lock. </p> </section>
+<section id="GUID-1806CDC5-9941-5CFC-B1F1-82BBA8D4F65B"><title>The kernel
+lock</title> <p>The kernel lock disables the scheduler so that the currently
+running thread cannot be pre-empted. It also prevent IDFCs from running. If
+the kernel lock is not set, then IDFCs can run immediately after ISRs </p> <p>Its
+main purpose is to prevent code from being reentered and corrupting important
+global structures such as the thread-ready list. </p> <p id="GUID-493A2BEA-E268-5476-90DE-3C12DB91E25C"><b>How
+to use</b> </p> <p>The kernel lock is set by a call to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref>. </p> <p>The
+kernel lock is unset by a call to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-A1A42137-906C-30F1-AF61-4F786FC372DE"><apiname>NKern::Unlock()</apiname></xref>  </p> <p id="GUID-6B734C56-8473-5C3C-803D-24D6E8CBEFAD"><b>When to use</b> </p> <p> <b> ALMOST
+NEVER</b>. </p> <p>The kernel exports this primarily for use by personality
+layers, which need to modify the thread-ready list. In general, you should
+use a <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-09377BC3-770A-5558-B3A9-A7E2CE11EBC3">fast
+mutex</xref> for thread synchronisation. </p> </section>
+<section id="GUID-961912E5-2D89-518A-A6EA-3AAC15D17B81"><title>Disabling interrupts</title> <p>This
+is the most drastic form of synchronisation. With interrupts disabled, timeslicing
+cannot occur. If interrupts are disabled for any length of time, the responsiveness
+of the whole system may be threatened, and real time guarantees may be invalidated. </p> <p><b>How
+to use</b> </p> <p>There are three functions supplied by the <i>nanokernel</i> involved
+in disabling and enabling interrupts. </p> <ul>
+<li id="GUID-3D0B9AC3-8033-5E65-AE05-21042D11C2B5"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-CA1C36B7-02EE-31D5-B700-27DE4769ECCF"><apiname>NKern::DisableInterrupts()</apiname></xref>  </p> </li>
+<li id="GUID-EFFAF15F-180B-5A0E-B4E2-106917125E27"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-8C251C65-FDE7-3161-8D2B-61401FB6487F"><apiname>NKern::DisableAllInterrupts()</apiname></xref>  </p> </li>
+<li id="GUID-A0575FE2-E5B3-5C72-A99A-F017AEE580CD"><p> <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2D328082-3A9F-3467-81CF-B1C68866E163"><apiname>NKern::RestoreInterrupts()</apiname></xref>  </p> </li>
+</ul> <p><b>When to use</b> </p> <p> <b> NEVER</b>. </p> <p>Unless there is
+absolutely no other suitable technique. You would probably only use this to
+protect some data that is shared between an interrupt service routine and
+a thread (or a DFC). Nevertheless, you may find that <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-7AECE882-9D48-5109-AE38-38BF0F8F717F">atomic operations</xref> are more suitable. </p> </section>
+</conbody></concept>

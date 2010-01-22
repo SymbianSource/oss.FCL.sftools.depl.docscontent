@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2468D736-9F95-5412-B687-765D630651C7" xml:lang="en"><title>Parsing
+the XML Data</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>XML Parser is used to convert XML data to and from the DOM tree structure.The
+end result of the XML parsing is a DOM tree structure. In the case of SMIL,
+the player can use this DOM tree to render the slides. </p>
+<section><title>Introduction</title> <p>In order to parse XML data, an instance
+of the parser must be created. Two types of constructors exist, one type takes
+a <xref href="GUID-F294DC1C-D762-3CF7-BB64-18E742BA6EAA.dita"><apiname>MXMLDtd</apiname></xref> object, while the other does not. If a DTD object
+is supplied, then the parser validates the XML according to that DTD. If no
+DTD class is provided, then no validation takes place. </p> <p>All of the
+constructors take a <xref href="GUID-50F526AD-8471-35DD-8730-9BFB3956537C.dita"><apiname>MMDXMLParserObserver</apiname></xref> parameter. This
+interface is usually implemented by the owning class which then passes itself
+to the parser constructor. This interface exists so that the parser can notify
+its owner when parsing is complete. </p> <p>The way in which the DOM tree
+is used varies depending on the type of XML and even between different clients
+of the same type of XML. Different SMIL players may walk the DOM tree in slightly
+different ways; however several functions are likely to be used by all XML
+clients. </p> </section>
+<section><title>Procedure</title> <ol id="GUID-D137D73E-FD40-5698-A415-EE9B7D1A113A">
+<li id="GUID-253A51FB-7AF2-5EC2-9391-020B9B59524F"><p> <xref href="GUID-2468D736-9F95-5412-B687-765D630651C7.dita#GUID-2468D736-9F95-5412-B687-765D630651C7/GUID-8BC5C4C3-B4D2-5754-B608-0F840F546FDA">Generate a DOM tree from XML data</xref>. </p> </li>
+<li id="GUID-F8A280E4-4B82-5914-A5C5-1AFEB55746BD"><p> <xref href="GUID-2468D736-9F95-5412-B687-765D630651C7.dita#GUID-2468D736-9F95-5412-B687-765D630651C7/GUID-EFE7D031-72EE-597A-BE9B-8E3288DD80E1">Extract the data from the DOM tree</xref>. </p> </li>
+</ol> <p id="GUID-8BC5C4C3-B4D2-5754-B608-0F840F546FDA"><b>Generate a DOM
+tree from XML data</b> </p> <p>The following are the steps required to parse
+XML data and get the DOM tree: </p> <ol id="GUID-0A1120E9-B57E-5216-B2D6-3E9FCF8AA7E2">
+<li id="GUID-24024261-44FB-5517-8321-86CE292958E1"><p>Call <xref href="GUID-3AF26F84-F4C0-312D-9ABD-1C6EC0BD1675.dita#GUID-3AF26F84-F4C0-312D-9ABD-1C6EC0BD1675/GUID-AA06AF37-7C4F-376C-9A83-CC87C2BC3A75"><apiname>CMDXMLParser::ParseFile()</apiname></xref>,
+passing in the filename of the XML document to be parsed. </p> <p>When the
+parsing is complete, the parser calls the observer's <xref href="GUID-A0FB1AC0-9971-3387-8419-98962024A3C6.dita"><apiname>ParseFileCompleteL()</apiname></xref> function.
+This function must initiate the handling of the DOM tree that has been generated
+by the parser. </p> </li>
+<li id="GUID-215D2D49-25FD-580C-95CF-D9DA0D5936BB"><p>Call <xref href="GUID-3AF26F84-F4C0-312D-9ABD-1C6EC0BD1675.dita#GUID-3AF26F84-F4C0-312D-9ABD-1C6EC0BD1675/GUID-727267CE-EAF7-31FF-8BFC-41137D33AB86"><apiname>CMDXMLParser::DetachXMLDoc()</apiname></xref> to
+take ownership of the parsed DOM tree. </p> </li>
+<li id="GUID-BDEF9D19-4D4D-5C4B-8F9F-A7531CE8CA36"><p>Call <xref href="GUID-2A597821-BF7F-379A-A32C-99CF9B5CDFAA.dita#GUID-2A597821-BF7F-379A-A32C-99CF9B5CDFAA/GUID-C6D821B2-7571-305C-A6D8-1B031BAE3774"><apiname>CMDXMLDocument::DocumentElement()</apiname></xref> to
+get the root element of the DOM tree. </p> </li>
+</ol> <p id="GUID-EFE7D031-72EE-597A-BE9B-8E3288DD80E1"><b>Extract data from
+the DOM tree</b> </p> <p>The DOM tree is made up of <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita"><apiname>CMDXMLNode</apiname></xref> objects.
+The document element that is returned by the final step of the previous section
+is an example of a <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita"><apiname>CMDXMLNode</apiname></xref>. </p> <p>Use the following
+functions to navigate the DOM tree: </p> <ul>
+<li id="GUID-11C61DEB-154C-5C5E-9C29-A516A746EA1F"><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-9FF00918-EF74-3B93-BD70-55CB984A3F91"><apiname>CMDXMLNode::HasChildNodes()</apiname></xref>  </p> </li>
+<li id="GUID-9087B094-CC80-5905-9FB6-68E4DAC2E54C"><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-361BF090-E839-3A30-90ED-E87BEB315082"><apiname>CMDXMLNode::FirstChild()</apiname></xref>  </p> </li>
+<li id="GUID-CD28E350-86E7-5AFD-BEFA-6C2A17114F93"><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-4F329EBA-3AB0-3D9B-9FDE-672E04BE960C"><apiname>CMDXMLNode::LastChild()</apiname></xref>  </p> </li>
+<li id="GUID-AF6D7232-C12E-50F5-AE8A-C1AF824228F7"><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-8269D952-2CB1-3887-BE6D-EF85C82F8479"><apiname>CMDXMLNode::NextSibling()</apiname></xref>  </p> </li>
+<li id="GUID-37172D30-E4C5-596E-99C6-9BE820BDF532"><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-DE9AC9D0-CD7F-39DA-A8F4-E4A4F744BA07"><apiname>CMDXMLNode::PreviousSibling()</apiname></xref>  </p> </li>
+</ul> <p>Once a child or sibling node has been located, it is necessary to
+cast it to the specific type. The type can be identified by calling <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita#GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5/GUID-25D83285-9D7A-3D84-BE06-F889FFDAB262"><apiname>CMDXMLNode::NodeType()</apiname></xref>.
+The following types of node might exist in a parsed DOM tree. Once the type
+has been identified, they must be cast to one of the following: </p> <ul>
+<li id="GUID-A871CB40-BFCD-512F-8273-DB71509E6D9F"><p> <xref href="GUID-20E3DBF1-98CB-3B4D-AF93-38061F1E827A.dita"><apiname>CMDXMLComment</apiname></xref>:
+Comment data. </p> </li>
+<li id="GUID-A97D0934-C348-54CE-9538-BB7820924C58"><p> <xref href="GUID-7360D100-1F97-3F46-950E-E3A8CE3E8E1E.dita"><apiname>CMDXMLProcessingInstruction</apiname></xref>:
+Processing instruction data. </p> </li>
+<li id="GUID-AEE0A2F8-844E-5170-A466-9542650C2EF0"><p> <xref href="GUID-92E6AF07-A178-3A01-9FA5-16EB78323420.dita"><apiname>CMDXMLText</apiname></xref>:
+Text data. </p> </li>
+<li id="GUID-F5676BD0-08AE-5378-AF63-3D06764428AD"><p> <xref href="GUID-DF432AB6-7895-30E8-9B4B-378E61A7A901.dita"><apiname>CMDXMLElement</apiname></xref>:
+Element data including attribute name/value pairs. </p> </li>
+<li id="GUID-78715F02-52BF-5FB3-B3FC-8D69A97C7C05"><p> <xref href="GUID-B87073A7-36C3-3B1A-ABE7-C1035A21C8C5.dita"><apiname>CMDXMLDocumentElement</apiname></xref>:
+Represents the root element in the DOM tree. This is the first node that is
+accessible after parsing is complete. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-FDC0004A-A2EE-5B73-9E2D-B6864C600AF9.dita"><linktext>SMIL Parser
+Overview</linktext></link>
+<link href="GUID-99CC6D00-DC3E-51C2-8152-060FB80F5FCD.dita"><linktext>Composing
+the XML                 Data</linktext></link>
+</related-links></concept>

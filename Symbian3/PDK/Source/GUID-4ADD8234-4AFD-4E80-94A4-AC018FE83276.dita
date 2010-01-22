@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4ADD8234-4AFD-4E80-94A4-AC018FE83276" xml:lang="en"><title>Differences
+between OSS and Symbian GLib</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The three areas of difference between the way GLib is implemented in Symbian
+platform and in OSS are as follows: </p>
+<ul>
+<li><p>Memory allocation</p></li>
+<li><p>Spawn APIs</p></li>
+<li><p>Libgmodule APIs </p></li>
+</ul>
+<section id="GUID-DFAD39D6-BA92-4293-B5EC-97077CE1FC1A-GENID-1-7-1-11-1-1-7-1-6-1-4-1-3-3">       <title>Memory
+allocation</title>       <p>The Symbian GLib implementation does not follow
+the default OSS behavior. The default OSS behavior is such that in the event
+of a memory allocation failure the application, using <codeph>g_malloc()</codeph> and
+not <codeph>g_try_malloc()</codeph>, will call <codeph>abort()</codeph> and
+thus terminate the application.  </p><p>The Symbian implementation, on the
+other hand will return NULL and not terminate the application in the event
+of a memory allocation failure. Thus, it is the application’s responsibility
+to check if the memory allocation failed due to the needed tasks.</p><p>Generally,
+all the application code written using GLib does not perform memory allocation
+failure checks. Hence, for Symbian GLib it is the application programmer's
+responsibility to check for memory allocation failures.  </p>     </section>
+<section id="GUID-DFAD39D6-BA92-4293-B5EC-97077CE1FC1A-GENID-1-7-1-11-1-1-7-1-6-1-4-1-3-4">       <title>Spawn
+APIs</title>       <p>GLib has a set of APIs for process spawning. Since Symbian
+platform does not support the <codeph>fork()</codeph> and <codeph>exec()</codeph> APIs,
+the <codeph>g_spawn*</codeph> APIs have limitations in their functionality.
+The limitations are explained per API in detail below.</p><p><b><codeph>g_spawn_async_with_pipes</codeph></b></p><p>The
+signature of this API is:</p><codeblock xml:space="preserve">gboolean g_spawn_async_with_pipes (
+    const gchar *working_directoy,
+    gchar **argv,
+    gchar **envp,
+    GSpawnFlags flags, 			
+    GSpawnChildSetupFunc child_setup, 			
+    gpointer user_data, 			
+    GPid *child_pid, 			
+    gint  *standard_input, 			
+    gint *standard_output, 			
+    gint *standard_error, 			
+    GError **error); </codeblock><p>This API executes the program asynchronously:
+that is, the caller does not block for the spawned process to complete. The
+setting of the following parameters does not have any effect in Symbian GLib:</p><ul>
+<li><p><codeph>working_directory</codeph></p></li>
+<li><p><codeph>envp</codeph></p></li>
+</ul><p>If a value other than NULL is passed for <codeph>standard_input</codeph>, <codeph>standard_ouput</codeph>,
+or <codeph>standard_error</codeph>, the value at the location is set to -1.</p><p><b><codeph>g_spawn_async</codeph></b></p><p>The
+signature of the API is:</p><codeblock xml:space="preserve">gboolean g_spawn_async (
+    const gchar *working_directory, 	 	  
+    gchar **argv, 		  
+    gchar **envp, 		  
+    GSpawnFlags flags, 		  
+    GSpawnChildSetupFunc child_setup, 		  
+    gpointer user_data, 		  
+    GPid *child_pid, 		  
+    GError **error); </codeblock><p>This API calls <codeph>g_spawn_async_with_pipes</codeph> without
+any pipes. The setting of the following parameters does not have any effect
+in Symbian GLib:</p><ul>
+<li><p><codeph>working_directory</codeph></p></li>
+<li><p><codeph>envp</codeph></p></li>
+</ul><p><b><codeph>g_spawn_sync</codeph></b></p><p>The signature of the API
+is:</p><codeblock xml:space="preserve">gboolean g_spawn_sync(
+    const gchar *working_directory, 	 	
+    gchar **argv, 		
+    gchar **envp, 		
+    GSpawnFlags flags, 		
+    GSpawnChildSetupFunc child_setup, 		
+    gpointer user_data, 		
+    gchar **standard_output, 		
+    gchar **standard_error, 		
+    gint *exit_status, 		
+    GError **error); </codeblock><p>This API executes the program synchronously:
+that is, the calling process waits for the spawned process to complete before
+returning. The setting of the following parameters does not have any effect
+on Symbian GLib:  </p><ul>
+<li><p><codeph>working_directory</codeph></p></li>
+<li><p><codeph>envp</codeph></p></li>
+</ul><p>If a value other than NULL is passed for<codeph> standard_output</codeph> or <codeph>standard_error</codeph>,
+the value at the location is set to -1. </p><p><b><codeph>g_spawn_command_line_sync</codeph></b></p><p>The
+signature of the API is:</p><codeblock xml:space="preserve">gboolean g_spawn_command_line_sync(
+    const gchar *command_line, 
+    gchar **standard_output, 
+    gchar **standard_error, 
+    gint *exit_status, 
+    GError **error);  </codeblock><p>This API is a simple version of <codeph>g_spawn_sync</codeph> in
+which there are fewer number of parameters involved, and it takes a command
+line instead.</p><p>If a value other than NULL is passed for <codeph>standard_output</codeph> or <codeph>standard_error</codeph>,
+the value at the location is set to -1.</p><p>In many spawn APIs a variable
+of type <codeph>GSpawnFlags</codeph> is passed. The following flags have no
+effect:</p><ul>
+<li><p><codeph>G_SPAWN_LEAVE_DESCRIPTORS_OPEN</codeph></p></li>
+<li><p><codeph>G_SPAWN_STDOUT_TO_DEV_NULL</codeph></p></li>
+<li><p><codeph>G_SPAWN_STDERR_TO_DEV_NULL</codeph></p></li>
+<li><p><codeph>G_SPAWN_CHILD_INHERITS_STDIN</codeph></p></li>
+</ul>     </section>
+<section id="GUID-4B68F695-1BDB-4AA0-B77A-7F808A157E7A"><title>Libgmodule
+APIs</title><p>Libgmodule has APIs that provide a portable method for dynamically
+loading 'plug-ins' or, in other words, DLLs. There are some deviations in
+the <codeph>libgmodule</codeph> APIs on Symbian platform as compared to the
+OSS behavior. The APIs with their limitations are explained in detail below.</p><ul>
+<li><p><b><codeph>g_module_open</codeph></b>: The signature of the API is:</p><codeblock xml:space="preserve">GModule *g_module_open (const gchar *file_name, GModuleFlags flags);</codeblock><p>This API is used to open a module. The default OSS behavior when file_name
+is passed as NULL such that it obtains a <codeph>GModule</codeph> representing
+the main program. In Symbian GLib, NULL is returned instead. Of all the <codeph>GModuleFlags</codeph> only <codeph>G_MODULE_BIND_LOCAL</codeph> is
+honored. If the user passes any other flags, the module is still opened using
+the flag <codeph>G_MODULE_BIND_LOCAL</codeph>. </p></li>
+<li><p><b><codeph>g_module_symbol</codeph></b>: The signature of the API is:</p><codeblock xml:space="preserve">gboolean g_module_symbol (GModule *module, const gchar *symbol_name, gpointer *symbol);</codeblock><p>This API gets the symbol from the <codeph>GModule</codeph> opened using <codeph>g_module_open</codeph>.
+In OSS, <codeph>symbol_name</codeph> is the name of the symbol that needs
+to be queried from the <codeph>GModule</codeph>. In Symbian platform, the
+ordinal number (passed as a string) of the symbol name must be passed and
+not the symbol name.</p></li>
+</ul><p>See also <xref href="GUID-01E7AE98-024C-4119-87D0-5BB9D53DA119.dita">Introduction
+to libgmodule</xref> for more details about <codeph>libgmodule</codeph>. </p></section>
+</conbody></concept>

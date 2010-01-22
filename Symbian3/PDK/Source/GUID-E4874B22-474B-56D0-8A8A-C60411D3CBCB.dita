@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-E4874B22-474B-56D0-8A8A-C60411D3CBCB"><title>Accessing a field without loading a whole record: Tutorial</title><shortdesc>This tutorial shows you how to access a field without loading a whole record. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <prereq id="GUID-A02C353C-3AB5-58E1-B433-98E7158CB5CD"><p>Before you start, you must understand: </p> <ul><li id="GUID-B77D629D-4E6D-5D2D-840A-0CFA5658D151"><p>the general concept of the Comms Database </p> </li> <li id="GUID-FAF6F934-8AF3-5500-9E25-A650B69E84F4"><p>the specific concept of fields, records, links and tables </p> </li> <li id="GUID-24F0BEF0-ADBB-531D-BE9B-6325E07862F2"><p>how to write and build application code to run on Symbian OS </p> </li> </ul> </prereq> <context id="GUID-D907BA51-0528-5018-9B46-67AE5824CEF7"><p>This tutorial shows you how to get the value of a field in the <xref href="GUID-387A8240-0765-52F2-98A4-8F9FC809E03E.dita#GUID-387A8240-0765-52F2-98A4-8F9FC809E03E/GUID-7383902B-10D2-52F3-8BDB-478CA6FB587D">GlobalSettings</xref> table. Records from the <codeph>GlobalSettings</codeph> table are not loaded. </p> <p>This tutorial uses the <codeph>BearerAvailablityCheckTSY</codeph> field. This field contains the name of the TSY used to check for bearer availability. </p> </context> <steps id="GUID-A7B63B0B-CF57-5E84-BB08-C957C24675F9"><step id="GUID-E0321D17-9CC5-5BF3-87A8-4A1638069214"><cmd>Make sure that you have created a session. </cmd> </step> <step id="GUID-CE91627F-547F-58C0-A940-9B5461B33536"><cmd>Create the field object in the tool or application process. </cmd> <info>You construct a <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBField</apiname></xref> <codeph>&lt;T&gt;</codeph> object and pass <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>KCDTIdBearerAvailabilityCheckTSY</apiname></xref> to the constructor. The symbol <codeph>KCDTIdBearerAvailabilityCheckTSY</codeph> defines the unique numeric Id for the <codeph>BearerAvailablityCheckTSY</codeph> field. </info> <stepxmp><codeblock id="GUID-EB189214-1590-5EB7-8233-B8C50ADCF075" xml:space="preserve">...
+
+// Create the field object. The template parameter is TDesc, because the field value
+// is a short text description. 
+// Use the "... new(Eleave).. " construction to create the field object.
+// Pass KCDTIdBearerAvailabilityCheckTSY as a parameter to the constructor.
+
+CMDBField&lt;TDesC&gt;* descField = new(ELeave) CMDBField&lt;TDesC&gt;(KCDTIdBearerAvailabilityCheckTSY);
+...
+             </codeblock> </stepxmp> </step> <step id="GUID-8B20473F-C8B6-5547-907E-23F42BE260BB"><cmd>Set the data that identifies the field and load the field </cmd> <info>A descriptor field needs an additional call to set the size of the descriptor. Call <codeph>SetMaxLengthL()</codeph> to set the size of the descriptor. This function is a member of the field class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBField</apiname></xref> <codeph>&lt;TDesC&gt;</codeph>. Internally, the function causes the allocation of a descriptor. You must set the size of the descriptor before you assign the data. You can also use the <codeph>SetL()</codeph> function. This function sets the length and assigns the data. The function is a member of the field class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBField</apiname></xref> <codeph>&lt;TDesC&gt;</codeph>. </info> <stepxmp><codeblock id="GUID-95ED9858-3123-56BE-B820-E5EE25A16FB2" xml:space="preserve">...
+
+// The symbol "KMaxTextLength" defines the maximum length of short text.
+// The record Id is ALWAYS 1 for global settings table.
+descField-&gt;SetMaxLengthL(KMaxTextLength);
+descField-&gt;SetRecordId(1); //recorded is ALWAYS 1 for global settings table
+
+// Load the field.
+descField-&gt;LoadL(*iDb);
+...</codeblock> </stepxmp> </step> <step id="GUID-D6A6EA77-B3A3-5614-9129-481E2EAB30D2"><cmd>Check that the field has a value before you use it </cmd> <stepxmp><codeblock id="GUID-1F8C21E5-D9E1-5F1B-B695-6A143C80751D" xml:space="preserve">...
+// Use the IsNull() function to check that the field has a value.
+// In this example, the code leaves if the field does not have a value.
+// Your code needs to handle a Null value appropriately.
+
+if(descField-&gt;IsNull())
+    {
+    User::Leave(KErrNotFound);
+    }
+else
+    {
+    // Either process the content of *descField in place,
+    // or copy the content to another descriptor. 
+    // The processing depends on the structure of your code.
+    // In this example, the content is copied into an RBuf for
+    // further processing.
+    RBuf buf;
+    buf.CleanupClosePushL(); 
+    buf.CreateL(descField);
+    ...
+    // Do something with the data.
+    ...
+    // Delete the RBuf buffer
+    CleanupStack::PopAndDestroy()   
+    ...
+    }
+
+// Do not forget to delete the field object.
+delete descField;
+...</codeblock> </stepxmp> </step> </steps> </taskbody></task>

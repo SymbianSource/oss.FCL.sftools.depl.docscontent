@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E8DF12FC-DCA9-57EA-833A-C1E8D6DAF405" xml:lang="en"><title>Drawing
+Tutorial</title><shortdesc>This topic provides tips and code snippets to help you get started
+drawing. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: Both (ScreenPlay and non-ScreenPlay). <b>Target
+audience</b>: Application developers. </p>
+<section id="GUID-4123E6D4-0CBA-4244-944B-D472801A4875"><title>Standard windows</title> <p>All drawing to standard windows
+must be <xref href="GUID-8DB1C618-597C-560C-95A2-C0AB2CEBB027.dita">redraw drawing</xref>,
+which means that it takes place between <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::BeginRedraw()</apiname></xref> and <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::EndRedraw()</apiname></xref> calls. If you use the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>CCoeControl::DrawNow()</apiname></xref> and <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>CCoeControl::DrawDeferred()</apiname></xref> methods,
+CONE takes care of this for you. </p> <p>To redraw to an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>,
+an application starts the sequence by activating a <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>CWindowGc</apiname></xref> to
+use a particular window for drawing, it then calls <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::BeginRedraw()</apiname></xref> before
+issuing the drawing commands and finally calling <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::EndRedraw()</apiname></xref>.
+For example: </p> <codeblock id="GUID-25AE81CE-46CF-5E07-8A94-B35A4A06DAE6" xml:space="preserve">gc-&gt;Activate(iWindow);
+iWindow.BeginRedraw(rect);
+DoDraw(rect);
+iWindow.EndRedraw();
+gc-&gt;Deactivate();</codeblock> <p> <codeph>BeginRedraw()</codeph> does the
+following: </p> <ul>
+<li id="GUID-2742E046-2511-5C6A-8E84-396A80AFED18"><p>marks the rectangle
+passed as its argument as valid (in other words, it removes the rectangle
+from the invalid region of the window) </p> </li>
+<li id="GUID-4FF89A03-8A77-5640-A77C-943164E869B3"><p>sets the clipping region
+to the intersection of the invalid region and the rectangle passed as its
+argument. </p> </li>
+</ul> <p>In a server-initiated redraw, the drawing must exactly match what
+was drawn originally, because the Window Server clips the drawing to the newly
+validated region. If the rectangle drawn in response to a redraw event does
+not cover the entire invalid region, the Window Server generates another redraw
+event specifying the bounding rectangle of the region that is still invalid.
+This continues until the entire window is valid. </p> <p>In an application-initiated
+redraw, it is good practice to invalidate the whole region before passing
+it to the redraw. For example: </p> <codeblock id="GUID-A4213BAF-00A8-5461-86BF-E708DFFC87F1" xml:space="preserve">gc-&gt;Activate(iWindow);
+iWindow.Invalidate(rect);
+iWindow.BeginRedraw(rect);
+DoDraw(rect);
+iWindow.EndRedraw();
+gc-&gt;Deactivate();</codeblock> <p>After this sequence, the entire window is
+valid. </p> </section>
+<section id="GUID-CB59A6EF-AC04-4ACD-B82D-CBAD42975B09"><title>Backed-up windows</title> <p>Backed-up windows are redrawn
+by the Window Server from the backup bitmap and not by the application. They
+therefore have no <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::Invalidate()</apiname></xref>, <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::BeginRedraw()</apiname></xref> or <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::EndRedraw()</apiname></xref> member
+functions. The sequence for drawing to backed-up windows is therefore as follows: </p> <codeblock id="GUID-85C7E7CF-6DF7-5619-B6C3-F9530E316A1C" xml:space="preserve">gc-&gt;Activate(iWindow);
+DoDraw(rect);
+gc-&gt;Deactivate();</codeblock> <p> <b>Note</b>: Backed-up windows are deprecated
+in Symbian^3. </p> </section>
+<section id="GUID-1894D9BE-0B8A-4FF9-9EAB-83D072CF1FDE"><title>Pre-emptive multi tasking</title> <p>Because Symbian is a
+pre-emptive system, another application—or the Window Server itself—may pre-empt
+the application that is drawing or redrawing. The result is that <codeph>DoDraw()</codeph> may
+be partially complete when preemption occurs. Then, when the <codeph>DoDraw()</codeph> receives
+control again, it may draw to an area that has been invalidated without its
+knowledge. </p> <p>For this reason, the Window Server marks a window region
+as valid at <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::BeginRedraw()</apiname></xref> time, <i>not</i> at <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow::EndRedraw()</apiname></xref> time. Then, any regions that
+become invalid because of a preempting application’s activity are correctly
+added to the invalid region. The <codeph>DoDraw()</codeph> completes, but
+the Window Server generates another redraw event and the application must
+start the redraw again. </p> </section>
+</conbody><related-links>
+<link href="GUID-484B51EC-2209-5492-8E9C-9D792AB0DF35.dita"><linktext>Graphics
+and Drawing </linktext></link>
+</related-links></concept>

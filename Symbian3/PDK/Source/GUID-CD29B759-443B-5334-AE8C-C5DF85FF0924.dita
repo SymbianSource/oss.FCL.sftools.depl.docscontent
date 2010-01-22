@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-CD29B759-443B-5334-AE8C-C5DF85FF0924"><title>Multimode Line</title><prolog><metadata><keywords/></metadata></prolog><conbody> <p>The Core telephony <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RLine</apiname></xref> base class provides the <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RLine::GetHookStatus()</apiname></xref> function to report the hook status of the line. The line can be on or off hook. The <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RLine::GetStatus()</apiname></xref> function reports the call status of the line, that is whether it is ringing or connected. The Multimode API class derived from <codeph>RLine</codeph>, <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RMobileLine</apiname></xref>, provides additional line status information, such as if the line is on-hold. </p> <p>To get the line status, use <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RMobileLine::GetMobileLineStatus()</apiname></xref>, which returns a <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RMobileCall::TMobileCallStatus</apiname></xref> object. </p> <p>To be notified when the line changes state, use <xref href="GUID-E7146D0B-D3B4-30A4-8E31-3EE0FA3197DE.dita"><apiname>RMobileLine::NotifyMobileLineStatusChange()</apiname></xref>. </p> <p>If the line has one call, then the line state is equal to the call state. If the line has more than one current call, then the line state is the state of the longest call. </p> <p><b>Example </b> </p> <p>The following code waits for the next change of state in the line and returns true if the new state is Connected. </p> <codeblock id="GUID-95C3EA41-8FA8-53F1-80C3-6094EE3B502F" xml:space="preserve">TBool CClientApp::WaitForConnectedL(RMobileLine&amp; aLine)
+    {
+    TRequestStatus status;
+    RMobileCall::TMobileCallStatus lineStatus;
+    aLine.NotifyMobileLineStatusChange(status, lineStatus);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    if (lineStatus == RMobileCall::EStatusConnected)
+        return ETrue;
+    else
+        return EFalse;
+    }
+</codeblock> </conbody></concept>

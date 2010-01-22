@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-44345B7F-77DE-5D00-BA0B-BFE40E664DA8" xml:lang="en"><title>Certificate
+Application Framework</title><shortdesc>Certificate applications (certapps) framework provides interfaces
+for implementing certapp stores. A certapps store holds a list of clients
+that trust the certificates (root certificate) stored in the certificate store
+(certstore). For example, certificates associated with TLS are held in certstore
+and applications that trust these certificates are held in certapps store. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-B433DE89-5B53-50F2-923C-52DAA5650CB9"><title>Description</title> <p>The
+certapps framework is an extension of <xref href="GUID-C7150120-74C2-5FF1-99F0-0A267393E342.dita">Crypto
+token Framework</xref>. It provides interface that must be implemented to
+retrieve clients of certificate management. </p> <ul>
+<li id="GUID-283EBC79-1361-50AE-97DF-CEFC62C93834"><p>Each client consists
+of a UID and a human-readable name, and represents an application. </p> </li>
+<li id="GUID-108F5001-D7A3-5E2A-B548-8AAEF30EC1B2"><p>Each certificate is
+marked as trusted by one or more of the UIDs indicating that it is trusted
+by a particular application, and making it a root certificate for that application. </p> </li>
+<li id="GUID-629C668A-7E2A-5B55-BBF5-4BE58E8D133A"><p>Different clients trust
+different certificates, For example, TLS might trust VeriSign's secure server
+root, but Software Install may not trust. </p> </li>
+</ul> <p><b>TCertificateAppInfo</b> </p> <p>The framework includes <xref href="GUID-D81D035F-EB2F-3A6C-A0C9-17473160A3CE.dita"><apiname>TCertificateAppInfo</apiname></xref> class
+that provides information such as name and UID of the certificate application
+used as a token. The UID does not have to be the application UID, but must
+be unique. It can be set through the standard UID allocation scheme. </p> <fig id="GUID-164B67F3-ED8A-5FBE-9503-466651D00A82">
+<title>Symbian Certapps Implementation               </title>
+<image href="GUID-3D4D96AB-4A77-5EC1-9C2F-9BADF76209D1_d0e613863_href.jpg" placement="inline"/>
+</fig> <p><b>CCertificateAppInfoManager </b> </p> <p>The Symbian implementation
+of file based certstore uses certapps store. <xref href="GUID-D81D035F-EB2F-3A6C-A0C9-17473160A3CE.dita"><apiname>CCertificateAppInfoManager</apiname></xref> provides
+functions to add, remove and list these UID/name pairs. An application can
+retrieve the UID/name pairs for all clients of certificate management. The <xref href="GUID-D81D035F-EB2F-3A6C-A0C9-17473160A3CE.dita"><apiname>TCertificateAppInfo</apiname></xref> class
+encapsulates the UID/name pairs. </p> <ul>
+<li id="GUID-9ABCA787-0D50-5199-9957-CF57A2ACA935"><p> <b>Add a new client </b> </p> <codeblock id="GUID-1E9E1ED6-C62B-53FB-A242-2DEF9A9A8B21" xml:space="preserve">IMPORT_C void AddL(const TCertificateAppInfo&amp; aClient);</codeblock> <p>Leaves
+with <codeph>KErrPermissionDenied</codeph> if the caller does not have the
+required capability </p> </li>
+<li id="GUID-FFAA12F7-DB9D-59ED-852F-E8245099BAFF"><p> <b>Remove an existing
+client </b> </p> <codeblock id="GUID-76226067-8A45-5E58-BFF0-375129AA3745" xml:space="preserve">IMPORT_C void RemoveL(const TUid&amp; aUid);</codeblock> <p>Leaves
+with <codeph>KErrNotFound</codeph> if the client does not exist, and KErrPermissionDenied
+if the caller does not have the required capability </p> </li>
+<li id="GUID-E5011DDA-CE0E-5835-83E3-50EE29A7E207"><p> <b>List the registered
+clients </b> </p> <codeblock id="GUID-AEB5A34D-A321-5D3A-92A0-6C08C7444345" xml:space="preserve">IMPORT_C const RArray&lt;TCertificateAppInfo&gt;&amp; Applications() const;</codeblock> <p>The returned array becomes the property of the caller who is responsible
+for its destruction. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-39B459CD-8210-59B5-95F4-85CE36676735.dita"><linktext>Unified Store</linktext>
+</link>
+<link href="GUID-C7150120-74C2-5FF1-99F0-0A267393E342.dita"><linktext>CryptoToken
+Framework Overview</linktext></link>
+</related-links></concept>

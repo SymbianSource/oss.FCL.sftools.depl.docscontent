@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-63293544-EACF-5F55-BBB5-7A471B4F9A69" xml:lang="en"><title>PKG
+File Format for Preinstallation</title><abstract><p>The SIS files that are installed using <codeph>InterpretSIS</codeph> can
+be configured to be non-removable. If an attempt is made to uninstall a non-removable
+package, an error (<codeph>KErrNotSupported</codeph>) is reported to the UI.
+In the package header for non-removable packages, an additional <xref href="GUID-D9D20EE0-AC86-512A-91C0-EA0ACF3912A7.dita#GUID-D9D20EE0-AC86-512A-91C0-EA0ACF3912A7/GUID-3C2E7248-23BD-5A9C-BC4F-2F86B1A94002">package-type</xref> of <codeph>NR</codeph> must be specified. For example: </p> <codeblock id="GUID-036D2CCE-53A0-55BC-AB45-6F9265B49CD4" xml:space="preserve">#{"PackageName"}, (0x80000001), 1, 2, 3, TYPE=SA, NR</codeblock> <p>InterpretSIS
+is the preferred mechanism to install non-removable base packages, as Software
+Installer only allows you to install a NR base package if it has been signed
+using the System Upgrade certificate. If an attempt is made to install a non-removable
+base package not signed with a SU cert using the software installer, an error
+(<codeph>KErrNotSupported</codeph>) is returned. </p><note>When replacing
+or upgrading a non-removable base package using the software installer, the
+upgrade package must also be non-removable. See <xref href="GUID-474A9F80-2B3E-5D11-8D2E-95E217BEB84A.dita">Preinstalled
+Package Upgrades</xref> for more information. </note> <p>The following restrictions
+apply to the syntax of the PKG files used to create the SIS files for input
+to <codeph>InterpretSIS</codeph>: </p> <ul>
+<li id="GUID-9DFAD518-B3AF-5D78-92C2-6B0E2C12924C"><p><xref href="GUID-FF82B80D-18CA-5333-83EB-3AB94F696016.dita">Options-List</xref> is
+not supported – raises an error. </p> </li>
+<li id="GUID-4577E70F-45B1-55D4-AF53-A96127EE7E3D"><p>Embedded SIS Files –
+raises a warning. </p> </li>
+<li id="GUID-0C9F6AED-4F20-5914-854C-B2745D50126B"><p> <codeph>FILETEXT</codeph>, <codeph>FILERUN</codeph> and <codeph>FILEMIME</codeph> install
+options are not supported – raises a warning. </p> </li>
+<li id="GUID-7EE19A35-0E29-5C23-B929-74F425D4C673"><p>PP not supported. </p> </li>
+</ul> <p>The <codeph>-c</codeph> argument to <xref href="GUID-4BDC9F63-83A1-53A5-91A0-B092AA821755.dita">MakeSIS</xref> can
+be used to test whether the PKG file is syntactically valid for <codeph>InterpretSIS</codeph>.
+Breaching any of the preceding restrictions causes <codeph>InterpretSIS</codeph> to
+fail, reporting a negative error code. </p> <p> <b>Notes</b>: </p> <ul>
+<li id="GUID-3E6D1ADE-BB43-551E-96CB-7CA7BFF14FBF"><p>Device creators must
+extract the embedded SIS files using <xref href="GUID-42CF6D55-CAD2-5049-A1B6-35479404C273.dita">DumpSIS</xref> and
+install them in separate SIS files. Although the <codeph>InterpretSIS</codeph> can
+install SIS files that have embedded SIS files it displays a warning if the
+embedded SIS file is not already installed. </p> </li>
+<li id="GUID-CC06C2B8-456B-54D4-BE63-05D9DBD27E47"><p>SIS files can contain <xref href="GUID-DB220677-5998-529C-BE35-0D66F588E057.dita">dependencies</xref>, which
+must be satisfied. </p> </li>
+<li id="GUID-C3FDBD3A-48B0-5269-A126-328D31C48CD0"><p> <codeph>InterpretSIS</codeph> reports
+an error if any target file locations violate the rules imposed by <i>data
+caging</i>, summarised <xref href="GUID-54E62386-E4DB-55C3-BA9A-FFB7BFE6703E.dita#GUID-54E62386-E4DB-55C3-BA9A-FFB7BFE6703E/GUID-C8E8AB80-4EE5-5593-8981-4A91A0111419">here</xref>. </p> </li>
+<li id="GUID-B27F0573-5FBF-5645-AB4E-A6836101F843"><p>In any language-dependent
+statements, for example <xref href="GUID-9D5F3B5E-37FB-5156-808B-F92519412A7F.dita">Language-Dependent
+Files</xref> lists, InterpretSIS always selects English if the input language
+has not been provided by the command-line option or in the INI file. If the
+given input language is not in the list of supported languages of the SIS
+file, it selects the first language in the SIS file </p> </li>
+<li id="GUID-A4FA8C80-B7B5-5D93-A51B-08A4D64694C1"><p> <codeph>InterpretSIS</codeph> does
+not display the <xref href="GUID-F87A1381-3E71-5723-B8B6-3F4E0FF368CE.dita">Logo</xref> during
+installation. However, it installs them. </p> </li>
+<li id="GUID-CE3EA24D-2170-565C-8F3C-8AA0F1F7BDE2"><p> <codeph>InterpretSIS</codeph> does
+not perform signature verification or revocation checking when installing
+packages. Also, it does not perform policing of capabilities allocated to
+executables. </p> </li>
+<li id="GUID-2AAE33CC-00B1-5B45-84A3-D819B8B6BBCD"><p>Packages installed using <codeph>InterpretSIS</codeph> have
+their validation status set to <codeph>EValidatedToAnchor</codeph>. </p> </li>
+</ul> </abstract><prolog><metadata><keywords/></metadata></prolog></reference>

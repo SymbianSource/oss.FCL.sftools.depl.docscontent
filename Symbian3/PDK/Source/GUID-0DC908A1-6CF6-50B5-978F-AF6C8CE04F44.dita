@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0DC908A1-6CF6-50B5-978F-AF6C8CE04F44" xml:lang="en"><title>Automatic
+Translation of Header Files From C++</title><shortdesc>Describes how C++ header files are translated into the assembler
+language that the bootstrap requires.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Some header files that the bootstrap uses are shared with the Kernel and
+are written in C++. The header files are shared to avoid duplicate definitions
+of, for example, super page layout in the kernel and in the bootstrap. Since
+the bootstrap is written in assembler, the C++ header files must be translated
+to assembler-syntax include files. </p>
+<p>This is done automatically under the control of the generic makefile. The
+translation tool can produce include files in ARMASM, GNU AS or Turbo Assembler
+(for X86) syntax; the examples will all be in ARMASM syntax. </p>
+<p>It should be noted that the translation tool does not process <codeph>#include</codeph> directives
+or any other preprocessor directives. Only the types listed below and types
+created from those (by typedef or class/struct declaration) will be recognised. </p>
+<p>The following elements of C++ header files are translated: </p>
+<section id="GUID-44615AE9-41CB-434E-B329-53A0B8F62AB0"><title>Compile time constants, both at file and class scope</title> <p>Constants
+at file scope have the same name in the assembler include file and constants
+at class scope have the name<codeph> &lt;class name&gt;_&lt;constant name&gt;</codeph> in
+the assembler include file. Initialiser values may be expressions and may
+involve previously-defined constants or enumerators as well as <codeph>sizeof</codeph> operations
+applied to previously-defined types. </p> <p>For example: </p><codeblock id="GUID-B865A222-D7DB-51EF-B371-2FE7EB167D00" xml:space="preserve">const TInt KBufferSize = 1024;
+class X { const TInt KClassConstant = 100; };
+</codeblock><p>translates to: </p><codeblock id="GUID-5D46D2A6-EA88-5350-8CBD-2FCA6E961CEE" xml:space="preserve">KBufferSize            EQU 0x00000400
+X_KClassConstant     EQU 0x00000064
+</codeblock> </section>
+<section id="GUID-7C0EF920-D60D-4215-B7C3-CEF51D6E027A"><title>Enumerators, both at file and class scope</title> <p>For example: </p><codeblock id="GUID-F9FEE61B-D409-53F4-A032-95667300A3C7" xml:space="preserve">enum T1 {E1=0, E2=8, E3};
+class X { enum {EE1=-1, EE2, EE3}; };
+</codeblock> <p>translates to: </p><codeblock id="GUID-6C3A4922-E67E-5020-B5AE-0C30C76428E0" xml:space="preserve">E1                    EQU    0x00000000
+E2                    EQU    0x00000008
+E3                    EQU    0x00000009
+X_EE1                EQU    0xFFFFFFFF
+X_EE2                EQU    0x00000000
+X_EE3                EQU    0x00000001
+</codeblock> </section>
+<section id="GUID-3D197845-41A1-4063-AA73-74058C13F56D"><title>Offset of a class member within the class</title> <p>For example: </p><codeblock id="GUID-84324D58-A2FC-592A-BA20-1986C51A6A4A" xml:space="preserve">class X { TInt iX; TInt iY; TInt iZ[16]; };</codeblock> <p>translates
+to:</p><codeblock id="GUID-8B86F0FC-8FF1-5CE5-8832-F692DAAF6478" xml:space="preserve">X_iX                EQU    0x00000000
+X_iY                EQU    0x00000004
+X_iZ                EQU    0x00000008
+X_iZ_spc            EQU    0x00000004
+X_sz                EQU    0x00000048</codeblock> <p>The offset of a class
+member within the class is given the assembler name<codeph> &lt;class&gt;_&lt;member&gt;</codeph>.
+For an array member, this offset is the offset of the first element of the
+array within the class and <codeph>&lt;class&gt;_&lt;member&gt;_spc</codeph> is
+the size of each array element. The overall size of the class is given the
+assembler name <codeph>&lt;class&gt;_sz</codeph>. </p> <p>When computing these
+offsets and sizes the following basic types are known to the translation tool: </p><codeblock id="GUID-5F7D5BB0-E679-54F2-AA40-79CE67F6663F" xml:space="preserve">TInt8, TUint8 = 1 byte</codeblock><codeblock id="GUID-B42C7375-C025-50CD-8E0D-F51D5CD06F22" xml:space="preserve">TInt16, TUint16 = 2 bytes aligned to 2 byte boundary</codeblock><codeblock id="GUID-D3138371-2EF3-5461-A45F-7C2F5B7EA789" xml:space="preserve">TInt32, TUint32, TInt, TUint, enum, TLinAddr, TPte, TPde = 4 bytes aligned to 4 byte boundary</codeblock><codeblock id="GUID-7043D61A-451E-57AE-8912-1A18C029F31E" xml:space="preserve">TInt64, TUint64 = 8 bytes aligned to 8 byte boundary</codeblock> <p>The
+tool will produce an error if an attempt is made to use a <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> or <xref href="GUID-5944E314-0D03-37D7-AA37-D29E6F6E18B8.dita"><apiname>TUint64</apiname></xref> which
+is not aligned on an 8 byte boundary. This is done to avoid incompatibilities
+between GCC and EABI compilers since the tool is not aware which is being
+used to compile the kernel. </p></section>
+</conbody></concept>

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-64D2B0E2-BB5D-4009-ACE5-7A3503016341" xml:lang="en"><title>Troubleshooting
+Tips</title><shortdesc>This section addresses the basic differences in the way things
+are done in Symbian Platform and in Linux. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-1">       <title>Symbian
+directory structure</title>       <p>In Symbian platform, project source files
+are arranged based on the directory pattern shown below.</p><table id="GUID-AF9A4B8F-EC2B-4BBA-AE84-9B49F2081B4F">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><b>Directory</b></p></entry>
+<entry><p><b>Description</b></p></entry>
+</row>
+<row>
+<entry><codeph>src</codeph></entry>
+<entry><p>Contains all the source files of the project.</p></entry>
+</row>
+<row>
+<entry><codeph>inc</codeph></entry>
+<entry><p>Contains all the header files of the project.</p></entry>
+</row>
+<row>
+<entry><codeph>group</codeph></entry>
+<entry><p>Contains MMP files, and bld.inf. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table>    <p>The developer can choose whether to follow these tips.</p></section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-2">       <title>EXPORT_C,
+DEF file and ordinal numbers</title>       <p>This applies only for the DLL
+target type. If a DLL wants to export an API, the code definition should start
+with the macro <codeph>EXPORT_C</codeph>.</p><codeblock xml:space="preserve">// Declaration
+#ifdef SYMBIAN
+#define GLOBAL(type)		EXPORT_C type
+#else
+#define GLOBAL(type)		type
+#endif // SYMBIAN
+ // Definition
+ GLOBAL(void)
+ jpeg_CreateDecompress (j_decompress_ptr cinfo, int version, size_t structsize)
+ {
+   int i;
+ 
+   /* Guard against version mismatches between library and caller. */
+   cinfo-&gt;mem = NULL;		/* so jpeg_destroy knows mem mgr not called */
+   if (version != JPEG_LIB_VERSION)
+     ERREXIT2(cinfo, JERR_BAD_LIB_VERSION, JPEG_LIB_VERSION, version);
+   if (structsize != SIZEOF(struct jpeg_decompress_struct))
+     ERREXIT2(cinfo, JERR_BAD_STRUCT_SIZE, 
+ 	     (int) SIZEOF(struct jpeg_decompress_struct), (int) structsize);
+ ...
+ } </codeblock><p>Whenever a DLL is built on Symbian platform, it creates
+three files: </p><ul>
+<li><p><filepath>&lt;target&gt;.dll</filepath> is the actual DLL that gets loaded
+at runtime </p></li>
+<li><p><filepath>&lt;target&gt;.lib</filepath> is the static library which contains
+wrappers for each DLL exported function that, when run, will locate and execute
+the real function’s code in the appropriate runtime-loaded DLL. </p></li>
+<li><p><filepath>&lt;target.def&gt;</filepath> gets created when the user executes
+abld freeze. The <filepath>.def</filepath> file contains the list of exported
+DLL functions along with their ordinal numbers. Symbian platform does not
+store exported symbol names in DLL; instead, the exported functions are referenced
+using only their ordinal numbers. Storing the ordinal numbers instead of names
+reduces the size of the DLL. </p></li>
+</ul><p>The following is a sample <filepath>.def</filepath> file created for <codeph>libjpeg</codeph>:</p><codeblock xml:space="preserve">EXPORTS
+jcopy_block_row @ 1 NONAME
+jcopy_sample_rows @ 2 NONAME
+jdiv_round_up @ 3 NONAME
+jinit_1pass_quantizer @ 4 NONAME
+jinit_2pass_quantizer @ 5 NONAME
+jinit_c_coef_controller @ 6 NONAME
+jinit_c_main_controller @ 7 NONAME
+jinit_c_master_control @ 8 NONAME
+jinit_c_prep_controller @ 9 NONAME
+jinit_color_converter @ 10 NONAME
+</codeblock><p>The following example shows how to declare and define an exportable
+function from a DLL and to make it callable from a Symbian C++ application:
+ </p><p>In <filepath>xxx.h</filepath></p><codeblock xml:space="preserve">#ifdef __cplusplus
+extern "C" 
+#endif
+IMPORT_C int Foo();
+</codeblock><p>In <codeph>xxx.c</codeph></p><codeblock xml:space="preserve">extern "C" EXPORT_C int Foo()
+    {
+    return something;
+    }
+</codeblock>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-3">       <title><codeph>dlsym()</codeph> or <codeph>g_module_symbol()</codeph></title> 
+     <p>Since DLL entry points are not exported by name, DLL symbol lookup
+functions do not work on Symbian platform. For more information about alternatives
+suggested on Symbian platform, see <xref href="GUID-9D278187-8B5E-581D-9869-EE8861048F93.dita">Dynamic
+Link Libraries</xref>.</p><p>The functions <codeph>dlsym()</codeph> from <codeph>libdl</codeph> and <codeph>g_module_symbol()</codeph> from GLib are examples of such functions. Look for usage of these functions
+in the OSS port and change the code.</p><codeblock xml:space="preserve">ret = g_module_symbol (module, "jinit_c_prep_controller", &amp;ptr); 
+</codeblock><p>needs to be changed to:</p><codeblock xml:space="preserve">ret = g_module_symbol (module, "9", &amp;ptr);</codeblock><p>For
+example, for <codeph>dlsym()</codeph> pass the function's ordinal number as
+symbol parameter (refer the library's list of exports, the DEF file for the
+function's ordinal number):</p><codeblock xml:space="preserve">dlsym(&amp;handle, "foo")
+</codeblock><p>needs to be changed to:</p><codeblock xml:space="preserve">dlsym (&amp;handle, "3")</codeblock></section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-4"><title>Problem with
+a variable list of arguments in macros</title><p>This section suggests a way
+to overcome the problems faced when macros with a variable list of arguments
+are used.</p><codeblock xml:space="preserve">#define DEBUG(a,...)</codeblock><p>The above statement
+causes a compilation error. One of the solutions to solve this problem is
+as follows:</p><codeblock xml:space="preserve">#define DEBUG _DEBUG
+static inline void _DEBUG (const char *a, ...) 
+{ 
+}</codeblock>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-5">       <title>Keep
+changes to OSS to a minimum</title><p>While porting the OSS code, keep the
+changes to the OSS code as few as possible. The OSS code is already tested
+and used by a bigger community, and is unlikely to have any compilation errors
+or major logical errors. In many cases code changes that are necessary brings
+potential logical flaws to the OSS port. Minimum changes to the OSS code while
+porting also helps in merging to the new OSS.  </p>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-6">       <title>Exporting
+variables from a DLL</title>       <p>Exporting data from a DLL is not allowed
+in Symbian platform . The following pattern can be used:</p><ol>
+<li id="GUID-FE2ACA35-3472-47C2-8C3F-B65CAEE09C66"><p>Do not export global
+variables. Within DLL, there is one global variable, for example:</p><codeblock xml:space="preserve">int globalVal; </codeblock></li>
+<li id="GUID-F6A52B57-7E83-4DFE-9FD3-AB8E7D9B55D4"><p>  Export one method
+that returns a pointer to that variable.</p><codeblock xml:space="preserve">extern "C" EXPORT_C int* GlbData ()
+    {
+    return &amp;globalVal
+    }
+</codeblock></li>
+<li id="GUID-3231DC39-90BF-4775-BC66-2ADC9A60463E"><p>Define a macro for the
+user of the DLL. See the example below. Within the DLL header (for example, <filepath>xxx.h</filepath>),
+define the following:</p><codeblock xml:space="preserve">#ifdef __cplusplus
+extern "C" 
+#endif
+IMPORT_C int* GlbData ();
+#define globalVal (*GlbData())</codeblock></li>
+</ol>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-7">       <title>Application
+is not loaded</title>       <p>The absence of the dependent libraries could
+be one of the reasons for the application not to load in the mobile device.
+On the target device, Symbian platform looks for libraries in <filepath>c:\sys\bin</filepath> or
+in <filepath>z:\sys\bin</filepath>.</p><p>Do make sure that all the libraries
+are present in either of the above-mentioned libraries. </p>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-8">       <title>Capabilities
+not known</title>       <p>Capabilities are specified in the MMP file. The
+primary information source is the P.I.P.S. API reference documentation. If
+problems with capabilities remain, one known method to find the capability
+is to analyze the [Debug Messages] window in CodeWarrior IDE (while debugging).
+During development, <codeph>CAPABILITY All –Tcb</codeph> is acceptable, but
+for release code it is good practice to give a valid capability in the MMP
+file in order to have the application successfully signed. The following is
+a sample of a capability error found in the [Debug Messages] window.  </p><codeblock xml:space="preserve">*PlatSec* ERROR - Capability check failed - Process hellogst.exe[10015942]0001 was checked by Thread c32exe.exe[101f7989]0001::ESock_IP and was found to be missing the capabilities: NetworkServices. </codeblock>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-9">       <title>Environment
+variables</title>       <p>At the moment, environment variables are not completely
+supported in Symbian C++. Therefore be wary of using library functions like <codeph>getenv()</codeph> which
+work on environment variables. Make sure the library initialization routine
+calls <codeph>setenv()</codeph> with the proper value of the environment variable.
+Also, be wary of functions like <codeph>g_get_home_dir()</codeph> which may
+not work as they behave in Linux.</p><codeblock xml:space="preserve">if ((memenv = getenv("JPEGMEM")) != NULL) // will not work properly</codeblock><p>Suggested
+change: </p><codeblock xml:space="preserve">void LibraryInit() 
+{  
+   setenv ("JPEGMEM ", "XXXXX", 1);  
+}</codeblock>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-10">       <title>Assembly
+code</title>       <p>The syntax for inline assembly code is different in
+Symbian platform. The following is a code snippet of assembly code syntax
+in Symbian platform.</p><codeblock xml:space="preserve">EXPORT_C __NAKED__ TUint16 TTemplate::Register16(TUint anAddr) 
+/**  
+  Read a 16-bit register  
+  @returns register contents  
+*/ 	
+  { 	
+  asm("ldrh	r0,[r0]");
+  	__JUMP(,lr); 	
+  } </codeblock><p>In common practice the assembly code has the extension <filepath>.CIA</filepath> in
+Symbian platform, whereas in Linux the assembly code has the extension <filepath>.S</filepath>.
+ </p>     </section>
+<section id="GUID-77D7347D-8DEC-45D0-A677-8FDBDFB8FF81-GENID-1-7-1-11-1-1-5-1-3-1-9-1-3-11">       <title>Glossary</title> 
+     <p>The following table lists terms used in Linux and their approximate
+equivalents in Symbian platform:  </p><table id="GUID-BFB874F5-148B-44B2-A110-F37AC084756B">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><b>Linux</b></p></entry>
+<entry><p><b>Symbian</b></p></entry>
+</row>
+<row>
+<entry><p><codeph>-D</codeph> of Makefile </p></entry>
+<entry><p><codeph>MACRO</codeph> of theMMP file </p></entry>
+</row>
+<row>
+<entry><p><codeph>-I</codeph> of Makefile</p></entry>
+<entry><p><codeph>USERINCLUDE</codeph> of the MMP file </p></entry>
+</row>
+<row>
+<entry><p><codeph>SO</codeph></p></entry>
+<entry><p>DLL</p></entry>
+</row>
+<row>
+<entry><p><codeph>A</codeph></p></entry>
+<entry><p>LIB</p></entry>
+</row>
+<row>
+<entry><p>Makefile</p></entry>
+<entry><p>MMP file</p></entry>
+</row>
+<row>
+<entry><p>SOURCES of Makefile </p></entry>
+<entry><p>SOURCE of the MMP file </p></entry>
+</row>
+<row>
+<entry><p><filepath>/usr/include/</filepath></p></entry>
+<entry><p><filepath>\EPOC32\INCLUDE</filepath></p></entry>
+</row>
+<row>
+<entry><p><filepath>/usr/lib/</filepath></p></entry>
+<entry><p><filepath>\epoc32\data\c\sys\bin</filepath> on an emulator, <filepath>\sys\bin</filepath> on
+a target device</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The following table lists a few important things about the Symbian
+platform: </p><table id="GUID-A43D5623-C816-4308-9AFC-FCA97DA75A2D">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>ABI_DIR</codeph></p></entry>
+<entry><p>Platform, for example winscw or armv5</p></entry>
+</row>
+<row>
+<entry><p><codeph>BUILD_DIR</codeph></p></entry>
+<entry><p>UDEB or UREL</p></entry>
+</row>
+<row>
+<entry><p><filepath>c:</filepath> drive in emulator </p></entry>
+<entry><p><filepath>\epoc32\data\c</filepath> and <filepath>\epoc32\winscw\c</filepath></p></entry>
+</row>
+<row>
+<entry><p><filepath>z:</filepath> drive in emulator</p></entry>
+<entry><p><filepath>Z:\epoc32\data\z</filepath></p></entry>
+</row>
+<row>
+<entry><p><filepath>bld.inf</filepath></p></entry>
+<entry><p>Lists public header files and their location in <filepath>\EPOC32\INCLUDE</filepath></p></entry>
+</row>
+</tbody>
+</tgroup>
+</table>     </section>
+</conbody></concept>

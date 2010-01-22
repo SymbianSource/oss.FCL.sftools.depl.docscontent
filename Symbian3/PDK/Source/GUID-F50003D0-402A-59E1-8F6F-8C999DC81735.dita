@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F50003D0-402A-59E1-8F6F-8C999DC81735" xml:lang="en"><title>When
+to choose the RArray and RPointerArray types</title><shortdesc>Describes the occasions to use the RArray and RPointerArray types.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The classes <xref href="GUID-FAEBF321-6B08-3041-A01F-B1E7282D0707.dita"><apiname>RArray</apiname></xref>, <xref href="GUID-AAA13D1F-1BD7-3331-BB8C-11FA2795B53F.dita"><apiname>RPointerArray</apiname></xref> and
+the specialisation classes for arrays of 32-bit integers, <xref href="GUID-6FCD6EC2-7293-37A9-8292-3FA05CCEE50B.dita"><apiname>RArray&lt;TInt&gt;</apiname></xref> and <xref href="GUID-97995D22-5A1C-3271-8D63-22D8703B676B.dita"><apiname>RArray&lt;TUint&gt;</apiname></xref>,
+provide behaviour equivalent to the <xref href="GUID-12C65B99-553E-35CA-B36F-2F77BFC972B3.dita"><apiname>CArrayFixFlat</apiname></xref> and<xref href="GUID-FCE7D958-96AA-346D-8D22-0EF24B9DB7CC.dita"><apiname>CArrayPtrFlat</apiname></xref> classes.</p>
+<p>In general, the implementation of the <codeph>CArray...</codeph> classes
+reuses the <xref href="GUID-33BEE1B4-20A1-392B-89B3-DA5D4F46418E.dita"><apiname>CBufBase</apiname></xref> framework to provide two alternative
+storage structures for the array data with very little <codeph>CArray...</codeph> specific
+code. There are two assertions for every array access, one in the <codeph>CArray...</codeph> code
+and one in the <codeph>CBufBase</codeph> code.</p>
+<p>In addition, the <codeph>CBufBase</codeph> code operates in terms of byte
+buffers, and these appear in the API as descriptors. In the implementation,
+this requires a <xref href="GUID-C0D29B11-1535-3D11-B318-B18D30A6120B.dita"><apiname>TPtr8</apiname></xref> to be constructed, returned and inspected
+for every array access.</p>
+<p>Also, a number of TRAP harnesses are used to catch allocation failure.</p>
+<p>This means that, although very powerful, the implementation of the <codeph>CArray...</codeph> classes
+can add considerable overhead for simple vector-like flat arrays of fixed
+length objects.</p>
+<p>The <codeph>RArray...</codeph> classes were developed to overcome these
+problems. In addition, the generic searching and ordering capabilities are
+faster and easier to use. These classes should be used whenever an array of
+fixed length objects or an array of pointers is required, and the array has
+the following characteristics:</p>
+<ul>
+<li id="GUID-5A46A34C-F255-51C8-9777-6BCFA1D1F027"><p>the size of an array
+element is bounded (the current implementation imposes an upper limit of 640)</p> </li>
+<li id="GUID-04E4B892-AD03-5F72-ACCF-80D4B9874181"><p>insertions into the
+array are infrequent</p> </li>
+</ul>
+<p>In contrast, the main benefit to be derived from the <codeph>CArray...</codeph> classes
+is their support for segmented storage and their ability to handle arrays
+of variable length objects. However, the latter is a rare requirement.</p>
+<p>Note that for performance reasons, <codeph>RArray</codeph> stores objects
+in the array as word (4 byte) aligned quantities. This means that some member
+functions do not work when <codeph>RArray</codeph> is instantiated for classes
+of less than 4 bytes in size, or when the class's alignment requirement is
+not 4. Be aware that it is possible to get an unhandled exception on hardware
+that enforces strict alignment.</p>
+<p>The affected functions are:</p>
+<ul>
+<li id="GUID-485BFD16-FF55-573B-A831-F706BD9C1B70"><p>the constructor: RArray(TInt,
+T*, TInt)</p> </li>
+<li id="GUID-65C548C2-D048-5FA4-9990-BFF141962BA5"><p>Append(const T&amp;)</p> </li>
+<li id="GUID-C907314E-1884-51D5-98F4-2AD0953DE4C4"><p>Insert(const T&amp;,
+TInt)</p> </li>
+<li id="GUID-C4C989EF-67EE-5561-B53E-BA76FE91FE80"><p>the [] operator, and
+then using the pointer to iterate through the array as you would with a C
+array.</p> </li>
+</ul>
+</conbody></concept>

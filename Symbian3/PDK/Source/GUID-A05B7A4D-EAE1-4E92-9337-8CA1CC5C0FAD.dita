@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A05B7A4D-EAE1-4E92-9337-8CA1CC5C0FAD" xml:lang="en"><title>WMDRM
+Engine Overview</title><shortdesc>WMDRM Engine is a component of WMDRM collection. It provides interfaces
+to perform WMDRM implementations, such as managing WMDRM licenses and decrypting
+WMDRM content. Applications that require WMDRM functionality must interact
+with WMDRM plug-ins and Camese components by implementing the interfaces provided
+by WMDRM engine.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-B4A696C6-F075-499D-B4C1-5058DA10930C"><title>Required Background</title><p>Before
+you start, you must understand the following:</p><ul>
+<li><p><xref href="GUID-84B6389A-55CC-53EB-8725-65F753FD7217.dita">Content Access
+Framework (CAF) Overview</xref></p></li>
+<li><p>Helix multimedia framework </p></li>
+<li><p>MTP Framework</p></li>
+</ul></section>
+<section id="GUID-3396F235-AE9D-40B5-89CA-5B652AF80A6C"><title>Key concepts</title><ul>
+<li><b>Camese</b>: It is the Over-the-air (OTA) download protocol for WMDRM
+licenses.</li>
+<li><b>Secure clock</b>: The clock is for use by secure DRM applications which
+has TCB capability. For more information, see <xref href="GUID-CD506806-FC59-547A-B5CD-03314DF847F7.dita#GUID-CD506806-FC59-547A-B5CD-03314DF847F7/GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7#GUID-CD506806-FC59-547A-B5CD-03314DF847F7">Date and Time Handling Overview</xref>.</li>
+</ul></section>
+<section id="GUID-39DA53FB-F762-4B79-82C5-E5A849CCB94A"><title>Description</title> 
+     <p>WMDRM Engine comprises the following five sub-components:<ul>
+<li><p><b>WMDRM CAF Agent</b>: WMDRM CAF Agent implements the CAF Agent interface
+and plug-in. It allows obtaining rights status information and metadata, and
+provides a way to delete the data storage as an agent-specific functionality.<note> It
+does not provide functionality to read the decrypted data from ASF content
+files due to their packetized nature.</note></p></li>
+<li><p><b>ASF</b>: ASF is used to read data from ASF files by WMDRM CAF Agent
+and WMDRM Over The Air (OTA) plug-in.</p></li>
+<li><p><b>WMDRM Porting Kit Server</b>: WMDRM Porting Kit Server allows you
+to access functions of the porting kit without the need for DRM capability.
+For example, to add new usage rights or to check the rights status. It also
+allows you to access the device certificate and unique id from WMDRM Key Storage.
+It implements the UI functionality required to be displayed, when license
+store becomes full or needs to be deleted.</p><note>Symbian platform does
+not provide implementation of WMDRM Porting Kit Server. Device creators must
+provide their own implementation for WMDRM Porting Kit Server. </note></li>
+<li><p><b>WMDRM Server</b>: The WMDRM Server includes the following functionalities: <ul>
+<li><p>It manages porting kit data in an encrypted form using SQL database.</p></li>
+<li><p>It implements the data storage functionality and an anti-rollback clock
+needed for enforcement of time-based licenses.</p></li>
+<li><p>It provides data store state functionality for WMDRM Porting Kit Server.
+The state information of data store is used to inform the device user to continue
+synchronizing WMDRM contents to the phone, when the data store runs out of
+space.</p></li>
+<li><p>It provides data storage deletion functionality for WMDRM Porting Kit
+Server and WMDRM CAF Agent.</p></li>
+</ul></p></li>
+<li><p><b>WMDRM File Server</b>: The WMDRM File Server has TCB capability
+and includes the following functionalities:<ul>
+<li><p>It manages encrypted files in the path <codeph>c:\sys\private\200b180\</codeph> </p></li>
+<li><p>It handles low level file server interaction </p></li>
+<li><p>It handles data backwards compatibility and updates the secure time.
+The <i>secure time</i> can be set using System Static Functions API. </p></li>
+</ul></p></li>
+</ul><fig id="GUID-F470FE96-4BB5-489F-88F1-BDD6291BEB69">
+<image href="GUID-21562C58-896C-48B0-A574-975E1326A93A_d0e146438_href.jpg" placement="inline"/>
+</fig></p><note>To make the WMDRM content
+fully functional, device creators must license the WMDRM porting kit from
+Microsoft and integrate it.</note>     </section>
+
+</conbody></concept>

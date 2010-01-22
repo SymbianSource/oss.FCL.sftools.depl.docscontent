@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-5E10D5B7-C407-51E0-8C16-466A8BC89106"><title>Phone Identification Tutorial</title><shortdesc>This tutorial describes how to retrieve the phone identification parameters from the device. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>The phone idenitifcation is returned in a packaged <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TPhoneIdV1</apiname></xref>. It contains the following member variables, each a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>TBuf</apiname></xref> descriptor of up to 50 characters: </p> <ul><li id="GUID-2E35DC48-AFE7-5F04-BF43-97653D6B91E7"><p> <b>Manufacturer</b>  </p> </li> <li id="GUID-623DA767-4058-514D-BE5B-1C2EA01C4FB4"><p> <b>Model</b>  </p> </li> <li id="GUID-740F0F8B-AB80-5D05-992F-26E53C68C9C9"><p> <b>Serial Number</b>, the IMEI or ESN serial number. It identifies the phone, not the subscriber using the phone. </p> </li> </ul> </context> <steps id="GUID-E4AADC4B-DC49-5616-AC23-BDDB1FE227FE"> <step id="GUID-0707DB6B-C81B-59E5-98F8-8C6F091E8C72"><cmd/><info>create an instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref> with an active object </info> </step> <step id="GUID-AE642E12-000B-5E60-BD07-A7FD7AC2DF8A"><cmd/><info>set the active object with <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>SetActive()</apiname></xref> function </info> </step> <step id="GUID-CC8DBBC9-E403-557B-8AE6-70C4DA2E56EE"><cmd/><info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetPhoneId()</apiname></xref> to get the phone identification parameters </info> <info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EGetPhoneIdCancel</apiname></xref> to cancel the asynchronous call. </info> </step> </steps> <example><title>Phone Identification example</title> <codeblock id="GUID-589C7B5B-4C0A-577B-B38A-C7B01E0E0953" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+   { 
+
+private:
+   CTelephony* iTelephony;
+   CTelephony::TPhoneIdV1 iPhoneIdV1;
+   CTelephony::TPhoneIdV1Pckg iPhoneIdV1Pckg;
+
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iPhoneIdV1Pckg(iPhoneIdV1)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;GetPhoneId(iStatus, iPhoneIdV1Pckg);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {
+       TBuf&lt;CTelephony::KPhoneManufacturerIdSize&gt; manufacturer = iPhoneIdV1.iManufacturer;
+       TBuf&lt;CTelephony::KPhoneModelIdSize&gt; model = iPhoneIdV1.iModel;
+       TBuf&lt;CTelephony::KPhoneSerialNumberSize&gt; serialNumber = iPhoneIdV1.iSerialNumber;
+       }
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EGetPhoneIdCancel);
+    }</codeblock> </example> </taskbody></task>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-91082AAB-DC8D-5AEA-A6C1-DD89932244FB" xml:lang="en"><title>Terminate
+a Call Tutorial </title><shortdesc>This tutorial describes how to terminate a call with the telephony
+API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The procedure for terminating incoming calls is the same whether
+there is a second call in progress or not. When you have two calls in progress,
+one will always be <b>active</b> while the other will always be <b>on hold</b>.
+You can either:<ul>
+<li><p>terminate an <b>on-hold</b> call and then you will be left with an
+active call</p></li>
+<li><p>terminate an <b>active</b> call and then you will be left with a call
+on hold; the on-hold call does <b>not</b> become active. You can make it active
+with <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita#GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A/GUID-EFF39B1C-4685-3E79-93B3-5D0FB5AFAD02"><apiname>CTelephony::Resume()</apiname></xref></p></li>
+</ul></p></context>
+
+<steps id="GUID-BEA74BFB-57B5-5542-87EC-6665695B8557">
+<step id="GUID-2B9D7115-E851-52A4-BD2E-A43351BEF456"><cmd/>
+<info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info>
+</step>
+<step id="GUID-DEAFC2E4-C540-5274-B7D6-711C9A33ED14"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::Hangup()</apiname></xref> terminates
+a call. </info>
+<info>Pass it the ID of the call to terminate. The ID is the <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TCallId</apiname></xref> returned
+when you dialled or answered the call </info>
+</step>
+<step id="GUID-D7C8BE37-8AC8-5A61-963C-CAB33C347251"><cmd/>
+<info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EHangupCancel</apiname></xref> to
+cancel it </info>
+<info>Use <codeph>CTelephony::Hangup()</codeph> to terminate either call when
+you have two call in progress. Pass it the ID of the call you wish to terminate.
+To terminate them both, call the method twice with the two IDs.</info>
+</step>
+</steps>
+<example id="GUID-180B550B-0A93-5445-B6AC-2CA8D3D17528"><title>Call termination
+example</title> <codeblock id="GUID-DC840EA0-D367-5773-9716-090B313F0E0D" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TCallId iCallId;
+
+public:
+    CClientApp(CTelephony* aTelephony, CTelephony::TCallId aCallId);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony, CTelephony::TCallId aCallId)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iCallId(aCallId)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;Hangup(iStatus, iCallId);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {} // The call has been terminted successfully;
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EHangupCancel);
+    }</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-42B10CBF-D45A-580F-A639-E2495FF3B4F3.dita"><linktext>Remote Call
+                Termination Tutorial</linktext></link>
+</related-links></task>

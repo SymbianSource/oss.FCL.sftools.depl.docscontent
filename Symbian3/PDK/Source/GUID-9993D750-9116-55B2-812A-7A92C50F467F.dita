@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9993D750-9116-55B2-812A-7A92C50F467F" xml:lang="en"><title>Apparc
+Recognizer for CAF</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Apparc framework uses data type recognizers derived from <xref href="GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0.dita"><apiname>CApaDataRecognizerType</apiname></xref> to
+determine the MIME type of files in Symbian platform. </p>
+<section><title>Overview</title> <p>Apparc supplies the filename and a buffer
+containing bytes read from the start of the file. If a file is recognized,
+the recognizer must return the MIME type and the degree of confidence in recognizing
+the file — a <codeph>TInt</codeph> ranging from <codeph>KMinInt</codeph> (Not
+Recognized) to <codeph>KMaxInt</codeph> (Certain). </p> <p>The implementation
+of DRM has a problem when determining the MIME type. A DRM file stores one
+or more content objects. For example, an OMA file with MIME type <codeph>application/vnd.oma.drm.content</codeph> may
+store an image file with MIME type <codeph>image/jpeg</codeph>. Apparc expects
+only one MIME type to be returned, not two. </p> <p>The CAF recognizer <filepath>RECCAF.DLL</filepath> determines
+whether a file is recognized by CAF and if so, retrieves these two MIME types. </p> <p>The
+mapping of these two MIME types returned by CAF to a single MIME type is based
+on the following rules: </p> <table id="GUID-3C062759-788F-5A15-A557-F85F77D8AB92">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b> File MIME type</b>  </p> </entry>
+<entry><p> <b> Content MIME type</b>  </p> </entry>
+<entry><p> <b> Apparc MIME type</b>  </p> </entry>
+</row>
+<row>
+<entry><p>Present </p> </entry>
+<entry><p>Present </p> </entry>
+<entry><p> <i>x-caf-</i>  <codeph>ContentMimeType</codeph> </p> </entry>
+</row>
+<row>
+<entry><p>Present </p> </entry>
+<entry><p>Not Present </p> </entry>
+<entry><p> <codeph>FileMimeType</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>Present </p> </entry>
+<entry><p> <codeph>application/x-caf</codeph>  </p> </entry>
+<entry><p> <codeph>application/x-caf</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The following is the rationale for the above mapping: </p> <ul>
+<li id="GUID-46BB7500-F4AF-53AC-B1C9-2D538C8C2F21"><p>The <codeph>x-caf-</codeph> prefix
+to the content type shows that the file that can be opened by CAF to read
+that content type. </p> </li>
+<li id="GUID-57AF8B00-B36C-5DD9-BB3E-0F818B71F191"><p>A file that needs to
+be passed through the supplier interface before it can be used is recognized
+as the file MIME type; the content type is irrelevant before the supply operation. </p> </li>
+<li id="GUID-771D11E6-1275-5C12-8E5B-2A9362E857D2"><p>A file containing many
+content objects must just be recognized as <codeph>application/x-caf</codeph> as
+the packaging of the archive is irrelevant (CAF abstracts the packaging). </p> </li>
+</ul> <p>The following diagram illustrates the recognition of an OMA file
+with JPEG content. </p> <fig id="GUID-E0654D43-CA6D-54BA-98DF-45BFA67B4180">
+<title>              Apparc Recognizer for CAF            </title>
+<image href="GUID-212C33A7-19DE-5936-B78E-CB7357FAEB5B_d0e606913_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Application registration files</title> <p>To use CAF content,
+applications must update their registration resource files (for example <filepath>AppName_reg.rss</filepath>)
+to include the new CAF MIME types. For example, an image viewer may have only
+included <codeph>image/jpeg</codeph> in the list of MIME types it could open.
+If the application is updated to use CAF, it must support <codeph>image/jpeg</codeph> and <codeph>x-caf-image/jpeg</codeph> in
+order to support unprotected and protected content respectively. See the following
+example registration file. </p> <p>All file operations must be conducted through
+the CAF framework. </p> <p><b>Registration file that does not use CAF </b> </p> <codeblock id="GUID-DD2CF2E7-D74B-5759-9934-7BCC52A90DB8" xml:space="preserve">...
+
+datatype_list = 
+    {
+    DATATYPE { priority= EDataTypePriorityHigh ; type="image/jpeg";}, 
+    }
+
+...</codeblock> <p><b>Registration file that use CAF </b> </p> <codeblock id="GUID-23F6E57A-8DAB-5AA4-B051-BD511630C481" xml:space="preserve">...
+
+datatype_list = 
+    {       
+    DATATYPE { priority= EDataTypePriorityHigh ; type="image/jpeg"; }, 
+    
+    DATATYPE { priority= EDataTypePriorityHigh ; type="x-caf-image/jpeg"; }, 
+    }
+
+...</codeblock> </section>
+</conbody></concept>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E50FC36D-949A-42E0-97A6-64D336DF8057" xml:lang="en"><title>HTTP
+Version Property</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>By default, HTTP sessions use HTTP/1.1. To use HTTP/1.0, the connection
+information property <codeph>HTTP::EHTTPVersion</codeph> must be set to <codeph>HTTP::EHttp10</codeph>. </p>
+<p>From <filepath>HTTPEXAMPLECLIENT</filepath>: </p>
+<codeblock id="GUID-6555A0B4-B05A-5270-9F04-E577E0916714" xml:space="preserve">switch(cmd)
+    {
+    case EVersion10:
+        SetHttpVersion(HTTP::EHttp10);
+        break;
+    case EVersion11:
+        SetHttpVersion(HTTP::EHttp11);
+        break;
+        ...
+
+void CHttpClient::SetHttpVersion(HTTP::TStrings aHttpVersion)
+    {
+    RHTTPConnectionInfo connInfo = iSess.ConnectionInfo();
+    RStringPool p=iSess.StringPool();
+    connInfo.SetPropertyL(p.StringF(HTTP::EHTTPVersion,RHTTPSession::GetTable()),THTTPHdrVal(p.StringF(aHttpVersion)));
+    }</codeblock>
+<p>The version chosen will apply to all new transactions following the property
+change, but will not affect any transactions currently in progress.</p>
+<p>As HTTP/1.1 mandates the use of a persistent connection for requests made
+in series to a single origin server, the default behaviour of HTTP Client
+is to set up persistent connections for each transaction. This can be overridden
+by specifying a Connection header in the client request. </p>
+</conbody></concept>

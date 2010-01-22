@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2E02B840-FF86-5535-BA0E-5C4C3B600E9B" xml:lang="en"><title>Importing
+Private Keys</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Symbian key store supports two types of key, DSA keys and RSA keys.
+You can use <codeph>keytool</codeph> to import private keys stored into files.
+The keys must be stored in pkcs#8 DER encoded format. No other type of encoding
+is supported. This means that you cannot import keys stored in PEM format.
+The pkcs#8 encoding allows private keys to be stored either in cleartext or
+encrypted using a password based cryptography scheme (PBE). </p>
+<p>Suppose the keystore is empty and you want to populate it by importing
+private keys which are stored in your Symbian device file system. Start by
+importing an RSA private key stored in the file pkcs8rsa.001: </p>
+<p><userinput>keytool –import c:\keystore\data\pkcs8rsa.001</userinput> </p>
+<p>Since the keystore is empty, you should create a passphrase for it. A passphrase
+is used to PBE encrypt the actual storage which the keystore uses as back-end.
+After you enter a passphrase, the resulting output should be similar to: </p>
+<codeblock id="GUID-B7273601-4175-5B04-862D-CE39FD629D84" xml:space="preserve">Symbian OS KeyStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Key imported successfully.
+    Algorithm: RSA    Size: 512 bits
+    Usage: Pkcs15 Sign     Code: 0x4
+    Owner: 0x101f7e95
+    User: 0x101f7e95
+    Access Flags: Extractable
+    ID: 4d 15 e9 01 …
+    Label: c:\keystore\data\pkcs8rsa.001
+    Native: Yes
+    Start Date: not set     End Data: not set
+</codeblock>
+<p>A key always has a label associated with it. A label can be specified during
+the import operation with the –label option, if this option is not present
+the full path to the key file is taken as label. In this case, it is c:\keystore\data\pkcs8rsa.001.
+Labels must be unique within a specific key store implementation. If a label
+is not unique, an error occurs. For instance if the key store contains a certificate
+with label abc: </p>
+<codeblock id="GUID-CBD728E3-35A7-5238-BBF4-3C0AC677C0D6" xml:space="preserve">c:\&gt;keytool –list abc
+Symbian OS KeyStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+abc is a 1024 bits RSA key
+</codeblock>
+<p>If you try to import a key with the same label, an error will occur as
+shown: </p>
+<codeblock id="GUID-1096FC57-312C-5F17-8DD5-047C156375BE" xml:space="preserve">c:\&gt;keytool –label abc –import c:\keystore\data\pkcs8rsa
+Symbian OS KeyStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+The given label is invalid, or already present in the keystore.
+Error code: KErrAlreadyExist
+</codeblock>
+<p>However, this happens because of the attempt to insert the key in a keystore
+implementation where the same label already exists. Remember that if you do
+not specify the key store implementation to use in a command, the first (index
+0) is used by default. You can insert the key with label abc in the keystore
+implementation with index 1 (if such an implementation exists), as shown in
+the following example: </p>
+<codeblock id="GUID-4FEBD5D3-FF18-57AD-AB49-350BEBBEF519" xml:space="preserve">c:\&gt;keytool –label abc –store 1 –import c:\keystore\data\pkcs8rsa 
+Symbian OS KeyStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Key imported successfully
+    Algorithm: RSA    Size: 512 bits
+    Usage: Pkcs15 Sign     Code: 0x4
+    Owner: 0x101f7e95
+    User: 0x101f7e95
+    Access Flags: Extractable
+    ID: 4d 15 e9 01 …
+    Label: abc
+    Native: Yes
+    Start Date: not set     End Data: not set
+</codeblock>
+<p><b>Setting key attributes </b> </p>
+<p>During key import, a number of key attributes can be specified. Most key
+attributes can only be specified during import. The following options are
+available to the import command: </p>
+<table id="GUID-A4CCE64E-5B99-5A79-BEFE-B5174B97C457">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>access </p> </entry>
+<entry><p>Specifies the access attribute of the key. The only valid values
+are Extractable for a key which can be exported and Sensitive for a key which
+can only be exported in encrypted form. Other access flags are set automatically
+by the key store. </p> </entry>
+</row>
+<row>
+<entry><p>usage </p> </entry>
+<entry><p>Specifies the key usage as defined in the PKCS#15 standard. The
+valid values depend on the type of the key being imported: </p> <ul>
+<li id="GUID-6B3F680B-A6C9-563D-A200-950B8527CCB7"><p>DSA: The valid values
+are sign and signrecover, which are identical from the keystore point of view.
+External applications might consider them differently though. </p> </li>
+<li id="GUID-778663EE-CE4A-51F4-9B96-76F2106C0234"><p>RSA: The valid values
+are sign, signrecover, decrypt and unwrap. </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p><b>Wildcards </b> </p>
+<p>If you need to import a large set of keys, the above procedure might be
+lengthy. <codeph>keytool</codeph> offers wildcards to solve this problem.
+You can specify a set of key files to be imported using the wild cards “*”
+and “?”. For instance, suppose you want to import all the RSA key files in
+the directory c:\keystore\data. You can do that depending on the actual file
+names, with a command similar to: </p>
+<p><userinput>keytool –import c:\keystore\data\pkcs8rsa*.001</userinput> </p>
+<p>The imported keys will have the file names as labels. </p>
+<p><b>Importing cleartext private keys </b> </p>
+<p>The pkcs8 private key format allows both cleartext and encrypted content.
+All the previous examples refer to cleartext keys. In this case, no further
+action is required from the user. </p>
+<p><b>Importing encrypted private keys </b> </p>
+<p>Importing encrypted private keys requires further user interaction. This
+is because the keys are PBE encrypted and it is necessary to decrypt them
+to perform a key import. You must, therefore, enter the passphrase for a given
+encrypted key. </p>
+<note>Either <filepath>secdlg</filepath> or <filepath>tsecdlg</filepath> need
+to be in <filepath>\epoc32\release\winscw\udeb</filepath>. However, if both
+of them are there, it will cause a panic.</note>
+</conbody><related-links>
+<link href="GUID-6DF71555-1AB0-5B50-9FEA-E775F3AFEF8B.dita"><linktext>Listing Keystore
+Contents</linktext></link>
+<link href="GUID-E90A22C7-0AD7-55C4-83BB-165E1AA1E296.dita"><linktext>Removing
+Keys</linktext></link>
+<link href="GUID-62AE0683-642D-539A-A590-3D8210591BD9.dita"><linktext>Working with
+Multiple Keystore Implementations</linktext></link>
+</related-links></concept>

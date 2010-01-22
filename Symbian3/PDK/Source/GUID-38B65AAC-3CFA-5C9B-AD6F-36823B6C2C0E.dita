@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-38B65AAC-3CFA-5C9B-AD6F-36823B6C2C0E" xml:lang="en"><title>Escape
+and Insert</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section explains the concept of escape and insert, which is necessary
+for avoiding conflicts of characters and interpreting URI correctly. </p>
+<p>A character in the URI may not be available on the keyboard or might not
+be usable in contexts where it may conflict with a reserved character. In
+either case, the character can be encoded with a '<i>%</i>' followed by its
+ASCII hexadecimal equivalent code. For more information, refer to <xref href="GUID-0E8206E9-4F1D-5DF5-8A69-9B0831061CFF.dita">Escape
+encoding and decoding</xref>. </p>
+<p>The following example shows how the character "#" is encoded with a "%"
+followed by its ASCII hexadecimal equivalent code "%23". To modify the data
+and escape encode, the following functions are used: </p>
+<codeblock id="GUID-46E2E0B1-28D3-5F96-8C34-3447C8A1B2D3" xml:space="preserve">_LIT8(KInsertEscape,"file#1"); //data to insert
+dpath-&gt;InsertAndEscapeCurrentL(KInsertEscape); //escape encode and insert segment
+const TDesC8&amp; des = dpath-&gt;Parser().Des(); //descritpor contains "/Myfolder/file%231/logs"</codeblock>
+<p>The code escape encodes the segment and inserts the escaped version before
+the current parsed segment. <codeph>des</codeph> holds "<codeph>/Myfolder/file%231/logs</codeph> "
+after inserting the escape encoded segment "<codeph>file%231</codeph> ". </p>
+<codeblock id="GUID-50E07325-077F-52FE-BD56-FB649FE16BF4" xml:space="preserve">_LIT8(KPushEscape,"file#1");
+dpath-&gt;PushAndEscapeFrontL(KPushEscape); //escape encode and insert the segment
+const TDesC8&amp; des6 = dpath-&gt;Parser().Des(); //descritpor contains "/file%231/Myfolder/logs"</codeblock>
+<p> <xref href="GUID-6BD89347-671F-3518-9777-55801A090C79.dita"><apiname/></xref> The code escape encodes the segment <codeph>file#1</codeph> and
+inserts the escaped version at the beginning of the path. <codeph>des</codeph> holds
+"<codeph>/file%231/Myfolder/logs</codeph> " after inserting "<codeph>file%231</codeph> ".
+To insert an escape encoded version of the segment at the end of the path,
+use <xref href="GUID-51DFAA06-EC5E-32E6-9819-39938C46B2C0.dita#GUID-51DFAA06-EC5E-32E6-9819-39938C46B2C0/GUID-8B544BA8-C70B-3BF1-A752-6424CA9B28EB"><apiname>CDelimitedPath8::PushAndEscapeFrontL()</apiname></xref>. </p>
+<p>In all the three insert functions, the newly inserted segments should contain
+a single path segment, as any path delimiters in the segment will be converted
+to an escape triple. </p>
+<p> <b> Note</b>: In case of Unicode data, first convert to utf8, escape encode,
+re-convert to 16-bit, and then insert the escaped version of the path segment. </p>
+</conbody><related-links>
+<link href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita"><linktext>HTTP Utilities
+Library Overview</linktext></link>
+<link href="GUID-42F0F282-58D6-4878-B53D-EAEEF86A3D7D.dita"><linktext>Parsing
+Delimited Data</linktext></link>
+<link href="GUID-834F5FC8-EBE4-4076-B1E3-38DDFF89D700.dita"><linktext>Modifying
+the Data and Delimiter</linktext></link>
+</related-links></concept>

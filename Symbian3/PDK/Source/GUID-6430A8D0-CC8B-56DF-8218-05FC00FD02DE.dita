@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6430A8D0-CC8B-56DF-8218-05FC00FD02DE" xml:lang="en"><title>Other
+Device Driver Issues</title><shortdesc>This topic describes some other issues that you need to be aware
+of when writing device drivers. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<ul>
+<li id="GUID-16BFF003-C452-59E7-A2ED-9BE13709E209"><p>The logical channel's <codeph>Request()</codeph> function
+is called in the context of the calling thread, and when called, the <xref href="GUID-38D1534C-AA01-33AF-9937-CDD818A85F97.dita#GUID-38D1534C-AA01-33AF-9937-CDD818A85F97/GUID-9014BB87-14EB-3ECA-A030-9797E3631C46"><apiname>DThread::iTempObj</apiname></xref> member
+for the current thread, i.e. the calling thread, is in use. It contains a
+pointer to the logical channel object being used (i.e. the instance of the <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> derived
+class). This pointer is reference counted to avoid problems if user code closes
+the channel from another thread while the current thread is using it. </p> <p>If
+a device driver needs to use a temporary object, it should use the <xref href="GUID-38D1534C-AA01-33AF-9937-CDD818A85F97.dita#GUID-38D1534C-AA01-33AF-9937-CDD818A85F97/GUID-18C0E9E9-825D-3904-9502-545E9E26E2DE"><apiname>DThread::iExtTempObj</apiname></xref> member. </p> </li>
+<li id="GUID-EB5AFAD3-1E86-5C42-943C-B1662F12C1AC"><p>All messages are processed
+as DFCs on DFC queues. A DFC can use its own thread, or one of the kernel
+threads. DFC queue thread 0 is the standard thread; it pre-empts the file
+server. DFC queue thread 1 is used by the timer and anything else that needs
+a fast response. You can create your own thread if you need a priority other
+than one of the defaults, but note that if your thread has a higher priority
+than that of DFC queue thread 1, then the accuracy of the nanokernel timers
+may be <i>adversely affected</i> if the nanokernel timer DFC is delayed by
+more than 16 nanokernel timer ticks. </p> </li>
+<li id="GUID-40863867-6F6D-5DC5-AA31-DFD1439A8755"><p>EKA2 has no limit on
+the number of asynchronous requests, but you need to do the house keeping
+yourself, such as storing request status objects and pointers because the
+device driver framework does not provide this. </p> </li>
+</ul>
+</conbody></concept>

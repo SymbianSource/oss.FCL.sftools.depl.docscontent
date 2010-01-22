@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F446E658-B717-5257-9C5C-442B07B19565" xml:lang="en"><title> Performing
+Cryptographic Operations with Keys</title><abstract><p>You can use various types of algorithms (for example RSA sign,
+DSA sign, Decrypt, DH key agreement, and so on) to perform cryptographic operations
+with keys in the unified keystore. This section provides information on the
+signing process. </p><p> The following steps explain the process of signing
+keys by considering the example of an RSA signing operation:</p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-E7265950-3F94-51A6-BD6E-E99A25152E0B">
+<step id="GUID-98896CA9-D5F6-5FCD-92B8-627D701DD080"><cmd/>
+<info>Create an object of type CUnifiedKeyStore using <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-C7A96153-4179-3B3F-878D-1EAA64A98D39"><apiname>CUnifiedKeyStore::NewL()</apiname></xref> or <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-217FBB3B-CEF5-36F2-A612-EDDA0982053C"><apiname>CUnifiedKeyStore::NewLC()</apiname></xref>. </info>
+</step>
+<step id="GUID-3CFD0F4D-5467-5FE5-9003-F16FDF6750B1"><cmd/>
+<info>Initialise the member functions and keystore using the asynchronous
+function <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita#GUID-818689D6-EB99-382E-A435-D9C6C5D464DE/GUID-6C5D732C-1FD1-3EF0-AC90-87690F891B8D"><apiname>CUnifiedKeyStore::Initialize()</apiname></xref>. </info>
+</step>
+<step id="GUID-73A277E5-45B8-5F87-B114-2004AE4DD4C5"><cmd/>
+<info>List all the keys in the keystore and then retrieve the key to be signed
+based on filter criteria. </info>
+</step>
+<step id="GUID-036E7985-FB51-52C5-BC27-4ADAD38E0923"><cmd>Invoke the <codeph>MKeyStore::Open()</codeph> function
+for opening the key. This also enables the creation of an object capable of
+performing the required signing operation. In the case of an RSA signing process,
+the key is opened to create a <codeph>MRSASigner</codeph> object. </cmd>
+<info> Note: The following table lists the objects created for different cryptographic
+operations: </info>
+<stepxmp><table id="GUID-0DE1BD27-AF6F-5CC1-8A9E-9D36380D4EBE">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Operation</b>  </p> </entry>
+<entry><p> <b>Object</b>  </p> </entry>
+</row>
+<row>
+<entry><p>DSA Sign </p> </entry>
+<entry><p> <codeph>MDSASigner</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>Decrypt </p> </entry>
+<entry><p> <codeph>MCTDecryptor</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>DH Key Agreement </p> </entry>
+<entry><p> <codeph>MCTDH</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </stepxmp>
+</step>
+<step id="GUID-D3E1854A-D798-5CB5-B528-AB5F672C2AC7"><cmd/>
+<info>Use <codeph>MCTSigner::SignMessage()</codeph> or <codeph>MCTSigner::Sign()</codeph> to
+perform the signing operation. </info>
+</step>
+</steps>
+<result><p>The <codeph>CRSASignature</codeph> object contains the value of
+the signing operation. </p> </result>
+<example><p>The following code snippet shows RSA signing operation: </p><codeblock id="GUID-B7FA7CF8-38D6-5088-B51E-73AB04139997" xml:space="preserve">
+
+//Create a file system session object
+RFs iFs;
+CleanupClosePushL(&amp;iFs);
+
+
+//Initialise the keystore and member functions
+CUnifiedKeyStore* keyStore = CUnifiedKeyStore::NewL(fs);
+keyStore-&gt;Initialize(iStatus); //iStatus is a TRequestStatus object
+
+
+...
+
+
+
+// Create a filter to retrieve all keys from the store
+TCTKeyAttributeFilter filter;
+filter.iPolicyFilter = TCTKeyAttributeFilter:EAllKeys;
+
+
+
+// Retrieve a list of all the keys from the key store
+RPointerArray&lt;CCTKeyInfo&gt; iKeys; // This variable will contain the key to be signed
+iKeyStore-&gt;List(iKeys,filter,iStatus);
+
+
+...
+
+
+// Retrieve the key based on the label you are looking for 
+_LIT(Klabel,”keylabel”);
+TInt keyCount = iKeys.Count();
+for (i = 0; i &lt; keyCount; i++)
+{
+    CCTKeyInfo* keyInfo = iKeys[i];
+    if (keyInfo-&gt;Label() == Klabel)
+        {
+            // Create a signer object for the key
+            MRSASigner* iRSASigner
+            // The signer object will be returned after the key has been opened for signing
+            keyStore-&gt;Open(*keyInfo, iRSASigner, iStatus);
+            break;
+        }
+}
+
+
+
+// Perform the signing operation
+
+// Define the data for signing
+
+HBufC* dataToSign; 
+dataToSign = HBufC::NewL(20);
+_LIT(KTxtSign,"Data to be signed");
+*dataToSign = KTxtSign; 
+
+
+CRSASignature* iRSASignature;
+// iRSASignature will contain the result after the completion
+// of the following request
+
+iRSASigner-&gt;SignMessage(*dataToSign, iRSASignature, iStatus);
+
+
+...
+
+
+// Retrieve the RSA signature value through the CRSASignature object 
+TInt signature = iRSASignature-&gt;S();
+</codeblock></example>
+</taskbody><related-links>
+<link href="GUID-C4389D60-2A8D-532D-9D92-E57B0CCD14CF.dita"><linktext>Unified Keystore</linktext>
+</link>
+</related-links></task>

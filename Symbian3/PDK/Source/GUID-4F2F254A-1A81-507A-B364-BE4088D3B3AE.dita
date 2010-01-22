@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4F2F254A-1A81-507A-B364-BE4088D3B3AE" xml:lang="en"><title>How to
+use literal descriptors</title><shortdesc>Explains how to generate constant literal descriptors.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Generate a constant literal as follows:</p>
+<codeblock id="GUID-C3147B10-3247-5EC8-8ED9-A9574EEE4682" xml:space="preserve">_LIT(name, string);</codeblock>
+<p>where <codeph>name</codeph> is a C++ variable name and <codeph>string</codeph> is
+the literal text enclosed in a pair of double quotes. </p>
+<p>All the code fragments use the build independent form but they are equally
+valid if replaced by the explicit 16 bit variant or the explicit 8 bit variant.</p>
+<p>As <codeph>name</codeph> represents a constant variable, it is conventional
+for the variable name to start with a capital <codeph>K</codeph>, for example:</p>
+<codeblock id="GUID-9CA8C2BA-403B-5E43-A205-0C5690872988" xml:space="preserve">_LIT(KTxtMatchString,"Hello");</codeblock>
+<p>This generates the constant literal descriptor:</p>
+<codeblock id="GUID-B40B7B03-CD17-509B-86A2-701D3A902A9A" xml:space="preserve">const static TLitC&lt;5&gt; KTxtMatchString;</codeblock>
+<p>and this is initialised to contain the string <codeph>Hello</codeph>. Developers
+never need to code a <codeph>TLitC</codeph> class explicitly; it is always
+be constructed through the macro.</p>
+<p>This constant literal descriptor can be passed directly to functions which
+are prototyped to take a <codeph>const TDesC&amp;</codeph> type:</p>
+<codeblock id="GUID-CEAF3352-ED10-5E05-9571-F032375FFEE6" xml:space="preserve">TBufC&lt;32&gt; x;
+...
+x.Match(KTxtMatchString);
+...</codeblock>
+<p>The literal descriptor classes: <codeph>TLitC16</codeph>, <codeph>TLitC8</codeph>, <codeph>TLitC16</codeph>,
+also provide a conversion operator so that they can be passed to functions
+which take a <codeph>const         TRefByValue&lt;const TDesC&gt;</codeph> type.
+This means that they can be passed to functions such as <codeph>TDes::Format()</codeph>:</p>
+<codeblock id="GUID-0D9639D7-B7EE-50E1-B21A-09D8C0D0FF0A" xml:space="preserve">_LIT(KFormat1,"Length is %d");
+...
+TBuf&lt;256&gt; x;
+...
+x.Format(KFormat1,8);
+...</codeblock>
+<p>The <codeph>&amp;</codeph> and the <codeph>()</codeph> operators acting
+on a constant literal return a <codeph>const TDesC*</codeph> and a <codeph>const
+        TDesC&amp;</codeph> type respectively:</p>
+<codeblock id="GUID-4DA3E378-B0EA-5336-A921-282C632795CC" xml:space="preserve">...
+_LIT(KTxtMatchString,"Hello");
+_LIT(KFormat2,"Text is %S");
+...</codeblock>
+<codeblock id="GUID-B83E52DD-2638-57EE-BA80-B9377C40404A" xml:space="preserve">TInt length;
+length = KTxtMatchString().Length();
+...
+TBuf&lt;256&gt; x;
+x.Format(KFormat2,&amp;KTxtMatchString);
+...</codeblock>
+</conbody></concept>

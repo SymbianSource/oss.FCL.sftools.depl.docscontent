@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8" xml:lang="en"><title>Interrupts
+Concepts</title><shortdesc>An interrupt is a condition that causes the CPU to suspend normal
+execution, enter the interrupt handling state and jump to a section of code
+called an interrupt handler. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An interrupt source is a hardware device or software action that can force
+the CPU to enter the interrupt handling state. </p>
+<p>Typically, a number of interrupt sources are monitored by an interrupt
+controller. This is hardware that generates a single interrupt notification
+to the CPU, and provides information about which interrupts are pending, which
+means which interrupts require action to be taken. </p>
+<ul>
+<li id="GUID-DC5F0973-1F7A-54AF-93D9-6B100A36A873"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-F5C1C873-B922-53F1-81D7-1924A5FC6FBC">ISR</xref>  </p> </li>
+<li id="GUID-B736A016-3845-5675-916E-9271437CEA55"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-EABF9C68-0404-51DA-BCD1-B2E712A33240">Interrupt ID</xref>  </p> </li>
+<li id="GUID-6A3BCC00-6682-5E80-B5FC-B45E7C948989"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-EAA4FC86-DCEF-5B42-BD4E-AF9941DE35B0">Binding and unbinding</xref>  </p> </li>
+<li id="GUID-A8E91BB3-ECF0-5401-B797-5687B54820B2"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-AE50D050-E28B-572C-8D35-CB8ECEBC5706">Dispatching interrupts</xref>  </p> </li>
+<li id="GUID-2A683414-EE91-58EF-85AF-0613645E3072"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-311851FE-884D-5FAA-A2AE-548F44FFB03B">Chained and shared interrupts</xref>  </p> </li>
+<li id="GUID-FE7BCE49-A01D-5EC0-98C5-5B5148BBCCF8"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-8C39B9F9-78F7-5329-B06D-3CD2F715E270">Variant interrupts</xref>  </p> </li>
+<li id="GUID-B08675CF-66F0-5B9A-943D-B5DB41B5C58D"><p> <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-310D362D-4778-55A1-B6D9-9059CF9E23E0">IRQs, FIQs and interrupt priority</xref>  </p> </li>
+</ul>
+<section id="GUID-F5C1C873-B922-53F1-81D7-1924A5FC6FBC"><title>ISR</title> <p>An <i>interrupt
+service routine</i>, or ISR, is code that deals with a pending interrupt.
+The Symbian platform kernel responds to an interrupt notification by calling
+an ISR for each pending interrupt. The process of calling ISRs is called interrupt
+dispatch. </p> <p>There must be an ISR associated with every interrupt that
+must be handled on a device; if an interrupt occurs that does not have an
+associated ISR, the kernel panics with a spurious interrupt error. By default,
+the baseport ensures that all interrupts are bound to, what is called, the
+spurious interrupt handler. Typically, this is a short piece of code that
+faults the system indicating the number of the interrupt. </p> <p>In EKA2,
+the ISR may either be a standalone function or a static class member. </p> <p>Each
+ISR takes a single 32-bit parameter that is, typically, a pointer to an instance
+of the owning class, although it can be any value that is appropriate. The
+parameter is defined as a <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> * type, so a cast is almost
+always necessary. </p> </section>
+<section id="GUID-EABF9C68-0404-51DA-BCD1-B2E712A33240"><title>Interrupt ID</title> <p>An
+interrupt source is identified by number, defined as a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> type.
+Typically, the ASSP layer defines this number for each interrupt in a header
+file and exports it so that it can be included and used by device drivers. </p> <p>Where
+the ASSP layer is split into a common layer and a variant (device specific)
+layer, then the variant layer may also define its own set of interrupt IDs. </p> <p>This
+number is usually referred to as the interrupt ID. </p> </section>
+<section id="GUID-EAA4FC86-DCEF-5B42-BD4E-AF9941DE35B0"><title>Binding and
+unbinding</title> <p>The action of associating an ISR with an interrupt source
+is called binding, and an ISR is said to be bound to the interrupt. ISRs are
+bound dynamically, that is, at runtime. You can also unbind an ISR and bind
+a different ISR. </p> <p> <b>Note</b>: only one ISR can be bound to an interrupt
+source at any one time. </p> <p>A device driver binds an ISR by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref>,
+passing the interrupt source ID; similarly, the device driver can unbind the
+ISR by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref>, also passing the <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-EABF9C68-0404-51DA-BCD1-B2E712A33240">interrupt
+ID</xref>. </p> </section>
+<section id="GUID-AE50D050-E28B-572C-8D35-CB8ECEBC5706"><title>Dispatching
+interrupts</title> <p>When an interrupt occurs, it first invokes code in the
+kernel that prepares the system to run the interrupt by switching to a safe
+stack and storing some state information. It then launches code called the
+interrupt dispatcher (often just referred to as the dispatcher) which, as
+the name suggests, is responsible for determining which interrupts need to
+be serviced and calling the appropriate ISRs. </p> <p>At its simplest, this
+is the process of deciding which interrupts are pending and calling the ISR
+for each. This is the general principle: </p> <codeblock id="GUID-C871D02B-5211-5152-989B-6D34C039F7C5" xml:space="preserve">
+    {
+       FOREVER
+              {
+        Get next pending interrupt;
+        if None
+            {
+               return;
+            }
+        call ISR for the pending interrupt;
+        }
+    }
+</codeblock> <p>In general, however, when you are writing code that uses the
+interrupt, you don't need to worry about the work that goes on "behind the
+scenes" that calls your ISR. However, if the interrupt is shared by a number
+of peripherals, or there are multiple levels of hardware interrupt controllers,
+then you might need to consider the behaviour of the dispatcher – these are
+called "Chained and shared interrupts". </p> </section>
+<section id="GUID-311851FE-884D-5FAA-A2AE-548F44FFB03B"><title>Chained and
+shared interrupts</title> <p>The functions in the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class
+give a <i>flat</i> view of the interrupts in the system. In fact, this may
+not be the true organisation, and groups of interrupts may be handled by separate
+hardware that is wired together or <i>chained</i>. </p> <fig id="GUID-5BE80A1D-CD61-536B-A304-2B5EA54A9566">
+<title>              Chained interrupts            </title>
+<image href="GUID-9FAFEF6D-4CBC-5EBB-8BA9-B5480478F4A7_d0e270169_href.png" placement="inline"/>
+</fig> <p>A system may have multiple interrupt controllers to handle a large
+number of interrupt sources. They are usually prioritised by connecting the
+interrupt output of one interrupt controller to an interrupt input of another
+interrupt controller. </p> <p>If several sources of interrupts share a single
+interrupt line, then the ISRs for each interrupt source are bound to a pseudo-interrupt,
+meaning that the interrupt Id is a fake interrupt provided by the interrupt
+dispatcher. If the dispatcher cannot conveniently determine which source has
+signalled the interrupt, it just calls all ISRs bound to this set of pseudo-interrupts. </p> <fig id="GUID-3AA2C613-35C0-5C4B-B4D2-2FD1207E21AA">
+<title>              Shared interrupts            </title>
+<image href="GUID-C5D3FE0C-8151-5780-8D72-016146D58853_d0e270183_href.png" placement="inline"/>
+</fig> <p>An interrupt Id should not be confused with an interrupt line, especially,
+when interrupt lines are shared. However, if the interrupt line is not shared
+then the interrupt Id is the same value as the interrupt line and may be explicitly
+defined within headers. </p> <p>If the interrupt is shared then: </p> <ul>
+<li id="GUID-7A28A243-B5B7-5687-97EE-6C79FDFA6411"><p>the first time an ISR
+is bound to an interrupt line the interrupt Id can be the same value </p> </li>
+<li id="GUID-7C01181A-C61B-51B7-9969-ADEE2619967D"><p>for each subsequent
+attempt to bind an ISR to an interrupt line, its interrupt Id will differ
+from the interrupt line number. </p> </li>
+</ul> <p>This Interrupt Id should be used explicitly when refering to ISR-related
+functions. In general, as a user of the interrupt you probably don't need
+to know the actual structure underlying the interrupts, but you do need to
+be aware of these points: </p> <ul>
+<li id="GUID-6680525A-6E24-5CD3-B105-BE185390FD7F"><p>Interrupts further down
+a chain may have a longer dispatch latency, that is, the time between the
+interrupt signalling and the ISR being called. </p> </li>
+<li id="GUID-EE5F4275-3746-5EC6-9B82-8AA23F47D5B2"><p>If a peripheral shares
+an interrupt line with a number of other peripherals, an ISR that services
+that peripheral may be called even if the peripheral hasn't raised an interrupt.
+Just because your ISR is called, you cannot assume that the peripheral it
+services has generated the interrupt. </p> </li>
+</ul> </section>
+<section id="GUID-8C39B9F9-78F7-5329-B06D-3CD2F715E270"><title>Variant interrupts</title> <p>Variant
+interrupts are just a special case of <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita#GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8/GUID-311851FE-884D-5FAA-A2AE-548F44FFB03B">Chained
+and shared interrupts</xref>, where the chained interrupt controller is actually
+provided on hardware external to the core processor. The comments applying
+to chained interrupts apply equally to Variant interrupts. </p> <p>The definition
+of the interrupt ID number will be in a header file provided by the Variant,
+but note that the interrupt may not exist on all hardware. </p> <p>If your
+device driver is intended to run on several variants, not all of which have
+a particular interrupt, then you need to ensure that you only attempt to use
+this interrupt where it exists. Alternatively, if the driver is only intended
+to run on hardware with that interrupt, then it may be sensible for the driver
+code to raise a panic if it is run on the wrong hardware; this will clearly
+indicate that the driver is incompatible with the hardware. </p> </section>
+<section id="GUID-310D362D-4778-55A1-B6D9-9059CF9E23E0"><title>IRQs, FIQs
+and interrupt priority</title> <p>The ARM processor supports two levels of
+interrupt, IRQ and FIQ (<i>Fast IRQ</i>). FIQs have priority over IRQs. </p> <p>Sometimes,
+interrupt sources are permanently configured as IRQ or FIQ, either by hardware
+design or by software configuration. Often the hardware allows interrupts
+to generate either an IRQ or a FIQ, and this can be configured using the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-FA4CFED7-D694-399C-8F84-FA9FE3C3A171"><apiname>Interrupt::SetPriority()</apiname></xref> function,
+but you need to check this with the baseport because it may not provide this
+capability even though the hardware supports it. </p> <p> <codeph>Interrupt::SetPriority()</codeph> is
+more powerful that just letting you configure IRQs and FIQs. Some interrupt
+controllers allow the relative priority of each interrupt source in the system
+to be modified instead of being hardwired in a specific order. <codeph>Interrupt::SetPriority()</codeph> therefore
+takes a <codeph>TInt</codeph> type as the priority value, and the baseport
+will define the meaning of this depending on what level of configurability
+is provided. If interrupt priority cannot be changed <codeph>Interrupt::SetPriority()</codeph> will
+return <codeph>KErrNotSupported</codeph>. You will need to check whether your
+baseport supports configurable interrupt priority. </p> </section>
+</conbody></concept>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B6F0C909-6E58-584E-9270-8066337FCE0F" xml:lang="en"><title>Client
+Tutorial</title><shortdesc>Explains how to use the MMC Controller interfaces to use MMC hardware.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-388CEB1C-BA81-593F-81D3-C0BD72A405E0"><title>Client interfaces</title> <p>The
+following diagram shows the relationship between the Controller and its clients,
+and also shows aspects of the relationship between the constituent parts.
+In this case, the client is the MultiMediaCard driver, although in general
+this could be some other device driver. </p><fig id="GUID-108025DD-1333-4A3C-A507-7D61A42BCEA4">
+<image href="GUID-6597A895-37D5-51D1-86B3-E74F6E845899_d0e387797_href.png" placement="inline"/>
+</fig> <p>The session is used to pass commands either to the entire stack,
+i.e. a broadcast command, or to individual cards in the stack. </p> <p>The
+session provides access to the stack of cards, via a pointer to a stack object,
+the <codeph>iStackP</codeph> private member. The session is used to pass commands
+either to the entire stack, i.e. a broadcast command, or to individual cards
+in the stack. An individual card can be accessed via a pointer to the card
+object, the <codeph>iCardP</codeph> private member. The card objects, <xref href="GUID-913FA896-4237-3E47-996F-547E325550AD.dita"><apiname>TMMCCard</apiname></xref> types,
+are data members of the card array object, <xref href="GUID-A460F779-52AB-3ED0-AF13-41B9BC5B2A71.dita"><apiname>TMMCardArray</apiname></xref>,
+which, in turn is a data member of the stack object. </p> </section>
+<section id="GUID-A0B4E830-24DD-5C9C-A76B-CD1DE372A9FE"><title>Using the MultiMediaCard
+stack</title> <p>Clients of the MMC Controller such as the MMC Media Driver
+uses the MMC Controller as follows: </p> <ul>
+<li id="GUID-F4C2C756-5793-59BE-9DAB-E7960B4E5F8D"><p>requests a pointer to
+the stack object, through which the client can obtain pointers to the individual
+card objects and interrogate the cards, finding out their media type, capacity,
+and capability (via the card’s <xref href="GUID-C6858312-FC9A-34C9-B442-557F7558B5C4.dita"><apiname>TCSD</apiname></xref> object), and whether
+the card is present or ready. </p> </li>
+<li id="GUID-592769F9-B9B0-583E-A76C-DF8EB0A5A4B2"><p>creates a session object,
+an instance of the <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita"><apiname>DMMCSession</apiname></xref> class, providing a callback
+function for its constructor. The callback is encapsulated as a <xref href="GUID-F59F1805-95FB-3BDD-97A5-4FD6048DE2E8.dita"><apiname>TMMCCallBack</apiname></xref> object. </p> </li>
+<li id="GUID-66E909B9-8B32-5036-BCAA-486A7F047BBD"><p>initiates the session
+with the pointer to the stack object: <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-72859BCF-4979-37F3-BF32-45181F64755F"><apiname>DMMCSession::SetStack()</apiname></xref> . </p> </li>
+</ul> <p>The client interacts with the stack in the following manner: </p> <ol id="GUID-AE800793-AEF9-5F11-9CF2-A6FEB6827265">
+<li id="GUID-2957F643-771C-5279-821F-875843F42CAC"><p>it sets the session
+up with the pointer to the card object, by calling <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-60FAAA31-A5E1-3DCF-93AE-459BCC8C9730"><apiname>DMMCSession::SetCard()</apiname></xref>. </p> </li>
+<li id="GUID-4B117791-3B0D-552F-81AC-85D0905EEB91"><p>it sets the session
+up to do a specific job, such as a MultiMediaCard macro command, or a lower
+level card command, using the API provided by <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita"><apiname>DMMCSession</apiname></xref>. </p> </li>
+<li id="GUID-0F43C846-6E62-5539-99E1-1DBCF4E911CE"><p>it presents the session
+to the stack for execution, by calling <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-8DA6B49E-FED0-3E83-8D2F-EA7B61C28015"><apiname>DMMCSession::Engage()</apiname></xref>. </p> </li>
+<li id="GUID-BF673228-633B-5E99-9396-0CE6ABE3360E"><p>On completion, the stack
+calls the client’s callback function. The client then can repeat the cycle
+from step 1 or 2. </p> </li>
+</ol> <p>The client can override the default bus configuration settings, i.e.
+change the bus clock, enable retries, change time-out values, restore defaults
+etc., using the session's stack configuration object, <xref href="GUID-89631250-7D11-3E89-9785-7DF779B2AB38.dita"><apiname>TMmCStackConfig</apiname></xref>,
+although in practice, there is rarely a need to do this. </p> </section>
+<section id="GUID-6638C350-37FE-5CF7-AF0B-0EF763936DF3"><title>Locking the
+MultiMediaCard stack</title> <p>The <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita"><apiname>DMMCSession</apiname></xref> API includes
+general lower level functions to issue any single command or series of commands
+including those currently unknown to the controller. This allows application
+specific commands to be supported. It also allows the controller to support
+new commands introduced in later versions of the specification (e.g. commands
+to support I/O cards). </p> <p>When issuing a series of application specific
+commands, the client will want to lock the stack, preventing any other client
+from generating bus activity during this period. This is accomplished by calling <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-BA7DE143-BDE0-31DB-8C85-1073F0D6175C"><apiname>DMMCSession::SetupCIMLockStack()</apiname></xref> and
+then engaging that session. If successful, the stack will be locked until <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-5F153F42-9527-3561-AB05-B36DD28201A1"><apiname>DMMCSession::UnlockStack()</apiname></xref> is
+called. </p> <p>As it may take time for the controller to lock the stack for
+that session, the mechanism for locking the stack involves submitting a session
+even though no bus activity results. If this session completes successfully
+then the stack is locked. The client can then go ahead and invoke its series
+of commands - configuring that same session object as necessary each time
+and submitting it. </p> </section>
+<section id="GUID-34C0B6CD-C9BF-4D75-BBAE-78D36B2879FF"><title>See also</title> <p> <xref href="GUID-9573F7B9-76E9-5DCB-A498-C0DE59606911.dita">Concepts</xref> </p> </section>
+</conbody></concept>

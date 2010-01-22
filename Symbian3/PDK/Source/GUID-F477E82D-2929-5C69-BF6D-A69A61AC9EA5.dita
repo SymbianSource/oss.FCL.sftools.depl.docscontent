@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5" xml:lang="en"><title>Creating
+a Font Rasterizer Plug-in</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Overview</title> <p>The steps required to write a font rasterizer
+DLL are: </p> <ul>
+<li id="GUID-C0A88FBF-7D70-5EAC-8754-41AE322A80E0"><p>Implement an exported <codeph>NewL()</codeph> factory
+function to create rasterizer objects (which you derive from <codeph>COpenFontRasterizer</codeph>).
+You may choose to implement this as part of your rasterizer object. </p> </li>
+<li id="GUID-1ED7EC05-4217-5FA5-AFBC-D25C1517343F"><p>Write a class derived
+from <codeph>COpenFontRasterizer</codeph>. This will need to store any context
+associated with the rasterization process rather than with individual typefaces.
+It also implements a function to create your <codeph>COpenFontFile</codeph> derived
+objects. </p> </li>
+<li id="GUID-7B5E3CCB-FD32-554F-9BBE-2784C98FEB4B"><p>Write a class derived
+from <codeph>COpenFontFile</codeph>. This class manages a single file representing
+a typeface. </p> </li>
+<li id="GUID-EA14EC9D-615D-5344-A91C-3171A51E3208"><p>Write a class derived
+from <codeph>COpenFont</codeph>. </p> </li>
+<li id="GUID-8D14151F-B779-5B31-B94D-F4FFA2D8F093"><p>Place all the code into
+a DLL of the right type and provide an exported function to create the rasterizer
+object. </p> </li>
+</ul> <p>Deriving from <codeph>COpenFontRasterizer</codeph>, <codeph>COpenFontFile</codeph> and <codeph>COpenFont</codeph> are
+discussed in the "See also" topics below. This section describes the operations
+required to package the code as a polymorphic DLL. </p> <p>For more information,
+see: </p> <ul>
+<li id="GUID-13833E45-6481-5D93-847D-06F09BFA2717"><p> <xref href="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9.dita">Deriving
+from COpenFontRasterizer</xref>  </p> </li>
+<li id="GUID-6ED0A7A3-8DB8-556D-8B77-46DA7D448D6F"><p> <xref href="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547.dita">Deriving
+from COpenFontFile</xref>  </p> </li>
+<li id="GUID-94F5442E-9A77-53BB-B42E-316C62DCB032"><p> <xref href="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C.dita">Deriving
+from COpenFont</xref>  </p> </li>
+<li id="GUID-027B74C4-6CE7-5D33-B00B-33016734189E"><p> <xref href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita">Deriving
+from COpenFontRasterizerContext</xref>  </p> </li>
+</ul> </section>
+<section><title>The DLL</title> <p>A font rasterizer DLL is an ordinary Symbian
+polymorphic DLL. It exports just one function and has no unusual behavior. </p> <p>In
+particular, it must have no writable static data. This is an important constraint
+on the use of code from outside sources. See <xref href="GUID-5BDE6462-E6CA-5738-A587-C7D875574789.dita">Static
+Data</xref> for more information. </p> </section>
+<section id="GUID-ADA409CE-7326-5586-8DC4-B1E3FEBCE070"><title>The exported
+function</title> <p>The exported function is a factory function that creates
+objects of a class derived from <codeph>COpenFontRasterizer</codeph>. It will
+be called just once — when the Font and Bitmap Server loads the DLL. </p> <p>Although
+the name of the function does not matter because it is loaded by ordinal,
+implementers should follow the practice of making it a static member of the
+rasterizer class, called <codeph>NewL()</codeph>. Therefore, if the rasterizer
+class is <codeph>CExampleRasterizer</codeph> (derived from <codeph>COpenFontRasterizer</codeph>),
+the exported function is: </p> <codeblock id="GUID-45589D16-BF32-54F0-ADFB-566231281110" xml:space="preserve">static COpenFontRasterizer* CExampleRasterizer::NewL()</codeblock> <p>The function must take no arguments. It must create a <codeph>COpenFontRasterizer</codeph> derived
+object on the heap, returning it to the caller. The caller is responsible
+for deleting the object. As the name of the example function suggests, it
+is allowed to leave. </p><p><b>Example </b> </p> <p>The exported function
+used in the FreeType rasterizer is given below: </p> <codeblock id="GUID-1B22E569-A3DD-52B6-AEA2-F1CF8A721BAB" xml:space="preserve">EXPORT_C COpenFontRasterizer* CFreeTypeRasterizer::NewL()
+    {
+    CFreeTypeRasterizer* r = new(ELeave) CFreeTypeRasterizer;
+    CleanupStack::PushL( r );
+    r-&gt;iContext = CFreeTypeContext::NewL();
+    CleanupStack::Pop();
+    return r;
+    }
+</codeblock> </section>
+<section><title>Project file</title> <p>The name of the rasterizer DLL, its
+type, and its UIDs are all specified in the MMP file. Note that: </p> <ul>
+<li id="GUID-AAD480A0-9010-5999-9677-9F7C1C94EC2F"><p>All capabilities except
+TCB (Trusted Computing Base) are required. </p> </li>
+<li id="GUID-38FDC5A5-5AA4-530C-AC34-D6BBE852959C"><p>The <i>targettype</i> must
+be <b>PLUGIN </b>. </p> </li>
+<li id="GUID-7EE45983-7578-527C-97A6-88ABFFA4EEBB"><p>The <i>UID</i> line
+identifies the project's UID2 and UID3 values. UID2 must be <codeph>0x10009D8D</codeph>,
+which identifies the DLL as an ECOM plug-in. UID3 must be <codeph>0x100012A7</codeph>,
+which identifies the ECOM plug-in as a font rasterizer. </p> </li>
+</ul> <p><b>Example </b> </p> <p>A fragment of the project file for the freetype
+DLL is given below. </p> <codeblock id="GUID-1E2029EE-E2C8-5D48-B965-A8EBC991C513" xml:space="preserve">target freetype.dll
+CAPABILITY All -Tcb
+targettype PLUGIN
+UID 0x10003B1F 0x100012A7</codeblock> </section>
+<section><title>Header files</title> <p>Font rasterizer DLLs must <codeph>#include</codeph> the
+following header files, which are located in the standard include directory <filepath>\epoc32\include\</filepath>: </p> <ul>
+<li id="GUID-29A10FF8-E5F4-5FF3-AAE9-5DB6769672B7"><p> <filepath>openfont.h</filepath> for
+the Font Store classes </p> </li>
+<li id="GUID-E85D522E-5EA4-5931-906B-1C9B190BE61E"><p> <filepath>e32uid.h</filepath> for
+the UID value for a dynamic library </p> </li>
+<li id="GUID-BB94D8BC-24B2-5BE3-8C46-9394FE3585A6"><p> <filepath>f32file.h</filepath> for
+the file handling classes </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9.dita"><linktext>Deriving
+from COpenFontRasterizer</linktext></link>
+<link href="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547.dita"><linktext>Deriving
+from COpenFontFile</linktext></link>
+<link href="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C.dita"><linktext>Deriving
+from COpenFont</linktext></link>
+<link href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita"><linktext>Deriving
+from COpenFontRasterizerContext</linktext></link>
+<link href="GUID-5BDE6462-E6CA-5738-A587-C7D875574789.dita"><linktext>Static data</linktext>
+</link>
+</related-links></concept>

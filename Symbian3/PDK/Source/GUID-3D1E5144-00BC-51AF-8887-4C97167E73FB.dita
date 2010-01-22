@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-3D1E5144-00BC-51AF-8887-4C97167E73FB"><title>SMS Stack Tutorial</title><shortdesc>This tutorial describes how to send and receive messages using the SMS stack. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><example id="GUID-BA144B2C-BDE0-5D9E-A977-ED38C80CB8E7"><title>Send SMS example</title> <codeblock id="GUID-CC32288F-16DA-56C5-97B0-CBF18A674DBD" xml:space="preserve">
+#include &lt;e32std.h&gt;
+#include &lt;es_sock.h&gt;
+#include &lt;gsmubuf.h&gt;
+#include &lt;gsmumsg.h&gt;
+#include &lt;gsmuset.h&gt;
+#include &lt;smsustrm.h&gt;
+#include &lt;smsuaddr.h&gt;
+
+_LIT(KSmsMessage, "Sample SMS message for illustration");
+_LIT(KDestination,"+44789456123");
+_LIT(KServiceCentre, "+44123456789");
+RFs  fs;
+RSocketServ socketServer;
+RSocket socket;
+
+//connect to the file server
+User::LeaveIfError(fs.Connect());
+CleanupClosePushL(fs);
+
+//connect to the socket server
+User::LeaveIfError(socketServer.Connect());
+CleanupClosePushL(socketServer);
+
+//Open a SMS socket
+User::LeaveIfError(socket.Open(socketServer, KSMSAddrFamily, KSockDatagram, KSMSDatagramProtocol));
+CleanupClosePushL(socket);
+TSmsAddr smsAddr;
+
+//set the sockets to only send the messages
+smsAddr.SetSmsAddrFamily(ESmsAddrSendOnly);
+
+//Bind the socket
+socket.Bind(smsAddr);
+
+//create a message and encoding scheme to be used
+CSmsBuffer* buffer=CSmsBuffer::NewL();
+CSmsMessage* smsMessage=CSmsMessage::NewL(fs, CSmsPDU::ESmsSubmit, buffer);
+CleanupStack::PushL(smsMessage);
+
+TSmsUserDataSettings smsSettings;
+smsSettings.SetAlphabet(TSmsDataCodingScheme::ESmsAlphabet7Bit);
+smsMessage-&gt;SetUserDataSettingsL(smsSettings);
+
+smsMessage-&gt;SetToFromAddressL(KDestination);
+smsMessage-&gt;SmsPDU().SetServiceCenterAddressL(KServiceCentre);
+buffer-&gt;InsertL(0,KSmsMessage);
+
+TRequestStatus status;
+
+RSmsSocketWriteStream writestream(socket);
+
+writestream &lt;&lt; *smsMessage;
+writestream.CommitL();
+
+TPckgBuf&lt;TUint&gt; sbuf;
+socket.Ioctl(KIoctlSendSmsMessage, status, &amp;sbuf, KSolSmsProv);
+User::WaitForRequest(status);
+
+CleanupStack::PopAndDestroy(smsMessage);
+CleanupStack::PopAndDestroy(&amp;socket);
+CleanupStack::PopAndDestroy(&amp;socketServer);
+CleanupStack::PopAndDestroy(&amp;fs);
+</codeblock> </example> <section id="GUID-314DEC98-B67D-5ADF-B5E7-D96FEAF59455"><title>Receive SMS example</title> <codeblock id="GUID-F3EC34CF-90C1-59FE-9CBE-2912DF02D0AC" xml:space="preserve">
+#include &lt;e32std.h&gt;
+#include &lt;es_sock.h&gt;
+#include &lt;gsmubuf.h&gt;
+#include &lt;gsmumsg.h&gt;
+#include &lt;gsmuset.h&gt;
+#include &lt;smsustrm.h&gt;
+#include &lt;smsuaddr.h&gt;
+
+_LIT(KSmsMessage, "Sample SMS message for illustration");
+_LIT(KDestination,"+44789456123");
+_LIT(KServiceCentre, "+44123456789");
+RFs fs;
+RSocketServ socketServer;
+RSocket socket;
+
+//connect to the file server
+User::LeaveIfError(fs.Connect());
+CleanupClosePushL(fs);
+
+//connect to the socket server
+User::LeaveIfError(socketServer.Connect());
+CleanupClosePushL(socketServer);
+
+//Open a SMS socket
+User::LeaveIfError(socket.Open(socketServer, KSMSAddrFamily, KSockDatagram, KSMSDatagramProtocol));
+CleanupClosePushL(socket);
+
+TSmsAddr smsAddr;
+
+//set the sockets to receive all SMS messages
+smsAddr.SetSmsAddrFamily(ESmsAddrRecvAny);
+
+//Bind the socket
+socket.Bind(smsAddr);
+TRequestStatus status;
+TPckgBuf&lt;TUint&gt; sbuf;
+
+socket.Ioctl(KIOctlSelect,status,&amp;sbuf,KSOLSocket);
+User::WaitForRequest(status);
+CSmsBuffer* buffer=CSmsBuffer::NewL();
+CSmsMessage* smsMessage=CSmsMessage::NewL(fs, CSmsPDU::ESmsSubmit, buffer);
+CleanupStack::PushL(smsMessage);
+
+//read from the stream
+RSmsSocketReadStream readstream(socket);
+
+readstream &gt;&gt; *smsMessage;
+
+socket.Ioctl(KIoctlReadMessageSucceeded, status, &amp;sbuf, KSolSmsProv);
+User::WaitForRequest(status);
+CleanupStack::Pop(smsMessage);    
+
+//clear the contents from buffer
+CleanupStack::PopAndDestroy(smsMessage);
+CleanupStack::PopAndDestroy(&amp;socket);
+CleanupStack::PopAndDestroy(&amp;socketServer);
+CleanupStack::PopAndDestroy(&amp;fs);
+</codeblock> </section> </conbody></concept>

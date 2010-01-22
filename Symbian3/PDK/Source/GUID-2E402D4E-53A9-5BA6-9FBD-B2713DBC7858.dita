@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2E402D4E-53A9-5BA6-9FBD-B2713DBC7858" xml:lang="en"><title>Peripheral
+Power Domains</title><shortdesc>A peripheral power domain can be defined as being a peripheral,
+or group of peripherals, whose power supply can be controlled independently
+from the rest of the device, but not independently from other peripherals
+within the same power domain. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Power domains depend on the physical wiring of a device, and this must
+be taken into account by the base port. They are usually manipulated when
+peripherals or groups of peripherals transition between the <i>Operational
+Power</i> and <i>Off</i> states. </p>
+<p>The following diagram is an example of such an arrangement. </p>
+<fig id="GUID-A9CA379B-F3B9-550C-9BDC-C072BFCA642D">
+<title>Example of peripheral power domains</title>
+<image href="GUID-A568F9D3-58E3-58D6-8A6E-4EC6BEC41A4D_d0e379905_href.png" placement="inline"/>
+</fig>
+<p>To reduce power leakage, it may be useful to cut the power supply to an
+area or a group of peripherals in the ASIC or the hardware platform, when
+all peripherals on that peripheral power domain have moved to the <i>Off</i> state. </p>
+<p>In the arrangement shown here, when all peripherals on a power domain have
+been powered down, the power supply to that domain can be cut off, using the
+RESn signal. </p>
+<p>A suggested implementation would have peripheral power domains modelled
+by a <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita"><apiname>MPowerInput</apiname></xref> reference counted object, and controlled
+using the <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita#GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A/GUID-2BCA5312-43D9-3763-9636-3B2EB046D2C1"><apiname>MPowerInput::Use()</apiname></xref> and <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita#GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A/GUID-606ECD77-A5F7-3408-9B63-C68C0A7B73C6"><apiname>MPowerInput::Release()</apiname></xref> interfaces
+that would enable the domain on request. The peripheral driver’s request on
+that power resource would only be changed when entering the <i>Operational
+Power</i> state from the <i>Off</i> state, or when entering or exiting the <i>Off</i> states.
+In other words, a peripheral power domain should only be turned off when all
+peripherals in that domain have transitioned to their <i>Off</i> state. </p>
+<p>This is a suggested definition for a peripheral power domain class. </p>
+<codeblock id="GUID-49E76C4B-F162-5735-8499-3198071111CD" xml:space="preserve">class PeripheralPowerDomain : public MPowerInput
+    {
+public:
+    void InitPowerDomain();        // (optional) handles any initialisation
+    void Use();                    // implementation of pure virtual
+    void Release()                // implementation of pure virtual
+    TUint GetCount();
+private:
+    TInt TurnSupplyOn();        // re-establishes power supply to this domain (asynch)
+    TInt TurnSupplyOff();        // cuts power supply to this domain 
+    };
+      </codeblock>
+<p>The <codeph>Use()</codeph> and <codeph>Release()</codeph> functions implement
+a usage count. Peripheral drivers for peripherals on that domain will call
+these functions whenever their power handler’s <codeph>PowerUp()</codeph> and <codeph>PowerDown()</codeph> member
+functions are called, respectively. If the usage count is 0 and <codeph>Use()</codeph> is
+called, it should call <codeph>TurnSupplyOn()</codeph>. If <codeph>Release()</codeph> is
+called and the usage count is decremented to 0, <codeph>TurnSupplyOff()</codeph> is
+called. </p>
+<p>Often, re-establishing the power supply to a power domain is a lengthy
+operation and should be modelled by an asynchronous operation. In that case <codeph>TurnSupplyOn()</codeph> should
+be able to sleep the thread in which this function is called until the power
+supply is stable. </p>
+<p>We recommend that peripheral power domains are defined as part of, and
+accessed through, a resource manager object as suggested in the discussion
+of <xref href="GUID-3B6544CD-FA6E-5AB2-AA63-61186F52167D.dita">Controllable Power
+Resources</xref>. Extending the original <xref href="GUID-3B6544CD-FA6E-5AB2-AA63-61186F52167D.dita#GUID-3B6544CD-FA6E-5AB2-AA63-61186F52167D/GUID-37A4098A-5E44-5744-BCE1-CDC8B876E654">A
+suggested implementation of a resource manager</xref> would give us: </p>
+<codeblock id="GUID-F4D57698-C77F-5CD0-BF7B-FCBECD96F64F" xml:space="preserve">class ResourceManager
+    {
+public:    
+    void InitResources();                        // called by your Asic::Init3()/Asic::Init1()
+    void Modify(TUint aSetMask, TUint aClrMask); // only 32 simple Resources can be managed
+    TBool GetResourceState(TUint aResBitMask);   // only 1 bit set on this mask, returns On/Off
+public:
+    (MPowerInput-derived) iSharedResource1;      // 1 per shared resource
+    (MPowerInput-derived) iSharedResource2;
+    ...
+    PeripheralPowerDomain iPeripheralPowerDomain1;
+    PeripheralPowerDomain iPeripheralPowerDomain2;
+    PeripheralPowerDomain iPeripheralPowerDomain3;
+    ...
+    };
+      </codeblock>
+<p>where <codeph>InitResources()</codeph> could call each <codeph>PeripheralPowerDomain::InitPowerDomain()</codeph>. </p>
+<p>Peripheral power domains may also be a useful concept when transitioning
+peripherals to low power mode after peripheral inactivity detection. It is
+only after all peripherals on a peripheral power domain have requested moving
+the resource to the level corresponding to low power that the resource level
+can be changed. This is exemplified again in the block diagram above: when
+all peripherals in a domain have requested transitioning to low power (using
+a <codeph>ReleaseToLevel()</codeph> -type call) the power supply level to
+that power domain can be set to VLowPwr. </p>
+<p>The following base port software architecture diagram could be used to
+address control of the peripheral power domains shown in the hardware block
+diagram above: </p>
+<fig id="GUID-2C8E6AF1-D82A-5539-96C3-921D9B3E2846">
+<title>Base port software architecture diagram</title>
+<image href="GUID-C3CE35FF-240E-5385-9088-38EF926ABB7B_d0e380018_href.png" placement="inline"/>
+</fig>
+</conbody></concept>

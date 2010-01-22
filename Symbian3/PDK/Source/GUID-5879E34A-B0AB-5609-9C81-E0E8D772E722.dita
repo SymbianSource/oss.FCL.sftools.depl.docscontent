@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5879E34A-B0AB-5609-9C81-E0E8D772E722" xml:lang="en"><title>Power
+State Transitions</title><shortdesc>This topic describes power state transitions and how domains behave
+when these happen. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The architecture defines four possible transitions between these three
+states, as shown by the diagram below: </p>
+<fig id="GUID-B7975B68-B2AC-5BEA-BD31-2B37CB8D1B54">
+<image href="GUID-87A1B62D-4C89-52B8-8BF3-BDE0AC53916C_d0e363543_href.png" placement="inline"/>
+</fig>
+<section id="GUID-A3951A4A-C7B7-594D-87FD-F3DB0FDFB971"><title>Active to Standby</title> <p>The
+decision to initiate a system-wide power transition from the <i>Active</i> state
+to the <i>Standby</i> state can be made by an explicit user or application
+request, or by a power management policy decision. </p> <p>The transition
+occurs as a cascade of events. First, all domains are moved into the <i>Standby</i> state,
+starting at the bottom of the domain hierarchy, and working through all child
+domains before proceeding to the parent domains. A domain has reached the <i>Standby</i> state
+when all its registered applications have acknowledged the transition (or
+the domain time-out expires as explained in <xref href="GUID-BBCC018A-BBD3-5609-8FCB-C9BF7EC5F627.dita">Protocol
+for domain state transitions</xref>). </p> <p>Once all domains have reached
+the <i>Standby</i> state, the transition continues with the kernel-side, which
+notifies drivers' <xref href="GUID-0C435514-EEC6-5660-BB5F-535790349632.dita#GUID-0C435514-EEC6-5660-BB5F-535790349632/GUID-DC5F1ECD-CCA3-59FF-A2F1-A3DBD76CD458">Power
+handlers</xref>. Once all notified drivers have finished their transition,
+the kernel-side completes the transition by moving RAM and the CPU into the <i>Standby</i> state.
+Before entering the standby state, the power management hardware must be configured
+to wake the system up when a wake-up event occurs. </p> <p>This transition
+may stopped at any point, and a reverse transition to the <i>Active</i> state
+started as a result of a wake-up event. </p> </section>
+<section id="GUID-8DC2BEE8-9BD1-5409-8C42-DA98E8C4DA80"><title>Active to Off</title> <p>The
+decision to initiate a system-wide power transition from the <i>Active</i> state
+to the <i>Off</i> state can be made by an explicit user or application request,
+or by a power management policy decision. </p> <p>The transition occurs as
+a cascade of events. First, all domains are moved into the <i>Off</i> state,
+starting at the bottom of the domain hierarchy, and working through all child
+domains before proceeding to the parent domains. A domain has reached the <i>Off</i> state
+when all its registered applications have acknowledged the transition (or
+the domain time-out expires as explained in <xref href="GUID-BBCC018A-BBD3-5609-8FCB-C9BF7EC5F627.dita">Protocol
+for domain state transitions</xref>). </p> <p>Once all domains have reached
+the <i>Off</i> state, the transition continues with the kernel-side, which
+notifies drivers' <xref href="GUID-0C435514-EEC6-5660-BB5F-535790349632.dita#GUID-0C435514-EEC6-5660-BB5F-535790349632/GUID-DC5F1ECD-CCA3-59FF-A2F1-A3DBD76CD458">power
+handlers</xref>. Once all notified drivers have finished their transition,
+the kernel-side completes the transition by moving RAM and the CPU into the <i>Off</i> state. </p> <p>The
+transition cannot be stopped. The only way to revert back to the <i>Active</i> state
+is by a reboot. </p> </section>
+<section id="GUID-11C617F9-0BAB-5588-9C87-F3823B52B85A"><title>Wake-up</title> <p>A
+wake-up event can occur: </p> <ul>
+<li id="GUID-781C032E-9907-53E9-BFAD-6F6DDB62700A"><p>when the whole system
+has reached, and is in, the <i>Standby</i> state </p> </li>
+<li id="GUID-822EAC26-2305-5CB8-8CB8-6EB434A4C512"><p>while the system is
+moving towards the <i>Standby</i> state, but has not yet reached it. </p> </li>
+</ul> <p>In the first case, the transition occurs in the exact reverse order
+to that stated in <xref href="GUID-5879E34A-B0AB-5609-9C81-E0E8D772E722.dita#GUID-5879E34A-B0AB-5609-9C81-E0E8D772E722/GUID-A3951A4A-C7B7-594D-87FD-F3DB0FDFB971">Active
+to Standby</xref>, i.e. powering up RAM and CPU, notifying drivers of the
+power-up transition, sending a wake-up event to the user-side resulting in
+a power transition of domains starting at the top of the domain hierarchy. </p> <p>In
+the second case, those domains and applications that have not yet been notified
+of the original transition to the <i>Standby</i> state will not be so notified,
+while those that have been notified will subsequently receive a further notification
+of the transition back to the <i>Active</i> state. </p> </section>
+</conbody><related-links>
+<link href="GUID-113B3755-1797-5D1B-8E07-8A18F5FE1504.dita"><linktext>Power States</linktext>
+</link>
+</related-links></concept>

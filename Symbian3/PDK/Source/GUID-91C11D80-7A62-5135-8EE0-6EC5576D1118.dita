@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-91C11D80-7A62-5135-8EE0-6EC5576D1118" xml:lang="en"><title>Demand
+Paged Device Drivers Writing Guide</title><shortdesc>Overview of the characteristics of device drivers which are impacted
+by data paging.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-94EA18BF-8848-4B4D-A9FE-777A78919511"><title>Purpose</title> <p>This document is intended for device driver
+writers who need to know how to write a data paged driver from scratch or
+how to migrate a driver to a data paged platform. </p> </section>
+<section id="GUID-5E9AC7A2-F5BD-4C86-93A0-9C8436B59EB2"><title>Description</title> <p>Demand paging is a technology for increasing
+the apparent quantity of RAM available on a device by storing data on media
+and copying it to RAM when it is required. The penalty for this is that the
+software has a greatly increased liability to page faults, which take an unpredictable
+time to service and impact on performance. In this document we describe various
+device driver frameworks and identify areas which are vulnerable to impacted
+performance. The document <xref href="GUID-E7C55048-5B7A-5BF2-B7F4-4D731659B88C-GENID-1-7-1-14-1-1-7-1-7-1-11-1-7-1-4-1-9-1.dita">Device
+Driver Writing Guide</xref> discusses techniques for mitigating the impact. </p> </section>
+<section id="GUID-C6FC3227-97E9-4F88-8DF5-A053CDBD9B0D"><title>Using Paged Data to Write Device Drivers</title> <p>The techniques
+for writing device drivers with demand paging depend on the various frameworks
+for writing drivers. </p> <p><b>Driver
+frameworks</b> </p> <p>There are three main categories of device driver: </p> <ul>
+<li id="GUID-42F7D169-0B06-54A7-ABD3-4CC1338680DB"><p>boot-loaded non-channel
+drivers, </p> </li>
+<li id="GUID-7BDE6C60-EA93-55AA-B10F-6C410B99AB9F"><p>media drivers, and </p> </li>
+<li id="GUID-1D7E0740-ED16-5111-AAA6-E98AD58FEBA2"><p>dynamically loaded,
+channel-based IO device drivers </p> </li>
+</ul> <p>Demand paging impacts each of these categories to some extent by
+demand paging, but particularly the third. Data paging impacts on the performance
+in two main cases: </p> <ul>
+<li id="GUID-35294E38-0069-50C4-AF53-FFA95AF9A867"><p>when drivers use shared
+DFC queues, and </p> </li>
+<li id="GUID-3970EA47-CB8F-5014-BD1A-60517FBE0036"><p>when they access paged
+memory, particularly when they do so outside the client thread context. </p> </li>
+</ul> <p>Mitigation techniques mainly consist of ways of identifying and avoiding
+such cases. </p> <p><b>Boot
+loaded non channel based drivers</b> </p> <p>Boot loaded drivers are built
+as kernel extensions. They are typically simple device drivers such as keyboard
+drivers with limited or no client side interface and are not much impacted
+by data paging. It is generally safe for them to pass data structures using
+the HAL in the context of a kernel thread and for them to execute in the context
+of a kernel thread: however, this assumption must always be verified for individual
+cases. </p> <p><b>Media
+drivers</b> </p> <p>Media drivers are both channel based drivers and kernel
+extensions. When written according to the recommended model they either execute
+wholly in the context of their clients or use a unique DFC queue and associated
+kernel thread. If these recommendations are followed, no additional measures
+to mitigate the impact of data paging are required. </p> <p><b>Dynamically loaded channel based IO device drivers</b> </p> <p>Channel
+based IO device drivers are based on various models: all are dynamically loaded.
+They are derived either from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> or <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>. </p> <p>Channel
+based drivers derived from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> usually
+execute in the context of their client, mitigating the impact of data paging.
+Where they are multi-threaded, they typically create separate and unique kernel
+threads and do not use shared DFC queues, mitigating the impact of data paging:
+if they use a shared DFC queue and associated kernel thread, they are impacted
+by data paging and must be written so as to mitigate the effects. </p> <p>Channel
+based drivers derived from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> may communicate
+with the hardware directly (LDD to hardware) or indirectly (LDD to PDD to
+hardware). If a PDD is involved, mitigation of data paging should take place
+at that level and not the LDD. </p> <p>Channel based drivers may have single
+or multiple clients, channels and hardware. It is these drivers which require
+most work to mitigate the impact of data paging. </p> </section>
+<section id="GUID-06B55053-4F24-48F5-A6F9-436F3E31C944"><title>See Also</title> <p><xref href="GUID-E7C55048-5B7A-5BF2-B7F4-4D731659B88C-GENID-1-7-1-14-1-1-7-1-7-1-11-1-7-1-4-1-9-1.dita">Device
+Driver Writing and Migration Guide</xref>  </p> </section>
+</conbody></concept>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-423537D5-2C8A-5C26-8D7B-60446E95F681" xml:lang="en"><title>Interrupt
+Layer Initialisation</title><shortdesc>This topic describes how to implement the <apiname>Asic::Init1()</apiname> and <apiname>Asic::Init3()</apiname> functions
+to initialise interrupts. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-78C26133-367A-44B4-832F-52299F1639BC"><title>In first phase initialisation</title> <p>During first phase
+initialisation of start-up, the kernel calls the ASSP's implementation of <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita#GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D/GUID-63F2135B-4264-3B3B-9B68-656A89BF7EE9"><apiname>Asic::Init1()</apiname></xref>.
+For the template reference board, where the ASSP is split into a common, ASSP
+layer and a device-specific (variant) layer, interrupt handling is initialised
+in the ASSP layer, specifically in <codeph>TemplateAssp::Init1()</codeph>,
+defined in <filepath>...\template_assp\template_assp_priv.h</filepath>, and
+implemented in <filepath>           ...\template_assp\assp.cpp</filepath>. </p> <p>Note
+that interrupts are <i>disabled</i> during first phase initialisation. </p> <p>Within
+your implementation of <codeph>Init1()</codeph>, do the following: </p> <ul>
+<li id="GUID-21B39DCF-EFF2-56EE-921C-600BAF6DEF2B"><p>Initialise <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-77E83634-BBF6-5190-9434-9FB700547CD0">the ISR table</xref>. </p> <p>It is useful to initialise the ISR table so
+that each interrupt is bound, by default, to the <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9D98586F-AD1D-5C50-9AD8-F81D72135382">Spurious interrupts</xref> handler, with the 32-bit parameter taking the
+interrupt number. </p> <p>For example, </p> <codeblock id="GUID-9CCBD3F2-49EE-53CF-92D1-30AE7266EB16" xml:space="preserve">...
+const TInt KInterruptSourceCount = 32;
+SInterruptHandler IsrHandlers[KInterruptSourceCount];
+...
+
+for( TInt i = 0; i &lt; KInterruptSourceCount; ++i )
+    {
+    IsrHandlers[i].iIsr = SpuriousHandler;
+    IsrHandlers[i].iPtr = (TAny*)i;
+    }</codeblock> <p>where the spurious interrupt handler function might be
+implemented as: </p> <codeblock id="GUID-F9ED35A6-2473-5B8C-B8C8-D8EB75463192" xml:space="preserve">void SpuriousHandler(TAny* aId)
+    {
+       Kern::Fault("SpuriousInt", (TInt)aId);    // handle unexpected interrupt.
+    }
+</codeblock> <p>On the template reference board, the ISR table is initialised
+by <codeph>TemplateInterrupt::Init1()</codeph> in <filepath>...\template_assp\interrupts.cpp</filepath>,
+and this is called by <codeph>TemplateAssp::Init1()</codeph>. </p> </li>
+<li id="GUID-FBC1F518-7CC8-54FD-AD13-1C74C1C1E414"><p>Register the dispatcher
+functions. The Symbian platform kernel needs to know the location of the IRQ
+and FIQ dispatchers. It provides the two functions: <xref href="GUID-2A4186A4-DCE1-3726-9D6A-BBA2604FAAF5.dita#GUID-2A4186A4-DCE1-3726-9D6A-BBA2604FAAF5/GUID-7C0DD618-1FA4-39CD-BEE0-E7F5ED018C9C"><apiname>Arm::SetIrqHandler()</apiname></xref> and <xref href="GUID-2A4186A4-DCE1-3726-9D6A-BBA2604FAAF5.dita#GUID-2A4186A4-DCE1-3726-9D6A-BBA2604FAAF5/GUID-390FDCB3-53E7-303C-B6D7-CFBA214E8135"><apiname>Arm::SetFiqHandler()</apiname></xref>,
+which the Variant layer must call, passing the addresses of the IRQ and FIQ
+dispatchers. </p> <p>On the template reference board, the registration is
+done by <codeph>TemplateInterrupt::Init1()</codeph> in <filepath>...\template_assp\interrupts.cpp</filepath>. </p> <codeblock id="GUID-6A634065-4C51-5A84-9AF6-82654B7D54C6" xml:space="preserve">void TemplateInterrupt::Init1()
+    {
+     //
+     // need to hook the ARM IRQ and FIQ handlers as early as possible
+     // and disable and clear all interrupt sources
+     //
+     ... 
+     DisableAndClearAll();
+     Arm::SetIrqHandler((TLinAddr)TemplateInterrupt::IrqDispatch);
+     Arm::SetFiqHandler((TLinAddr)TemplateInterrupt::FiqDispatch);
+    }
+</codeblock> </li>
+<li id="GUID-F4D217AF-8B8D-56AB-8D09-2E70566FE5D2"><p>Bind any ISRs that handle
+chained or pseudo interrupts </p> </li>
+</ul> </section>
+<section id="GUID-7D6DACC3-FAD7-49C8-98DE-1024518E49AF"><title>In third phase initialisation</title> <p>During third phase
+initialisation of start-up, the kernel calls the ASSP's implementation of <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita#GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D/GUID-FE55E398-7F08-384F-9E74-2CC2E45002B6"><apiname>Asic::Init3()</apiname></xref>. </p> <p>Note
+that interrupts are <i>enabled</i> during third phase initialisation. </p> <p>Within
+your implementation of <codeph>Init3()</codeph>, if you need to, call <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> on
+any of the interrupt sources that are bound to a chained or pseudo ISR dispatcher.
+You don't need to do this if you are enabling and disabling the main interrupt
+on demand as the chained or pseudo-interrupts are enabled and disabled. </p> </section>
+</conbody></concept>

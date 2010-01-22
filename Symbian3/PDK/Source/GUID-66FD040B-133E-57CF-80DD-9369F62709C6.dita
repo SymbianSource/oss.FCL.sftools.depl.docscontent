@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-66FD040B-133E-57CF-80DD-9369F62709C6" xml:lang="en"><title>Implement
+the PSL for the target</title><shortdesc>This document describes how to implement the Platform Specific
+Layer for the Power Resource Manager.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AA174659-DAC6-47C2-A308-63C72E4C4C29"><title>Purpose</title> <p>The PSL must be implemented in order for
+the PRM and the hardware to be able to communicate. </p> <p><b>Introduction</b> </p> <p>The
+PSL side of the Resource Controller should be derived from the class <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita"><apiname>DPowerResourceController</apiname></xref>. </p> </section>
+<section id="GUID-E744193B-0A9F-4E43-905A-E62414D75816"><title> Implementing the PSL </title> <p>The following tasks are
+covered in this tutorial: </p> <ul>
+<li id="GUID-2D247D75-FAB8-5ACA-895F-9F5EE58E70F6"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-2919DA2A-22EF-5DA7-8B90-EC70BFEAC04A">Create an entry point</xref>, </p> </li>
+<li id="GUID-920C5334-D4A2-53E6-9381-F00F31EFE3E4"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-E1119981-C3E9-5EED-90FA-5196A60A8E57">Override the pure virtual functions</xref>, </p> </li>
+<li id="GUID-DD00864E-83A8-5D39-9A74-257A980B97A1"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-9E18F595-D826-5244-89CC-A76871120287">Create static resources that support dependencies</xref>, </p> </li>
+<li id="GUID-E3745946-B84D-556D-8A1C-62D32F117EEB"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-252E7413-D8A9-575C-858F-E4F4E238A7B0">Initialise the pools</xref>, </p> </li>
+<li id="GUID-15313D5D-5CEB-52A7-A8BA-7C6BC0EF5973"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-08BFCAF4-9AF0-5999-A1C4-7BBD107C9354">Registering with the Power Controller</xref>. </p> </li>
+</ul> <p id="GUID-2919DA2A-22EF-5DA7-8B90-EC70BFEAC04A"><b>Create an entry
+Point</b> </p> <p>The PIL layer of the PRM offers the following macro. This
+needs to be invoked from the PSL. The macro calls the <xref href="GUID-C0788D78-2700-3094-BDE2-F1ABC93CE433.dita"><apiname>DoInitController()</apiname></xref> and <xref href="GUID-616D2132-0676-3CAD-9FF4-41CE147E8DF0.dita"><apiname>DoInitResources()</apiname></xref> functions
+implemented by the PSL. </p> <codeblock id="GUID-3040AB12-1884-5967-AEA6-27B1162172D8" xml:space="preserve">/**
+Extension entry point
+*/
+DECLARE_RESOURCE_MANAGER_EXTENSION()
+    {
+    __KTRACE_OPT(KBOOT, Kern::Printf("CreateController called"));
+    return new DH4PowerResourceController;
+    }</codeblock> <p>If the PRM is a <keyword>PDD</keyword> the entry point
+is as follows: </p> <codeblock id="GUID-DE03EEAB-BC7E-57F4-9E28-A16028A86F24" xml:space="preserve">static DH4PowerResourceController TheController;
+DECLARE_STANDARD_PDD()
+    {
+    TInt r = DPowerResourceController::InitController();     
+    if® == KErrNone)
+        r = TheController-&gt;InitResources();
+    if® == KErrNone)
+        return new DResConPddFactory;
+    return NULL;                            
+    }</codeblock> <p id="GUID-E1119981-C3E9-5EED-90FA-5196A60A8E57"><b>Override
+the pure virtual functions</b> </p> <p>Override the virtual functions of the <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita"><apiname>DPowerResourceController</apiname></xref> base
+class: </p> <ul>
+<li id="GUID-F81D44B9-97A4-52D1-859D-80E11CC86B86"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-67C338A7-E163-5253-B495-B9E081340F1A">DoInitController()</xref>, </p> </li>
+<li id="GUID-6D167188-8750-5E2C-952B-E61D18400298"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-61471315-14E1-5A0F-A164-92CF928C3604">DoRegisterStaticResources()</xref>. </p> </li>
+</ul> <p>Here is an example H4 HRP implementation: </p> <codeblock id="GUID-90F8FCCA-8A95-50D8-AF16-9CA974E04CDE" xml:space="preserve">class DH4PowerResourceController : DPowerResourceController
+   {
+public:
+   DH4PowerResourceController();
+   TInt DoInitController();
+   TInt DoRegisterStaticResources(DStaticPowerResource**&amp; aStaticResourceArray, TUint16&amp; aStaticResourceCount);
+private:
+   static DStaticPowerResource* iResources[];</codeblock> <p id="GUID-67C338A7-E163-5253-B495-B9E081340F1A"><b>DoInitController()</b> </p> <p>Override <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-58713E4F-DB41-3DD9-B180-ECA5DAA830D4"><apiname>DPowerResourceController::DoInitController()</apiname></xref> so that it creates
+a DFC queue and then invokes the base class function <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-A3E9F7E9-885E-37CB-9077-CBC686B46E15"><apiname>DPowerResourceController::SetDfcQ()</apiname></xref>. <codeph>DoInitController()</codeph> should
+also initialise the pools by invoking <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-0CAA5314-F418-31F8-863E-0082C5A617A5"><apiname>DPowerResourceController::InitPools()</apiname></xref> passing
+the platform defined sizes for the pools of clients, <xref href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita#GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE/GUID-F47D2098-16A7-5590-A68A-7AE4B2DAB462">client levels</xref> and <xref href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita#GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE/GUID-E8F3AF8E-387C-5285-A2B2-0B067F01BC3A">request
+objects</xref>. <xref href="GUID-C0788D78-2700-3094-BDE2-F1ABC93CE433.dita"><apiname>DoInitController()</apiname></xref> is called by the PSL
+during its initialisation. Below is the reference implementation code. </p> <codeblock id="GUID-06466787-59E3-5C0F-9E14-2144BEF3CBBB" xml:space="preserve">#define KERNEL_CLIENTS 0x2 // Expected number of kernel clients (MMC and Sound_SC)
+#define USER_CLIENTS   0x0 // No user side clients expected.
+#define CLIENT_LEVELS  0x8 // Expected resource state change of 8 resources 
+#define REQUESTS       0x0 // No asynchronous operation (state change or read) expected. 
+
+TInt DH4PowerResourceController::DoInitController()
+    {
+    // Create a DFC queue and then invoke SetDfcQ()
+__KTRACE_OPT(KRESMANAGER, Kern::Printf("&gt;DH4PowerResourceController::DoInitController\n"));
+
+    // NKern::ThreadEnterCS(); // Not needed, as this is executed during kernel boot which is done within a critical section.
+    TInt r = Kern::DfcQCreate(iDfcQ,28,&amp;KResThreadName);
+
+    // NKern::ThreadLeaveCS();
+    if (KErrNone!=r) return r;
+    SetDfcQ(iDfcQ);
+    r = InitPools(KERNEL_CLIENTS,USER_CLIENTS,CLIENT_LEVELS,REQUESTS);
+__KTRACE_OPT(KRESMANAGER, Kern::Printf("&lt;DH4PowerResourceController::DoInitController\n"));
+    return r;
+    }</codeblock> <p id="GUID-61471315-14E1-5A0F-A164-92CF928C3604"><b> DoRegisterStaticResources()</b> </p> <p> <codeph>DoRegisterStaticResources()</codeph> is called by the PIL during its initialisation. Override the pure virtual
+function <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-E76A1967-CED5-341C-9B29-015C8AD2B54D"><apiname>DPowerResourceController::DoRegisterStaticResources()</apiname></xref> so
+that it: </p> <ul>
+<li id="GUID-274C20C9-C8C1-5E04-916C-32D8AEA06F66"><p>creates all the static
+resources in the kernel heap, </p> </li>
+<li id="GUID-FDD08EF6-78E4-5583-987B-E27D6B160554"><p>creates an array of
+pointers to the static resources (indexed by their id), </p> </li>
+<li id="GUID-F85D8EA4-44CF-577A-A423-6A60A5C55DDD"><p>sets the passed pointer
+(<codeph>aStaticResourceArray</codeph>) to point to the created array of pointers, </p> </li>
+<li id="GUID-A129EA68-9942-54CF-85A5-C5F9507B1447"><p>updates the count of
+the static resources (in <codeph>aStaticResourceCount</codeph>). </p> </li>
+</ul> <p>The reference implementation is below: </p> <codeblock id="GUID-81F2F9EB-A42E-5FBF-BDB2-091AA2C56096" xml:space="preserve">TInt DH4PowerResourceController::DoRegisterStaticResources(DStaticPowerResource**&amp; aStaticResourceArray, TUint16&amp; aStaticResourceCount)
+    {
+    aStaticResourceCount = 0;
+   __KTRACE_OPT(KRESMANAGER, Kern::Printf("&gt;DH4PowerResourceController::DoRegisterStaticResources\n"));
+   aStaticResourceArray = (DStaticPowerResource**) new (DStaticPowerResource*[EH4ResourceCount]);
+   if(!aStaticResourceArray)
+      return KErrNoMemory;
+
+   DH4MmcFclkResource *pMmcFclk = new (DH4MmcFclkResource);
+   if (!pMmcFclk) 
+      return KErrNoMemory;
+   aStaticResourceArray[EMmcFclkRes] = pMmcFclk;
+
+   DH4MmcIclkResource *pMmcIclk = new (DH4MmcIclkResource);
+   if (!pMmcIclk)
+      CLEAN_AND_RETURN(KErrNoMemory, EMmcIclkRes)
+   aStaticResourceArray[EMmcIclkRes] = pMmcIclk;
+
+   DH4MmcClkResource *pMmcBusClk = new (DH4MmcClkResource);
+   if (!pMmcBusClk)
+      CLEAN_AND_RETURN(KErrNoMemory, EMmcClkRes)
+   aStaticResourceArray[EMmcClkRes] = pMmcBusClk;
+
+   DH4MmcCtrllerPwrResource *pMmcCtrlrPwr = new (DH4MmcCtrllerPwrResource);
+   if (!pMmcCtrlrPwr)
+      CLEAN_AND_RETURN(KErrNoMemory, EMmcCtrlrPwrRes)
+   aStaticResourceArray[EMmcCtrlrPwrRes] = pMmcCtrlrPwr;
+    
+   DH4MmcPowerResource *pMmcPwr = new (DH4MmcPowerResource);
+   if (!pMmcPwr)
+      CLEAN_AND_RETURN(KErrNoMemory, EMmcPwrRes)
+   aStaticResourceArray[EMmcPwrRes] = pMmcPwr;
+    
+   DH4SndFclkResource *pSndFclk = new (DH4SndFclkResource);
+   if (!pSndFclk)
+      CLEAN_AND_RETURN(KErrNoMemory, ESndFclkRes)
+   aStaticResourceArray[ESndFclkRes] = pSndFclk;
+
+   DH4SndIclkResource *pSndIclk = new (DH4SndIclkResource);
+   if (!pSndIclk)
+      CLEAN_AND_RETURN(KErrNoMemory ,ESndIclkRes)
+   aStaticResourceArray[ESndIclkRes] = pSndIclk;
+
+   DH4SndMClkResource *pSndMclk = new (DH4SndMClkResource);
+   if (!pSndMclk)
+      CLEAN_AND_RETURN(KErrNoMemory, ESndMClkRes)
+   aStaticResourceArray[ESndMClkRes] = pSndMclk;
+
+   aStaticResourceCount = EH4ResourceCount;
+
+   __KTRACE_OPT(KRESMANAGER, Kern::Printf("&lt;DH4PowerResourceController::DoRegisterStaticResources, Total resources:%d\n", EH4ResourceCount));
+
+   return KErrNone;
+   }</codeblock> <p id="GUID-9E18F595-D826-5244-89CC-A76871120287"><b>Create
+static resources that support dependencies</b> </p> <p>If there are static
+resources that support dependencies then the PSL must implement the function <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-933848C2-2589-3EBC-9765-6BD215F09E1C"><apiname>DPowerResourceController::DoRegisterStaticResourcesDependency()</apiname></xref>. <b>Note</b>: Static resources that support dependencies are only available
+in the extended version of the library. See <xref href="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9.dita#GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9/GUID-0F328055-DBCE-5B2B-A1EB-77F73BA1FC82">setup
+and configuration</xref>. </p> <p>The function <codeph>DoRegisterStaticResourcesDependency()</codeph>: </p> <ul>
+<li id="GUID-8AA323AF-92D9-5217-8BC5-86E879F30475"><p>creates all static resources
+that support dependencies in kernel heap, </p> </li>
+<li id="GUID-904B8533-FA65-5958-88BF-307385D06BF6"><p>creates an array of
+pointers to them, </p> </li>
+<li id="GUID-ABC35D75-FA42-5627-A0B4-4F407AD08AC8"><p>establishes the dependencies
+between them (using the resource's <xref href="GUID-1CD49D40-1FF9-301C-8160-02A007485ADE.dita#GUID-1CD49D40-1FF9-301C-8160-02A007485ADE/GUID-806D0179-FC98-3106-BCBA-0D3634B43815"><apiname>DStaticPowerResourceD::AddNode()</apiname></xref> function),
+See <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-A912A328-D646-5516-9731-FFA7F3B2EDDA">creating
+dependencies between static resources</xref> for a description of <codeph>AddNode()</codeph> and
+the <xref href="GUID-D44EF8E9-19EF-320A-8935-3E068C1097DB.dita"><apiname>SNode</apiname></xref> structure. </p> </li>
+<li id="GUID-B83ED866-7BB2-5227-A9B0-DE7CBFA92AA8"><p>sets the passed pointer
+(<codeph>aStaticResourceDArray</codeph>) to point to the array of pointers
+to static resource with dependency, </p> </li>
+<li id="GUID-62E7421E-9816-556F-ACF9-BEC02F9AF530"><p>updates the count of
+the static resource that supports dependency in <codeph>aStaticResourceDCount</codeph>. </p> </li>
+</ul> <p>This function is called by the PIL during PRM initialisation. Below
+is an example: </p> <codeblock id="GUID-2E044CAC-24E3-530F-8595-049D6512153F" xml:space="preserve">/** 
+This function creates all static resources that support dependencies and establishes the dependencies between them. This is called by the PIL.
+This is the dependency tree input:
+   ResourceA &lt;---------&gt; ResourceD &lt;-------&gt; ResourceE &lt;--------&gt; ResourceC
+                             |                   |
+                             |                   |
+                             |                   |
+                         ResourceF           ResourceG       
+*/
+TInt DSimulatedPowerResourceController::DoRegisterStaticResourcesDependency(DStaticPowerResourceD**&amp; aStaticResourceDArray, TUint16&amp; aStaticResourceDCount)
+   {
+   aStaticResourceDArray = (DStaticPowerResourceD**) new (DStaticPowerResourceD*[MAX_DEPENDENT_RESOURCE_COUNT]);
+   if(!aStaticResourceDArray)
+     return KErrNoMemory;
+
+   DStaticPowerResourceD* pR = NULL;
+
+   pR = new DMLSLGLSPDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+
+   pR = new DMLSIGLSNDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+    
+   pR = new DBSIGLSPDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+
+   pR = new DMLSHIGLSPDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+
+   pR = new DBSHLGLSNDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+
+   pR = new DMLSHLGLSNDependResource();
+   if(!pR)
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+   aStaticResourceDArray[iStaticResDependencyCount++] = pR;
+
+   // Establish resource dependencies
+   if(CreateResourceDependency(aStaticResourceDArray))
+     CLEAN_AND_RETURN(iStaticResDependencyCount, aStaticResourceDArray, KErrNoMemory)
+
+   iDependencyResources = aStaticResourceDArray;
+
+   aStaticResourceDCount = iStaticResDependencyCount;
+   return KErrNone;
+   }    
+
+// This function establishes above dependency between static dependent resource
+TInt DSimulatedPowerResourceController::CreateResourceDependency(DStaticPowerResourceD** pResArray)
+   {
+   iNodeArray = new SNode[10];
+   SNode* pN1;
+   SNode* pN2;
+   iNodeCount = 0;
+
+   if(!iNodeArray)
+     return KErrNoMemory; 
+   // Create Dependency between Resource A and Resource D 
+   pN1 = &amp;iNodeArray[iNodeCount++];
+   pN2 = &amp;iNodeArray[iNodeCount++];
+   CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pResArray[0], pResArray[1], 1, 1)
+
+   // Create Dependency between Resource D and Resource F
+   pN1 = &amp;iNodeArray[iNodeCount++];
+   pN2 = &amp;iNodeArray[iNodeCount++];
+   CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pResArray[0], pResArray[2], 1, 3)
+
+   // Create Dependency between Resource D and Resource E
+   pN1 = &amp;iNodeArray[iNodeCount++];
+   pN2 = &amp;iNodeArray[iNodeCount++];
+   CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pResArray[0], pResArray[3], 3, 2)
+
+   // Create Dependency between Resource E and Resource C
+   pN1 = &amp;iNodeArray[iNodeCount++];
+   pN2 = &amp;iNodeArray[iNodeCount++];
+   CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pResArray[3], pResArray[4], 1, 1)
+
+   // Create Dependency between Resource E and Resource G
+   pN1 = &amp;iNodeArray[iNodeCount++];
+   pN2 = &amp;iNodeArray[iNodeCount++];
+   CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pResArray[3], pResArray[5], 1, 2)
+
+   return KErrNone;
+   }
+
+#define CREATE_DEPENDENCY_BETWEEN_NODES(pN1, pN2, pRes1, pRes2, priRes1, priRes2)    \
+        pN1-&gt;iPriority = priRes1;                                                 \
+        pN1-&gt;iResource = pRes1;                                                   \
+        pN1-&gt;iPropagatedLevel = 0;                                                \
+        pN1-&gt;iVisited = EFalse;                                                   \
+        pN2-&gt;iPriority = priRes2;                                                 \
+        pN2-&gt;iResource = pRes2;                                                   \
+        pN2-&gt;iPropagatedLevel = 0;                                                \
+        pN2-&gt;iVisited = EFalse;                                                   \
+        pN1-&gt;iResource-&gt;AddNode(pN2);                                             \
+        pN2-&gt;iResource-&gt;AddNode(pN1);</codeblock> <p id="GUID-A912A328-D646-5516-9731-FFA7F3B2EDDA"><b>Creating
+dependencies between static resources</b> </p> <p> <xref href="GUID-1CD49D40-1FF9-301C-8160-02A007485ADE.dita#GUID-1CD49D40-1FF9-301C-8160-02A007485ADE/GUID-806D0179-FC98-3106-BCBA-0D3634B43815"><apiname>DStaticPowerResourceD::AddNode()</apiname></xref> is
+used to establish a dependency between static resources. Dependencies between
+static resources cannot be removed. </p> <p> <codeph>AddNode()</codeph> takes
+a pointer to an <xref href="GUID-D44EF8E9-19EF-320A-8935-3E068C1097DB.dita"><apiname>SNode</apiname></xref> object that contains the dependent
+resource information. This passed node pointed is added to the resource dependency
+list within the class <codeph>DStaticPowerResourceD</codeph>. <b>Note</b>:
+the kernel panics if the specified dependency priority is already in use. </p> <p>Information
+within <codeph>SNode</codeph> includes: </p> <ul>
+<li id="GUID-9A0E98EA-6510-5C71-B0AD-013E77BD94C0"><p> <codeph>iResource</codeph> is
+a pointer to dependent resource, </p> </li>
+<li id="GUID-0C62E787-DEA9-5A2A-BFA1-DFB7A30A6AE7"><p> <codeph>iPriority</codeph> is
+the priority of the dependency resource. This is used by the PRM when propagating
+the resource change, </p> </li>
+<li id="GUID-F1E5C122-E38D-5D0D-B1E6-6808DAF5631C"><p> <codeph>iSpare</codeph> is
+reserved for future use, </p> </li>
+<li id="GUID-DD0AA8A3-F301-5996-907E-F35BCD38840D"><p> <codeph>iNext</codeph> is
+a pointer to next node in the list. </p> </li>
+</ul> <p>The members <codeph>iPropagatedLevel</codeph>, <codeph>iRequiresChange</codeph> and <codeph>iVisited</codeph> are
+used internally by the PRM. </p> <p>To link to dynamic resources that support
+dependency use the PRM function <xref href="GUID-5EC9C7EB-3E69-3DAE-B777-C0952F949CF3.dita"><apiname>RegisterResourceDependency()</apiname></xref> as
+described in <xref href="GUID-B1CE51BC-B452-5FC9-9C00-35447AF40671.dita#GUID-B1CE51BC-B452-5FC9-9C00-35447AF40671/GUID-A5D57D89-4499-5C85-80D5-5A7DC5644983">creating
+resource dependencies</xref>. </p> <p id="GUID-252E7413-D8A9-575C-858F-E4F4E238A7B0"><b>Initialise
+the pools</b> </p> <p>Pools are implemented as singly linked lists during
+the initialisation of the PRM. The PSL initialises the pools by invoking <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-0CAA5314-F418-31F8-863E-0082C5A617A5"><apiname>DPowerResourceController::InitPools()</apiname></xref> and
+passing the platform defined sizes for the pools of kernel side clients, user
+side clients, client levels and requests. See the <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-67C338A7-E163-5253-B495-B9E081340F1A">example DoInitController() implementation</xref>. </p> <p>The PRM has three
+types of pools: </p> <ul>
+<li id="GUID-BB2EE131-0010-51BE-BD56-716D62D29E87"><p>client pools to store
+client information, </p> </li>
+<li id="GUID-C75A9188-7105-5F22-95AA-27B29E6A55FD"><p> <xref href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita#GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE/GUID-E8F3AF8E-387C-5285-A2B2-0B067F01BC3A">request pools</xref> to send requests for operation on long latency resource
+to the Resource Controller thread, </p> </li>
+<li id="GUID-7204C320-5150-5FF1-99C7-CD4868D106E1"><p> <xref href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita#GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE/GUID-F47D2098-16A7-5590-A68A-7AE4B2DAB462">client level</xref> pools to capture the resource level request by each client
+for a resource. </p> </li>
+</ul> <p>If the client pool is set to zero, then the PRM will not allow a
+client of that type to register. For example, if the kernel side clients pool
+is set to zero, then the PIL will not allow any kernel side clients to register.
+The size of the client pools to specify depends on how many kernel side device
+drivers (clients) and user side clients will access PRM and size of request
+pool depends on the number of long latency resource available in the system.
+Size of client level pool depends on number of clients that will request a
+resource state change. If the client pools are exhausted the PIL will try
+to increase the size of the pool. The size of the pool never decreases. </p> <p id="GUID-08BFCAF4-9AF0-5999-A1C4-7BBD107C9354"><b>Registering with the Power
+Controller</b> </p> <p>The Resource Controller must call <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita#GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366/GUID-42896B4D-9F77-3D91-82BD-50102A8F3DA4"><apiname>DPowerController::RegisterResourceController()</apiname></xref> to
+register itself with the Power Controller. <codeph>RegisterResourceController()</codeph> sets
+the <codeph>iResourceControllerData.iResourceController</codeph> data member
+within <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita"><apiname>DPowerController</apiname></xref> to the passed Resource Controller
+pointer and sets <codeph>iResouceControllerData.iClientId</codeph> to the
+client ID used by the Power Controller when calling the Resource Controller's
+APIs. </p> <p>The platform specific implementation of the Power Controller
+overrides the <codeph>RegisterResourceController()</codeph> function. See <xref href="GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703.dita#GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703/GUID-DCD91EBA-CB0E-5EA9-84E0-8F8FED6FC91E">DPowerController::RegisterResourceController()</xref>. </p> <p><b> Idle power management</b> </p> <p>The resource controller's APIs
+cannot be called from a NULL thread. However, the PSL may need to know the
+state of the resources from a NULL thread to take the system to appropriate
+power states. To allow access to this information the PRM provides the virtual
+function <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-52DC308A-9DF1-3BDE-A905-A4DD3B692638"><apiname>DPowerResourceController::RegisterResourcesForIdle()</apiname></xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9.dita"><linktext>Porting the
+Power Resource Manager</linktext></link>
+<link href="GUID-B1CE51BC-B452-5FC9-9C00-35447AF40671.dita"><linktext>Implement
+the  controllable power resources</linktext></link>
+<link href="GUID-E7F91A65-235D-589C-9A8C-0B207D19A24B.dita"><linktext>Port client
+drivers to use the PRM</linktext></link>
+<link href="GUID-C8DF0CB0-92F4-5F9E-A8F1-7DE50954C4F1.dita"><linktext>Debugging
+the PRM</linktext></link>
+<link href="GUID-66E5F769-1156-54CA-94BC-8912159A1240.dita"><linktext>Testing the
+PRM PSL</linktext></link>
+</related-links></concept>

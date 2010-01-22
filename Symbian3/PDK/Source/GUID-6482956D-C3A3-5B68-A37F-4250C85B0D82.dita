@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6482956D-C3A3-5B68-A37F-4250C85B0D82" xml:lang="en"><title>Polymorphic
+interface DLLs</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A polymorphic DLL contains an interface defined by a gate function and
+an abstract class with at least one virtual function. </p>
+<p>The polymorphic DLL exports the gate function at ordinal 1, which typically
+constructs a concrete class derived from the abstract interface. The virtual
+function is then called, and the functions of the class are available. </p>
+<p>Examples of polymorphic DLLs in Symbian platform include ECom plug-ins,
+device drivers, Front End Processors, and many more. </p>
+<p>Each type of interface should specify its own UID, which is used as <codeph>uid2</codeph> for
+the polymorphic DLL. </p>
+<p>The function responsible for loading a polymorphic DLL should check that
+its <codeph>uid2</codeph> corresponds with the expected interface type. </p>
+<p>For polymorphic DLLs, the interpretation of <codeph>uid3</codeph> depends
+on the interface type. <codeph>uid3</codeph> may not be required by all interfaces. </p>
+<p>The build process for a polymorphic DLL produces an import library, but
+it is not used. </p>
+<section><title>mmp project specification</title><p>The project
+file for a polymorphic DLL must specify the correct target type and UIDs:</p><ul>
+<li id="GUID-0E19AFC8-5242-561B-B9DC-085839CF8604"><p>Specify the <codeph>TARGETTYPE</codeph> line
+as: </p> <codeblock id="GUID-89A9AD1C-3A1D-5733-B8DD-BE40ECAC747C" xml:space="preserve">TARGETTYPE dll</codeblock> <p>This
+implicitly specifies <codeph>UID1</codeph> correctly. Note that some types
+of polymorphic DLLs, have particular support by the build tools, and have
+their own different target types. See <xref href="GUID-A27A05A2-B161-54D2-92E0-8620B01BFD44.dita">Polymorphic
+DLL targettype summary</xref>. </p> </li>
+<li id="GUID-778C0445-7C95-53F9-AA52-69C37416782C"><p>Specify the UID for
+the DLL in a <codeph>UID</codeph> line: </p> <codeblock id="GUID-CB104F6E-EB57-54EC-8403-B2D4F8BB35D6" xml:space="preserve">UID &lt;UID2&gt; &lt;UID3&gt;</codeblock> <p>The <varname>UID2</varname> value is defined by the interface which is being implemented.
+Some types of polymorphic DLL also require a third UID, but, if so, its meaning
+is defined by the DLL. </p> </li>
+</ul></section>
+<example><p>An example of a project file (<filepath>PolymorphicDLL1.mmp</filepath>)
+for a polymorphic DLL is given below.</p><codeblock id="GUID-85177FF3-7CEC-5DC5-9014-972E33D605C6" xml:space="preserve">TARGET        PolymorphicDLL1.dll
+TARGETTYPE    dll
+UID           0x10004262 0x10004264
+SOURCEPATH    .
+SOURCE        PolymorphicDLL1.cpp
+USERINCLUDE   .
+USERINCLUDE   ..\UsingDLLs
+SYSTEMINCLUDE \Epoc32\include
+LIBRARY       euser.lib
+EXPORTUNFROZEN</codeblock></example>
+</conbody></concept>

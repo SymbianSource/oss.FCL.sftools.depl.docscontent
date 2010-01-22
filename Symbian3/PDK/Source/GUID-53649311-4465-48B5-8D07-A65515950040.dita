@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-53649311-4465-48B5-8D07-A65515950040" xml:lang="en"><title>Data
+Transfer across Memory Boundaries</title><shortdesc>This document describes how to read from and write to user-side
+memory from a kernel thread context or a user thread.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>When a driver reads or writes data from or to a user-side program, the
+data must be copied between user address space and Kernel address space. The
+Kernel provides a number of APIs that allow this to be done safely. The API
+to use depends on whether the request is serviced in a user thread context,
+or in a Kernel thread context. </p>
+<section id="GUID-646C4340-6AC9-4152-9447-806B0AF53E32">       <title>From
+kernel space</title>       <p>To read and write data to the user space from
+a kernel thread context, use Kernel APIs such as <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-C505206F-F54F-3760-BA7D-2DB52AB4E0B3"><apiname>Kern::ThreadDesRead()</apiname></xref>, <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-904A42A8-8077-3FC6-BEF2-29619F079842"><apiname>Kern::ThreadRawRead()</apiname></xref>, <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FA321582-6D75-37A1-8DAB-D50638F76593"><apiname>Kern::ThreadDesWrite()</apiname></xref>, and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-182C88F4-326C-376E-9FBE-889E3CB9B68A"><apiname>Kern::ThreadRawWrite()</apiname></xref>. The data can be handled
+as descriptors or as raw memory. </p> <p>The Kernel also provides other APIs
+to safely read the information about a descriptor in another thread's address
+space. <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-22DD7D90-B4B5-3450-82BF-C3CC3A43430A"><apiname>Kern::ThreadGetDesInfo()</apiname></xref> returns the length, maximum
+length, and a pointer to the descriptor's buffer. The length and maximum length
+can also be obtained specifically by using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-1DE210A5-B7A2-3F52-9003-439CA3DD4715"><apiname>Kern::ThreadGetDesLength()</apiname></xref> and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A5E20DB7-9DB4-350C-B636-95E2148DCC6F"><apiname>Kern::ThreadGetDesMaxLength()</apiname></xref>. </p> <codeblock id="GUID-640AEF03-EEC7-5E87-B4E2-C0AF09B08255" xml:space="preserve">TInt DExDriverLogicalChannel::DoControl(TInt aFunction, TAny* a1, TAny* /*a2*/)
+    {
+    ...
+    // To read the buffer descriptors from user space
+    r=Kern::ThreadDesRead(iClient,a1,iTxBuffer,0,0);
+    ...
+    // To write the buffer descriptors to user space
+    r=Kern::ThreadDesWrite(iClient,(TDes8*)a1,iRxBuffer,0);
+    ...
+    }</codeblock> <codeblock id="GUID-50FAEB14-8660-5AC8-9DD9-B33F77E1E529" xml:space="preserve">// Read the descriptor maximum length from the user thread (iClient)  
+// using the kernel API Kern::ThreadGetDesMaxLength(). This API 
+// gets the maximum length of a descriptor in another thread's 
+// address space. Kern::ThreadGetDesInfo() can also be used to 
+// get length, maximum length and pointer to the descriptor's 
+// buffer.
+//
+iCount=Kern::ThreadGetDesMaxLength(iClient,aData);</codeblock>     </section>
+<section id="GUID-7D3C7D57-0F76-4686-8AE6-C254CCC4A778"><p><b>From user space</b> </p> <p>When
+executing a read or write operation in the context of a user thread, use the
+following APIs: </p> <ul>
+<li id="GUID-69D74013-8670-58C2-A92D-68E0227EE266"><p> <xref href="GUID-B56A34CD-E5B5-3E3E-A2EE-3BC9D248B210.dita"><apiname>kumemget()</apiname></xref>  </p> </li>
+<li id="GUID-F686EE32-C1C4-5229-A7DD-D1F19430DF92"><p> <xref href="GUID-C7AB0391-99D5-31A2-91D4-A7F195546FC3.dita"><apiname> kumemput()</apiname></xref>  </p> </li>
+<li id="GUID-97147CB8-CEE1-5919-8491-D0E06B2BDC40"><p> <xref href="GUID-F5136CAF-B66F-388D-A610-D0153CAF7E23.dita"><apiname> umemget()</apiname></xref>  </p> </li>
+<li id="GUID-DD8A639B-161D-524F-BFD5-7C46A3D39900"><p> <xref href="GUID-371860F0-36BF-340D-BEF6-1763EF9874AE.dita"><apiname> umemput()</apiname></xref>  </p> </li>
+</ul> <p>Kernel APIs are also available to do copy operations using descriptors: </p> <ul>
+<li id="GUID-1958BA33-0D05-5757-9331-19AF2C3DF294"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-D7CE1BF2-F1B8-30E9-9D34-7BDDA39C1B0C"><apiname>Kern::KUDesGet()</apiname></xref>  </p> </li>
+<li id="GUID-AA5A7A0F-5053-5ED5-8BEA-C88822D1BB66"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8B62DE20-357F-3499-9F2E-FAD4B18C34D6"><apiname>Kern::KUDesPut()</apiname></xref>  </p> </li>
+<li id="GUID-4E139680-6D2A-5A1F-A312-44473C90A356"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F9B70C06-0611-3EA8-9C9C-553B77347D36"><apiname>Kern::KUDesInfo()</apiname></xref>  </p> </li>
+<li id="GUID-D1004AD8-FA86-50C5-A3B0-7861A5939D89"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-CE3887C0-9DBD-3A36-AF53-FE4192352500"><apiname>Kern::KUdesSetLength()</apiname></xref>  </p> </li>
+</ul> <p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-15287E72-897C-3F34-9C0A-E9C555456FDF"><apiname>Kern::InfoCopy()</apiname></xref> can be used to copy a descriptor
+safely in a way that enables forward and backward compatibility. It is typically
+used for copying capability packages. </p> <codeblock id="GUID-C2936EA7-98C1-5328-833D-F418298EFA09" xml:space="preserve">void DExDriverLogicalDevice::GetCaps(TDes8&amp; aCaps) const
+    {
+    // device capabilities are packaged to a buffer
+    TPckgBuf&lt;RExDriver::TUartCaps&gt; caps;
+    caps().iVersion=iVersion;
+    // Copy the device capabilities to the user thread using the 
+    // Kernel API
+    Kern::InfoCopy(aCaps,caps);
+    }</codeblock></section>
+</conbody></concept>

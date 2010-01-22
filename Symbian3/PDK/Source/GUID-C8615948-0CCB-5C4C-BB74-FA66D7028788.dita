@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788" xml:lang="en"><title>Platform
+Security Issues</title><shortdesc>This section describes the security issues that you need to be
+aware of when you write a new device driver.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> There is a brief overview of Symbian platform security below. You can
+find a full description of the platform security architecture in the <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform Security</xref> Symbian
+Library section. </p>
+<p>Note: platform security issues only apply to Symbian platformversion 9.1
+and later versions. The issues described in this document also apply when
+you migrate an existing driver from a platform that does not have platform
+security enabled to one that does. </p>
+<ul>
+<li id="GUID-9659307D-C2D6-5161-84AB-7F1B0DB285C4"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-1C7B96D9-87AD-5B92-A075-0A57E35EF7E5">Overview of Symbian platform security</xref>  </p> </li>
+<li id="GUID-DAFFBCEF-9992-5457-9D56-3DFD2E176984"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-76648A85-AEDD-5F8B-A0A1-DFDAB1BD2B0C">List of capabilities</xref>  </p> </li>
+<li id="GUID-BE09596D-5CCE-5995-B220-0C84D42DC495"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-24B6577E-BAEC-507A-91C1-108E5DED8D1F">Guidelines for securing drivers</xref>  </p> </li>
+</ul>
+<section id="GUID-1C7B96D9-87AD-5B92-A075-0A57E35EF7E5"><title>Overview of
+Symbian platform security</title> <p>Symbian platform security is based on
+the idea of capabilities. Capabilities are granted to the platform’s basic
+unit of trust: <i>the process</i>. Capabilities can be thought of as tokens
+that grant a process permission to access a set of restricted resources. The
+storage and association of capabilities with processes is the responsibility
+of the kernel. </p> <p>The kernel itself is the arbitrator of trust, and therefore
+must be fully trusted, and is indeed part of the trusted computing base. As
+such it is also granted all capabilities. </p> <p>It is only worthwhile checking
+the capabilities of another process at a process boundary, for example: user
+to device driver calls, user to user via an inter process call (usually client/server),
+user to kernel exec calls. </p> <p>It is the process servicing the request
+that must make a decision as to whether the requestor has a sufficient set
+of capabilities in order to proceed. </p> <p>Platform security is governed
+by a number of basic rules: </p> <ul>
+<li id="GUID-87C7289B-4A7F-5565-B965-F47EB90E3AA2"><p>Every process has a
+set of capabilities </p> </li>
+<li id="GUID-45526DD1-E654-584F-A8EE-82DF1D7F3C18"><p>The capabilities of
+a process never change </p> </li>
+<li id="GUID-A82B3D7F-48AC-532F-9EE1-5CD0E8F5A8AF"><p>DLLs that are loaded
+into a process must adopt the capabilities of the loading process. As DLLs
+should not gain more trust than they were originally granted, this means that
+a process cannot load a DLL with a smaller set of capabilities than itself. </p> </li>
+</ul> <p>Note: be aware that there is a pre-existing concept in device drivers
+that is also called capabilities (see <xref href="GUID-B47C22DA-D1E6-5D89-87E7-7E4A5FD5A8D4.dita#GUID-B47C22DA-D1E6-5D89-87E7-7E4A5FD5A8D4/GUID-4F7A9727-7DCC-5FA2-A88D-38646EF9EA26">Implementing
+GetCaps()</xref> in <xref href="GUID-B47C22DA-D1E6-5D89-87E7-7E4A5FD5A8D4.dita">The
+LDD Factory</xref>). This is about what services the driver can offer, and
+is nothing to do with platform security. </p> </section>
+<section id="GUID-76648A85-AEDD-5F8B-A0A1-DFDAB1BD2B0C"><title>List of capabilities</title> <p>Symbian
+platform capabilities are divided into two categories: </p> <p> </p> <ul>
+<li id="GUID-BE89D850-CF74-5494-975C-BD55AB0DFF8B"><p> <i>System capabilities</i> -
+a set of capabilities that guarantee the integrity of the Trusted Computing
+Platform and the way they are controlled cannot be customised. They are never
+exposed to users. </p> </li>
+<li id="GUID-158C7D1A-1D8C-5F2D-B155-E4C731FE6154"><p> <i> User capabilities</i> -
+a small and easily understandable set of capabilities which can be presented
+to owners of a device when they are installing applications. This gives them
+an opportunity to check that the application won’t do anything unexpected
+once installed. </p> </li>
+</ul> <p>This is the complete set of capabilities - they are fully described
+by the associated <xref href="GUID-604DA570-08AC-300D-A7CE-1DA984556B10.dita"><apiname>TCapability</apiname></xref> enum values. There is also
+a mnemonic for each capability that is listed in the <xref href="GUID-71C8359F-D020-3919-A0AF-526E7756FCA8.dita"><apiname>CapabilityNames</apiname></xref> array. </p> <table id="GUID-8D670D02-A662-585D-A95A-E5AD8037AE68">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Capability mnemonic</b>  </p> </entry>
+<entry><p> <b>TCapability Enum value</b>  </p> </entry>
+</row>
+<row>
+<entry><p>TCB </p> </entry>
+<entry><p> <xref href="GUID-0C19208D-732F-3B2B-9B0F-81CB1CB56DFC.dita"><apiname>ECapabilityTCB</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>CommDD </p> </entry>
+<entry><p> <xref href="GUID-2714B609-120A-31C1-9415-235A2FEB9D9A.dita"><apiname>ECapabilityCommDD</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>PowerMgmt </p> </entry>
+<entry><p> <xref href="GUID-76F4383B-4EA5-391A-A271-A8F65ED77EC0.dita"><apiname>ECapabilityPowerMgmt</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>MultimediaDD </p> </entry>
+<entry><p> <xref href="GUID-48AA1686-C619-3C36-B4B5-6C5DE1F50B0A.dita"><apiname>ECapabilityMultimediaDD</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>ReadDeviceData </p> </entry>
+<entry><p> <xref href="GUID-1AC4E327-14CE-382D-AA1A-1A7EDBA1863E.dita"><apiname>ECapabilityReadDeviceData</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>WriteDeviceData </p> </entry>
+<entry><p> <xref href="GUID-C607209F-6FC5-31DE-8034-E5B799B857A8.dita"><apiname>ECapabilityWriteDeviceData</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>DRM </p> </entry>
+<entry><p> <xref href="GUID-C0EF5A59-F716-313A-911F-2D3D773DF597.dita"><apiname>ECapabilityDRM</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>TrustedUI </p> </entry>
+<entry><p> <xref href="GUID-AFB7AB40-B829-37B8-AAB1-7A6FAED9671B.dita"><apiname>ECapabilityTrustedUI</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>ProtServ </p> </entry>
+<entry><p> <xref href="GUID-200CA018-2CB3-3E4A-A505-085FAD2E3E8B.dita"><apiname>ECapabilityProtServ</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>DiskAdmin </p> </entry>
+<entry><p> <xref href="GUID-99D8A4E8-BC4F-39FF-A3DF-832CF0411629.dita"><apiname>ECapabilityDiskAdmin</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>NetworkControl </p> </entry>
+<entry><p> <xref href="GUID-4AFB561B-34D7-3570-A4C9-24B4952C787A.dita"><apiname>ECapabilityNetworkControl</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>AllFiles </p> </entry>
+<entry><p> <xref href="GUID-89631CF3-4AEE-3C2F-8AAE-5D9C3EB3B373.dita"><apiname>ECapabilityAllFiles</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>SwEvent </p> </entry>
+<entry><p> <xref href="GUID-369B6584-AB7F-3AA2-B912-E912D2BCBE98.dita"><apiname>ECapabilitySwEvent</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>NetworkServices </p> </entry>
+<entry><p> <xref href="GUID-07A09CBA-CB4E-3CBE-9FA3-930C455F3B0C.dita"><apiname>ECapabilityNetworkServices</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>LocalServices </p> </entry>
+<entry><p> <xref href="GUID-7D0E447B-EC32-355B-8BBF-F074A1B10D8A.dita"><apiname>ECapabilityLocalServices</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>ReadUserData </p> </entry>
+<entry><p> <xref href="GUID-4897D21D-5ACF-30A5-A38C-371A3983814D.dita"><apiname>ECapabilityReadUserData</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>WriteUserData </p> </entry>
+<entry><p> <xref href="GUID-8908E5F7-AC6A-333B-8F65-6DDC46798F48.dita"><apiname>ECapabilityWriteUserData</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Location </p> </entry>
+<entry><p> <xref href="GUID-1B530864-C77B-3CDE-B761-83C2EED44DB8.dita"><apiname>ECapabilityLocation</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>SurroundingsDD </p> </entry>
+<entry><p> <xref href="GUID-8A207675-B0CF-314E-A4AD-12D839A01A4B.dita"><apiname>ECapabilitySurroundingsDD</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>UserEnvironment </p> </entry>
+<entry><p> <xref href="GUID-05F13261-5EDF-319A-93D6-0247F8C468A3.dita"><apiname>ECapabilityUserEnvironment</apiname></xref>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-24B6577E-BAEC-507A-91C1-108E5DED8D1F"><title>Guidelines
+for securing drivers</title> <ul>
+<li id="GUID-22F04C6F-842E-5163-BA52-23C3090F7656"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-4D499ED8-CC0F-5C65-8BE9-21D948D830BC">mmp file changes</xref>  </p> </li>
+<li id="GUID-BA36A473-1C70-50E9-A36B-9810E492881C"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-BD1EFDB2-7C2B-5BAB-B40A-E340B843CF9D">Securing access to the LDD</xref>  </p> </li>
+<li id="GUID-BD77A23A-74D2-5592-8C7D-274B6D28B891"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-3C6848F5-23C8-5B5C-8411-56DED9FA16E6">Securing access to individual LDD requests</xref>  </p> </li>
+<li id="GUID-A3BD1D5D-B04C-5112-A5C1-887D5DFA52B6"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-AD1F4023-9828-592C-898C-E5FF1B6C9906">Securing access to the PDD</xref>  </p> </li>
+<li id="GUID-CC240299-9431-5039-A116-A28AE3CA682C"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-7CE26CF9-C5EC-530C-9BBF-D6B5F13EFEC4">Check validity of parameters</xref>  </p> </li>
+<li id="GUID-6493343A-57C9-58A3-840F-42729F90B8A5"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-8CCC6421-E9FD-5E55-AA01-452043C093A6">Never access user space directly</xref>  </p> </li>
+<li id="GUID-2948325F-4D20-5E67-8892-F54593449466"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-0070FAAC-50B0-5FFE-AAEF-9B40B34F47F1">HAL handler</xref>  </p> </li>
+<li id="GUID-98CF5DB5-FB09-5B6B-8931-D2C1F61C3E9C"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-F943B803-3E74-5D74-81FC-5C363FB338D6">Publish &amp; subscribe</xref>  </p> </li>
+</ul> <p id="GUID-4D499ED8-CC0F-5C65-8BE9-21D948D830BC"><b>mmp file changes</b> </p> <p>Device
+drivers are DLLs that are loaded into the kernel process. This means that
+the driver's LDD and PDD must have the same level of trust as the kernel itself,
+that is, they must have all capabilities. This means that the <filepath>.mmp</filepath> files
+for your drivers must include the statement: </p> <codeblock id="GUID-32B956FF-C6E8-55E9-85BD-AF78DDB94783" xml:space="preserve">CAPABILITY ALL</codeblock> <p>Note
+that the <filepath>Makmake</filepath> tool that uses <filepath>.mmp</filepath> files
+to build makefiles has been modified to ensure that this statement has no
+effect on earlier versions of Symbian platform. This will allow you to maintain
+a common set of <filepath>.mmp</filepath> files. Note that this <codeph>capability</codeph> statement
+does NOT define the capabilities that are required of the client. </p> <p id="GUID-BD1EFDB2-7C2B-5BAB-B40A-E340B843CF9D"><b>Securing access to the LDD</b> </p> <p>A
+user process that wants to access driver functionality is required to meet
+the security policy of that driver. </p> <p>In general, access to a device
+driver only needs to be policed in a coarse manner using a single system capability,
+most commonly the capabilities represented by <xref href="GUID-2714B609-120A-31C1-9415-235A2FEB9D9A.dita"><apiname>ECapabilityCommDD</apiname></xref>,
+governing access to communication device drivers (for example, phone, serial
+port, Bluetooth), or <xref href="GUID-48AA1686-C619-3C36-B4B5-6C5DE1F50B0A.dita"><apiname>ECapabilityMultimediaDD</apiname></xref>, governing
+access to multimedia device drivers (for example, sound, or camera). To keep
+kernel side code simple, we suggest that: </p> <ul>
+<li id="GUID-5577BDB7-CCDE-511C-B7BB-0525D33DF56F"><p>a driver only needs
+to make a capability check at the point of the channel open request in the
+LDD. However, individual driver requests can, if necessary, be checked as
+explained in <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-3C6848F5-23C8-5B5C-8411-56DED9FA16E6">Securing
+access to individual LDD requests</xref> . </p> </li>
+<li id="GUID-735D35AE-8839-5952-B69E-976CAED38011"><p>to prevent large numbers
+of programs from having to have a system capability, it may be useful to encapsulate
+all sensitive device driver commands within a trusted server, which exposes
+a less critical interface. A good example of this is the window server. It
+must have a number of system capabilities to use the video device driver (the
+LCD) and to retrieve key events from the kernel, but does not require its
+clients to have these capabilities for its APIs. </p> </li>
+</ul> <p>Making a capability check at the point of the channel open request
+in the LDD is done as the first task in the driver's implementation of the
+second phase constructor <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-3DE558DF-16A3-39F9-87E3-F5600899A4D4"><apiname>DLogicalChannel::DoCreate()</apiname></xref>. This
+is the case whether you base your driver on the <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> class
+or the <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> class. </p> <p>You just insert
+a call to the kernel function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-E34E27F2-921A-3F78-9DE3-C5B16F37CF8B"><apiname>Kern::CurrentThreadHasCapability()</apiname></xref> to
+check that the client process has the required capability . The section <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-5F5AD02E-7CB6-5282-92CB-7203E6ECCCC5">What
+you need to provide - DoCreate()</xref> in the <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita">logical
+channel</xref> part of the description of how to write a device driver, gives
+you an example of the call. </p> <p>Capabilities are process-wide, and device-driver
+handles cannot be passed between processes, so it is safe to check capabilities
+at this point. </p> <fig id="GUID-67CD57D9-735B-593A-B165-A40AF4EC0889">
+<title>Checking capabilities</title>
+<image href="GUID-469A7E61-4E80-5BE6-BFA2-4C459E58070C_d0e271837_href.png" placement="inline"/>
+</fig> <p>When you are deciding what capabilities you require of the client,
+think about what functionality you are exposing to the client. How dangerous
+is it? What will the client be able to do with this functionality? In other
+words, you should consider it from the point of view of security threats posed
+by the API and choose client capabilities that would make these threats acceptable. </p> <p id="GUID-3C6848F5-23C8-5B5C-8411-56DED9FA16E6"><b>Securing access to individual
+LDD requests</b> </p> <p>If you need to, you can also perform a capability
+check on individual device driver calls. You might do this if some requests
+are more "sensitive" than others, and you need to ensure that the client has
+the specific capability before allowing access to them. It may be that this
+capability is different from the capability required to use the other services
+provided by the driver. </p> <p>The best technique to use here is to check
+all the possible security levels in the driver's implementation of <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-3DE558DF-16A3-39F9-87E3-F5600899A4D4"><apiname>DLogicalChannel::DoCreate()</apiname></xref> and
+set flags that indicate the calls that the client is allowed to make. This
+avoids the overhead of a security check on each device driver call. </p> <p>For
+example, you might have a driver that requires that the client have capability <codeph>ECapabilityXX</codeph> to
+use the driver, but requires that the client have capability <codeph>ECapabilityYY</codeph> to
+make some specific requests on the driver. Note that for a real driver, <codeph>ECapabilityXX</codeph> and <codeph>ECapabilityYY</codeph> would
+be one of the "real" capabilities defined by the <xref href="GUID-604DA570-08AC-300D-A7CE-1DA984556B10.dita"><apiname>TCapability</apiname></xref> enum. </p> <codeblock id="GUID-98E8A0CF-7FF4-55FF-8943-CDB7E4C44C9B" xml:space="preserve">...
+if(!Kern::CurrentThreadHasCapability(ECapabilityXX,__PLATSEC_DIAGNOSTIC_STRING("XX checked by my driver")))
+    {
+    return KErrPermissionDenied;
+    }
+iAccessType |= KGeneralAccessAllowed;
+if(Kern::CurrentThreadHasCapability(ECapabilityYY,__PLATSEC_DIAGNOSTIC_STRING("YY checked by my driver")))
+    {
+    iAccessType |= KSpecialAccessRequired;
+    }
+...
+</codeblock> <p> <codeph>iAccessType</codeph> might be, for example, a <codeph>TUint8</codeph>, <codeph>KGeneralAccessAllowed</codeph> might
+be defined as <codeph>0x01</codeph>, and <codeph>KSpecialAccessRequired</codeph> might
+be defined as <codeph>0x02</codeph>. </p> <p>If your driver class derives
+from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>, then you can check the validity of
+specific calls in your implementation of <xref href="GUID-0E0220D8-40B9-3537-8728-E678A2C282E3.dita#GUID-0E0220D8-40B9-3537-8728-E678A2C282E3/GUID-6EFC9A38-F73F-345E-A1B0-B1C76487DCCE"><apiname>DLogicalCHannel::HandleMsg()</apiname></xref>. </p> <p>In
+the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">example driver
+using DLogicalChannel framework</xref> the logical channel class is <codeph>DDriver1</codeph>,
+and <codeph>HandleMsg()</codeph> is implemented so that it calls <codeph>DDriver1Channel::DoControl()</codeph> for
+synchronous requests and <codeph>DDriver1Channel::DoRequest()</codeph> for
+asynchronous requests. </p> <p>Suppose that the synchronous request identified
+by <codeph>RDriver1::ESetConfig</codeph> and the asynchronous request identified
+by <codeph>RDriver1::ESendData</codeph> both require the client to have capability <codeph>ECapabilityYY</codeph> as
+outlined above, then we might modify the example as follows: </p> <codeblock id="GUID-E7433E87-9FE7-5F53-8BD1-3006E30D710B" xml:space="preserve">/**
+  Process synchronous 'control' requests
+*/
+TInt DDriver1Channel::DoControl(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    (void)a2;   // a2 not used in this example
+
+    TInt r;
+
+    switch (aFunction)
+        {
+        case RDriver1::EGetConfig:
+            r = GetConfig(*(TDes8*)a1);
+            break;
+
+        case RDriver1::ESetConfig:
+            // check that user has sufficient authority to do this.
+            if (!iAccessType &amp; KSpecialAccessRequired)
+                {
+                r = KErrPermissionDenied;
+                }
+            else
+                {
+                r = SetConfig(*(const TDesC8*)a1);
+                }
+            break;
+
+        default:
+            r=KErrNotSupported;
+            break;
+        }
+
+    return r;
+    }</codeblock> <codeblock id="GUID-65238224-4227-5796-B170-2D8EE02621C1" xml:space="preserve">/**
+  Process asynchronous requests
+*/
+TInt DDriver1Channel::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+    {
+    (void)a2;   // a2 not used in this example
+
+    TInt r;
+
+    switch(aReqNo)
+        {
+        case RDriver1::ESendData:
+            // check that user has sufficient authority to do this.
+            if (!iAccessType &amp; KSpecialAccessRequired)
+                {
+                r = KErrPermissionDenied;
+                }
+            else
+                { 
+                r=SendData(aStatus,*(const TDesC8*)a1);
+                }
+            break;
+
+        case RDriver1::EReceiveData:
+            r=ReceiveData(aStatus,*(TDes8*)a1);
+            break;
+
+        default:
+            r=KErrNotSupported;
+            break;
+        }
+
+    return r;
+    }</codeblock> <p>In both cases you simply test the <codeph>KSpecialAccessRequired</codeph> bit,
+which you would have set when you checked the capability at open time. </p> <p id="GUID-AD1F4023-9828-592C-898C-E5FF1B6C9906"><b>Securing access to the PDD</b> </p> <p>If
+you are writing a PDD that sits under a standard Symbian LDD you do not need
+to worry about security issues as the Symbian LDD does the necessary policing;
+you can assume that all requests made to your PDD are legal. </p> <p>If your
+PDD is accessed from your own custom LDD, then we recommend that your custom
+LDD does the security checks, as outlined in <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-BD1EFDB2-7C2B-5BAB-B40A-E340B843CF9D">Securing
+access to the LDD</xref>. This means that your PDD does not need to make any
+security checks. </p> <p id="GUID-7CE26CF9-C5EC-530C-9BBF-D6B5F13EFEC4"><b>Check
+validity of parameters</b> </p> <p>You should check the validity of all parameters
+passed to the driver. The meaning of parameters depends entirely on the driver. </p> <p>This
+is to guard against misuse of the driver, either by mistakes in the client
+program or by deliberate and malicious programs that are trying to gain kernel
+level privileges. The driver should accept only parameters that have good,
+valid, allowed and acceptable values. </p> <p>There are no general rules for
+this because every driver is different and the parameters have different meanings
+and uses. For example, when a parameter is a channel number, its value must
+be a valid channel number. </p> <p>Here are a few examples to illustrate the
+point. </p> <ul>
+<li id="GUID-C99DB2F7-AEFC-5291-A46F-8959F2A79A92"><p>This is a simple example,
+taken from <filepath>...\drivers\ecomm\d_comm.cpp</filepath>. Recall that,
+by convention, <codeph>DoRequest()</codeph> is a function defined and implemented
+in your <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>  <i>derived</i> class and called
+from your implementation of the <codeph>HandleMsg()</codeph> function to deal
+with asynchronous requests. </p> <codeblock id="GUID-C99A4D3A-AE8D-590D-AE3B-012092A4EDF5" xml:space="preserve">TInt DChannelComm::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+//
+// Async requests.
+//
+    {
+        ...
+    switch (aReqNo)
+        {
+        ...
+    case RBusDevComm::ERequestNotifySignalChange:
+        {
+        if (!a1 || !a2)
+            {
+             return KErrArgument;
+            }
+   ...</codeblock> </li>
+</ul> <p>Here, the code demands that the two parameters <codeph>a1</codeph> and <codeph>a2</codeph> be
+supplied when the specific request identified by <codeph>RBusDevComm::ERequestNotifySignalChange</codeph> is
+received. This is basic checking - the request cannot be serviced if one or
+both parameters is missing. In general, you might find it appropriate, if
+not essential, to perform some other checks on the data represented by these
+parameters. </p> <p>Here is another example taken from <filepath>...\e32test\dll\d_ldrtest.cpp</filepath>,
+where the driver expects a request type <codeph>EControlGetCodeSegInfo</codeph> to
+be accompanied by a pointer (the <codeph>TAny* a1</codeph>) to a valid handle. </p> <codeblock id="GUID-6D6ABA43-1C7E-5AEB-8D70-42384F12F453" xml:space="preserve">TInt DLdrTest::Request(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    TInt r=KErrNone;
+    switch (aFunction)
+        {
+    case RLdrTest::EControlGetCodeSegInfo:
+        r=GetCodeSegInfo(a1,a2);
+        break;
+        ...
+        }
+    ...
+    }</codeblock> <codeblock id="GUID-FA9A29B3-176C-594C-989C-C85F5B8603DD" xml:space="preserve">TInt DLdrTest::GetCodeSegInfo(TAny* aHandle, TAny* aDest)
+    {
+    TCodeSegCreateInfo info;
+    DCodeSeg* pS=DCodeSeg::VerifyHandle(aHandle);
+    if (pS)
+        {
+        ...
+        return KErrNone;
+        }
+    return KErrArgument;
+    }</codeblock> <p id="GUID-8CCC6421-E9FD-5E55-AA01-452043C093A6"><b>Never
+access user space directly</b> </p> <p> <i>NEVER</i> access user address space
+directly with a raw pointer passed from the client, because this could allow
+the client to bypass security by passing a bogus pointer. At the very least,
+there is a high risk of KERN-EXEC 3 panics, although this depends on the memory
+model used. </p> <p>The way to access user side address space depends on the
+context in which your driver code is running: </p> <ul>
+<li id="GUID-CD02EF84-8368-5726-ACF2-1ACC470884CA"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-AB160F17-B8D6-52CD-9484-53A284D72C3B">Your driver code is running in its own (kernel side) thread, or in a DFC
+context</xref>  </p> </li>
+<li id="GUID-BB6DC731-558B-5BF1-AA93-60036D5BC5BD"><p> <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita#GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788/GUID-34BFEC40-8487-529E-9AC3-99BEAD58FD42">Your driver code is running kernel side, but in the context of a user side
+thread.</xref>  </p> </li>
+</ul> <p id="GUID-AB160F17-B8D6-52CD-9484-53A284D72C3B"><b>Your driver code is running
+in its own (kernel side) thread, or in a DFC context</b> </p> <p>For driver
+code that is running in its own (kernel side) thread, or a DFC context, then
+you <i>must</i> use the static functions provided by the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita"><apiname>Kern</apiname></xref> class.
+These functions allow you to transfer data between the process that owns the
+user thread, i.e. the client of the driver, and the process that owns the
+current thread, i.e. the kernel process. They check the validity of the source
+and destination addresses. </p> <p>There are variants that perform read operations
+(from the user address space) and write operations (to the user address space).
+There are also variants that treat memory as plain memory and as descriptors. </p> <p>Visually,
+this can be represented like this: </p> <fig id="GUID-07AAE724-E34D-5B2E-A0F1-D78D0F49C2E7">
+<title>User Thread and Driver Thread</title>
+<image href="GUID-7FF417BE-5334-5727-BAAC-D7029141E4CD_d0e272101_href.png" placement="inline"/>
+</fig> <p>This is list of the functions, together with some code fragments
+to help show how they are used. Some fragments are taken from real Symbian
+platform code. </p> <p><b>Kern::ThreadDesRead()</b> </p> <p>This copies data <i>from</i> the
+user thread process <i>to</i> the current thread process, i.e. the kernel
+process, and assumes that the data is in the form of a descriptor at both
+ends. </p> <p>The following code fragment shows typical usage. </p> <codeblock id="GUID-2A666596-C335-598B-9C03-EFFD7FA275C4" xml:space="preserve">TInt DLddChannelXXX::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+    {
+    ...
+    case RXXX::ERequestSetConfig:
+        {
+        TXXXConfigV01 c;
+        memclr(&amp;c, sizeof(c));
+        TPtr8 cfg((TUint8*)&amp;c,0,sizeof(c));
+        r=Kern::ThreadDesRead(iClient,a1,cfg,0,0);
+        if (r==KErrNone)
+            {
+            iRequestSetConfig=aStatus;
+            SetConfig(c);
+            }
+        break;
+        }
+        ...
+    }</codeblock> <p>It is handling a request to set some configuration information,
+and runs in a kernel thread. </p> <p>The parameter <codeph>a1</codeph> passed
+to <codeph>Kern::ThreadDesRead()</codeph> is a pointer to the configuration
+information in the user thread's address space. The object on the user side
+will be a <codeph>TXXXConfigV01</codeph> object wrapped up as package buffer,
+a <xref href="GUID-C7A094BD-846F-3ED2-8CCE-C0743DB3712A.dita"><apiname>TPckgBuf</apiname></xref> type. A package buffer is also a descriptor,
+which is why we can safely use <codeph>Kern::ThreadDesRead()</codeph> to access
+the configuration information - we just need to make sure that the driver
+also passes a descriptor to <codeph>Kern::ThreadDesRead()</codeph> to 'receive'
+the data - this is the <codeph>TPtr8 cfg((TUint8*)&amp;c,0,sizeof(c));</codeph> statement. </p> <p>Note
+that <codeph>iClient</codeph> is a pointer to the user thread's thread object.
+Typically, it is set up in the logical channel constructor using the following
+code: </p> <codeblock id="GUID-4FDE0237-586A-5573-869E-9A90A551C7C4" xml:space="preserve">iClient=&amp;Kern::CurrentThread();
+iClient-&gt;Open();</codeblock> <p>The constructor code runs in the context of
+the user thread . The call to <codeph>Open()</codeph> just ensures that the
+user thread cannot be destroyed until the logical channel object is itself
+destroyed. Note that <codeph>DThread</codeph> is internal to Symbian, although <codeph>Open()</codeph> and <codeph>Close()</codeph> can
+be called on it. </p> <p><b>Kern::ThreadRawRead()</b> </p> <p>This copies data <i>from</i> the user thread process <i>to</i> the
+current thread process, i.e. the kernel process, and assumes that the data
+is in raw memory. </p> <p>The following code fragment shows typical usage: </p> <codeblock id="GUID-AC3A72CE-F545-568B-9338-4E3173F6C9F3" xml:space="preserve">TInt DChannelExample::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+    {
+    ...
+    TInt len= ...; // len assigned some value
+    ...
+    if (a2)
+        {
+        // write the value of len back to the user side location pointed to by a2.
+        r=Kern::ThreadRawWrite(iClient,a2,&amp;len,sizeof(len));
+        }
+    ...
+    }</codeblock> <p>Here, <codeph>a2</codeph> is a pointer into the user
+thread's address space, and is expected to point to a <codeph>TInt</codeph> value.
+The code copies the two bytes to the user side address space. </p> <p>Note
+that <codeph>iClient</codeph> is a pointer to the user thread's thread object.
+Typically, it is set up in the logical channel constructor using the following
+code: </p> <codeblock id="GUID-F407AEED-7777-5E41-B8E2-542D58064C53" xml:space="preserve">iClient=&amp;Kern::CurrentThread();
+iClient-&gt;Open();</codeblock> <p>The constructor code runs in the context of
+the user thread . The call to <codeph>Open()</codeph> just ensures that the
+user thread cannot be destroyed until the logical channel object is itself
+destroyed. Note that <codeph>DThread</codeph> is internal to Symbian, although <codeph>Open()</codeph> and <codeph>Close()</codeph> can
+be called on it. </p> <p><b>Kern::ThreadDesWrite()</b> </p> <p>This copies data <i>to</i> the user thread process <i>from</i> the
+current thread process, i.e. the kernel process, and assumes that the data
+is in the form of a descriptor at both ends. </p> <p>The following code fragment
+shows typical usage: </p> <codeblock id="GUID-87A8A2A0-34FD-53C0-9481-B6A584E9B70D" xml:space="preserve">TInt DLddChannelXXX::DoControl(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    ...
+    case RXXX::EControlGetConfig:
+        {
+        TPtrC8 cfg((const TUint8*)&amp;iConfig,sizeof(iConfig));
+        rv=Kern::ThreadDesWrite(iClient,a1,cfg,0,KTruncateToMaxLength,iClient);
+        break;
+        }
+    ...
+    }</codeblock> <p>It is handling a request to return some configuration
+information to the user side. </p> <p>The parameter <codeph>a1</codeph> passed
+to <codeph>Kern::ThreadDesWrite()</codeph> is a pointer to a descriptor in
+the user thread's address space, and is the target for the write operation.
+This is assumed to be a descriptor, with the format of the data being the
+same as <codeph>iConfig</codeph>. On the kernel side we need to pass a descriptor
+to <codeph>Kern::ThreadDesWrite()</codeph> - this is the <codeph> TPtrC8 cfg((const
+                  TUint8*)&amp;iConfig,sizeof(iConfig));</codeph> statement. </p> <p> <xref href="GUID-96376FB3-89A3-3998-9CB0-1EBCE34B893D.dita"><apiname>KTruncateToMaxLength</apiname></xref> makes
+sure that the maximum length of the target descriptor in the user address
+space is not exceeded; it forces Symbian platform to truncate data if necessary. </p> <p>Note
+that <codeph>iClient</codeph> is a pointer to the user thread's thread object.
+Typically, it is set up in the logical channel constructor using the following
+code: </p> <codeblock id="GUID-FC0DFCFE-63FF-5244-BFD3-B88548560F1E" xml:space="preserve">iClient=&amp;Kern::CurrentThread();
+iClient-&gt;Open();</codeblock> <p>The constructor code runs in the context of
+the user thread . The call to <codeph>Open()</codeph> just ensures that the
+user thread cannot be destroyed until the logical channel object is itself
+destroyed. Note that <codeph>DThread</codeph> is internal to Symbian, although <codeph>Open()</codeph> and <codeph>Close()</codeph> can
+be called on it. </p> <p>NOTE: the final parameter of <codeph>Kern::ThreadDesWrite()</codeph> is
+a <codeph>DThread*</codeph> type. You should always pass a zero value. The
+parameter is only used by internal Symbian platform code. </p> <p><b>Kern::ThreadRawWrite()</b> </p> <p>This
+copies data <i>to</i> the user thread process <i>from</i> the current thread
+process, i.e. the kernel process, and assumes that the data is in raw memory. </p> <p>The
+following code fragment shows typical usage: </p> <codeblock id="GUID-B53A3381-65C3-5BED-B64D-C85862222A03" xml:space="preserve">TInt DChannelExample::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+    {
+    ...
+    TInt len= ...; // len assigned some value
+    ...
+    if (a2)
+        {
+        // write the value of len back to the user side location pointed to by a2.
+        r=Kern::ThreadRawWrite(iClient,a2,&amp;len,sizeof(len));
+        }
+    ...
+    }</codeblock> <p>Here, <codeph>a2</codeph> is a pointer into the user
+thread's address space, and is expected to point to a <codeph>TInt</codeph> value.
+The code copies the two bytes to the user side address space. </p> <p>Note
+that <codeph>iClient</codeph> is a pointer to the user thread's thread object.
+Typically, it is set up in the logical channel constructor using the following
+code: </p> <codeblock id="GUID-5692A183-C07D-5B08-899B-8B4F0FC690E8" xml:space="preserve">iClient=&amp;Kern::CurrentThread();
+iClient-&gt;Open();</codeblock> <p>The constructor code runs in the context of
+the user thread . The call to <codeph>Open()</codeph> just ensures that the
+user thread cannot be destroyed until the logical channel object is itself
+destroyed. Note that <codeph>DThread</codeph> is internal to Symbian, although <codeph>Open()</codeph> and <codeph>Close()</codeph> can
+be called on it. </p> <p>NOTE: the final parameter of <codeph>Kern::ThreadrawWrite()</codeph> is
+a <codeph>DThread*</codeph> type. You should always pass a zero value. The
+parameter is only used by internal Symbian platform code. </p> <p><b>Kern::ThreadGetDesLength()</b> </p> <p>This
+is a code fragment taken from the USB implementation. Getting the length of
+a user side descriptor is usually done when the length of that descriptor
+cannot be known in advance. </p> <p>Here, <codeph>aString</codeph> is a pointer
+to a descriptor in the user process. In this example, the code running in
+a kernel side thread or a DFC cannot deal with descriptors longer than the
+value of <codeph>KUsbStringDescStringMaxSize</codeph>. </p> <codeblock id="GUID-CA5A63FC-2CD6-5995-9E70-311DA120DD58" xml:space="preserve">...
+    if (aString)
+        {
+        TInt strlen = Kern::ThreadGetDesLength(aThread, aString);
+        if (strlen &gt; KUsbStringDescStringMaxSize)
+            {
+             __KTRACE_OPT(KPANIC, Kern::Printf("     Warning: $ descriptor too long - string will be truncated"));
+            strlen = KUsbStringDescStringMaxSize;
+            }
+    ...</codeblock> <p>Note that <codeph>iClient</codeph> is a pointer to
+the user thread's thread object. Typically, it is set up in the logical channel
+constructor using the following code: </p> <codeblock id="GUID-7E0CD6CA-5810-5D5A-B632-0C9871899792" xml:space="preserve">iClient=&amp;Kern::CurrentThread();
+iClient-&gt;Open();</codeblock> <p>The constructor code runs in the context of
+the user thread . The call to <codeph>Open()</codeph> just ensures that the
+user thread cannot be destroyed until the logical channel object is itself
+destroyed. Note that <codeph>DThread</codeph> is internal to Symbian, although <codeph>Open()</codeph> and <codeph>Close()</codeph> can
+be called on it. </p> <p><b>Kern::ThreadGetDesMaxLength()</b> </p> <p>This
+is very similar to <codeph>Kern::ThreadGetDesLength()</codeph> but gets the
+descriptor's maximum length. </p> <p><b>Kern::ThreadGetDesInfo()</b> </p> <p>This
+allows you to get the information about a descriptor in the user side address
+space. This includes the descriptor's length, maximum length, and a pointer
+to the data. It also allows to you to discover whether the descriptor is writable,
+i.e. a descriptor type derived from <xref href="GUID-49D4E917-57EA-39AE-8941-144AA8AC2584.dita"><apiname>TDes</apiname></xref>, rather than one
+that is not writable, i.e. a descriptor type derived from <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref>. </p> <codeblock id="GUID-44E3E2DD-31C7-5A94-B3D8-9647DFCEA41C" xml:space="preserve">...
+TInt len = 0;
+TInt maxlen = 0;
+TUint8* ptr = 0;
+...
+if (Kern::ThreadGetDesInfo(iClient, iDes, len, maxlen, Ptr, ETrue) != KErrNone)
+    {
+    // iDes is not a valid descriptor or it is not a writable type.
+    ...
+    }
+else
+    {
+    // do something with len, maxlen and ptr.
+    // The user side descriptor is valid and it is a writable type
+    ...
+    }
+...</codeblock> <p>where <codeph>iClient</codeph> is a pointer to the user
+thread's thread object, and <codeph>iDes</codeph> is a pointer to the descriptor
+in the user side address space. </p> <p id="GUID-34BFEC40-8487-529E-9AC3-99BEAD58FD42"><b>Your
+driver code is running kernel side, but in the context of a user side thread.</b> </p> <p>For
+driver code that is running in the context of the client user thread, then
+you <i>must</i> use the globally defined functions, listed below, to read
+from and to write to memory in the user thread's address space. These functions
+perform the read/write with the permissions of the user thread and will panic
+the thread if the pointer is not valid in the user thread's context. </p> <p>This
+usually happens when user side code makes an executive call to gain access
+to kernel functionality. Although the code that runs is kernel side code,
+it does so in the context of the client user thread. </p> <p>Visually, this
+can be represented like this: </p> <fig id="GUID-28A045A4-5B4C-5E8A-B8C3-A415F3275F16">
+<title>Driver code accessing kernel functionality</title>
+<image href="GUID-CC6066A7-176A-57B9-967B-779885666775_d0e272480_href.png" placement="inline"/>
+</fig> <p>For example, in device drivers, user side requests result in a call
+to <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-8F504350-7FD4-348D-9264-62993FF8FF48"><apiname>DLogicalChannel::Request()</apiname></xref>, and this runs on the kernel
+side but in the context of the user thread. </p> <p><b>kumemget()</b> </p> <p>In
+this example, <codeph>aPtr</codeph> points to memory in the user side process.
+Unlike <codeph>kumemget32()</codeph>, there is no requirement for this location
+to be aligned on any specific boundary. The pointer could equally point to
+kernel memory. </p> <codeblock id="GUID-52448B0C-C00B-552B-A4CC-F5CE540256E2" xml:space="preserve">...
+    {
+    TText c;
+    kumemget(&amp;c,aPtr,sizeof(c));
+    ...</codeblock> <p><b>kumemget32()</b> </p> <p>In this example, this code
+fragment is taken from the video (LCD) driver's HAL (Hardware Abstraction
+Layer). The user side code passes a pointer to a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> value
+in the <codeph>a1</codeph> parameter. This variant is used because <codeph>a1</codeph> points
+to a 4-byte aligned location. </p> <codeblock id="GUID-73400526-96A2-5CE8-85F8-3BFD420B855A" xml:space="preserve">TInt DLcdPowerHandler::HalFunction(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    ...
+    case EDisplayHalPaletteEntry:
+        {
+        TInt entry;
+        kumemget32(&amp;entry, a1, sizeof(TInt));
+        ...
+        }
+        break;
+    ...
+    }</codeblock> <p><b>kumemput()</b> </p> <p>In this example, taken from
+Symbian platform code, <codeph>kumemput()</codeph> is used to write the currency
+symbol to the user thread address space. <codeph>aDest</codeph> is the target
+location in the user address space, <codeph>K::CurrencySymbol</codeph> is
+the source address in the kernel address space, and the length of the data
+to be copied is in the first two bytes at <codeph>K::CurrencySymbol</codeph>. </p> <codeblock id="GUID-0648BD2F-EFBD-5B6E-BFA1-582D9CAD33AD" xml:space="preserve">TInt ExecHandler::CurrencySymbol(TAny* aDest)
+    {
+    ...
+    #ifdef _UNICODE
+    kumemput(aDest,&amp;K::CurrencySymbol[1],K::CurrencySymbol[0]&lt;&lt;1);
+    #else
+    kumemput(aDest,&amp;K::CurrencySymbol[1],K::CurrencySymbol[0]);
+    #endif
+    ...
+    }</codeblock> <p><b>kumemput32()</b> </p> <p>This is the same as <codeph>kumemput()</codeph>, but the target location
+in the user address space must be 4-byte aligned. </p> <p><b>kumemset()</b> </p> <p>This example fills the user address space location
+at <codeph>UserPtr</codeph> with <codeph>16</codeph>  <codeph>0xff</codeph> values.
+It assumes that the 16 bytes at <codeph>UserPtr</codeph> are valid. </p> <codeblock id="GUID-30B4CC02-AA32-5C77-824C-9AE98F6E015B" xml:space="preserve">kumemset(userPtr,0xff,16);</codeblock> <p><b>Kern::KUDesGet()</b> </p> <p>The following code fragment is typical: </p> <codeblock id="GUID-CAA0F09C-A50A-5D16-96D8-131ACB2F42EE" xml:space="preserve">typedef TBuf&lt;KMaxExampleName&gt; TExampleName;</codeblock> <codeblock id="GUID-259E76F1-3619-5064-8CF0-2201B4D45A9F" xml:space="preserve">TInt XXX::F(..., const TDesC8&amp; aName, ...)
+    {
+    ...
+    TExampleName n;
+    Kern::KUDesGet(n,aName);
+    ...
+    }</codeblock> <p> <codeph>KMaxExampleName</codeph> is some appropriate
+length value, for example 0x50. Here a descriptor containing an 8-bit name
+is passed from the user side process. The code simply copies the descriptor
+onto the stack (in the kernel process). Note that the copy is safe - <codeph>Kern::KUDesGet()</codeph> truncates
+the data to fit the target descriptor. </p> <p><b>Kern::KUDesPut()</b> </p> <p>This is simply the reverse of <codeph>Kern::KUDesGet()</codeph>.
+For example: </p> <codeblock id="GUID-7BCE3C23-5707-5954-85C9-C6467F8BF784" xml:space="preserve">TInt XXX::F(..., TDes8&amp; aName, ...)
+    {
+    ...
+    TExampleName n;
+    ExampleFunction(n);            // Sone function to generate the name
+    Kern::KUDesPut(aName,n);    // copy it to the user side
+    ...
+    }</codeblock> <p>Note that the parameter passed to <codeph>XXX::F()</codeph> is
+a <codeph>TDes8</codeph> type and not a <codeph>const TDesC8</codeph> type. </p> <p><b>Kern::KUDesSetLength()</b> </p> <p>This simply sets the length of the
+descriptor in the user process. For example, you might use this if you just
+want to change the length of the descriptor rather than change the content
+(although you can change the content too). </p> <p>The following code fragment
+is artificial but shows you how the function could be used. </p> <codeblock id="GUID-A2948843-FA8F-5C94-B168-CC03A1FEDF17" xml:space="preserve">TInt XXX::Set(..., TDes8&amp; aName, ...)
+    {
+    ...
+    TExampleName n;
+    Kern::KUDesGet(n,aName);         // Suppose this contains text "abc.defgh.ijk"
+    TInt offset;                    // Calculate the number of characters in front of
+    offset = n.Locate('.');            // the first leftmost period character.
+    
+    Kern::KUDesSetLength(aName,offset);    // Change the length of the descriptor
+                                        // and copy it to the user side.
+    ...
+    }</codeblock> <p><b>Kern::KUDesInfo()</b> </p> <p>This just gets the length and maximum length of a descriptor in the user
+process. </p> <codeblock id="GUID-D34C0F02-846F-5418-BE51-3C9CB962BA18" xml:space="preserve">TInt XXX::F(..., const TDesC8&amp; aName, ...)
+    {
+    ...
+    TInt len;
+    TInt maxlen;
+    Kern::KUDesInfo(aName, len, maxlen);
+     ...
+    }</codeblock> <p id="GUID-0070FAAC-50B0-5FFE-AAEF-9B40B34F47F1"><b>HAL handler</b> </p> <p>If
+you are providing a HAL handler, then you may need to check the capabilities
+of the caller's process. </p> <p>For example, the video (LCD) driver checks
+that the caller has the <xref href="GUID-C607209F-6FC5-31DE-8034-E5B799B857A8.dita"><apiname>ECapabilityWriteDeviceData</apiname></xref> capability
+before proceeding with a request to set the device's backlight on. This is
+a capability that grants write access to settings that control the behaviour
+of the device. </p> <codeblock id="GUID-41EC096A-72C7-57E7-B595-E6C0A33FD231" xml:space="preserve">TInt DLcdPowerHandler::HalFunction(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    TInt r=KErrNone;
+    switch(aFunction)
+        {
+        ...
+        case EDisplayHalSetBacklightOn:
+        if(!Kern::CurrentThreadHasCapability(ECapabilityWriteDeviceData,__PLATSEC_DIAGNOSTIC_STRING("Checked by Hal function EDisplayHalSetBacklightOn")))
+            {
+            return KErrPermissionDenied;
+            )
+        ...
+        break;
+        ...
+    }</codeblock> <p>You may need to refer to the Base Porting Kit documentation
+for more information on the HAL (Hardware Abstraction Layer) and HAL handlers. </p> <p id="GUID-F943B803-3E74-5D74-81FC-5C363FB338D6"><b>Publish &amp; subscribe</b> </p> <p>If
+you use Publish &amp; Subscribe, and you define and publish properties that
+other processes can read, then you will need to consider what security capabilities
+these processes must have to read those properties. </p> <p>More rarely, but
+entirely possible, you may also allow other processes to write to (i.e. publish)
+those properties, which means that you will also need to consider what security
+capabilities these processes must have to write to those properties. </p> <p>Security
+issues arise in 4 places when using Publish &amp; Subscribe on the kernel
+side: </p> <ul>
+<li id="GUID-7C538600-ED8A-5F2C-9A7F-D8B137C92C64"><p>when defining a property </p> </li>
+<li id="GUID-475A190D-0DC6-5363-B9D3-BFEA7A0CEF7E"><p>when deleting a property </p> </li>
+<li id="GUID-366A368B-F72B-548D-B0E5-B20C2D579F9C"><p>when retrieving a property
+(reading) </p> </li>
+<li id="GUID-A8957317-3D95-5044-BB9E-0D36EF197DE2"><p>when publishing a property
+(writing) </p> </li>
+</ul> <p>As a general rule, you define the capabilities that a process must
+have to publish and retrieve property values when you define the property.
+You do this by setting up <xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> objects (or their
+static equivalents) at property define time. </p> <p>If user side code accesses
+the property values using the user side handle <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita"><apiname>RProperty</apiname></xref>,
+then this checking will be done automatically. If kernel side code accesses
+the property on behalf of a user side client, then it needs to pass a pointer
+to the relevant <codeph>DProcess</codeph> object into the kernel side API
+(<xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> member functions) for the checks to happen. </p> <p>kernel
+side code can omit security checks if publishing and retrieving property values
+on its own or the kernel's behalf. </p> <p>See <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita">Publish
+and Subscribe</xref> for details. </p> </section>
+</conbody></concept>

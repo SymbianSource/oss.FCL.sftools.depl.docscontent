@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AC53C0A0-6990-4BF8-91E9-9AE14169A7BC" xml:lang="en"><title>Creating
+a Privacy Verification Notifier</title><shortdesc>To use the LBS Privacy Notifiers for privacy verification and privacy
+notification a licensee must implement a Privacy Verification Notifier that
+extends from the Extended Notifier Framework base class <apiname>MEikSrvNotifierBase2</apiname>.
+The licensee must override the asynchronous <apiname>MEikSrvNotifierBase2::StartL()</apiname> method
+so that the LBS subsystem can receive a privacy response from the user via
+the notifier. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic describes how to implement a Privacy Verification Notifier.
+The notifier is used to handle privacy verification requests.   </p>
+<p>A dialog is shown to the user when verification of a privacy request is
+required. The example shown here uses a CEikDialog derived class, although
+licensees will most probably want to use a dialog class specific to their
+own UI framework. Implementation of the notifier can be described in the following
+steps:</p>
+<ul>
+<li><p>Define a notifier that derives from the Extended Notifier Framework
+base class <xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita"><apiname>MEikSrvNotifierBase2</apiname></xref>.</p></li>
+<li><p>Define a dialog class that derives from <codeph>CEikDialog</codeph> (or
+some licensee UI framework-specific subclass). </p></li>
+<li><p>Override the necessary virtual methods of the licensee notifier and
+dialog to handle privacy requests and send the appropriate response when the
+user dismisses the dialog. </p></li>
+</ul>
+<section>       <title>Defining the Privacy Verification Notifier</title> 
+     <p>The code below shows a definition of a Privacy Verification Notifier
+class.     </p><p>The notifier owns a <xref href="GUID-BFDCA64A-1F55-34E8-8C4D-B0EABBE3A17C.dita"><apiname>CMyLBSPrivacyVerifierDialog</apiname></xref> dialog
+class to show details of the privacy request to the end user and to obtain
+the response.  </p><codeblock xml:space="preserve">/*
+============================================================================
+ Name		 : MyLBSPrivacyVerifier.h
+ Description : This file defines a LBS Privacy Verification Notifier
+============================================================================
+*/
+
+#ifndef __MYLBSPRIVACYVERIFIER_H__
+#define __MYLBSPRIVACYVERIFIER_H__
+
+// Default location for dialog GUI resources
+#define VERIFY_RESOURCE_PATH    "\\private\\10003a4a\\"
+
+// Compiled dialog resource file name
+#define VERIFY_RESOURCE 		"MyLBSPrivacyDialogs.rsc"
+
+//  Include Files
+#include &lt;e32base.h&gt;
+#include &lt;eiknotapi.h&gt;
+#include &lt;eikdialg.h&gt;
+#include "lbsprivacyextnotifiers.h" // Defines privacy data types
+#include "MyLBSNotifiersChannel.h" // Defines notifier channel
+
+// Dialog forward declaration for notifier
+class CMyLBSPrivacyVerifierDialog;
+
+//  Privacy verification notifier class definition
+class CMyLBSPrivacyVerifier : public CBase, public MEikSrvNotifierBase2
+  {
+public:	
+  static CMyLBSPrivacyVerifier* NewL();
+  ~CMyLBSPrivacyVerifier();
+		
+  // Called when the dialog is hidden
+  void DialogDismissed();
+
+private: // From MEikSrvNotifierBase2
+
+  // Asynchronous StartL is used for privacy verification
+  // a response is required
+  void StartL(const TDesC8&amp; aBuffer, TInt aReplySlot,
+              const RMessagePtr2&amp; aMessage); 
+	
+  // Synchronous StartL is not used for privacy verification
+  TPtrC8 StartL(const TDesC8&amp; aBuffer);
+	
+  // Not implemented for LBS privacy notifiers
+  TPtrC8 UpdateL(const TDesC8&amp; aBuffer);
+	
+  TNotifierInfo RegisterL();
+  TNotifierInfo Info() const;
+  void Cancel();
+  void Release();
+	
+  // Set the response parameters based on the user response
+  void SetResponseParams(TLbsPrivacyResponseParams params);
+	
+
+private:
+  CMyLBSPrivacyVerifier();
+  void ConstructL();
+
+private:
+  // Data members
+  TNotifierInfo iInfo;
+  RMessagePtr2 iMessage;
+  TInt iReplySlot;
+		
+  // From lbsprivacyextnotifiers.h - request parameters
+  TLbsPrivacyNotifierParams iRequestParams;
+		
+  // From lbsprivacyextnotifiers.h - response parameters
+  TLbsPrivacyResponseParams iResponseParams;
+
+  // Verification Dialog
+  CMyLBSPrivacyVerifierDialog* iDlg;
+  };
+
+#endif  // __MYLBSPRIVACYNOTIFIER_H__</codeblock>     </section>
+<section><title>Defining the Privacy Verification Dialog </title><p>The following
+is the definition of the dialog used by the example Privacy Verification Notifier:</p><codeblock xml:space="preserve">/*
+============================================================================
+ Name		: MyLBSPrivacyVerifier.cpp
+ Description : Source for LBS privacy verification notifier and dialog
+============================================================================
+*/
+
+// System headers
+#include &lt;eikdialg.h&gt;
+#include &lt;eikmfne.h&gt;
+#include &lt;eikenv.h&gt;
+#include &lt;bautils.h&gt;
+#include &lt;eikappui.h&gt;
+#include &lt;e32cmn.h&gt;
+
+// Console for debugging
+#include &lt;e32cons.h&gt;		
+
+// LBS headers
+#include &lt;lbsprivacyextnotifiers.h&gt;
+
+// project headers
+#include &lt;MyLBSPrivacyDialogs.rsg&gt;
+#include "MyLBSPrivacyVerifier.hrh"
+#include "MyLBSDialogs.hrh"
+#include "MyLBSPrivacyVerifier.h"
+
+
+/* CMyLBSPrivacyVerifierDialog
+   The resource for this dialog defines it as a sleeping dialog
+   Resources are allocated when the owning notifier is created by ECom
+*/
+
+class CMyLBSPrivacyVerifierDialog : public CEikDialog
+  {
+public:
+  static CMyLBSPrivacyVerifierDialog* NewLD(
+                               CMyLBSPrivacyVerifier* aNotifier,
+                               TLbsPrivacyResponseParams&amp; aResponseParams);
+  ~CMyLBSPrivacyVerifierDialog();
+
+  void ShowDialog(TLbsExternalRequestInfo&amp; aInfo);
+  void HideDialog();
+
+public: // from CEikDialog
+  TBool OkToExitL(TInt aButtonId);
+  void PreLayoutDynInitL();
+
+private:
+  CMyLBSPrivacyVerifierDialog(CMyLBSPrivacyVerifier* aNotifier,
+                              TLbsPrivacyResponseParams&amp; aResponseParams);
+  void LoadResourceL();
+  void FreeResource();
+  void ConstructL();
+
+private:
+
+  // The notifier that calls this dialog
+  CMyLBSPrivacyVerifier* iNotifier;
+	
+  // Library resource containing dialog resources
+  TInt  iResourceFile;
+	
+  // The privacy requester info - contains requester id and name
+  TLbsExternalRequestInfo iInfo;
+
+  // The privacy response parameters reference
+  // to iResponseParams in parent notifier
+  TLbsPrivacyResponseParams&amp; iResponseParams;
+	 };</codeblock><p>The dialog contains a <xref href="GUID-C5EE0092-6EAB-32AA-A58D-A81A883DFEBF.dita"><apiname>CMyLBSPrivacyVerifier</apiname></xref> pointer
+through which it can set the privacy response chosen by the user.     </p><p>This
+example defines a simple dialog resource file <filepath>MyLbsPrivacyDialogs.rsg</filepath>.
+The source of this file contains definitions for a simple dialog that shows
+the client name of the user making the privacy request and <uicontrol>Accept</uicontrol> and <uicontrol>Reject</uicontrol> buttons
+to allow the user to accept or reject the request. </p><codeblock xml:space="preserve">// MyLBSPrivacyVerifierDialog.RSS
+
+#include &lt;eikon.rh&gt;
+#include &lt;eikon.rsg&gt;
+#include &lt;techviewctl.rh&gt;
+#include &lt;eikcoctl.rsg&gt;
+#include "MyLBSDialogs.hrh"
+
+NAME PRVC
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF { buf=""; }
+
+RESOURCE DLG_BUTTONS r_privacy_request_buttons
+{
+buttons = 
+	{
+	DLG_BUTTON
+		{
+		id = EPrivacyRequestAccept;
+		button = CMBUT {txt = "Accept";};
+		hotkey='1';
+		},
+	DLG_BUTTON
+		{
+		id = EPrivacyRequestReject;
+		button = CMBUT {txt = "Reject";};
+		hotkey='2';
+		}
+	};
+}
+
+
+RESOURCE DIALOG r_lbs_verify_dialog
+	{
+	title = "Privacy Verification Dialog";
+	flags = EEikDialogFlagNotifyEsc;
+	buttons = r_privacy_request_buttons;
+	items = 
+		{
+		DLG_LINE
+		    {
+		    type = EEikCtLabel;
+		    control = LABEL
+		    	{
+		    	standard_font = EEikLabelFontAnnotation;
+		    	txt = "Location Request received from :";
+		    	};
+		    },
+		DLG_LINE
+		    {
+		    type = EEikCtEdwin;
+		    id = EPrivacyClientName;
+		    control = EDWIN
+		    	{
+		    	width = 10;
+		    	maxlength = 25;
+		    	};
+		    }
+		};
+	}</codeblock><p><codeph>KScreenOutputChannel</codeph> is a common channel
+used by both a Privacy Verification Notifier and a Location Notification Notifier.
+The real value of the channel is a licensee-specific value. </p><codeblock xml:space="preserve">#ifndef __MYLBSNOTIFIERSCHANNEL_H_
+#define __MYLBSNOTIFIERSCHANNEL_H_
+
+const TUid KScreenOutputChannel={0x1000ABEF};
+
+#endif /*MYLBSNOTIFIERSCHANNEL_H_*/</codeblock></section>
+<section><title>Creating the notifier </title><p>The most important thing
+to consider when creating a notifier object is if the dialog resources should
+also be created at the same time.     </p><p>The ECOM framework calls the
+notifier's <codeph>NewL()</codeph> when the notifier server starts up. Privacy
+requests and location requests may need to be handled in low memory conditions
+(where licensees and operators need to support emergency location requests).
+If this is the case it is prudent to use sleeping dialogs which are created
+in the notifier's <codeph>ConstructL()</codeph>. All resources for the dialog
+are allocated when the notifier is loaded by ECOM and showing a dialog should
+not fail if there are low-memory conditions at runtime when an emergency location
+request is received.  </p><codeblock xml:space="preserve">CMyLBSPrivacyVerifier* CMyLBSPrivacyVerifier::NewL()
+  {
+  CMyLBSPrivacyVerifier* self = new (ELeave) CMyLBSPrivacyVerifier();	
+  CleanupStack::PushL(self);
+  self-&gt;ConstructL();	
+  CleanupStack::Pop();
+  return self;	
+  }
+
+// Construct the dialog - it is a sleeping dialog 
+// i.e. resources are allocated on construction
+// This is a good idea for LBS privacy requests which must be handled
+// in low memory conditions
+void CMyLBSPrivacyVerifier::ConstructL()
+  {	
+  iDlg = CMyLBSPrivacyVerifierDialog::NewLD(this, iResponseParams);
+  }</codeblock></section>
+<section><title>Registering the notifier </title><p><xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita#GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0/GUID-7863DC49-9664-390C-AAE1-B3BE043CA108"><apiname>MEikSrvNotifierBase2::RegisterL()</apiname></xref> and <xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita#GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0/GUID-EC4180F5-AB27-3744-8755-BA59B3BCE19C"><apiname>MEikSrvNotifierBase2::Info()</apiname></xref> are standard notifier methods that can be implemented as shown below: </p><codeblock xml:space="preserve">// Called by notifier framework once to register the notifier with ECOM
+MEikSrvNotifierBase2::TNotifierInfo CMyLBSPrivacyVerifier::RegisterL()
+  {
+  iInfo.iUid = KLbsExtLocationRequestVerifyUid;
+  iInfo.iChannel = KScreenOutputChannel;
+
+  // High priority privacy request
+  iInfo.iPriority = ENotifierPriorityVHigh;
+  return iInfo;
+  }
+
+MEikSrvNotifierBase2::TNotifierInfo CMyLBSPrivacyVerifier::Info() const
+  {
+  return iInfo;
+  }</codeblock><note>The value <codeph>KLbsExtLocationRequestVerifyUid</codeph> as
+defined in <filepath>lbsextprivacynotifiers.h</filepath> must be used for
+the notifier registration. The choice of notifier priority is a licensee decision,
+but a high priority is recommended because a user response is required. </note></section>
+<section><title>Starting the notifier </title><p>A Privacy Verification Notifier
+must implement the asynchronous form of <xref href="GUID-650E29C8-3B2B-3B77-A4E5-766DED0F83F0.dita#GUID-650E29C8-3B2B-3B77-A4E5-766DED0F83F0/GUID-93746BF4-4F20-304A-BC72-2CE0C776D001"><apiname>MEikSrvNortifierBase2::StartL()</apiname></xref>.
+The code example below shows how to do this. The LBS subsystem sends a <codeph>TLbsPrivacyNotifierParamsPckg</codeph> object
+to the notifier from which the <codeph>TLbsExternalRequestInfo</codeph> can
+be extracted. </p><codeblock xml:space="preserve">// Asynchronous StartL is used for privacy verification because a response is required
+void CMyLBSPrivacyVerifier::StartL(const TDesC8&amp; aBuffer,
+                                   TInt aReplySlot,
+                                   const RMessagePtr2&amp; aMessage)
+  {
+  // Copy aMessage and aReplySlot to reply to the request at a later time
+  iMessage = aMessage;
+  iReplySlot = aReplySlot;
+	
+  TBuf8&lt;KLbsMaxClientNameSize&gt; clientName;
+  TBuf8&lt;KLbsMaxRequesterIdSize&gt; requesterId;
+	
+  TLbsPrivacyNotifierParamsPckg pckg;
+  pckg.Copy(aBuffer);
+  TLbsPrivacyNotifierParams params = pckg();
+  TLbsExternalRequestInfo info;
+  params.GetRequesterInfo(info);
+	
+  // Show the dialog with the requester details
+  iDlg-&gt;ShowDialog(info);
+  }</codeblock><note>A Privacy Verification Notifier need only implement an
+empty implementation of the synchronous <xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita#GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0/GUID-5DC8D35F-FFA5-3CE8-A06D-303A7E3ECC9B"><apiname>MEikSrvNotifierBase2::StartL()</apiname></xref> method.
+ </note></section>
+<section><title>Getting the privacy response parameters </title><p>The example
+notifier has a method called <codeph>DialogDismissed()</codeph> which is called
+by the verification dialog when it is closed (either by pressing <uicontrol>Accept</uicontrol> or <uicontrol>Cancel</uicontrol>).
+The method implementation below shows how to package up the privacy response
+into a <codeph>TLbsPrivacyReponseParamsPckg</codeph>, complete the message
+and cancel the notifier. </p><codeblock xml:space="preserve">// Called when dialog is dismissed
+void CMyLBSPrivacyVerifier::DialogDismissed()
+  {
+  // Set the response on the basis of the response params
+  if (!iMessage.IsNull())
+    {
+    // The dialog has already updated iResponseParams by reference
+    // Create package buf to send parameters to the calling client
+    TLbsPrivacyResponseParamsPckg pckg(iResponseParams);
+    iMessage.WriteL(iReplySlot, pckg);
+    iMessage.Complete(KErrNone);
+
+    // Cancel the notifier
+    iManager-&gt;CancelNotifier(KLbsExtLocationRequestVerifyUid);
+		  }
+  }</codeblock></section>
+<section><title>Cancelling the notifier </title><p>The LBS subsystem has a
+timeout for Privacy Notifiers that calls the <xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita#GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0/GUID-D53FC05F-B90A-3CB6-874E-39C4709310C9"><apiname>MEikSrvNotifierBase2::Cancel()</apiname></xref> method. </p><codeblock xml:space="preserve">// Called to cancel the notification (for example for a request timeout)
+// The LBS subsystem sets the timeout for privacy notifiers
+void CMyLBSPrivacyVerifier::Cancel()
+  {
+  if (!iMessage.IsNull())
+    {
+		  iMessage.Complete(KErrCancel);
+		  }
+  iDlg-&gt;HideDialog();
+  }</codeblock></section>
+<section><title>Releasing the notifier </title><p>The ECOM release method
+just calls delete on the notifier.</p><codeblock xml:space="preserve">// Just delete the notifier
+void CMyLBSPrivacyVerifier::Release()
+  {
+  delete this;
+  }</codeblock></section>
+<section><title>Notifier destructor </title><p>The destructor method just
+deletes the dialog object that was created in the notifier's <codeph>ConstructL()</codeph>. </p><codeblock xml:space="preserve">CMyLBSPrivacyVerifier::~CMyLBSPrivacyVerifier()
+  {
+  if (iDlg)
+    {
+    // Delete the dialog
+    delete iDlg;
+    }
+  }</codeblock></section>
+<section><title>Constructing the dialog </title><p>These methods show how
+the dialog is constructed. A reference to the response parameters object owned
+by the parent notifier is passed by reference in the <codeph>NewLD()</codeph> method.
+This is written to when the user chooses to accept or reject the privacy request. </p><codeblock xml:space="preserve">// Static function to create new dialog
+// Response parameters passed by reference
+// They are written when the dialog closes
+CMyLBSPrivacyVerifierDialog* CMyLBSPrivacyVerifierDialog::NewLD(
+                                CMyLBSPrivacyVerifier* aNotifier,
+                                TLbsPrivacyResponseParams&amp; aResponseParams)
+  {
+  CMyLBSPrivacyVerifierDialog* self
+= new (ELeave) CMyLBSPrivacyVerifierDialog(aNotifier, aResponseParams);
+
+  CleanupStack::PushL(self);
+  self-&gt;ConstructL();
+  CleanupStack::Pop(self);
+  return self;
+  }
+
+// Private dialog constructor 
+// Set the notifier to be the observer 
+// and pass a reference to response parameters
+CMyLBSPrivacyVerifierDialog::CMyLBSPrivacyVerifierDialog(
+CMyLBSPrivacyVerifier* aNotifier, 
+TLbsPrivacyResponseParams&amp; aResponseParams) : 
+iNotifier(aNotifier), iResponseParams(aResponseParams)
+  {
+  }
+
+// Second stage constructor - load dialog resources
+void CMyLBSPrivacyVerifierDialog::ConstructL()
+  {
+  LoadResourceL();	
+  }</codeblock></section>
+<section><title>Loading dialog resources </title><p>For the example shown,
+the dialog resources are loaded when it is constructed (a sleeping dialog).
+This is a good design decision for dialogs that must be shown in low memory
+conditions, which is the case for the LBS dialogs that must notify of emergency
+location requests. </p><codeblock xml:space="preserve">// Load resources for the dialog
+void CMyLBSPrivacyVerifierDialog::LoadResourceL()
+  {
+	
+  // Notifiers can be loaded from ROM or RAM
+  // resource location is not hard-coded
+  TFileName fileName;
+  Dll::FileName(fileName);
+  fileName.SetLength(KMaxDriveName);
+
+  // force arg evaluation before calling _LIT
+  #define _LIT1(k,s) _LIT(k,s) 
+        
+  // Values defined in MyLBSPrivacyVerifier.h
+  // Dialog resources
+  _LIT1(KRscFile, VERIFY_RESOURCE);
+  _LIT1(KRscDir,  VERIFY_RESOURCE_PATH);
+   
+  fileName+=KRscDir;
+  fileName+=KRscFile;
+
+  // Load the dialog resources
+  iEikonEnv = CEikonEnv::Static();
+  BaflUtils::NearestLanguageFile(iEikonEnv-&gt;FsSession(),fileName);
+		
+  TInt offset = iEikonEnv-&gt;AddLibraryL(&amp;fileName);
+  TRAPD(err, ConstructSleepingDialogL(R_LBS_VERIFY_DIALOG));
+  iEikonEnv-&gt;DeleteResourceFile(offset);
+  User::LeaveIfError(err);
+  }</codeblock></section>
+<section><title>Showing the dialog </title><p>The method <codeph>ShowDialog()</codeph> is
+called by the notifier when it is started by a call to <xref href="GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0.dita#GUID-DE445C4B-22EF-3A1F-8A69-57CB703BFAD0/GUID-5DC8D35F-FFA5-3CE8-A06D-303A7E3ECC9B"><apiname>MEikSrvNotifierBase2::StartL()</apiname></xref>.
+In this example, all dialog resources were allocated at start-up so it is
+only necessary to show it. </p><codeblock xml:space="preserve">void CMyLBSPrivacyVerifierDialog::ShowDialog(TLbsExternalRequestInfo&amp; aInfo)
+  {
+  iInfo = aInfo;
+  RouseSleepingDialog();
+  }</codeblock><p>The dialog method <xref href="GUID-DC21E927-18B3-3BBF-9B67-496F2D158B03.dita#GUID-DC21E927-18B3-3BBF-9B67-496F2D158B03/GUID-AD6F7AE7-FCB8-38F0-9B6B-9FF24F2863AC"><apiname>CEikDialog::PreLayoutDynInitL()</apiname></xref> is
+implemented to show the client name from <codeph>TLbsExternalRequestInfo</codeph> before
+the dialog is shown to the user. This method could also show the other data
+fields held in <codeph>TLbsExternalRequestInfo</codeph>. </p><codeblock xml:space="preserve">// Populate the privacy verification dialog with the user identity
+void CMyLBSPrivacyVerifierDialog::PreLayoutDynInitL()
+  {
+  TBuf8&lt;KLbsMaxClientNameSize&gt; clientName;
+  TBuf8&lt;KLbsMaxRequesterIdSize&gt; requesterId;
+  TBuf8&lt;KLbsMaxClientExternalIdSize&gt; externalId;
+	
+  iInfo.GetClientName(clientName);
+  iInfo.GetRequesterId(requesterId);
+  iInfo.GetClientExternalId(externalId);
+	
+  // Show the client name
+  // Expand() only works for converting from ASCII
+  // encoded buffer to Unicode
+  // You may need to use CCnvCharacterSetConverter in your implementation
+
+  CEikEdwin* edwin = STATIC_CAST(CEikEdwin*, 
+                                 this-&gt;Control(EPrivacyClientName));
+  edwin -&gt;SetTextL(&amp;clientName.Expand());
+  edwin-&gt;SetReadOnly(ETrue);
+	
+  // Could also show the requesterId and externalId in the dialog...
+  }</codeblock></section>
+<section><title>Making a privacy response </title><p>The dialog's <xref href="GUID-DC21E927-18B3-3BBF-9B67-496F2D158B03.dita#GUID-DC21E927-18B3-3BBF-9B67-496F2D158B03/GUID-6AFDB981-BBA2-3A5E-A7A5-BA6B39BC4CE9"><apiname>CEikDialog::OkToExitL()</apiname></xref> method
+is called when the user selects <uicontrol>Accept</uicontrol> or <uicontrol>Cancel</uicontrol>.
+This method is implemented to set the <codeph>TLbsPrivacyResponseParameters</codeph> in
+the parent notifier with the user response, which is either to accept or reject
+the privacy request.</p><codeblock xml:space="preserve">// From CEikDialog - called when a dialog button is pressed
+TBool CMyLBSPrivacyVerifierDialog::OkToExitL(TInt aButtonId)
+  {
+  // Set the notifier response parameters based on user response
+  // Member variable iResponse is reference
+  // to notifier TLbsPrivacyResponseParams
+	
+  // Get the value of the pressed button
+  if (aButtonId == EPrivacyRequestAccept)
+    {
+    iResponseParams.SetResponseType(EResponseAccepted);
+    }
+  else // Privacy request rejected 
+    {
+    iResponseParams.SetResponseType(EResponseRejected);
+    }
+
+  // Inform the notifier that this dialog is exiting
+  // so that it can inform the notifier manager
+  iNotifier-&gt;DialogDismissed();
+  return ETrue;
+  }</codeblock></section>
+<section><title>Hiding the dialog and freeing resources</title><p>The dialog's <codeph>HideDialog()</codeph> method
+is called by the notifier when LBS cancels the notifier, for example if a
+timeout occurs or another privacy request is sent (a new privacy request cancels
+any outstanding privacy request). In this example, the dialog resources are
+not freed because the dialog is a sleeping dialog. </p><codeblock xml:space="preserve">// Hide the dialog and report to the notifier
+void CMyLBSPrivacyVerifierDialog::HideDialog()
+  {
+  // Using a sleeping dialog
+  ExitSleepingDialog();
+  iNotifier-&gt;DialogDismissed();
+  }
+
+// Destructor frees dialog resources
+CMyLBSPrivacyVerifierDialog::~CMyLBSPrivacyVerifierDialog()
+  {
+  iEikonEnv-&gt;EikAppUi()-&gt;RemoveFromStack(this);
+  FreeResource();
+  }
+
+// Free dialog resources
+void CMyLBSPrivacyVerifierDialog::FreeResource()
+  {
+  if (iResourceFile)
+    {
+		  CEikonEnv::Static()-&gt;RemoveLibrary(iResourceFile);
+		  iResourceFile = 0;
+    }
+  }</codeblock></section>
+</conbody></concept>

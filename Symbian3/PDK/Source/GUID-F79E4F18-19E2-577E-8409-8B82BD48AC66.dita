@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F79E4F18-19E2-577E-8409-8B82BD48AC66" xml:lang="en"><title>XML
+Framework Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The XML Framework is a collection of components for event-based XML parsing
+and provides content-processing architecture. </p>
+<section><title>Purpose</title> <p>The XML Framework provides configurable
+features for parsing XML and <xref href="http://www.w3.org/TR/wbxml/" scope="external">WBXML</xref> (WAP
+Binary XML), with options for validating against a specification and auto-correcting
+for spelling errors in the validated text, using a single interface. It is
+based on the <xref href="http://www.saxproject.org" scope="external">SAX</xref> (Simple
+API for XML) specification. </p> </section>
+<section><title>Required background</title> <p>You must have a basic understanding
+on XML before using XML Framework. </p> </section>
+<section><title>Key concepts</title> <p>The following are the key concepts
+of XML Framework: </p><p><b>Attribute</b></p><p>A name-value pair separated
+by an equals sign, for example <codeph>author="Jane Austen"</codeph>  </p><p><b>Attribute
+type </b></p><p>One of certain data types defined for attributes, for instance <codeph>CDATA</codeph>. </p><p><b>Client</b></p><p>An
+application which uses the XML framework for parsing or generating a document. </p><p><b>Document
+Type Definition (DTD) </b></p><p>A document which defines a particular use
+of XML entities (the names, attributes and values permitted). </p><p><b>Extension</b></p><p>WBXML
+extends XML syntax with extension tokens which are used differently by different
+applications. For example, extension token is used to refer to a string table
+created specifically for each message and transmitted in the introduction
+of the message. </p><p><b>Parser</b></p><p>It is an interface to the XML framework
+which allows a client to access the parser plug-ins, which are specific for
+a mark-up language. For example, XML Expat Parser and WBXML Parser. </p><p><b>String
+dictionary collection</b></p><p>A class that holds a collection of string
+dictionaries. </p><p><b>String dictionary plug-ins </b></p><p>The XML Framework
+allows strings to be stored in DTD document, XML namespace or WBXML code page
+in an ECOM plug-in that could be accessed as required by the parser and the
+client. These plug-ins are referred as string dictionary plug-ins. </p><p><b>String
+pool</b></p><p>A string pool is a mechanism for storing strings in a particular
+way using which the strings can be compared quickly. </p><p><b>String table</b></p><p>A
+WBXML document is encoded and decoded using a table of frequently encountered
+strings which the body of the document references by index to compress the
+data. </p><p><b>Uniform Resource Identifier (URI)</b></p><p>The web address
+associated with a prefix. For instance, <codeph>http://www.w3.org/XML/1998/namespace</codeph>. </p><p><b>WBXML</b></p><p>WAP
+Binary XML (WBXML) is a binary representation of XML. It was developed by
+the Open Mobile Alliance as a standard to allow XML documents to be transmitted
+in a compact manner over mobile networks and was proposed as an addition to
+the World Wide Web Consortium's Wireless Application Protocol family of standards. </p> </section>
+<section><title>Architecture</title> <p>The following diagram illustrates
+the XML framework, consisting of client and a parser: </p> <fig id="GUID-9EE24AE6-17F1-59A2-9AF8-9A1068393053">
+<title>              Block diagram of XML framework            </title>
+<image href="GUID-CA1CE18E-DB40-5608-BE09-3767FB094AB2_d0e672269_href.png" placement="inline"/>
+</fig> <p>The XML framework consists of classes which model the main constituents
+of the architecture - the framework as a whole, the parser plug-ins and extensions
+to XML, the content processor chain and the content handler mechanism. </p> <p>The
+XML and WBXML parsers convert the contents of a document to UTF-8 format.
+This is to ensure that extended characters are not lost from the document
+by the String Pool. Expat is the engine behind the XML parser plug-in. </p> <p>The
+XML Framework allows strings to be stored for a particular DTD, XML namespace
+or WBXML codepage in an ECOM plug-in that can be accessed when requireded
+by the Parser and the Client. These plug-ins are referred as String Dictionary
+Plug-ins and they are managed through a string dictionary collection object.
+See <xref href="GUID-0D16866C-F46B-5A2B-B974-324278588A1B.dita">String Dictionary</xref>  </p> <p>Libxml2
+provides XML processing, parsing and validation APIs. See <xref href="GUID-0129AE17-B171-5CD5-8542-1DB738CBAB8B.dita">libxml2</xref>. </p> <p>Plug-in
+1 and Plug-in 2 are examples of optional processors, which may be chained
+together with the parser output to allow further processing of the data, before
+the client receives it. Such plug-ins can be a DTD validator or a document
+auto-corrector. The chain is not limited to just two plug-ins. </p> <p><b>Parser
+framework</b> </p> <p>The XML framework contains Parser framework which is
+represented by the <xref href="GUID-3C824E3B-68AB-31C5-A3D7-26A73B53D076.dita"><apiname>CParser</apiname></xref> class. A client with an XML
+document to be parsed creates a <xref href="GUID-3C824E3B-68AB-31C5-A3D7-26A73B53D076.dita"><apiname>CParser</apiname></xref> object and calls
+its parse functions. <xref href="GUID-3C824E3B-68AB-31C5-A3D7-26A73B53D076.dita"><apiname>CParser</apiname></xref> obtains the data about plug-ins
+and the document to be parsed from<xref href="GUID-A6CF939C-110C-3FA4-8C2E-0B48C04D9CFB.dita"><apiname>CMatchData</apiname></xref> and <xref href="GUID-D79A2F59-8DC1-3493-92F6-2E1337CD9405.dita"><apiname>RDocumentParameters</apiname></xref> classes
+respectively. </p> <p>The parser framework conforms to the event-based SAX
+specification. It outputs an event when it starts or finishes reading one
+of the following: </p> <ul>
+<li id="GUID-A229D260-A15A-5EC6-8808-60577D988073"><p>a document </p> </li>
+<li id="GUID-4ED3BF2E-0CB8-54E3-B332-C60A032FD8F5"><p>a start tag </p> </li>
+<li id="GUID-57CB6A28-6F7B-5D75-AB59-BA4429374D23"><p>an end tag </p> </li>
+<li id="GUID-2CB3BFDA-425D-5936-B2D0-1A5459D56813"><p>a prefix mapping </p> </li>
+<li id="GUID-181F5F9F-D9D2-5E42-96F4-BACD64B2ABBF"><p>a processing instruction </p> </li>
+<li id="GUID-FB122F10-A946-5661-8A9B-A42877FB0DAC"><p>character data </p> </li>
+<li id="GUID-C0C9C2C4-862B-55CF-904F-E761518275DB"><p>ignorable white space </p> </li>
+</ul> <p>For more information on XML-related concepts, refer to W3C or similar
+sources. </p> <p><b>Parser plug-ins</b> </p> <p>The <xref href="GUID-3C824E3B-68AB-31C5-A3D7-26A73B53D076.dita"><apiname>CParser</apiname></xref> is
+the interface to the XML framework allowing the client to access the parser
+plug-ins, each one of which is specific to a mark-up language (e.g. XML, WBXML).
+Individual parser plug-in implements the <xref href="GUID-6F334B00-8026-3FA3-AE96-B0A511030B7B.dita"><apiname>MParser</apiname></xref> interface.
+It is associated through the <xref href="GUID-5F929E9F-E895-3DA6-8072-28C4B8B1CF81.dita"><apiname>TParserInitParams</apiname></xref> class, with
+a character set converter (to convert other formats to Unicode), a string
+dictionary and an element stack. </p> <p>The Symbian platform framework is
+delivered with three parser plug-ins, two for XML and one for WBXML. </p> <ul>
+<li id="GUID-CAAD5966-F37D-5A9C-A240-911B6683B315"><p>The first XML parser
+consists of <xref href="GUID-278C5360-5023-3406-98B1-BEB7AD2A4A9D.dita"><apiname>CXmlParser</apiname></xref> class, which is wrapped around the <xref href="GUID-D7864E56-D87D-3EC0-BA5F-804BE8F532FF.dita"><apiname>CExpat</apiname></xref> class,
+an implementation of the stream-based Expat parser. </p> </li>
+<li id="GUID-4A7DAA35-DD92-547F-BF81-232521F21A79"><p>The second XML parser
+consists of <xref href="GUID-F6E8B374-12D7-34FE-A1AA-F8B2BCA45B0A.dita"><apiname>CXMLEngineSAXPlugin</apiname></xref> class, which encapsulates
+the SAX parser of the <codeph>libxml2</codeph> component. It is not available
+if the Symbian platform build excludes this component. </p> </li>
+<li id="GUID-A5342749-34E7-5AD4-A5E4-FD46703F4AC7"><p>The WBXML parser is
+implemented as the <xref href="GUID-98F7BF57-BDC8-3BA4-9141-7DEDFFF64DB0.dita"><apiname>CWmxmlParser</apiname></xref> class. </p> </li>
+</ul> <p><b>Extensions to XML</b> </p> <p>The XML framework provides extensions
+to XML. At present WBXML is implemented. WBXML requires use of string dictionaries
+and extension tokens to store the element strings specific to the WBXML, which
+are represented by the <xref href="GUID-094A4884-182E-3A10-80F5-85A925020BC1.dita"><apiname>RStringDictionaryCollection</apiname></xref>, <xref href="GUID-FF04F0FE-771D-3197-BA3F-BB34C78E2F65.dita"><apiname>MWbxmlExtensionHandler</apiname></xref> and <xref href="GUID-1D0F59D7-574C-3485-9AB7-499712E5F20B.dita"><apiname>TExtensionTokens</apiname></xref> classes. </p> <p><b>Content processors</b> </p> <p>Content processors are
+plug-ins which perform further operations on the output of a parser plug-in.
+They implement the <xref href="GUID-7942EDC6-6571-3423-8ECA-D3DB68A78CB6.dita"><apiname>MContentProcessor</apiname></xref> interface and are
+associated through the <xref href="GUID-892978EC-1BE4-3356-ADB1-1E7EAB83C686.dita"><apiname>TContentProcessorInitParams</apiname></xref> class,
+with a string dictionary and element stack. They are organised into chains
+by the <xref href="GUID-0DFBB9EA-5A0E-3B4F-AD60-3CCD35090B40.dita"><apiname>MContentSource</apiname></xref> class which directs the output of
+each plug-in to the next plug-in in the chain. </p> <p><b>Content handlers</b> </p> <p>A
+client application which is designed to react to the output of the XML framework
+event must implement the <xref href="GUID-A6B8386B-29F6-3BEC-9D77-D8E0900DEAC2.dita"><apiname>MContentHandler</apiname></xref> interface. The
+functions to be implemented correspond to the SAX specification discussed
+in the Parser Framework section. </p> </section>
+<section><title>APIs</title> <p>The XML Framework exports the following APIs: </p> <table id="GUID-7EBF7AA5-B11F-5C40-93A7-685E8714DE92">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-D7864E56-D87D-3EC0-BA5F-804BE8F532FF.dita"><apiname>CExpat</apiname></xref>  </p> </entry>
+<entry><p>Encapsulates the Expat XML parser. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-278C5360-5023-3406-98B1-BEB7AD2A4A9D.dita"><apiname>CXmlParser</apiname></xref>  </p> </entry>
+<entry><p>Implementation of the stream-based Expat parser. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-F6E8B374-12D7-34FE-A1AA-F8B2BCA45B0A.dita"><apiname>CXMLEngineSAXPlugin</apiname></xref>  </p> </entry>
+<entry><p>Encapsulates the SAX parser of the <codeph>libxml2</codeph> component. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-3C824E3B-68AB-31C5-A3D7-26A73B53D076.dita"><apiname>CParser</apiname></xref>  </p> </entry>
+<entry><p>Represents the entire parser framework. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-A6CF939C-110C-3FA4-8C2E-0B48C04D9CFB.dita"><apiname>CMatchData</apiname></xref>  </p> </entry>
+<entry><p>Consists of the data of the plug-ins. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-98F7BF57-BDC8-3BA4-9141-7DEDFFF64DB0.dita"><apiname>CWmxmlParser</apiname></xref>  </p> </entry>
+<entry><p>WBXML parser implementation. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D79A2F59-8DC1-3493-92F6-2E1337CD9405.dita"><apiname>RDocumentParameters</apiname></xref>  </p> </entry>
+<entry><p>Consists of the data about the document to be parsed. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-AE53784D-B405-34D8-9A93-ACDE6F8ECA44.dita"><apiname>RElementStack</apiname></xref>  </p> </entry>
+<entry><p>Data structure used to store XML elements and check the tag ordering. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-094A4884-182E-3A10-80F5-85A925020BC1.dita"><apiname>RStringDictionaryCollection</apiname></xref>  </p> </entry>
+<entry><p>Holds a collection of dictionaries requested by the user. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Typical uses</title> <p>The following tasks can be performed
+using XML Framework: </p> <ul>
+<li id="GUID-0FD3D44F-83D3-57C4-9C3E-063450A8078E"><p>Parsing an XML document. </p> </li>
+<li id="GUID-9C4511A4-49FE-53FA-83A4-9B55D58B0905"><p>Choosing a parser plug-in. </p> </li>
+<li id="GUID-6B09BFFF-8BBC-5FDC-B1CE-339C893C5164"><p>Using content processor. </p> </li>
+<li id="GUID-EC907C49-599B-5C60-B212-74AB22DEA759"><p>Writing a parser plug-in. </p> </li>
+<li id="GUID-A86A66BB-0C80-5760-B7C3-7C4E276C5EFF"><p>Customising a parser
+plug-in. </p> </li>
+<li id="GUID-3F689A67-D8DC-50EF-9D49-476417E503B6"><p>Creating a resource
+file for a parser plug-in. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-4A9255D1-42A4-57FA-A4B4-42C552964047.dita"><linktext>XML Framework
+Tutorials</linktext></link>
+</related-links></concept>

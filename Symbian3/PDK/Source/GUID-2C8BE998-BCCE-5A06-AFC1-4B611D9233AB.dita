@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB" xml:lang="en"><title>Turn
+Off Broadcast Receiver Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This document helps you to understand how <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita"><apiname>RDvbhReceiver</apiname></xref> handles
+session close and the power off for a Broadcast Receiver hardware. </p>
+<section><title>Purpose</title> <p>This tutorial tells you about shutting
+down the Broadcast Receiver hardware. The purpose is to end up with closed
+session and, or power off the hardware. </p> </section>
+<section><title>Required Background</title><p>When you have finished with
+a <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita"><apiname>RDvbhReceiver</apiname></xref> instance, you must close the session before
+it is destroyed or else risk causing a memory leak and corrupt reference count
+on the receiver.</p></section>
+<section><title>Introduction</title><p>To shut down the hardware, you need
+to power off and close the session to the receiver. There are two ways to
+shut down the receiver, they are as follows: </p> <ul>
+<li id="GUID-2E7E8F37-39DA-542E-9AF6-F1724E78206C"><p>Call <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-67BCF315-6BA2-3968-8E9B-091099B839A6"><apiname>RDvbhReceiver::PowerOff()</apiname></xref> where
+signal to the receiver no longer to be called. </p> </li>
+<li id="GUID-29B735E9-B3B1-5A9C-972B-2F771989154E"><p>Shut down immediately.
+This is done by calling <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-36FEEFAF-D70C-3503-A7EE-3E82F477699F"><apiname>RDvbhReceiver::SetDisabled()</apiname></xref>. </p> </li>
+</ul></section>
+<section><title>Setup and Configuration Requirements</title><p>You need a
+receiver instance for the DVB-H Receiver to be called.</p></section>
+<section><title>Using Turn Off Broadcast Receiver Tutorial </title> <p>The
+Following tasks will be covered in this tutorial: </p> <ul>
+<li id="GUID-0FB84F09-9BBF-57CE-AE54-52F13C2197C9"><p><xref href="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB.dita#GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB/GUID-14548294-63CE-5F2C-8841-473B55CA4EAA">How to power off the broadcast receiver</xref>  </p> </li>
+<li id="GUID-433693FC-CAEF-560F-B7A0-8285449A19D0"><p><xref href="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB.dita#GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB/GUID-C1DB684C-D44A-5F9F-BC92-EBFE9D2D59FD">How to close session of the broadcast receiver</xref>  </p> </li>
+<li id="GUID-DA3C4A3A-690D-5CDB-B536-877EB901B835"><p><xref href="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB.dita#GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB/GUID-96FF993F-DF4A-59C3-8C60-F4471243B115">How to shut down immediately the broadcast receiver</xref>  </p> </li>
+</ul> <p id="GUID-96FF993F-DF4A-59C3-8C60-F4471243B115"><b>Basic Procedure
+To Shut Down The Receiver </b> </p> <p>The high level steps to shut down immediately
+the broadcast receiver are shown here: </p> <ol id="GUID-C6B5E57D-4DC6-5C42-A558-8D5000B41BDB">
+<li id="GUID-3EAD9828-9D52-59F4-A625-1BB2492B1955"><p>For power downing the
+receiver immediately, you need to call <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-36FEEFAF-D70C-3503-A7EE-3E82F477699F"><apiname>RDvbhReceiver::SetDisabled()</apiname></xref>.
+This method takes a boolean parameter as ETrue to disable or EFalse to re-enable.
+If this method is called with ETrue on any instance, then power to the receiver
+is immediately cut and the receiver is put into disabled state. </p> <p>In
+disabled state, the power to the receiver remains off even if calls to <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-3C48A641-C307-37D6-9931-D627363C8942"><apiname>RDvbhReceiver::PowerOn()</apiname></xref> are
+invoked. Indeed, <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-3C48A641-C307-37D6-9931-D627363C8942"><apiname>RDvbhReceiver::PowerOn()</apiname></xref> returns KErrLocked
+while the receiver is in disabled state. In order for the receiver to be moved
+out of disabled state, <codeph>RDvbhReceiver::SetDisabled(EFalse)</codeph> must
+be called from each session that issued is <codeph>RDvbhReceiver::SetDisabled(ETrue)</codeph>.
+When the receiver is moved out of the disabled state, it may be powered back
+on call to <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-3C48A641-C307-37D6-9931-D627363C8942"><apiname>RDvbhReceiver::PowerOn()</apiname></xref> as usual. </p> </li>
+</ol> </section>
+<section><title>Basic procedure to power off the broadcast receiver</title><p> The
+high level steps to power off the broadcast receiver are shown here:  </p> <ol id="GUID-4474F313-4884-53AB-BDAF-396690EEE32B">
+<li id="GUID-748BBB20-5810-5AE3-8629-C0AEBAB46881"><p>To power off the receiver,
+call <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-67BCF315-6BA2-3968-8E9B-091099B839A6"><apiname>RDvbhReceiver::PowerOff()</apiname></xref>. </p> </li>
+<li id="GUID-B15585C9-10EC-5AF9-999A-FDAF28DDF6A1"><p>In order to shut down
+power completely, <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-67BCF315-6BA2-3968-8E9B-091099B839A6"><apiname>RDvbhReceiver::PowerOff()</apiname></xref> takes into
+account the reference count of the receiver client and puts the power off
+until each client that has called <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-3C48A641-C307-37D6-9931-D627363C8942"><apiname>RDvbhReceiver::PowerOn()</apiname></xref>. </p> </li>
+</ol></section>
+<section><title>Example to off the broadcast receiver power</title><codeblock id="GUID-691E7762-7B2E-584B-AE47-02E3A9022C26" xml:space="preserve">
+
+RDvbhReceiver receiver1;
+RDvbhReceiver receiver2;
+RDvbhReceiver receiver3;
+
+User::LeaveIfError(receiver1.Open());
+User::LeaveIfError(receiver2.Open()); 
+User::LeaveIfError(receiver3.Open());
+
+User::LeaveIfError(receiver1.PowerOn());
+User::LeaveIfError(receiver3.PowerOn());
+
+//Wait until booting has completed.  Shared receiver is now powered on.
+receiver1.PowerOff(); //count decremented, but receiver power is still on.
+receiver2.PowerOff(); //count not decremented, No effect.
+receiver3.PowerOff(); //count decremented to 0. No more clients that have requested power 
+                      // on, so the power is turned off.
+
+</codeblock></section>
+<section><title>Basic Procedure To Close Session Of The Broadcast Receiver</title><p> The
+high level steps to close session of the broadcast receiver are shown here: </p> <ol id="GUID-CBECB065-48EB-52E4-B758-C4C2A2053435">
+<li id="GUID-55276E26-DEAC-5778-92B4-D78091A882BE"><p>In order to close the
+session call <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-FFE19627-4B07-3246-BCB2-957122BD1FBD"><apiname>RDvbhReceiver::Close()</apiname></xref>. </p> </li>
+<li id="GUID-FC794A51-1FD6-5879-95F7-70A5825C2913"><p>If <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-3C48A641-C307-37D6-9931-D627363C8942"><apiname>RDvbhReceiver::PowerOn()</apiname></xref> is
+called on an instance, then <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-FFE19627-4B07-3246-BCB2-957122BD1FBD"><apiname>RDvbhReceiver::Close()</apiname></xref> reduces
+the reference count as if <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-67BCF315-6BA2-3968-8E9B-091099B839A6"><apiname>RDvbhReceiver::PowerOff()</apiname></xref> is
+called. As a result, if there are no more open sessions to the receiver, then
+it is powered off. </p> </li>
+</ol></section>
+</conbody><related-links>
+<link href="GUID-3C9BE2FF-8D5C-51D0-8BC1-BED7BC1288BA.dita"><linktext>Turn On Broadcast
+Receiver</linktext></link>
+<link href="GUID-0297CAF5-4EB7-5E84-8A8C-8758D6F3B75F.dita"><linktext>Setting Data
+Reception</linktext></link>
+<link href="GUID-567585CC-26EC-553D-99D5-D3C178C455F6.dita"><linktext>DVB-H Signal
+Scanning</linktext></link>
+<link href="GUID-743D3117-095B-58D5-947D-A8713475C9A5.dita"><linktext>Tuning IP
+Platform</linktext></link>
+<link href="GUID-F5FE22F3-B7C4-50B3-9B36-5CB8BC1BA18A.dita"><linktext>Receiving
+Broadcast Data</linktext></link>
+</related-links></concept>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-00FFF2B3-F8E4-5CBF-B031-240D98BB2111"><title>External Programs</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>External programs are executables built outside but which can be launched from the Zsh command prompt. </p> <p>If the command is neither built-in, nor specified with an absolute pathname, the shell will look in the <filepath>\sys\bin</filepath> on each drive in reverse alphabetical order (<filepath>y:</filepath>, <filepath>x:</filepath>,... to <filepath>b:</filepath>, <filepath>a:</filepath> and later <filepath>z:</filepath>) and execute the first external program found. </p> <p>To execute the external program directly give the following command at the command-prompt: </p> <p><userinput>command &lt;ext_pgm&gt;</userinput> </p> <p>where <codeph>ext_pgm</codeph> is the name of the external program. </p> <p>For example: </p> <p>The program below reads input from Zsh and writes data to Zsh which can then be redirected back to the Telnet client. </p> <codeblock id="GUID-2A92BFF9-D69D-5C18-B657-9D7D5738EA22" xml:space="preserve">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;unistd.h&gt;
+
+int  main()
+    {
+    char userData[20]; char ch; int x=0;
+    
+    memset(userData,0,20);
+    x=read(0,userData, 20);    
+        
+    while(strcmp(userData, "quit"))
+        {
+        write(1, userData, x);
+        memset(userData,0,20);
+        x=read(0,userData, 20);        
+        }        
+    return 0;                 
+    }
+</codeblock> <section><title>Limitations</title> <p>P.I.P.S. applications and native Symbian applications can be launched from the Telnet client. However, to view the output of the program or interact with it, the standard input and output of the program must be accessible to the Telnet server. This is only possible with P.I.P.S. applications. With native applications you will only be able to retrieve the termination status; you will not be able to view the output or interact with the program. </p> <p>Permission will be denied for external programs that does not have the required capabilities to access directories that contain <filepath>/sys</filepath> and <filepath>/private</filepath> in their directory path. </p> <p> <b>Note:</b> For more information about the external commands supported by Zsh, see the <xref href="GUID-3F577531-9798-537F-8F8B-7CAB0257560C.dita">Zsh Command Syntax</xref> section. </p> </section> <section><title>See also</title> <p>For information on porting Standard C applications to Symbian platform see the <xref href="GUID-E2DE2C6F-E071-5E88-96F1-D71DDED84609.dita">P.I.P.S. Guide</xref>. </p> </section> </conbody></concept>

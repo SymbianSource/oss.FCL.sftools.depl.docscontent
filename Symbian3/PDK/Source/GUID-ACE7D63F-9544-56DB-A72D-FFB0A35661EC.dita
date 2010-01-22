@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-ACE7D63F-9544-56DB-A72D-FFB0A35661EC" xml:lang="en"><title>Loading
+a Symbian platform Defined Table, Changing a Field, Write Changed Record:
+Tutorial</title><shortdesc>This tutorial shows you how to load a Symbian platform defined
+table from the Comms Database, change a field, and write the changed record
+to the database. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<prereq id="GUID-A9D46D95-97E9-537C-BDAA-80CF7A780A99"><p>Before you start,
+you must understand: </p> <ul>
+<li id="GUID-A70B727A-1BE6-5443-91DD-103CD9842F16"><p>the general concept
+of the Comms Database </p> </li>
+<li id="GUID-15D683C4-D755-5BEC-845D-A81891190114"><p>the specific concept
+of fields, records, links and tables </p> </li>
+<li id="GUID-686874B2-2B58-5B2A-A9FF-71C156232E62"><p>how to write and build
+application code to run on Symbian platform </p> </li>
+</ul> </prereq>
+<context id="GUID-9837C422-F698-5621-AE3D-2410D5FBDA37"><p>This tutorial shows
+you: </p> <ul>
+<li id="GUID-72E9465D-1003-521A-8449-37ABB8A5F84E"><p>how to load the <i>Internet
+Access Points Configuration</i> table. This table is also called the IAP table </p> </li>
+<li id="GUID-E4E3455F-1A38-53A2-B609-314580025107"><p>how to search for a
+records that have a specific <i>Service Type</i> field. </p> </li>
+<li id="GUID-810269E0-5159-5028-9A8F-E9DEA5BCB815"><p>how to change the <i>Network
+Weighting</i> field in the last record found </p> </li>
+<li id="GUID-240F862B-4292-5E86-A7F2-AEF989BBAF7F"><p>how to store the changed
+record in the Comms Database. </p> </li>
+</ul> <p>The principles that apply here also apply to the other Symbian platform
+defined tables. </p> </context>
+<steps id="GUID-DCCB1FCB-FC9C-5D02-AD5C-F85560BE77E4">
+<step id="GUID-F8378F77-253C-5FC0-9235-05E15F8A7E2F"><cmd>Make sure that you
+have created a session. </cmd>
+</step>
+<step id="GUID-6FD057FB-F78B-5524-8DAB-9EF7EEE03DC7"><cmd>Create the table
+object in the tool or application process. </cmd>
+
+<info>You create a <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBRecordSet</apiname></xref> <codeph>&lt;T&gt;</codeph> object
+and specify <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CCDIAPRecord</apiname></xref> as the template
+parameter. </info>
+
+<info>Symbian platform defines the <codeph>CCDIAPRecord</codeph> class to
+represent a IAP record. The class is a schema for the record. The class defines
+the fields and links that make a IAP record. </info>
+<info>Symbian platform defines <xref href="GUID-6DAF85AD-E412-5823-81C2-FC1755A90A84.dita#GUID-6DAF85AD-E412-5823-81C2-FC1755A90A84/GUID-32E556BC-55C3-5FBD-9A60-9708139C20D6">unique
+numeric Id</xref> s for Symbian platform defined tables. The symbol <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>KCDTIdIAPRecord</apiname></xref> defines the value of this Id for
+the IAP table. The Id allows the CommsDat API to retrieve the table from the
+Comms Database efficiently. </info>
+<info>To work with other Symbian platform defined tables, use the correct
+class name and the correct unique numeric Id values. The <xref href="GUID-58089281-9DD0-502D-8DFD-831E7BAA931E.dita">Reference</xref> section
+contains a list of all Symbian platform defined tables. </info>
+<stepxmp><codeblock id="GUID-AB6A65B1-4FBB-5712-97CC-B9223A1538B6" xml:space="preserve">...
+
+// This code fragment assumes that a session with the Comms Database has been created.
+// iDb is a pointer to a CMDBSession object
+...
+
+// Use the standard "new (ELeave)" construction to create the object to 
+// represent the table. 
+//
+// Note:
+// 1. the template parameter CCDIAPRecord defines 
+//    the "IAP" record type.
+// 2. the unique numeric Id KCDTIdIAPRecord is passed as a parameter
+//    to the constructor.
+CMDBRecordSet&lt;CCDIAPRecord&gt;* iapRecordSet = 
+   new (ELeave) CMDBRecordSet&lt;CCDIAPRecord&gt;(KCDTIdIAPRecord);
+...
+             </codeblock> </stepxmp>
+</step>
+<step id="GUID-78143DEF-8DA6-5FAB-A2D1-60891D85CED9"><cmd>Create a record
+that contains the type of Service Typefield needed. </cmd>
+
+<info>To search for a record the tool or application creates a record in memory.
+The fields in the record are set to the specific values on which the search
+is to match. In this tutorial this record is called the "search record". The
+record is appended to the set of records in the table object. At this point,
+the search record is the only record in the table, because the Comms Database
+has not yet been accessed. </info>
+
+<info>In this tutorial, the Service Type field in the search record is set
+to DialOutISP. </info>
+<stepxmp><codeblock id="GUID-0477C3F8-1ECF-50F8-B60A-55E3FF58BEB2" xml:space="preserve">...
+// Searching for all IAP records that support the DialOutISP service.
+_LIT(KServiceType, "DialOutISP");
+
+    
+// Create the "search record". You use the unique numeric Id KCDTIdIAPRecord 
+// to identify the type record to the factory function.
+CCDIAPRecord* ptrPrimingRecord = static_cast&lt;CCDIAPRecord *&gt;
+    (CCDRecordBase::RecordFactoryL(KCDTIdIAPRecord));
+
+
+// Prime the Service    Types field with the string "DialOutISP"
+ptrPrimingRecord-&gt;iServiceType.SetMaxLengthL(KServiceType().Length());
+ptrPrimingRecord-&gt;iServiceType = KServiceType; 
+
+
+// Append the search record to the table in memory. Remember that the table only 
+// contains this record. The Comms Database has not yet been accessed.
+iapRecordSet-&gt;iRecords.AppendL(ptrPrimingRecord);
+
+
+// Set the record pointer to NULL, because ownership of the "search record" has
+// been passed to the table object.
+ptrPrimingRecord = NULL; 
+...</codeblock> </stepxmp>
+</step>
+<step id="GUID-CAE140E8-AE1E-5B7A-A9E1-4A0885F02429"><cmd>Perform the search. </cmd>
+
+<info>Use the <codeph>FindL()</codeph> function to search the table in the
+Comms Database. The function is called on the class that defines the table.
+The function is implemented in the base class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>MMetaDatabase</apiname></xref>.
+You pass a reference to the session object into the <codeph>FindL()</codeph> function. </info>
+<stepxmp><codeblock id="GUID-1F8AC8D1-3C78-534F-8658-7D439BFFCF6D" xml:space="preserve">...
+// Perform the search. 
+if(iapRecordSet-&gt;FindL(*iDb))
+    {
+    // At least one record found. 
+    // Find the number of records found.   
+    TInt iapRecordsFound = iapRecordSet-&gt;iRecords.Count();
+
+    // Change the Network Weighting field in the last record.
+    CCDIAPRecord* iapRecord = 
+        static_cast&lt;CCDIAPRecord*&gt;( iapRecordSet-&gt;iRecords [iapRecordsFound-1]);
+    iapRecord-&gt;iNetworkWeighting = 1;
+
+    // Update the changed record in the Comms Database
+    
+    // EITHER
+    // Check through all records and submit all changes
+    // made by the tool or application.
+    iapRecordSet-&gt;ModifyL(*iDb);
+
+    // OR 
+    // Explicitly submit this record only
+    iapRecord -&gt;ModifyL(*iDb); 
+    ...
+    }
+else 
+    {
+    // No matching records found.
+    // Note that iRecords[0] still contains the "search record". The "search record"
+    // only contains the priming values.
+    // It is important to check the return code from the call to ModifyL()
+    }           
+...</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-1AFDDD6F-CB99-587D-A0B5-D3F5B27F7135.dita"><linktext>Comms Database
+                concepts</linktext></link>
+</related-links></task>

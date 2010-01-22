@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0EBE5733-A267-5F4A-85AD-87C3ECF80731" xml:lang="en"><title>Dynamic
+Resolution Switching</title><shortdesc>ScreenPlay provides support for externally connected displays,
+such as TV-out. Previous versions of Symbian and the non-ScreenPlay variant
+consider the size of all displays to be fixed, assuming them to be built into
+the phone. However, for High-Definition Multimedia Interface (HDMI) and composite
+video connectors, there is a range of resolutions that can change dynamically.
+ScreenPlay provides an optional feature that supports switching between resolutions
+at runtime. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. </p>
+<section id="GUID-374864AA-3757-4BD9-A5EB-4AC0E6DDD198"><title>The pre-ScreenPlay background</title> <p>Early devices typically
+had a screen size of 220 x 176 pixels. Over time, these were followed by higher
+resolution screens, such as 440 x 252 pixels. Applications that were designed
+for 220 x 176 pixel screens could run on 440 x 252 pixel screens because the
+Window Server simply scaled the pixels by a factor of two. </p> <p>However,
+this approach did not work when phones with 320 x 240 pixel screens were introduced,
+because each axis required a different scaling factor. Symbian introduced
+the <b>screen mode</b> feature to handle this and similar use cases. Device
+creators define in the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini
+file</xref> a number of screen modes for each physical screen on the device.
+For each screen mode the device creator defines parameters to control the
+offset from the top left corner of the screen, the height and width in both
+pixels and twips, <i>X</i> and <i>Y</i> axis scaling factors and so on. The
+Window Server uses these to position and scale old applications so that they
+can run on new phones with higher resolutions, as shown in the following diagram
+(which is not drawn to scale). The screen mode is still used in the same way
+in the <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay
+variant</xref>. </p> <fig id="GUID-FF86B974-1B1E-5EE1-A88A-9CD11B213A9B">
+<title>The screen mode enables old applications to run on new            
+ phones with higher resolutions            </title>
+<image href="GUID-AFC49653-78E6-5639-911C-E02AEB08AFFC_d0e204494_href.png" placement="inline"/>
+</fig> <p>There are several similar use cases, such as swapping between portrait
+and landscape orientations and flip phones that have a flap that, when closed,
+partially obscures the main screen. The Window Server uses the screen mode
+parameters to display applications differently depending on whether the phone
+is in portrait or landscape orientation and whether the flap is open or closed.
+The screen mode represents the area that is presented to the application and
+is available to application developers through <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-8E1B5729-FD1C-3D4A-AC73-C6364E7D5BBF"><apiname>CWsScreenDevice::SizeInPixels()</apiname></xref>. </p> <p>Defining
+the screen modes in the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini
+file</xref> in this way means that all possible screen sizes and resolutions
+must be fixed and known at ROM building time. This approach has limitations
+when working with technologies such as HDMI and composite video connectors,
+where there is a very wide range of possible resolutions that may not be known
+until runtime. </p> </section>
+<section id="GUID-139F6C69-85CD-4796-AE8D-A48EEAEB5294"><title>The ScreenPlay approach</title> <p>In ScreenPlay the actual
+resolution of the full composition/display area can be determined at runtime.
+The full UI area is mapped to fill this display area but may be a lower virtual
+resolution, which is scaled. The render stage chain handles the
+scaling and positioning of applications and any external surfaces within the
+UI, and the composition engine performs the scaling of the pixel data to the
+actual display area at physical resolution. This has the advantage that the
+scaling can be handled by the graphics acceleration hardware, if it is available. </p> <p>Another
+advantage of this approach is that it enables dynamic scaling of the pixels.
+Usually pixels are square on a mobile phone display, but not square on many
+external displays. When the square pixels from the device are displayed on
+such a display, they may need to be scaled by different arbitrary factors
+on each axis. This is called <b>anisotropic scaling</b>. In contrast, <b>isotropic
+scaling</b> means that both pixel axes are scaled by the same arbitrary factor. </p> <p>The
+following diagram illustrates how the full UI area is mapped to fill the display/composition
+area. The application's area (which corresponds to the screen mode) is referred
+to as the <b>application extent</b> in ScreenPlay. </p> <fig id="GUID-724DB4EE-1F45-58D9-889C-B42ECEE7208D">
+<title>Coordinate spaces in ScreenPlay            </title>
+<image href="GUID-A719FDFA-903B-5340-AA47-9E5B22DBB253_d0e204540_href.png" placement="inline"/>
+</fig> <p>ScreenPlay handles application sizing and positioning in a fundamentally
+different way from the non-ScreenPlay variant. Using a fixed offset to position
+the application within the screen is inadequate when connecting to an external
+HDMI display, for example, when the resolution may not be known until runtime.
+For example, the offset designed for a QVGA display does not position the
+application correctly in a higher resolution display, as shown in the following
+diagram, where the red cross indicates the offset for a QVGA display. </p> <fig id="GUID-A2816D08-B61F-5605-B6AF-A9D186F6BED5">
+<title>A fixed offset and several display resolutions (not drawn         
+    to scale)            </title>
+<image href="GUID-B2E63B13-7B72-5CBF-ACD0-1F2D2E1EEF19_d0e204551_href.png" placement="inline"/>
+</fig> <p>In ScreenPlay there is no scaling of the application extent relative
+to the full UI area—there is always a 1:1 pixel correspondence between them.
+In addition, although supported, the screen mode offset is not necessarily
+used. Instead, the render stage chain selects an appropriate virtual resolution
+and handles the positioning—for example, centering it and using a best fit
+algorithm so that it takes up as much of the screen as possible or using the
+offset as a minimum margin size. The device creator can choose how to implement
+this in the render stages. In order to position the application correctly
+within the UI area, the Window Server gets the positioning information from
+the first render stage in the chain when the configuration or screen mode
+changes. </p> <p>ScreenPlay supports fixed screen modes in the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini
+file</xref>, although the scaling parameters are not used. However, the screen
+mode width and height in pixels and twips when specified and used together,
+provide the pixel aspect ratio. In order to maintain backwards compatibility,
+render stages should respect this aspect ratio whenever possible. </p> <p>It
+is possible for applications to determine and draw to the UI area outside
+the application extent using the APIs described below. However, <b>dynamic
+screen modes</b> provide an alternative mechanism for existing applications
+to access the full UI area. This is particularly suitable for HDMI and similar
+technologies where the resolution may not be known until runtime. To use this
+approach, the device creator must define one or two screen modes in the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini file</xref> and
+set their height and width in pixels to -1. One dynamic screen mode then represents
+the current display configuration and the other one, if present, represents
+the configuration when the screen is rotated by 90º or 270º. Using dynamic
+screen modes means that the display configuration can be changed at runtime
+according to the hardware that is available and detected by the composition
+engine. </p> <p>When a dynamic screen mode is used, the application extent
+always fills the full UI space and the area returned by <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-8E1B5729-FD1C-3D4A-AC73-C6364E7D5BBF"><apiname>CWsScreenDevice::SizeInPixels()</apiname></xref> always
+matches the actual resolution that is in use. </p>  </section>
+</conbody><related-links>
+<link href="GUID-99BC101A-9466-59EE-B5C9-7622BAF6E6FF.dita"><linktext>Graphics
+Concepts</linktext></link>
+<link href="GUID-63CB6C7E-44EC-5D0B-A37D-FE78F7D76592.dita">
+<linktext>Graphics Composition Collection</linktext></link>
+<link href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita">
+<linktext>Render Stages</linktext></link>
+</related-links></concept>

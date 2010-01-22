@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5194A7B6-471B-5BCF-8569-16A3BA59000A" xml:lang="en"><title>Using
+the ASSP Register</title><shortdesc>Explains how to use the ASSP register access functions. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-E1D195A0-715F-5961-A67C-A2536D68DAE3"><title>The register
+access functions</title> <p>The ASSP Hardware Register Helper is intended
+for use in writing device drivers. Writing device drivers involves frequent
+access to hardware registers by reading, writing and modifying them. </p> <p>To
+do this you use the <xref href="GUID-66BB033A-3386-3913-9A25-EF3867D42C2C.dita"><apiname>AsspRegister</apiname></xref> class, which provides
+read, write and modify functions to access hardware registers of different
+widths. The function declarations are as follows. </p> <codeblock id="GUID-EFB9308B-88EE-5065-836D-C4E66761D8FD" xml:space="preserve">    static inline TUint8 Read8(TLinAddr aAddr)
+    static inline TUint8 Read16(TLinAddr aAddr)
+    static inline TUint8 Read32(TLinAddr aAddr)
+    static inline TUint8 Read64(TLinAddr aAddr)
+    static inline void Write8(TLinAddr aAddr, TUint8 aValue)
+    static inline void Write16(TLinAddr aAddr, TUint16 aValue)
+    static inline void Write32(TLinAddr aAddr, TUint32 aValue)
+    static inline void Write64(TLinAddr aAddr, TUint64 aValue)
+    static void Modify8(TLinAddr aAddr, TUint8 aClearMask, TUint8 aSetMask)
+    static void Modify16(TLinAddr aAddr, TUint16 aClearMask, TUint16 aSetMask)
+    static void Modify32(TLinAddr aAddr, TUint32 aClearMask, TUint32 aSetMask)
+    static void Modify64(TLinAddr aAddr, TUint64 aClearMask, TUint64 aSetMask)
+</codeblock> <p>All these functions can be called in any context. </p> <p>The
+address of a particular register on a particular platform is typically expressed
+as a base address and an offset: this is what you pass to the <xref href="GUID-1B0A3A2B-F98D-3A28-AAB8-9FB0FABCA986.dita"><apiname>aAddr</apiname></xref> argument
+of these functions as a <xref href="GUID-7452AD53-A7EE-3B1E-BC3D-C4202E5DAEBC.dita"><apiname>TLinAddr</apiname></xref>. </p> <p>The <xref href="GUID-44DB5DCF-DBBE-3E70-8C89-5A2CB7471EC6.dita"><apiname>aValue</apiname></xref> argument
+of the write functions is any <xref href="GUID-F9432D7B-41C9-3048-AC50-B5BCF8BE11D0.dita"><apiname>TUint</apiname></xref> of the appropriate
+size in bits. </p> <p>The modify functions take two <xref href="GUID-F9432D7B-41C9-3048-AC50-B5BCF8BE11D0.dita"><apiname>TUint</apiname></xref> arguments
+of the appropriate size in bits. Both are bitmasks. The <xref href="GUID-51C906BB-B315-3B17-8E10-BD70669DD0AB.dita"><apiname>aClearMask</apiname></xref> argument
+clears the bits specified and the <xref href="GUID-E4473A56-3F69-389D-865F-72E03FAC31ED.dita"><apiname>aSetMask</apiname></xref> sets the bits
+specified. </p> <b>Addressing a register</b><p>The following code reads the
+current value of a hardware register identified by a base address <codeph>iBaseAddr</codeph> plus
+an offset <codeph>KHoPciStatus</codeph>. </p><codeblock id="GUID-6308D594-B74D-50EE-A3EB-D8739371E46B" xml:space="preserve">TUint status=AsspRegister::Read16(iBaseAddr+KHoPciStatus);</codeblock><b>Modifying a register</b><p>The following code clears the bits specified
+by the bitmask <codeph>KHtPciStatus_ParityError</codeph> and sets the bits
+specified by the bitmask <codeph>NULL</codeph> (that is so say, none in this
+case). </p><codeblock id="GUID-F000597B-1B52-5C3F-B61E-6B5B88D859C7" xml:space="preserve">AsspRegister::Modify16(baseAddr+KHoPciStatus,KHtPciStatus_ParityError,NULL);</codeblock></section>
+</conbody><related-links>
+<link href="GUID-B498EDA0-677E-5521-9E4F-24D7C2048F2E.dita"><linktext>Implementing
+ASSP Register</linktext></link>
+</related-links></concept>

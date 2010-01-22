@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CADC7578-5E96-58B2-9208-F7E53CA5EA32" xml:lang="en"><title>Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>SIP NAT Traversal Controller API is an ECOM plug-in API that provides the
+connection between the SIP stack and an external UNSAF protocol module. The
+Network Address Translator (NAT) devices are found between the SIP User Agent
+(SIP UA) and SIP proxy, and have the UA as an outbound proxy. This creates
+the problems to maintain SIP connectivity between the UA and the remaining
+of the SIP network that are described as follows: </p>
+<ul>
+<li id="GUID-54670533-2436-5214-A2D8-FFE336B1433F"><p>The SIP
+UA registers its contact to SIP registrar using the private IP address &amp;
+UDP/TCP port pair within the contact URI. These addresses are not accessible
+from the proxy. The NAT maps the private addresses to some other addresses
+which can be public or private, in another address range. The proxy can access
+the UA when you send the SIP requests and responses to addresses that the
+NAT allocates for the UA. You must have the Contact header of the REGISTER
+request to contain addresses allocated by the NAT for the UA, instead of the
+private addresses of the UA. </p> </li>
+<li id="GUID-7EF2F69F-C01F-5F41-8348-323580473E23"><p>The NAT allocates IP
+addresses to the UA when the UA sends IP packets to a destination through
+the NAT. The NAT type determines if the address-port pairs are either applicable
+or dependent on the IP address and UDP or TCP port. The UA sends the IP packets
+to the UDP or TCP port. </p> <p>Depending on the NAT type, the addresses within
+the contact URI must be those that any device outside the NAT can see and
+use or those that only the specific destination (SIP proxy in this case) can
+see. To detect addresses the UA uses Unilateral Self-Address Fixing (UNSAF)
+protocols defined within IETF. These protocols include the Simple Traversal
+of UDP through NATs (STUN) or Traversal Using Relay NAT (TURN). </p><p>The
+allocation created by NAT is not permanent. It expires if the UDP flow or
+TCP connection between the end-points remains idle. To prevent expiration
+the UA send keepalive messages within the flow to refresh the mapping. Different
+types of keepalive messages are used like Carriage-Return/Line-Feed (CRLF)
+sequences, OPTIONS requests or STUN binding requests</p></li>
+</ul>
+<p>To enable all these processes the SIP stack contains an ECOM plug-in API,
+SIP NAT Traversal Controller API. The stack uses these plug-ins to access
+and use a separate UNSAF protocol implementation. This implementation supports
+protocols like STUN and TURN. These protocols enable the SIP stack to detect
+the server reflexive and relayed addresses for the UA The protocols also implements
+the keepalive messages for the flow toward the outbound proxy. </p>
+</conbody></concept>

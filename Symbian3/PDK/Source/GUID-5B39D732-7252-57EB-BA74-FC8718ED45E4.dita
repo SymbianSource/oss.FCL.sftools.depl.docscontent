@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4"><title>LBS ROM Macros</title><shortdesc>This section describes the ROM build macros that allow you to included or exclude LBS components from ROM. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Location Server macros</title> <p>The LBS subsystem can be configured to contain one of two Location Servers. The choice of Location Server has a significant impact on the components and features that can be supported by the LBS subsystem: </p> <ul><li id="GUID-F5443CC9-CE60-538F-BA5A-A5E3E4509102"><p>The Location Server Framework </p> <p>The Location Server Framework consists of the Location Server <codeph>eposserver.exe</codeph> and supporting libraries and APIs. It was previously available only as part of the S60 platform but is now part of the Symbian platform. </p> <p>The macro <codeph>SYMBIAN_INCLUDE_LOCATION_API_VARIANT2</codeph> includes the Location Server Framework in ROM. If this macro is not used at ROM build time the Location Server Framework is not included in ROM. If the macro is used, other related macros may also be defined to include Positioning Plug-ins (PSYs) that can be used by the Location Server Framework: </p> <ul><li id="GUID-87D97742-BF5B-51A0-AF8C-801D72F1615D"><p> <codeph>SYMBIAN_INCLUDE_BLUETOOTH_GPS_PM</codeph> includes the Bluetooth GPS PSY in ROM. </p> <p>This PSY connects the Location Server to external Bluetooth GPS hardware. </p> </li> <li id="GUID-A2DE4191-E948-503B-B7A8-2CF6B742C5A4"><p> <codeph>SYMBIAN_INCLUDE_SIMULATION_PM</codeph> includes the Simulation PSY in ROM. </p> <p>This PSY enables application developers to easily test their location-based applications on an emulator or on hardware. </p> </li> <li id="GUID-DDFE5DDA-6A95-535F-B483-B81D62AAB15D"><p> <codeph>SYMBIAN_INCLUDE_DEFAULT_PM</codeph> includes the Default Positioning Module (PSY) in ROM. </p> <p>This PSY can delegate location requests to other installed PSYs. It is used to select the PSYs to which location requests are sent when a client application of the Location Acquisition API does not specify a PSY UID. </p> </li> </ul> <p>There are also macros that you can use to include the PSYs to connect the Location Server to the Positioning Framework. It is necessary to use these macros in order to use the Positioning Framework to obtain GPS/A-GPS or network-based positions for the Location Server. </p> <ul><li id="GUID-10A333D5-EC7E-5C0D-A1D3-1581D1663F81"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_AGPS_PM</codeph> includes the GPS/A-GPS PSY and must be specified if you want the Location Server to use an A-GPS Integration Module to get position fixes using assisted GPS. </p> </li> <li id="GUID-AB9EE743-3892-5E56-85D6-1B526E2B6746"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_GPS_PM</codeph> includes the GPS/A-GPS PSY and must be specified if you want the Location Server to use an A-GPS Integration Module to get position fixes using autonomous GPS. </p> </li> <li id="GUID-956AD316-CF98-524C-98A4-0B7D585CF799"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_AGPS_PM</codeph> and <codeph>SYMBIAN_INCLUDE_LOCATION_GPS_PM</codeph> must both be specified if you want the Location Server to use an A-GPS Integration Module to get position fixes using either assisted GPS or autonomous GPS. </p> </li> <li id="GUID-9722AF48-0AEC-5739-9EC3-808B3D895C3F"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_NETWORK_PM</codeph> includes the Network PSY and must be specified if you want the Location Server to use a Network Protocol Module to connect to the network to use cell based positioning. </p> </li> </ul> </li> </ul> </section> <section><title>Standalone Privacy Mode macros</title> <p>Macros are also defined to allow LBS to be built with a Privacy Protocol Module that receives LBS privacy requests from the device native OS: </p> <ul><li id="GUID-86944462-BBAB-5D15-A663-23EFD8A7F414"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_PRIVACY_REQUEST_APIS</codeph> includes the binaries associated with the Privacy Protocol Module. </p> <p>The Privacy Protocol Module and its APIs allow privacy requests to be sent from the device's native OS into the LBS subsystem. </p> <p>Note: A location request from the network (MT-LR) consists of two parts: a privacy request and a following location request. The Privacy Protocol Module can handle only the privacy request and return a privacy response. It cannot handle the location request part. You must implement your own solution for handling the location request in the device native OS. </p> </li> <li id="GUID-6A121F88-CC71-5A61-B44B-854E58B05E6E"><p> <codeph>SYMBIAN_INCLUDE_LOCATION_ADVANCED_DIALOG</codeph>  </p> <p>The macro is used to include the Privacy Query and Notification API binaries in ROM. Note that the Privacy Controller API and Privacy Notifiers API are always included even if this macro is not used. </p> </li> </ul> </section> <section><title> Specifying the .iby files </title> <p>The LBS .iby files used by <codeph>buildrom</codeph> are exported to <filepath>&lt;EPOC_ROOT&gt;/epoc32/rom/include</filepath>. The following defines the list of all .iby files that are necessary to add LBS to a ROM. Note that many of these 'top-level' .iby files include other LBS .iby files. The iby files contain checks for the ROM build macros to control whether the different components of LBS are included in ROM. </p> <codeblock id="GUID-6521748E-43B4-5C71-9181-3A8270D89C76" xml:space="preserve">
+#if !defined(SYMBIAN_EXCLUDE_LOCATION)
+
+#include "lbsadmin.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2 
+
+#include "lbslocserver.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2 
+                               and SYMBIAN_EXCLUDE_LOCATION_MANAGEMENT
+
+#include "lbsagpslocmanager.iby" // Includes check for SYMBIAN_EXCLUDE_LOCATION_MANAGEMENT
+
+#include "LbsNetworkLocationManager.iby" // Includes check for SYMBIAN_EXCLUDE_LOCATION_MANAGEMENT
+
+#include "lbsnetworkrequesthandler.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_ADVANCED_DIALOG
+                                           in included .iby files
+
+#include "lbsnetgateway.iby" 
+
+#include "lbs_privacyprotocolmodule.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_PRIVACY_REQUEST_APIS
+                                            in included .iby files
+
+#if defined(SYMBIAN_INCLUDE_LOCATION_API_VARIANT2)
+ 
+#include "lbsbtgpspsy.iby" // Includes check for SYMBIAN_INCLUDE_BLUETOOTH_GPS_PM
+
+#include "lbssimulationpsy.iby" // Includes check for SYMBIAN_INCLUDE_SIMULATION_PM
+
+#include "lbsdefaultpsy.iby" // Includes check for SYMBIAN_INCLUDE_DEFAULT_PM
+
+#include "lbsgpsagpspsy.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#include "lbsnetpsy.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#include "lbspsytester.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#include "lbspospluginfw.iby" // Includes check for SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#endif // SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#endif // SYMBIAN_EXCLUDE_LOCATION
+</codeblock> <p>Note: if the macro <codeph>SYMBIAN_EXCLUDE_LOCATION</codeph> is defined at ROM build time all the components of the LBS subsystem are excluded from ROM. </p> </section> <section><title>Using the macros to build LBS ROM images</title> <p>This section describes how different LBS subsystem ROM images can be built using the ROM build macros to include or exclude optional LBS components. </p> <ul><li id="GUID-A49C8DF7-BB2E-5D61-900F-3923638B1CBA"><p><xref href="GUID-A898867E-0C50-583E-979F-132504C24C9A.dita">Full LBS on the Symbian platform</xref>  </p> <p>This configuration contains all of the core components of LBS and <i>excludes</i> the Privacy Protocol Module. </p> <p>You must develop a Network Protocol Module if the LBS subsystem must be connected to the network. You can include those PSYs that you wish to support. </p> <p>The following shows the commands to build the ROM image, including all PSYs that are provided with the Symbian platform: </p> <codeblock id="GUID-6CE1648A-4303-5451-8ACB-D6617349E9F2" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_DEFAULT_PM
+-DSYMBIAN_INCLUDE_BLUETOOTH_GPS_PM
+-DSYMBIAN_INCLUDE_SIMULATION_PM
+-DSYMBIAN_INCLUDE_LOCATION_AGPS_PM
+-DSYMBIAN_INCLUDE_LOCATION_GPS_PM
+-DSYMBIAN_INCLUDE_LOCATION_NETWORK_PM
+</codeblock> </li> <li id="GUID-2255BC75-8FD6-52E9-B0B6-E21044773ED4"><p><xref href="GUID-3618ECE9-C22B-5AE2-837E-FEBC55D42330.dita">LBS in Standalone Privacy Mode</xref>  </p> <p>This configuration contains all of the core components of LBS and <i>includes</i> the Privacy Protocol Module. </p> <p>In this configuration, the LBS components of the Symbian platform can handle only the privacy request part of an MT-LR. The location request part of the MT-LR must be handled in the device native OS. </p> <p> <b>Note: this configuration must not be used to support emergency services requests, as behaviour in low memory conditions is not guaranteed.</b>  </p> <p>The following shows the commands to build the ROM image: </p> <codeblock id="GUID-E09AA217-94E5-51A3-AEA8-DD2A30BA3725" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_EXCLUDE_LOCATION_MANAGEMENT
+-DSYMBIAN_INCLUDE_LOCATION_PRIVACY_REQUEST_APIS
+-DSYMBIAN_INCLUDE_LOCATION_ADVANCED_DIALOG
+-DSYMBIAN_INCLUDE_DEFAULT_PM
+-DSYMBIAN_INCLUDE_BLUETOOTH_GPS_PM
+-DSYMBIAN_INCLUDE_SIMULATION_PM
+</codeblock> <p>The Privacy Protocol Module and its APIs (the Network Privacy API and the Privacy Request API) are included in the ROM image. Positioning Framework components are excluded by using <codeph>SYMBIAN_EXCLUDE_LOCATION_MANAGEMENT</codeph> and the Privacy Query and Notification API is included. The Privacy Query and Notification API is only required if you want to create privacy notifiers using the API. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-A898867E-0C50-583E-979F-132504C24C9A.dita"><linktext>Full LBS on the Symbian platform</linktext> </link> <link href="GUID-3618ECE9-C22B-5AE2-837E-FEBC55D42330.dita"><linktext>LBS in Standalone Privacy Mode</linktext> </link> <link href="GUID-7233BC33-6060-5D6B-A5D2-01135F059337.dita"><linktext>LBS Architecture Overview</linktext> </link> <link href="GUID-5454AFE9-ADC2-5980-85FC-3FF457B638D0.dita"><linktext>Bluetooth
+                GPS PSY</linktext> </link> <link href="GUID-1B3FDBF4-4213-5242-A05C-11ADE6C1501A.dita"><linktext>Simulation
+                PSY</linktext> </link> <link href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita"><linktext>Default
+                PSY</linktext> </link> <link href="GUID-ADE2ED06-A4F8-5216-A6EF-294D6B4766F7.dita"><linktext>GPS/A-GPS PSY</linktext> </link> <link href="GUID-5C01B66C-9F21-508F-A612-2ADAE1837A8A.dita"><linktext>Network PSY</linktext> </link> <link href="GUID-B27F6C1D-6815-5DF5-B3F8-449260030B3D.dita"><linktext>Privacy Protocol
+                Module</linktext> </link> <link href="GUID-816334A7-488B-5F91-8C2E-47076D875013.dita"><linktext>SUPL Protocol
+                Module</linktext> </link> </related-links></concept>

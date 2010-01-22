@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-BB7F358E-3AC8-566B-8AE3-52FA0F9082C6"><title>OpenGL ES 2.0 Shader Programs</title><shortdesc>The OpenGL ES 2.0 standard allows vendor implementations to support shader programs as pre-compiled binaries, source code to be compiled when the OpenGL ES 2.0 program is run, or both. At the time of writing, the Khronos Group has not defined the Application Binary Interface (ABI) for shader binaries. These are intended to be registered by hardware vendors with Khronos. This would result in updates to the header file <filepath>GLES2/gl2ext.h</filepath>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref> and <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay</xref>. <b>Target audience</b>: Device creators. </p> <p>A <i>shader</i> is a compilation unit for one of the two programmable stages in the OpenGL ES pipeline. A <i>shader program</i> is a complete set of shaders that are compiled and linked together. </p> <p>It is not always possible to register an extension to define the enumerated value <codeph>GLenum binaryformat</codeph> supplied to <codeph>glShaderBinary()</codeph> by client applications. In such cases the enumerations need to be defined in an SDK-specific file, which the client application must include. </p> <p>To maximize portability, shader programs may be supplied in as many formats as possible. Symbian recommends that OpenGL ES 2.0 implementation vendors supply guidance to application developers to enable them to achieve this goal. For example, if OpenGL ES 2.0 support is being added to an SDK for a family of handsets, the different ABI formats that are supported should be documented. Alternatively, if source code compilation is available, this should also be documented. </p> <p>The OpenGL ES 2.0 implementation vendor must give application writers details on how to pre-compile to a binary suitable for run-time loading. Alternatively, the vendor must explain whether shaders must be supplied as source code. A vendor may wish to provide support for both approaches. In such conditions, the vendor must describe the benefits of each method. </p> <p>In order to allow client applications to be written in a portable fashion, vendor implementations must support the following queries: </p> <ul><li id="GUID-6C055EC6-5A8B-51B1-BAD5-D718BF819835"><p> <codeph>glGetBooleanv(GL_SHADER_COMPILER,
+             &amp;shaderCompilerSupport)</codeph>  </p> </li> <li id="GUID-BFA1D474-48B9-51A9-B3AC-8E163E603C69"><p> <codeph>glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS,
+             &amp;nShaderBinaryFormats)</codeph>. </p> </li> </ul> <p>If the <codeph>GL_SHADER_COMPILER</codeph> query returns <codeph>GL_TRUE</codeph>, the vendor implementation has a runtime compiler for the shader source code. If the <codeph>GL_NUM_SHADER_BINARY_FORMATS</codeph> query is greater than zero, the vendor implementation supports loading pre-compiled shader programs. </p> <p>It is recommended that application developers make use of such queries in structuring their programs to take advantage of whatever is available in the platform to construct shader programs. The following code excerpt demonstrates this: </p> <codeblock id="GUID-6B28C4DF-873F-52DB-9640-956C1F7991B1" xml:space="preserve">programObjectId = glCreateProgram();
+GLuint fragShaderId;
+GLuint vertShaderId;
+fragShaderId = glCreateShader(GL_FRAGMENT_SHADER);
+vertShaderId = glCreateShader(GL_VERTEX_SHADER);
+    
+GLboolean shaderCompilerSupport;
+glGetBooleanv(GL_SHADER_COMPILER, &amp;shaderCompilerSupport);
+GLboolean shaderBinarySupport;
+GLint nShaderBinaryFormats;
+glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &amp;nShaderBinaryFormats);
+shaderBinarySupport = (nShaderBinaryFormats &gt; 0) ? GL_TRUE : GL_FALSE;
+    
+/*
+ * Support Compile?  Support Binary?  Preferred Action
+ * ----------------  ---------------  ----------------
+ * FALSE             FALSE            Panic (out of spec behavior)
+ * FALSE             TRUE             Load binary shader if have one
+ * TRUE              FALSE            Compile shader from source if have it
+ * TRUE              TRUE             Compile shader (we assume it would
+ *                                    be better optimized than pre-built
+ *                                    binaries; experimentation required)
+ */
+    
+if (shaderCompilerSupport == GL_TRUE)
+    {
+    GLint shaderCompiled;
+    glShaderSource(fragShaderId, 1, (const char**)&amp;KFragmentShaderSrc, NULL);
+    glCompileShader(fragShaderId);
+    glGetShaderiv(fragShaderId, GL_COMPILE_STATUS, &amp;shaderCompiled);
+    
+    if (!shaderCompiled) 
+        {
+        User::Panic(_L("OGLES2App-Comp"), 1);
+        }
+    glShaderSource(vertShaderId, 1, (const char**)&amp;KVertexShaderSrc, NULL);
+    glCompileShader(vertShaderId);
+    glGetShaderiv(vertShaderId, GL_COMPILE_STATUS, &amp;shaderCompiled);
+    if (!shaderCompiled) 
+        {
+        User::Panic(_L("OGLES2App-Comp"), 2);
+        }
+    }
+else if (shaderBinarySupport == GL_TRUE)
+    {
+    // This single-platform example has uses only one binary format type.
+    // A multi-platform example would use a loop to cycle through
+    // each available binary format before giving up.
+    glShaderBinary(1, &amp;fragShaderId, GL_SGX_BINARY_VENDOR, KFragmentShaderBin, KFragmentShaderBinSz);
+
+    if (glGetError())
+        {
+        User::Panic(_L("OGLES2App-Load"), 3);
+        }
+    glShaderBinary(1, &amp;vertShaderId, GL_SGX_BINARY_VENDOR, KVertexShaderBin, KVertexShaderBinSz);
+
+    if (glGetError())
+        {
+        User::Panic(_L("OGLES2App-Load"), 4);
+        }
+    }
+else
+    {
+    User::Panic(_L("OGLES2App-Lib"), 5);
+    }
+    
+glAttachShader(programObjectId, fragShaderId);
+glAttachShader(programObjectId, vertShaderId);
+glDeleteShader(fragShaderId);
+glDeleteShader(vertShaderId);
+    
+// Any attribute bindings need to be done before LinkProgram
+glBindAttribLocation(programObjectId, KVertexAttrIndex, "myVertex");
+    
+glLinkProgram(programObjectId);
+GLint programLinked;
+glGetProgramiv(programObjectId, GL_LINK_STATUS, &amp;programLinked);
+if (!programLinked)
+    {
+    User::Panic(_L("OGLES2App-Link"), 6);
+    }
+glUseProgram(programObjectId);</codeblock> <p><b>Notes </b> </p> <ul><li id="GUID-11645A2E-DD2D-57E1-9AA0-36A014E1A673"><p>This program is locked to an SDK-specific family because it uses the binary format token <codeph>GL_SGX_BINARY_VENDOR</codeph> using an SDK-specific file, for example, <filepath>sdk_gl2ext.h</filepath>. </p> </li> <li id="GUID-A8FBD2C8-F5C2-59DB-BC88-7D1AFB563497"><p>The program checks for compiler support and binary support, but prefers to compile rather than to use binaries. </p> </li> <li id="GUID-1BCD9323-DF19-5425-A476-6997935779B7"><p>The program assumes there is only one binary format (<codeph>GL_SGX_BINARY_VENDOR</codeph>) whereas this might need to be turned into a loop to cover a family of handsets. </p> </li> <li id="GUID-A9EC59C2-426C-5DDE-A7A6-B46AF1ADCAF1"><p>Top-level declarations are not shown for reasons of space. These are: <codeph>KVertexShaderSrc</codeph>, <codeph>KVertexAttrIndex</codeph>, <codeph>KFragmentShaderBin</codeph>, <codeph>KFragmentShaderBinSz</codeph>, <codeph>KVertexShaderBin</codeph>, <codeph>KVertexShaderBinSz</codeph>, <codeph>programObjectId</codeph>. </p> </li> <li id="GUID-84A39C04-37EE-5F8C-9D49-DF2DE9B90343"><p>Shader source code or binaries should be in a secure location, accessible privately to the application. They should not be in a public resource file due to malicious replacement and reverse engineering risks. </p> </li> </ul> <section><title>Security issues</title> <p>Although limited in behavior, shader programs are deployed into the runtime environment of a device and therefore OpenGL ES 2.0 implementation vendors must take measures to address the security threats that are involved. </p> <p>When an OpenGL ES 2.0 application provides source code for a shader program, the OpenGL ES implementation vendor must take care not to allow its data to be compromised in terms of confidentiality or integrity. The programs are confidential because they may represent the intellectual property of the shader program author. Integrity must be assured for shader source code and shader binaries to prevent malicious replacement or modification. </p> <p>For more information, see <xref href="GUID-011A0A93-42DF-5235-BC8E-7BD88B572277.dita">OpenGL ES Security Threats and Measures</xref>. </p> </section> </conbody><related-links><link href="GUID-7DD1BC7B-B3F7-515D-8DC8-B699B947B434.dita"><linktext>OpenGL ES Porting Guide</linktext> </link> <link href="GUID-90A4BDE2-839A-5A37-ACAA-EB33FE39DE54.dita"><linktext>OpenGL ES Variability
+                Choices</linktext> </link> <link href="GUID-12D5C140-DFDA-549B-9CCF-EF7488B832AE.dita"><linktext>OpenGLES Interface Overview</linktext> </link> </related-links></concept>

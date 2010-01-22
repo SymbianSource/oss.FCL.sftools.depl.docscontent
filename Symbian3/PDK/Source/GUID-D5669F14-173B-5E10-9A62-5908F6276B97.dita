@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-D5669F14-173B-5E10-9A62-5908F6276B97"><title>Policy Files</title><shortdesc>The policy files specify the Service ID (SID) and the options to be passed to the user interface using the dialog box. The policy files are resource files, which are compiled into <codeph>.rsc</codeph> files. A default policy is required to check the IP connections. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section id="GUID-B55E4709-82F8-51E4-801A-EB26C46EF0DB"><title>Resource files</title> <p>The policy files are installed in either <codeph>z:\private\10283558\policies</codeph> or <codeph>c:\private\10283558\policies</codeph>. The UPS server checks the policy folders when it receives an authorisation request. Each process has an associated policy file, if a corresponding policy file is not found, the UPS server responds with platform security check result for that particular application. The following resource file example is a sample policy file located at <codeph>z:\system\data\ups_101F7989_xxxxxxxx.rsc</codeph>, where <codeph>xxxxxxxx</codeph> is a service ID (SID) of the application. </p> </section> <section id="GUID-00A194B7-469D-5B0E-8416-3ACA0FE0BED0"><title>Policy evaluator</title> <p>The policy evaluator is an ECom plug-in which stores the user decision for network access to each process. The user decisions are stored in a database. When an application requests network connection access, the policy evaluator checks the database for the user's previous decision. If there is no entry found in the database, a new dialog is prompted to the user and the response to the dialog is stored as a new entry in the database. </p> </section> <example id="GUID-A6EE9274-3B39-5999-A4D4-B99C67F0B54D"><title>Resource file example</title> <codeblock id="GUID-A76A65A9-9EE5-52A1-B86E-C4F9E09FC323" xml:space="preserve">#include &lt;ups/policies.rh&gt;
+
+UID2 KUidUpsPolicyResourceFile
+UID3 0xXXXXXXXX        //Unique identifier for this policy file
+//Simple IP service
+
+RESOURCE POLICIES IP_Default_policies
+    {
+    header = POLICY_HEADER
+        {
+        dialogcreator = 0x10283694;             &lt;- Example value
+        policyevaluator = 0x10283698;           &lt;- Example value
+        };
+        policies = 
+            {
+            POLICY
+                {
+                sid_classes = KProtectedSids;
+                destination = “*”;
+                options = KSessYes | KSessNo | KAlways | KNever;
+                flags = 0x00;
+                },
+        POLICY
+                {
+                sid_classes = KAllSids;
+                destination = “*”;
+                options = KSessYes | KSessNo | KAlways| KNever;
+                flags = 0x01;
+                }
+         };
+    }
+
+
+</codeblock> <p>The above policy file specifies that any request from a client with unprotected SID will invoke a user prompt. The user dialog options specified in the policy file are: </p> <ul><li id="GUID-15CE3B23-6F05-5075-B048-353D63BDCB06"><p>Session Yes </p> </li> <li id="GUID-3D6CC220-1BFE-5185-839C-1C336A4F536A"><p>Session No </p> </li> <li id="GUID-6E7012D5-9E34-58F7-9DA6-0A5CD93B1254"><p>Always </p> </li> <li id="GUID-1A582D86-6B39-540F-8A51-E896878BDC18"><p>Never </p> </li> </ul> <p>The two processes which do not require a user prompt to be created are the Dynamic Host Controller Protocol (DHCP) and the Domain Name Daemon (DND). </p> </example> </conbody><related-links><link href="GUID-81238E98-755C-5E86-ADEA-6A675E058289.dita"><linktext>User Prompt
+                Service Configuration</linktext> </link> </related-links></concept>

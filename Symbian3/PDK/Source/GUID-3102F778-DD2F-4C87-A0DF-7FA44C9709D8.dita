@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3102F778-DD2F-4C87-A0DF-7FA44C9709D8" xml:lang="en"><title>Multiple
+Client Support</title><shortdesc>This document describes how multiple clients can access a driver
+over a single logical channel.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A single channel has a single handle which is shared by driver users. A
+driver can allow or prevent the sharing of a handle to a logical channel between
+multiple users. This policy is implemented by the <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-9E23019E-7383-371E-B63C-85500F6B653D"><apiname>DLogicalChannel::RequestUserHandle()</apiname></xref> function.
+The default implementation does not restrict sharing of the channel, but a
+driver can override the function to change this. </p>
+<p>In the following example, the driver ensures that only the intended clients
+can get the handle and access the driver. Any other client that tries to share
+the handle gets a <codeph>KErrAccessDenied</codeph> error. </p>
+<codeblock id="GUID-2FEB04B3-ABD3-58E4-BFDB-0AD947BA6E16" xml:space="preserve">TInt DExDriverLogicalChannel::RequestUserHandle(DThread* aThread,
+        TOwnerType aType)
+    {
+    // Handle should be provided only to the intended client. Any 
+    // other clients that try to get a handle to the driver should get an access 
+    // denied error.
+    if ( aType!=EOwnerThread || aThread!=iClient)
+        return KErrAccessDenied;
+    return KErrNone;
+    }</codeblock>
+<p> <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-9E23019E-7383-371E-B63C-85500F6B653D"><apiname>DLogicalChannel::RequestUserHandle()</apiname></xref> only restricts
+the user from sharing or duplicating an existing channel. It does not restrict
+another process from opening its own separate channel on the same device. </p>
+<p> <note> More than one user can access the driver at the same time. It is
+up to the driver to manage and provide correct and secure access to the driver. </note></p>
+</conbody></concept>

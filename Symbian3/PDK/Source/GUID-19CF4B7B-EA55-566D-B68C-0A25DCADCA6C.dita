@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-19CF4B7B-EA55-566D-B68C-0A25DCADCA6C" xml:lang="en"><title>Control
+contexts</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Prior to Symbian OS v9.1 controls were able to share a graphics context
+using the <codeph>MCoeControlContext</codeph> API. This was used primarily
+in compound controls to achieve a common solid background color and was necessary
+because controls were required to clear and redraw their own rectangles. Now,
+with improvements to flicker free drawing and improved framework mechanisms
+for drawing patterned (skinned) backgrounds, parents and containers are able
+to provide backgrounds. </p>
+<p> <b>The MCoeControlContext API is now deprecated for UIQ.</b> A description
+of the migration process is described below. </p>
+<p>S60 and MOAP do not use the new background framework. </p>
+<section id="GUID-321057E8-417E-4D8C-8C53-3AE1C80C3ED6"><title/><p><b>Control
+Contexts </b> </p> <p>Control contexts allow a group of controls to share
+graphics context settings for drawing. Each control may use a control context,
+a class derived from <xref href="GUID-298C4B9D-4DB7-322A-99AB-15816C0F0247.dita"><apiname>MCoeControlContext</apiname></xref>. By using the same
+control context a group of controls can share common settings. A typical use
+is for components of a compound control to use the same control context to
+ensure that they use the same background color settings. </p> <p>Functions
+defined by <xref href="GUID-298C4B9D-4DB7-322A-99AB-15816C0F0247.dita"><apiname>MCoeControlContext</apiname></xref> are called from within the
+control framework when a control is about to be drawn. These functions can
+be implemented to initialize graphics settings to common values. By using
+the same control context a group of controls can all be made to use the same
+graphics settings. </p> <p>The context is set for all controls that wish to
+use it by setting their <codeph>iContext</codeph> members, either directly,
+by using <codeph>CCoeControl::SetControlContext(),</codeph> or by copying
+with <codeph>CCoeControl::CopyControlContextFrom()</codeph>. Whenever a control
+is about to be drawn the control framework checks if the control has its <codeph>iContext</codeph> member
+set and, if so, calls <codeph>MCoeControlContext::ActivateContext()</codeph>.
+This function has a default implementation that calls <codeph>MCoeControlContext::PrepareContext()</codeph>,
+which should have been implemented to initialize the graphics settings. </p> <p>The
+control framework provides one concrete control context class, <codeph>CCoeBrushAndPenContext</codeph>,
+which sets graphics context brush and pen settings. Applications derive other
+control context classes as required. </p> <p>The control framework automatically
+propagates a compound control’s context to all of its components when the
+components set their container with <codeph>CCoeControl::SetContainerWindowL()</codeph>. </p> <p> </p> <p><b>The
+following section describes how code written for older versions of Symbian
+platform must be updated. </b> </p> <p>The following changes need to be made
+to existing code: </p> <ul>
+<li id="GUID-71F1C167-CD12-5D00-9F16-73732BD698CB"><p>Remove all code referring
+to the <codeph>CCoeControl::iContext</codeph> variable. </p> </li>
+<li id="GUID-3B13DB08-A7B9-5B2D-9A6D-FBA8D9B3A6B0"><p>Remove all calls to <codeph>CCoeControl’s
+                SetControlContext()</codeph>, <codeph>CopyControlContextFrom()</codeph> and <codeph>ControlContext()</codeph>. </p> </li>
+<li id="GUID-4CD48156-C053-5DF0-9ACC-9AF5415C3104"><p>Remove all implementations
+of the <codeph>MCoeControlContext</codeph> from all custom controls, i.e.
+remove all <codeph>ActivateContext()</codeph>, <codeph>ResetContext()</codeph> and <codeph>PrepareContext()</codeph> implementations
+from custom controls. </p> </li>
+<li id="GUID-AD956F60-78C0-5A77-AE7E-FED2FAA096E8"><p>Remove all use of the <codeph>CCoeBrushAndPenContext</codeph> and <codeph>MCoeControlBrushContext</codeph> APIs. </p> </li>
+<li id="GUID-8519E952-7A86-5CE5-BE18-2DA081AA16B9"><p>Remove all calls to <codeph>MCoeControlContext</codeph> ’s <codeph>ActivateContext()</codeph>, <codeph>ResetContext()</codeph> and <codeph>PrepareContext()</codeph>. </p> </li>
+<li id="GUID-C27D37C8-7E49-5A62-B7F9-966D66FF1DB5"><p>Remove all code that
+clears the area surrounding the controls’ actual graphical representation. </p> </li>
+<li id="GUID-1A5941C7-74BC-584C-9733-609EF79CEC19"><p>Change
+the draw code of compound controls so that the parent of children correctly
+updates the area behind the children. </p> </li>
+</ul> <p>This stage 7 will not work for window-owning controls as the Window
+Server will prevent the parent from drawing behind the child's window. See <xref href="GUID-88936D48-B801-3D9C-8A9D-3498807937CE.dita"><apiname>MCoeControlBackground</apiname></xref> and <xref href="GUID-B84FA223-3DFD-58C5-8CEF-C5AA73AA6290.dita#GUID-B84FA223-3DFD-58C5-8CEF-C5AA73AA6290/GUID-FF7DB067-24AD-50C3-BF52-952F836609B0">how
+to write a control</xref>. </p> </section>
+</conbody></concept>

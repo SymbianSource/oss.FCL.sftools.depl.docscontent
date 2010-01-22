@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-271E14D1-7B9B-5048-B1F0-1E25B4EA4E16" xml:lang="en"><title>SqlExample:
+Creating and querying an SQL database</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This example application demonstrates the use of the SQL API for creating
+and querying a database. </p>
+<section id="GUID-8941D325-DE9F-571B-9EAB-C8F675155EEE"><title>Description</title> <p><b>Creating
+the database</b> </p> <p>You can create two types of databases; secure and
+non-secure. </p> <ul>
+<li id="GUID-3C94A459-7CD3-5B6C-94D9-235F714FD53E"><p> <b>Non-secure database:</b> A
+database that can be accessed and updated by any program since no security
+policy is provided. </p> </li>
+<li id="GUID-1D128D45-7D64-5BB3-A350-FB13CBD4CEE6"><p> <b>Secure database:</b> A
+database with static policy defined and therefore can be accessed by authorised
+clients with specific capabilities. </p> </li>
+</ul> <p><b>Creating a non-secure database</b> </p> <p>The application first
+creates an <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita"><apiname>RSqlDatabase</apiname></xref> object and creates a non-secure
+SQL database using the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-0F4435A7-C28C-342F-AC90-73FABDE6F5DD"><apiname>RSqlDatabase::Create()</apiname></xref> function.
+The database is then closed. Finally the database is deleted using the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-27BE67CC-037F-3533-A3B4-E3CC4879EA1C"><apiname>RSqlDatabase::Delete()</apiname></xref> function. </p> <p>The
+format for naming the non-secure database would be the following: </p> <codeblock id="GUID-B8E067E8-99B1-56EF-9646-589D38156F90" xml:space="preserve">X:&lt;path&gt;&lt;database-name&gt;.db</codeblock> <p>where, <codeph>X</codeph> is
+the writable drive on the device or the emulator. </p> <p>If path is not specified,
+it returns the <codeph>KErrArgument</codeph> error, and if the specified path
+is not writable by SQL server, the application returns <codeph>KErrPermission</codeph> error.
+In this example, the application will create the database in its own data
+area, pass a handle to the database to enable the data manipulation by the
+SQL server. </p> <p> <b>Note:</b> You cannot create two databases with the
+same name in a location </p><p><b>Related APIs</b></p><ul>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita"><apiname>RSqlDatabase</apiname></xref> - A handle to a SQL database.</p></li>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-0F4435A7-C28C-342F-AC90-73FABDE6F5DD"><apiname>RSqlDatabase::Create()</apiname></xref></p></li>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-27BE67CC-037F-3533-A3B4-E3CC4879EA1C"><apiname>RSqlDatabase::Delete()</apiname></xref></p></li>
+</ul> <p><b>Creating a secure database</b> </p> <p>To create a secure database,
+you need to provide the following: </p> <ul>
+<li id="GUID-AF260BF8-D103-5A08-8BF4-3B8F9F658DBF"><p>UID of the application </p> </li>
+<li id="GUID-BCA90A2B-241A-5636-9A2C-080DF6EAAF61"><p>security policy </p> </li>
+</ul> <p><b>UID </b> </p> <p>You need to use the UID of the example application
+to name the database. </p> <p>The format for naming the database would be
+the following: </p> <codeblock id="GUID-768E0B87-B08B-5484-AED0-072D3840CC5B" xml:space="preserve">X:&lt;UID&gt;&lt;name&gt;.db</codeblock> <p>where, </p> <ul>
+<li id="GUID-328D11AC-814B-532C-8FEA-A0BB467A0CC2"><p> <codeph>X</codeph> is
+the drive in which the database is created </p> </li>
+<li id="GUID-12C3F6BD-2E50-5FFE-8B1C-2B73A40C88E6"><p> <codeph>UID</codeph> is
+the UID of the application that creates the database </p> </li>
+<li id="GUID-3FA9C3C5-903B-58CD-B509-335686E72BD4"><p> <codeph>name</codeph> is
+any valid database name. You should not specify the complete path of the database. </p> </li>
+</ul> <p>To successfully create and use a secure database, you must have appropriate
+capabilities such as <codeph>READUSERDATA</codeph>, <codeph>WRITEUSERDATA</codeph>.
+The example application uses <codeph>NETWORKCONTROL</codeph> capablity along
+with above specified capabilities. </p> <p> <b>Note:</b> If the given UID
+does not match with that of client application (in this case, the SQL example
+application) the attempts to create the database fails. </p> <p><b>Security
+policy </b> </p> <p>To create a secure database, you need to initially set
+up a container that has a set of security policies (<xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref>),
+and pass it to the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-0F4435A7-C28C-342F-AC90-73FABDE6F5DD"><apiname>RSqlDatabase::Create()</apiname></xref> function. The <xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> object
+defines what capabilities the calling application must have in order to perform
+a specific database operation. To cross check if the database security policy
+matches with the policy used when the database was created, the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-43E42D5C-62B8-34A7-AF2E-D62432DDB9DE"><apiname>RSqlDatabase::GetSecurityPolicy()</apiname></xref> function
+is called. </p><p><b>Related APIs</b></p><ul>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-0F4435A7-C28C-342F-AC90-73FABDE6F5DD"><apiname>RSqlDatabase::Create()</apiname></xref></p></li>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-43E42D5C-62B8-34A7-AF2E-D62432DDB9DE"><apiname>RSqlDatabase::GetSecurityPolicy()</apiname></xref></p></li>
+<li><p><xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> - Class representing a generic security
+policy</p></li>
+</ul> <p><b>Copying one database to another</b> </p> <p>The example copies
+one database to another using the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-D8B48367-D20B-337E-B41A-1E02119D91D6"><apiname>RSqlDatabase::Copy()</apiname></xref> function.
+If the database was created using a specific UID, then only the application
+with same UID, can perform the copy operation. </p> <p> <b>Note:</b> In this
+example, copy function is essentially a <i>file copy</i> as the client does
+a copy within its data cage. The copy operation should ideally fail if the
+destination database already exists. An application with appropriate permissions
+can use the file system to copy the database. </p><p><b>Related APIs</b></p><ul>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-D8B48367-D20B-337E-B41A-1E02119D91D6"><apiname>RSqlDatabase::Copy()</apiname></xref></p></li>
+</ul> <p><b>Attaching the database</b> </p> <p>The example application then
+demonstrates attaching two databases. In this example, a non-secure database
+is attached to a secure database. The attached database is later read from
+and written to, and the secure database is also written to before the two
+databases are deleted using the <xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-27BE67CC-037F-3533-A3B4-E3CC4879EA1C"><apiname>RSqlDatabase::Delete()</apiname></xref> function. </p><p><b>Related
+APIs</b></p><ul>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita#GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF/GUID-27BE67CC-037F-3533-A3B4-E3CC4879EA1C"><apiname>RSqlDatabase::Delete()</apiname></xref></p></li>
+</ul> <p><b>Querying the database</b> </p> <p>The example then demonstrates
+how to prepare and execute a query. </p> <p><b>Simple query</b> </p> <p>A
+simple query statement is prepared and executed using the <codeph>CSqlExample::DataTypesQueryL()</codeph> function. </p> <p><b>Query
+with a large parameter and writing using streaming</b> </p> <p>A query with
+a large parameter is prepared, executed and the results are written to <xref href="GUID-6313887C-8DE0-3702-BF4B-0622BAB2EE8E.dita"><apiname>RSqlParamWriteStream</apiname></xref> stream.
+A table containing fields of data types; integer, 64-bit integer, float, text
+and binary is created. It inserts two records into the table and implements
+the <xref href="GUID-E7B775B0-A609-313A-8BFD-375C81D782A5.dita"><apiname>TSqlScalarFullSelectQuery</apiname></xref> function for 64 bit integer
+(F2) and text (F4) fields and checks the returned value. The query for the
+data type which the column does not hold is executed, only to show that this
+is possible. For example, if a column holding the integer value 1000 is queried
+as real, it would return <systemoutput>1000.00</systemoutput>. </p><p><b>Related
+APIs</b></p><ul>
+<li><p><xref href="GUID-6313887C-8DE0-3702-BF4B-0622BAB2EE8E.dita"><apiname>RSqlParamWriteStream</apiname></xref> - The write stream interface.</p></li>
+<li><p><xref href="GUID-E7B775B0-A609-313A-8BFD-375C81D782A5.dita"><apiname>TSqlScalarFullSelectQuery</apiname></xref> - TSqlScalarFullSelectQuery
+interface is used for executing SELECT sql queries, which return a single
+row consisting of a single column value.</p></li>
+</ul> <p><b>Query returning data being read using streaming</b> </p> <p>The
+example lastly demonstrates how to prepare and execute a query which returns
+the data, and read that data from the data stream (<xref href="GUID-35BF7B4A-C4F7-3215-B5DF-6D0682247976.dita"><apiname>RSqlColumnReadStream</apiname></xref>).
+The read stream interface class is used for reading a large amount of binary
+or text data from the column. </p><p><b>Related APIs</b></p><ul>
+<li><p><xref href="GUID-35BF7B4A-C4F7-3215-B5DF-6D0682247976.dita"><apiname>RSqlColumnReadStream</apiname></xref> - The read stream interface.</p></li>
+</ul> </section>
+<section><title>Download</title> <p>Click on the following link to download
+the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-ef83061e-0e34-482b-bfcf-267d8972e786.zip" scope="external">SqlExample.zip</xref></p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-ef83061e-0e34-482b-bfcf-267d8972e786.html" scope="peer">browse</xref> to view the example code.</p> </section>
+<section><title>Class summary</title><ul>
+<li><p><xref href="GUID-4688F6B7-E1B0-37CF-BAA2-C6BD103D4FDF.dita"><apiname>RSqlDatabase</apiname></xref></p></li>
+<li><p><xref href="GUID-0176BF07-DF94-3259-8F90-DE030E35CE9A.dita"><apiname>RSqlStatement</apiname></xref></p></li>
+<li><p><xref href="GUID-35BF7B4A-C4F7-3215-B5DF-6D0682247976.dita"><apiname>RSqlColumnReadStream</apiname></xref></p></li>
+<li><p><xref href="GUID-6313887C-8DE0-3702-BF4B-0622BAB2EE8E.dita"><apiname>RSqlParamWriteStream</apiname></xref></p></li>
+<li><p><xref href="GUID-56C52D43-C4A9-3B31-B154-CA1E77693F57.dita"><apiname>RSqlSecurityPolicy</apiname></xref></p></li>
+<li><p><xref href="GUID-E7B775B0-A609-313A-8BFD-375C81D782A5.dita"><apiname>TSqlScalarFullSelectQuery</apiname></xref></p></li>
+</ul></section>
+<section id="GUID-AC702731-D7EE-563C-8AE9-2CFAB58AD97C"><title>Build</title> <p>The <xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">Symbian OS build process</xref> describes
+how to build an application. </p> <p>The Sql example builds an executable
+called <filepath>sqlexample.exe</filepath> in the standard location (<filepath>\epoc32\release\winscw\</filepath> <i>&lt;build_variant&gt;</i> for
+CodeWarrior). After launching the executable depending on the emulator, you
+may need to task away from the app launcher or shell screen to view the console. </p> </section>
+<section id="GUID-4FBE56C6-5DCE-56C5-98EA-75C863E5C5D6"><title>See
+also</title><xref href="GUID-582CAA4A-1240-5138-983D-D9C6EEAF5566.dita">SQL Tutorials</xref> </section>
+</conbody></concept>

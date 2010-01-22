@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FDC0004A-A2EE-5B73-9E2D-B6864C600AF9" xml:lang="en"><title>SMIL
+Parser Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The SMIL Parser component uses XML DOM to validate SMIL (Synchronized Multimedia
+Integration Language) documents for rendering MMS (Multimedia Message Service)
+messages. </p>
+<section id="GUID-0EDFED36-1728-48D0-AC92-D269E0568DC9"><title>Purpose</title> <p>Its primary purpose is to provide SMIL
+parsing and composing functionality for MMS. However, the component has also
+been designed to provide support for parsing and composing other types of
+XML document, for example XHTML. </p> </section>
+<section id="GUID-17D17217-ECD7-49C8-87CE-8505B423727A"><title>Architecture</title> <p>The SMIL Parser component comprises
+of the following elements: </p> <ul>
+<li id="GUID-299AA6C3-B517-5CAB-95BC-11E36D805941"><p>A generic set of classes
+that can represent the contents of an XML file in an object hierarchy for
+efficient processing. These classes are referred to as the Mini-DOM, because
+they use some but not all concepts from the DOM (Document Object Model). The
+classes can perform syntax checking and validation with regard to a specific
+DTD set at run time. </p> </li>
+<li id="GUID-C4FCE7B0-3B24-514D-8D92-B089FBA0CE16"><p>An interface class that
+defines the signature for the necessary DTD validation functions. Any DTD-specific
+validation class is derived from this, and provides an implementation of these
+functions. </p> </li>
+<li id="GUID-C26FE2C2-3FDD-5347-909E-86BDD1E003A1"><p>A parser that can read
+an XML file and can generate Mini-DOM objects. </p> </li>
+<li id="GUID-918807C2-FBFB-501D-8388-720834F627B2"><p>A composer that can
+take a Mini-DOM object tree and output an XML file. </p> </li>
+</ul> <fig id="GUID-3B925574-105C-5EA3-94A8-CFCED0D0F544">
+<title>              SMIL Parser architecture            </title>
+<image href="GUID-C65D4AB3-4F4B-5005-A9C4-96807EDB3EEC_d0e459295_href.jpg" placement="inline"/>
+</fig> <p>The following sections gives detailed explanation of the above elements: </p> <p><b>XML
+Mini-DOM </b> </p> <p>The XML Mini-DOM classes are based on a subset of the
+DOM classes. The Mini-DOM is a subset, because it is not intended to support
+some of the more ambitious or obscure uses of XML. It also discards some of
+the theoretical layers. For example, attributes are not created as separate
+nodes, but are member data of element objects. The Mini-DOM is not intended
+as a porting API whereby applications written on other platforms using the
+DOM can be trivially ported to Symbian platform. </p> <p>When an XML file
+is parsed, and a Mini-DOM tree is created, the Mini-DOM classes provide an
+API to navigate through the document objects and to query the element attributes.
+When an XML file is to be composed, the Mini-DOM provides an API to inquiry
+the elements allowing the XML Composer to produce a textual representation. </p> <p><b>SMIL
+DTD</b> </p> <p>SMIL DTD allows a Mini-DOM tree to be validated for a specific
+DTD. A DTD interface class <xref href="GUID-F294DC1C-D762-3CF7-BB64-18E742BA6EAA.dita"><apiname>MXMLDtd</apiname></xref> is defined from which
+specific DTD classes are derived. The Mini-DOM can then call DTD-specific
+functions through implementations of the interface. </p> <p><b>XML Parser</b> </p> <p>XML
+Parser is a single-pass parser with a two-stage pipeline. The first stage
+is basic lexical analysis that reads the data from a source, performs some
+housekeeping and normalization functions on it, and passes on meaningful sections
+of text to the second stage for parsing. </p> <p>The following operations
+are performed on the input in the lexical analysis stage: </p> <ul>
+<li id="GUID-EF082699-6424-5F34-A3F9-BE64DE2CDFB7"><p>Comments are stripped
+out. </p> </li>
+<li id="GUID-BCC33D81-F26C-5F76-9EA9-D37B725A9EEA"><p>Processing instructions
+are stripped out. </p> </li>
+</ul> <p>The following are the meaningful sections of text: </p> <ul>
+<li id="GUID-9CB81940-2E24-568C-8377-761CE85B6490"><p>Complete tag definitions
+(for example, start tag, end tag or combined tag) </p> </li>
+<li id="GUID-666F1557-907C-541B-8453-2CFD523036DD"><p>Sections of text of
+specific CDATA sections </p> </li>
+</ul> <p>The second stage is to parse elements by breaking out the element
+name and sequence of attribute values and creating generic attributes. </p> <p>Built-in
+character entities are replaced by their values if they have previously been
+defined. Any entity references that are not recognized are left untouched. </p> <p>The
+second parser stage creates DOM objects in a tree structure by adding new
+elements onto the child element list of each element. Encountering a start
+tag causes an element to be created under the then-current element, while
+encountering an end tag causes the then-current element to move up the object
+tree. At the same time, the end tag is compared with the relevant element
+to ensure that start and end tags match. If an empty element tag is encountered,
+then the element is created, but the position for insertion of the next tag
+is not descend the object tree. </p> <p>XML Parser is a generic parser and
+has no specific functionality to any particular DTD. Instead, validation and
+syntax checking is done through the Mini-DOM API. </p> <p>The parser carries
+out the act of parsing an XML file as an active object. A single activation
+of the object parses the whole file. </p> <p>The parser takes input from a
+file or a buffer. Supported character sets are UTF-8 (of which ASCII is a
+subset) and UTF-16. Any data not beginning with a DOM is treated as UTF-8.
+The data is parsed and added to a DOM based structure. </p> <p><b>XML Composer</b> </p> <p>XML
+Composer takes a DOM tree and produces an XML file representing the data in
+that DOM tree. It performs a tree walk for each element, and using the generic
+element API, it accesses element details and outputs the text of the elements
+or the character data. </p> <p>During the tree-walk, elements that are not
+empty result in a start tag and an end tag being output. Empty elements result
+in a single tag being output. Instances of characters that must be replaced
+by built-in entity references are also replaced. </p> <p>When an XML file
+is parsed, and the resulting object tree passed into the composer, an output
+file is created. The output file may not be necessarily identical to the input
+file: that is, comments may be lost, and white space elements may be affected
+as well. </p> </section>
+<section id="GUID-18BC11E3-23B6-4356-A255-12D824D1B454"><title>APIs</title> <p>The following are the important XML DOM APIs
+provided by the SMIL Parser component: </p> <table id="GUID-84248E72-234B-5487-A049-DB1D9A9B1A9A">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-DF432AB6-7895-30E8-9B4B-378E61A7A901.dita"><apiname>CMDXMLElement</apiname></xref>  </p> </entry>
+<entry><p>Provides access to element data including attribute name/value pairs. </p> <p>Attribute
+access is by name. For example, to get the value of the <codeph>width</codeph> attribute,
+call <xref href="GUID-68E71051-2A4D-311D-8554-14442D098560.dita"><apiname>GetAttributeL()</apiname></xref> and the value is returned as another
+string. </p> <p>DTD element classes are not necessary. All elements are constructed
+from the generic element class and has the following functionality: </p> <ul>
+<li id="GUID-E46CBA23-1D24-574A-B450-C420F83832E1"><p>The element class has
+member variables created for each element attribute defined. Each member variable
+has standard accessor and mutator functions defined. </p> </li>
+<li id="GUID-5654E630-FF29-5883-A8E1-16E064FEE064"><p>Validation of attribute
+values can be carried out by calling <xref href="GUID-AE599A9F-7E71-3082-8118-ACA87E3E4145.dita"><apiname>IsValidAttributeForElementL()</apiname></xref>.
+DTD specific validation is done based on the <xref href="GUID-F294DC1C-D762-3CF7-BB64-18E742BA6EAA.dita"><apiname>MXMLDtd</apiname></xref> object
+passed to the document during creation. </p> </li>
+<li id="GUID-FCFE73E0-3D5D-5056-BDE3-2BED4E3F3C47"><p>The element class has
+the <xref href="GUID-21F01EDE-1C79-34AD-AF6B-5944B324539D.dita"><apiname>CheckChildren()</apiname></xref> function created to check that any
+child elements conform in type and order to the requirements of the DTD. This
+is achieved by calling <xref href="GUID-11DC3525-A8AD-33DE-AFEB-ED840469357F.dita"><apiname>CheckValidChildren()</apiname></xref> on the DTD
+object owned by the document. </p> </li>
+</ul> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-3AF26F84-F4C0-312D-9ABD-1C6EC0BD1675.dita"><apiname>CMDXMLParser</apiname></xref>  </p> </entry>
+<entry><p>Provides functions to read an XML file and can generate Mini-DOM
+objects. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-2A597821-BF7F-379A-A32C-99CF9B5CDFAA.dita"><apiname>CMDXMLDocument</apiname></xref>  </p> </entry>
+<entry><p>It is an XML document with a reference to an <xref href="GUID-F294DC1C-D762-3CF7-BB64-18E742BA6EAA.dita"><apiname>MXMLDtd</apiname></xref> object. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-F294DC1C-D762-3CF7-BB64-18E742BA6EAA.dita"><apiname>MXMLDtd</apiname></xref>  </p> </entry>
+<entry><p>Defines the signature for the necessary DTD validation functions.
+DTD-specific validation class is derived from this and provides an implementation
+of these functions. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-8BBCB6A5-A133-3BDD-8614-E5E2F1FED7E5.dita"><apiname>CMDXMLNode</apiname></xref>  </p> </entry>
+<entry><p>Provides functions to store the node type and name and manages a
+list of child nodes. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-78751199-C2AA-37C4-970B-191C4D496AAA.dita"><apiname>CMDXMLComposer</apiname></xref>  </p> </entry>
+<entry><p>Provides functions to compose a Mini-DOM object tree and output
+an XML file. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-42B978B7-C272-401C-9A19-E65EFE34E825"><title>Typical uses</title> <ul>
+<li id="GUID-4E0FFD17-4A47-5CEC-B1C5-42CBF9FA0108"><p><xref href="GUID-2468D736-9F95-5412-B687-765D630651C7.dita">Parsing
+XML Data</xref>  </p> </li>
+<li id="GUID-ADCD2234-95B0-5959-AFC2-E11F17799AF0"><p><xref href="GUID-99CC6D00-DC3E-51C2-8152-060FB80F5FCD.dita">Composing
+XML Data</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-D599779A-17A9-4D12-B7BE-29909F782083"><title>See also</title> <p> <xref href="http://www.w3.org/TR/REC-DOM-Level-1/" scope="external">Document Object Model Specification</xref>  </p> </section>
+</conbody></concept>

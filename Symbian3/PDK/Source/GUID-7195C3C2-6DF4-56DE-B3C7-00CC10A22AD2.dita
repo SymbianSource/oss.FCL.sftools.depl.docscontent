@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7195C3C2-6DF4-56DE-B3C7-00CC10A22AD2" xml:lang="en"><title>Writing
+Trace Data to Buffers Tutorial</title><shortdesc>Explains how to use the kernel trace tool API to write trace data
+to buffers. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D09695E0-895C-4D92-9DC3-67190BD18937"><title>Purpose</title> <p>The
+kernel trace tool API can write kernel side trace data to user side buffers
+for use by applications such as the command line kernel trace tool. </p></section>
+<section id="GUID-EDC7E992-AE8A-4640-89DE-071686680377"><title>Intended audience</title><p>This document is intended for
+application developers writing a trace tool using the kernel trace tool component. </p></section>
+<section id="GUID-DE19BC36-5D0D-4C55-8107-A8F8B8A397F3"><title>Required background</title> <p>The trace filters defined in
+EUser. The kernel trace tool component in general. </p></section>
+<section id="GUID-CEBA6B48-D8E2-46C0-AE67-3B229A37B5CA"><title>Introduction</title> <p>Writing trace data to buffers is a
+short task which is performed in combination with related tasks as explained
+in <xref href="GUID-55C05441-33B5-5057-971D-4200345E941E.dita">Kernel Trace Tool
+Tutorial</xref>. </p></section>
+<section id="GUID-E95361F5-FB68-431E-BF70-0CAA084BF78B"><title>Using Kernel
+Trace Tool to Write Trace Data to Buffers </title> <p>The following tasks
+will be covered in this tutorial: </p> <ul>
+<li id="GUID-F8B50DE2-E675-5D5C-A6A7-7C134A345DEF"><p>Writing trace data to
+buffers. </p> </li>
+</ul> </section>
+<section id="GUID-6BA65C01-B5FF-474A-913E-EBF6AC88FD49"><title>Basic procedure</title> <p>The high level steps to writing
+trace data to buffers are shown here: </p> <ol id="GUID-EA6F7E84-91F6-5739-AFC3-FB9B42B0A063">
+<li id="GUID-5D47FA7A-1AB5-5D1C-A94D-C059AF27A386"><p>Read the data chunk
+by chunk until it is exhausted. </p> </li>
+<li id="GUID-B191EAD7-1370-506F-82E1-AB9924116A81"><p>When each chunk is read,
+mark it as read. </p> </li>
+</ol> </section>
+<section id="GUID-8BC6056B-FAD8-47B4-BC76-A64074F3C44F"><title>Using the API</title> <p>These
+are the function calls required to </p> <ol id="GUID-8579706E-5C74-583D-A01E-8747F66C1FBC">
+<li id="GUID-96084312-5D5A-58A8-8447-2A943D30C2E7"><p>Set up a loop which
+terminates when the data is exhausted. </p> </li>
+<li id="GUID-8C4C276E-0C31-555A-9F00-26A95EFCA376"><p>Within the loop call
+the <xref href="GUID-85D1AC02-37F3-32B6-BE61-E700EB3C2023.dita"><apiname>GetData()</apiname></xref> function of the <xref href="GUID-9E859841-E8A3-37D5-9A19-BCAA3C700922.dita"><apiname>RBTrace</apiname></xref> object. </p> </li>
+<li id="GUID-41C89085-BFED-5B66-B96D-DABF4AA9BD51"><p>The data is now in a
+buffer, the <xref href="GUID-A04C62AA-963F-34A8-932B-F8666789BE49.dita"><apiname>data</apiname></xref> argument of <xref href="GUID-85D1AC02-37F3-32B6-BE61-E700EB3C2023.dita"><apiname>GetData()</apiname></xref>,
+and available for further processing. </p> </li>
+<li id="GUID-268CC254-90B4-5C14-9D2E-2C1FABAE3F73"><p>Still within the loop
+call the <xref href="GUID-5F9823E8-2EF6-34DA-BB4D-5161AD2AEC01.dita"><apiname>DataUsed()</apiname></xref> function of the <xref href="GUID-9E859841-E8A3-37D5-9A19-BCAA3C700922.dita"><apiname>RBTrace</apiname></xref> object.
+You must do this for each call to <xref href="GUID-85D1AC02-37F3-32B6-BE61-E700EB3C2023.dita"><apiname>GetData()</apiname></xref> to remove used
+data from the buffer. </p> </li>
+</ol> <codeblock id="GUID-66A84361-4D52-5992-8750-6E312555EC99" xml:space="preserve">
+         RBTrace trace;
+   ...
+            while((size=trace.GetData(data))!=0)
+                {
+                ProcessTheTraceData(data,size);
+                trace.DataUsed();
+                }
+</codeblock> </section>
+</conbody></concept>

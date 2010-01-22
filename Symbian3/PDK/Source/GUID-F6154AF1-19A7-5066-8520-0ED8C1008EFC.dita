@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F6154AF1-19A7-5066-8520-0ED8C1008EFC" xml:lang="en"><title>Opening
+and Creating Large Files </title><shortdesc>How to open and create large files. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-40EDFD1A-3EE1-5E57-8C74-5D26471083F8"><p>Both the 32-bit
+and the 64-bit functions can be used to open files. However, when using a
+32-bit <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref> handle (sub-session connection) a file cannot
+be increased to greater than 2GB-1. </p><p>To increase the size of a file
+beyond this limit, open it using the 64-bit <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> functions. </p><p>If
+a file is opened simultaneously by <codeph>RFile</codeph> and <codeph>RFile64</codeph>,
+using the <codeph>RFile64</codeph> handle the file can be made larger than
+2GB-1 (even if there is an <codeph>RFile</codeph> sub-session open). </p><p>Use
+the following functions to open a large file for access:<ul>
+<li id="GUID-AC960B7D-B571-52BF-8E7F-CDF053FDF047"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-0EE928E0-279E-3A41-93DD-71D342909194"><apiname>RFile64::Open(RFs&amp;
+aFs,const TDesC&amp; aName,TUint aFileMode)</apiname></xref>  </p> </li>
+<li id="GUID-BC6D144E-EF8E-5B30-ADF3-85898FE02655"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-165E4B9D-80DA-3ECA-99CE-219A05D4DE8A"><apiname>RFile64::Create(RFs&amp;
+aFs,const TDesC&amp; aName,TUint aFileMode)</apiname></xref>  </p> </li>
+<li id="GUID-D5376D5D-4834-5C23-91BD-BAB4789158AC"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-5CC1ED6D-E88C-343C-8342-F469513194A0"><apiname>RFile64::Replace(RFs&amp;
+aFs,const TDesC&amp; aName,TUint aFileMode)</apiname></xref>  </p> </li>
+<li id="GUID-B5E02361-9212-50D2-B140-591B4B47115D"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-EDA150F8-A1B3-38D8-A85E-F94560E047A8"><apiname>RFile64::Temp(RFs&amp;
+aFs,const TDesC&amp; aPath,TFileName&amp; aName,TUint aFileMode)</apiname></xref>  </p> </li>
+<li id="GUID-5ABFFF27-47DA-59A4-9185-696FFFB600D8"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-88104AEF-708A-37BE-9B3D-418867072582"><apiname>RFile64::AdoptFromClient(const
+RMessage2&amp; aMsg, TInt aFsIndex, TInt aFileIndex)</apiname></xref>  </p> </li>
+<li id="GUID-0182C289-59C1-5D12-B7A3-F34D019ED125"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-CCD12E11-89C8-3E17-82BE-3F9FD2314007"><apiname>RFile64::AdoptFromServer(TInt
+aFsHandle, TInt aFileHandle)</apiname></xref>  </p> </li>
+<li id="GUID-D62C0867-DF9C-5A51-9C0B-9F38A50726AD"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-B6D96532-7151-36AD-B925-B88C85BDFF59"><apiname>RFile64::AdoptFromCreator(TInt
+aFsIndex, TInt aFileHandleIndex)</apiname></xref>. </p> </li>
+</ul></p><p>The <codeph>RFile64::AdoptFromXXX()</codeph> functions allow a
+server to adopt a file that is already open from a client, a server or even
+from another process (creator). </p> <p>The File Server enables a large file
+access mode for the adopter. For example, the server that obtains the file
+handle from its client can use <codeph>RFile64</codeph>, irrespective of whether
+the client has opened the file in large file mode or not. </p> </context>
+<steps id="GUID-A80F065B-00A7-5527-BA25-C8A30EA890F1">
+<step id="GUID-42CD7BD8-0F2C-5544-A7E6-4AD15F6AA263"><cmd>Use <codeph>RFile64</codeph> instead
+of <codeph>RFile</codeph>.</cmd>
+<stepxmp><codeblock id="GUID-FC10A5D5-23CF-5D08-8693-32BA008723F5" xml:space="preserve">// RFile file;
+RFile64 file;</codeblock></stepxmp>
+</step>
+</steps>
+<example id="GUID-BDB952CE-FEEA-54B4-8E68-0BF10474F0E0"><title>Increasing
+the size of existing files example</title><p>Large file access is supported
+when using <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref>. The file can be increased to a size
+larger than 2GB-1 and the error <xref href="GUID-508AC20B-A8F8-3654-8BB8-E5D7FB1F72CB.dita"><apiname>KErrTooBig</apiname></xref> will not be
+returned when using <codeph>RFile64</codeph>. </p><p>This example shows the <codeph>Temp()</codeph> function
+but the same concepts apply for the others. </p><codeblock id="GUID-F0BAE1F1-1A2B-5627-B0D8-62308E14A06E" xml:space="preserve">    // RFile file;
+    RFile64 file;
+    TInt err;
+
+    TFileName myTempFile;
+    err = file.Temp(TheFs, _L(“D:\\Private\\”), myTempFile, EFileWrite);
+
+    if(err != KErrNone)
+         {
+        return err;
+         }
+    ...
+    err = file.Write(myDesc);
+    If(err != KErrNone)
+        {
+        // handle error
+        return err;
+     }
+        ...</codeblock> </example>
+</taskbody></task>

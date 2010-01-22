@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-8F6D6934-8FF0-5045-8AB1-74384BE792EA"><title>Retrieving Information about a Shared Memory Object</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>You can use the <xref href="GUID-7A657C7B-0732-322C-8378-5230305EE59E.dita"><apiname>fstat()</apiname></xref> function to retrieve information about a shared memory object associated with a file descriptor. The <xref href="GUID-7A657C7B-0732-322C-8378-5230305EE59E.dita"><apiname>fstat()</apiname></xref> function retrieves only the following members associated with a shared memory from the structure <codeph>stat</codeph> declared in <filepath>&lt;sys/stat.h&gt;</filepath>: </p> <ul><li id="GUID-8458BD50-D542-59B0-93B5-2B7604D04D98"><p> <codeph> st_uid</codeph>  </p> </li> <li id="GUID-6E5438E5-4643-538D-9287-EB80525687AF"><p> <codeph> st_gid</codeph>  </p> </li> <li id="GUID-F91DAE1E-FBE6-5B0B-8B20-0970418FE24F"><p> <codeph>st_size</codeph>  </p> </li> <li id="GUID-42822FB5-C7F0-55A4-822C-A23BB6223100"><p> <codeph>st_mode</codeph>  </p> </li> </ul> <p>For more information about the members of the structure <codeph>stat</codeph>, see <xref scope="external" href="http://www.opengroup.org/onlinepubs/009695399/basedefs/sys/stat.h.html">Open Group</xref>  </p> <p>Example: </p> <codeblock id="GUID-4AEA7CD0-3944-557D-A3D1-D802B318E5FC" xml:space="preserve">#include &lt;stdio.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;errno.h&gt;
+int main(void)
+    {
+    int fd; //File descriptor
+    int ret;
+    struct stat buffer; //Stores the data associated with the members of the structure stat
+    if((fd = shm_open("page", O_RDWR|O_CREAT, 0666)) &lt; 0)
+        {
+        printf("Shared memory creation failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Shared memory creation was successful\n");
+        }
+    if((ret = fstat(fd,&amp;buffer) &lt; 0)
+        {
+        printf("fstat() on shared memory failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("fstat() on shared memory succeeded\n");
+        printf("mode = %d\n", buffer.st_mode);
+        printf("size = %d\n", buffer.st_size);
+        }
+    //Checks whether the shared memory mode is same as that of a regular file
+    if(S_ISREG(buffer.st_mode))
+        {
+        printf("Test passed");
+        }
+    else
+        {
+        printf("Test failed");
+        }
+    close(fd);//closing the file descriptor
+    if((ret = shm_unlink("page")) &lt; 0) 
+        {
+        printf("Shared memory unlinking failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Shared memory unlinking was successful\n");
+        }
+    return ret;
+    }</codeblock> </conbody><related-links><link href="GUID-9AC6774A-41E9-5298-8696-0A317A09E1E9.dita"><linktext>Librt Overview</linktext> </link> <link href="GUID-BE70DCBF-366A-5054-B0F1-7FCEF45FC735.dita"><linktext>Creating and Unlinking a File
+                Descriptor from a Shared Memory</linktext> </link> <link href="GUID-A4ECB450-02DA-5E85-91AC-4C8BDE0B9B58.dita"><linktext>Writing, Reading and Seeking from a
+                Shared Memory</linktext> </link> <link href="GUID-66402932-5C44-556B-A7AC-1C2D245C8B05.dita"><linktext>Clocks and Timers Tutorial</linktext> </link> </related-links></concept>

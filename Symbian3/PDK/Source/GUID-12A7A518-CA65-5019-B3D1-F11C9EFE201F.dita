@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-12A7A518-CA65-5019-B3D1-F11C9EFE201F" xml:lang="en"><title>Phone
+Identity Tutorial</title><shortdesc>This tutorial describes how to identify a phone using multimode
+phone sub-sessions. Phone identity information are the phone manufacturer,
+model, revision, serial number and subscriber ID. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The serial number is called the IMEI for GSM and ESN for non-GSM.
+The
+subscriber ID is a unique number called the IMSI. 
+</p></context>
+
+
+
+<steps id="GUID-C819202F-6240-57BE-B6DB-18777AA659B3">
+<step id="GUID-4146EE0B-B7AF-5EE3-A7F8-29A4491E19B3"><cmd>Check if the identity
+information can be obtained using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetIdentityCaps()</apiname></xref>. </cmd>
+<info>Capabilities are described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneIdentityCaps</apiname></xref>. </info>
+</step>
+<step id="GUID-F94DE414-D122-5FFB-9E76-ED8C9A50D567"><cmd>Retrieve the identity
+information using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetPhoneId()</apiname></xref>. </cmd>
+<info>Phone identity information is returned in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneIdentityV1</apiname></xref> object.
+This function does not return the subscriber ID. </info>
+</step>
+<step id="GUID-EBA6DE28-DEDF-56FB-AE6B-603B0D79B6CF"><cmd>Retrieve the subscriber
+ID using an<xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetSubscriberId()</apiname></xref>. </cmd>
+<info>A subscriber ID is described in an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneSubscriberId</apiname></xref> buffer. </info>
+</step>
+</steps>
+<result><p>The function returns the information to identify the device. </p> </result>
+<example><title>Phone identity example</title> <p>The following code checks
+if phone model information can be obtained, and if so, gets the model information.
+The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-F39783B0-22C4-5580-BA53-F939880120BE" xml:space="preserve">
+TUint32 identityCaps;
+
+User::LeaveIfError(iMobilePhone.GetIdentityCaps(identityCaps));
+TBuf&lt;RMobilePhone::KPhoneModelIdSize&gt; model;
+
+if (identityCaps &amp; RMobilePhone::KCapsGetModel)
+    {
+    TRequestStatus status;
+    RMobilePhone::TMobilePhoneIdentityV1 mobilePhoneIdentity;
+    iMobilePhone.GetPhoneId(status, mobilePhoneIdentity);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    model = mobilePhoneIdentity.iModel;
+    }
+</codeblock> </example>
+</taskbody></task>

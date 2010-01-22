@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-48363190-6FFB-4230-84B4-2E521EA51365" xml:lang="en"><title>Using
+menu sections in menu bar resource statements</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<fig id="GUID-4EAE2293-314B-4FFB-BF37-FAF75DDC0135"><title>Menu sections in an Options menu</title><image href="GUID-4D6C478A-33BA-4D74-9B82-7133ABFFB0D2_d0e84948_href.png"/></fig>
+<p>The use of menu sections provides a means of combining menu bar resource
+declarations in <b>Options</b> menus. One example of how this could be used
+would be an application with two views. Three <parmname>MENU_BAR</parmname> resources
+could be defined as follows:</p>
+<ul>
+<li><p>an application menu section, which would be common to both
+views</p></li>
+<li><p>a menu section for view 1, which would contain options items
+unique to this view</p></li>
+<li><p>a menu section for view 2, which would contain options items
+unique to this view</p></li>
+</ul>
+<section id="GUID-84E33CCD-1D3D-4A79-BE71-FE96B3D61C22"><title>Combining menu
+sections</title>
+<p>The menu sections that are combined for an <b>Options</b> menu are defined
+in the <parmname>MENU_BAR</parmname> resource. This resource lists all the
+sections that will be combined to form the menu. The menu sections are combined
+from bottom to top (for example, system sections such as 'Edit' go at the
+bottom of the menu while context sections such as 'Open' go at the top of
+the menu). A menu bar is defined as follows:</p>
+<codeblock id="GUID-7E4BF634-13E9-4343-BB80-ACAFCF8D3A86" xml:space="preserve">
+RESOURCE MENU_BAR r_menuapp_menu_bar
+    {
+    titles =
+        {
+        MENU_TITLE { menu_pane = r_system_menu; },
+        MENU_TITLE { menu_pane = r_app_menu; },
+        MENU_TITLE { menu_pane = r_view1_options_menu; },
+        MENU_TITLE { menu_pane = r_context1_menu; }
+        };
+    }
+</codeblock>
+<p>The default <parmname>MENU_BAR</parmname> resource is declared in <xref href="GUID-23A60DE7-B72D-41BD-9F1E-882D31A7E3C7.dita"><parmname>EIK_APP_INFO</parmname></xref> or <xref href="GUID-B238952B-1691-49F4-B8B9-9F755011A7DD.dita"><parmname>AVKON_VIEW</parmname></xref></p>
+</section>
+<section id="GUID-4527D821-6960-4E18-B880-FC19BE5320F3"><title>Changing menu
+sections</title>
+<p>You can use the following method to change the <parmname>MENU_BAR</parmname> resource
+that is used by the application to change the menu sections at any time within
+the application: </p>
+<codeblock id="GUID-17796D02-EF20-40EB-80C1-365B58FDC1C3" xml:space="preserve">iEikonEnv-&gt;AppUiFactory()-&gt;MenuBar()-&gt;
+   SetMenuTitleResourceId(MENU_BAR_RESOURCE_ID);
+</codeblock>
+<p>This sets the whole menu bar and should be performed every time one
+of the sections needs to change its contents. Therefore, you should define
+as many <parmname>MENU_BAR</parmname> resources as there are possible combinations
+of menu sections. That is, a menu bar should be defined for each combination
+of view and context options. Note also that if view architecture is used,
+and the view’s own menu system is in use, it is this menu bar’s contents that
+need switching, as follows: </p>
+<codeblock id="GUID-C2F22032-2AF7-41CB-872A-7388DDA23F94" xml:space="preserve">iMyView-&gt;MenuBar()-&gt;
+     SetMenuTitleResourceId(MENU_BAR_RESOURCE_ID);
+</codeblock>
+</section>
+<section id="GUID-73295F48-5E72-48E9-9F0E-5091A8C73B12"><title>Changing menu
+items in menu sections</title>
+<p>Individual menu items in a menu section may be changed whenever the
+menu is displayed. This allows the application to show and hide (or remove
+and add) menu items in response to the application state. In the <xref href="GUID-B5DE1C86-2B16-4B22-887F-7079E54A8ED6.dita">traditional
+Symbian OS UI architecture</xref>, you should override <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/MEikAutoMenuObserverClass.html#%3a%3aMEikAutoMenuObserver%3a%3aDynInitMenuPaneL%28%29" format="application/java-archive"><parmname>MEikAutoMenuObserver::DynInitMenuPaneL()</parmname></xref> in the UI
+controller. In the <xref href="GUID-68B999C2-0993-4804-9624-42C3D88BE5C7.dita">S60
+view architecture</xref>, you should override <parmname>MEikAutoMenuObserver::DynInitMenuPaneL()</parmname> in
+the view controller. An example of such an override is as follows:</p>
+<codeblock id="GUID-D8991DA2-0FE2-4904-A202-8254EF294D50" xml:space="preserve">void CMyAppUi::DynInitMenuPaneL(TInt aResourceId, 
+    CEikMenuPane* aMenuPane)
+    {
+    if(aResourceId != R_SYSTEM_MENU_PANE)
+        return; // in this example only interest in system
+                // pane
+
+    // First hide all
+    aMenuPane-&gt;SetItemDimmed(ECmdCut, ETrue);
+    aMenuPane-&gt;SetItemDimmed(ECmdCopy, ETrue);
+    aMenuPane-&gt;SetItemDimmed(ECmdPaste, ETrue);
+
+    // Show according to application state
+    if(...)
+        {
+        aMenuPane-&gt;SetItemDimmed(ECmdCut, EFalse);
+        aMenuPane-&gt;SetItemDimmed(ECmdCopy, EFalse);    
+        }
+    else
+        {
+        aMenuPane-&gt;SetItemDimmed(ECmdPaste, EFalse);
+        }
+    } 
+</codeblock>
+<p>This method is called by the framework after each of the sections has
+been added to the menu, and is called with the resource ID of the section
+that has just been added and the menu pane object that is being built.</p>
+<p>You can also override <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/MEikAutoMenuObserverClass.html#%3a%3aMEikAutoMenuObserver%3a%3aDynInitMenuBarL%28%29" format="application/java-archive"><parmname>MEikAutoMenuObserver::DynInitMenuBarL(TInt aResourceId, CEikMenuBar* aMenuBar)</parmname></xref> in
+the <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita#GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC/GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC">UI
+controller</xref> or <xref href="GUID-DAC32BB9-C0EB-42FF-A596-C2F1A90A4BD7.dita#GUID-DAC32BB9-C0EB-42FF-A596-C2F1A90A4BD7/GUID-DAC32BB9-C0EB-42FF-A596-C2F1A90A4BD7">view
+controller</xref>, depending on your UI architecture. This gets called before
+any sections are added to the menu, and can be used to dynamically change
+the sections that will be added to the menu. This could be used to change
+the resource ID of the context menu section for a certain application state. </p>
+</section>
+</conbody></concept>

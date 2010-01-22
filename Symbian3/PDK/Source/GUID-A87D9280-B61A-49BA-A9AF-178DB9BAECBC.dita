@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A87D9280-B61A-49BA-A9AF-178DB9BAECBC" xml:lang="en"><title>Reading and Writing</title><shortdesc>This document describes how device drivers should open, read from
+and write to shared chunks.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Both user-side code and drivers can read and write to shared chunks. Once
+the chunk is created, opened, and memory committed to it, data can be written
+and read to the shared chunk using the base address. </p>
+<section id="GUID-4CF7C47A-24D2-4D6D-B577-F0351178CA38"><title>Opening</title> <p>If a shared chunk has already been created
+by a driver, then another driver can access that shared chunk through its
+handle by using one of the following functions: </p> <codeblock id="GUID-EB073A6D-5DC3-5572-BD7C-E96F63BB8DCF" xml:space="preserve">DChunk* Kern::OpenSharedChunk(DThread* aThread, TInt aChunkHandle,
+                    TBool aWrite);
+
+DChunk* Kern::OpenSharedChunk(DThread *aThread, 
+                    const TAny *aAddress, TBool aWrite, 
+                    TInt &amp;aOffset);
+</codeblock></section>
+<section id="GUID-95D166D2-C6BE-45F5-84E7-6F5ACB1BFA38"><title>User-side access</title> <p> <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> is
+the user side representation of a shared chunk. The user gets a shared chunk
+handle from a driver, and initialises the <codeph>RChunk</codeph> object with
+it using <codeph>RChunk::SetHandle(TInt aHandle)</codeph>. </p> <p>The user
+can now obtain the base address of the chunk by calling <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita#GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07/GUID-D19E68E8-3C5F-3F97-80F2-B2F80A814A80"><apiname>RChunk::Base()</apiname></xref>.
+Data can be read or written to this memory location, in same way as any other
+memory. </p> <codeblock id="GUID-E0F57FBB-1F43-564F-8350-A49B6AFEE3F1" xml:space="preserve">// User side chunk object.     
+ RChunk chunkTx; 
+     
+// Get the handle to the chunk. A driver creates the chunk and
+// returns the handle to the user to access it. The handle is  
+// assigned to the user side chunk object using RChunk::SetHandle(). 
+// (here done in the GetTxChunkHandle function). The handle has to be a positive 
+// value. It can be obtained using RChunk::Handle(), if required.
+//
+r=ldd.GetTxChunkHandle(chunkTx);     
+test(r==KErrNone);        
+     
+// Create a constant descriptor with test data
+_LIT8(KTestSendData,"&lt;&lt; TEST DATA FOR TUTORIAL DRIVER EXAMPLE &gt;&gt;");
+     
+TUint8* chunkbase;
+// Retrieve the base address of the chunk. Using this address, the user 
+// can access the shared chunk just like any memory pointer. 
+// RChunk::Base() returns the linear address of the shared chunk.
+//
+chunkbase=chunkTx.Base(); 
+    
+// Write the data to the shared chunk, using the chunk base address.
+// Note here we do not need to send data to the driver. We just write to 
+// the buffer and the driver directly accesses the chunk from the kernel side.
+//
+TPtr8 inbuf(chunkbase,KTestSendData().Size());
+inbuf = KTestSendData;
+…
+
+// Call the LDD interface TransmitData(). There is no need to send the 
+// data, instead we send only a TRequestStatus object (as it's an  
+// asynchronous function), and buffer size. If required, an offset in the shared chunk 
+// can be passed to the driver.
+r = ldd.TransmitData(txStatus,inbuf.Size());
+ test(r==KErrNone);</codeblock> </section>
+<section id="GUID-5524489D-37FB-41CF-BC87-540569FF943F"><title>Kernel-side access</title> <p>On the kernel side, a chunk
+is represented by a <xref href="GUID-85454082-6734-3F1D-983F-734D4C2AB12D.dita"><apiname>DChunk</apiname></xref> object. A chunk is created,
+mapped, or opened as shown in earlier sections. The linear and physical addresses
+of the chunk are returned when this is done. At a later stage in the driver,
+use <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-626CCD99-63D8-322A-A807-9DB96523C82D"><apiname>Kern::ChunkAddress()</apiname></xref> and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-79F110C1-2764-34B5-857B-6C0012D2049D"><apiname>Kern::ChunkPhysicalAddress()</apiname></xref> to
+get the linear and physical addresses respectively. A chunk is read or written
+to using this address pointer and an offset. </p> <codeblock id="GUID-1E341298-F67A-5A21-8C21-405E1BB97946" xml:space="preserve">// Note: Following lines of code are located in different 
+// functions and different files. Here they are shown together for 
+// easy comprehension.
+
+// Linear address of the Rx Shared chunk
+TLinAddr iRxChunkKernAddr;
+...
+
+// iRxChunkKernAddr returns the linear address of the Rx chunk
+TInt r=Kern::ChunkCreate(info,chunk,iRxChunkKernAddr, mapAttr);
+...
+
+// iRxBufPhysAddr returns the physical address of the Rx chunk
+r=Kern::ChunkCommitContiguous(chunk, bufoffset, size, iRxBufPhysAddr);
+...
+
+// Here we are directly using the linear address of the shared 
+// chunk, and so can get rid of any buffer copies. If the DMA 
+// port supports physical address, then the physical address can be
+// used instead of a linear address.
+// 
+TInt retval = iRxDmaRequest-&gt;Fragment(
+            TUint32)iUartComm-&gt;iPortAddr+KHoUART_RHR,
+            TUint32)(iUartComm-&gt;iRxChunkKernAddr), aCount, 
+            KDmaMemDest|KDmaIncDest, 0 /* no HW Flags*/);</codeblock> <p>Synchronization
+between user access and kernel access to a shared chunk is handled by the
+shared chunk API. </p></section>
+</conbody></concept>

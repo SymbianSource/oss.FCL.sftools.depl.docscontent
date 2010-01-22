@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-F48CC072-66A0-5DBA-99A2-2F3BABF83BEB"><title>Using Template Records: Tutorial</title><shortdesc>This tutorial shows you how to create a template record and how to load a template record. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <prereq id="GUID-79D61D00-D3F8-5B59-A31B-70D62A678A28"><p>Before you start, you must understand: </p> <ul><li id="GUID-501A8C46-76F8-5F01-9CA8-FA9FC96ECEC5"><p>the general concept of the Comms Database </p> </li> <li id="GUID-2B9C290D-8200-58CF-9724-445A76B7A97D"><p>the specific concepts of fields, records, links and tables </p> </li> <li id="GUID-150E70EC-2BB5-5D64-9A62-11F08E22177E"><p>how to write and build application code to run on Symbian OS </p> </li> </ul> </prereq> <context id="GUID-9DE45A6C-27FB-5044-ABF9-4AB80EE25F96"><p>A template record contains default data values. You can use a template record when you create a record to add to the Comms Database. </p> <p>For example, the records in the <xref href="GUID-387A8240-0765-52F2-98A4-8F9FC809E03E.dita#GUID-387A8240-0765-52F2-98A4-8F9FC809E03E/GUID-430CB4B1-2AC5-5773-AA59-ED8D275D555A">DialOutISP</xref> table are large. Many of the fields in a <codeph>DialOutISP</codeph> record have values that are the same in all <codeph>DialOutISP</codeph> records. A template record can contain these common values. When you create a <codeph>DialOutISP</codeph> record, set the value of those fields to be copied from the template record to NULL. Set the other fields in your <codeph>DialOutISP</codeph> record to values that are specific to that record. </p> <p>These principles apply to all record types. </p> <p>The following steps create and load a template record for the <xref href="GUID-387A8240-0765-52F2-98A4-8F9FC809E03E.dita#GUID-387A8240-0765-52F2-98A4-8F9FC809E03E/GUID-303A3C65-3391-540D-B0FB-75E92DC7663E">Network</xref> table. </p> </context> <steps id="GUID-43AC55D4-7A92-5E2C-A553-BB5C7C480676"><step id="GUID-EFB76398-E924-595C-8543-1BA161B759FE"><cmd>Make sure that you have created a session. </cmd> </step> <step id="GUID-20CE8E14-9901-58C3-9748-08647689D2BC"><cmd>Set the attribute mask for this session to hidden. </cmd> <info>Template records are marked as hidden. Set the session mask to hidden to allow you to view the template records. </info> <stepxmp><codeblock id="GUID-26C827E9-26DC-5754-BFF1-45217834371B" xml:space="preserve">cmdbSession-&gt;SetAttributeMask(ECDHidden); 
+</codeblock> </stepxmp> </step> <step id="GUID-59D75159-147D-5B6D-848D-F08FF4531741"><cmd>Create a template record and store it in the database. </cmd> <stepxmp><codeblock id="GUID-354E9238-2723-53DE-9E65-FC7A7FDDFE36" xml:space="preserve">...
+// Create a "Network" record, but give it the unique numeric Id KCDDefaultRecord.
+// The CommsDat API interprets the record Id KCDDefaultRecord to mean the 
+// template record.
+CCDNetworkRecord* ptrNetworkRecord = (CCDNetworkRecord*)CCDRecordBase::RecordFactoryL(KCDTIdNetworkRecord);
+ptrNetworkRecord-&gt;SetRecordId(KCDDefaultRecord);
+
+// Template records must be hidden.
+ptrNetworkRecord-&gt;SetAttributes(ECDHidden);
+
+// Store the template record in the database
+ptrNetworkRecord-&gt;StoreL(*cmdbSession);
+...</codeblock> </stepxmp> </step> <step id="GUID-9C8B3007-85BE-54CB-97AE-3F895432925A"><cmd>Load the template record from the Comms Database </cmd> <stepxmp><codeblock id="GUID-7B3746E9-D7A4-5CBE-9D7B-E2365956F2C6" xml:space="preserve">...
+// Create an empty "Network" record, and set the record Id to KCDDefaultRecord
+// The CommsDat API interprets the record Id KCDDefaultRecord to mean the 
+// template record.
+CCDNetworkRecord* ptrNetworkRecord = (CCDNetworkRecord*)CCDRecordBase::RecordFactoryL(KCDTIdNetworkRecord);
+ptrNetworkRecord-&gt;SetRecordId(KCDDefaultRecord);
+ptrNetworkRecord-&gt;LoadL(*cmdbSession);
+...</codeblock> </stepxmp> </step> </steps> </taskbody><related-links><link href="GUID-1AFDDD6F-CB99-587D-A0B5-D3F5B27F7135.dita"><linktext>Comms Database
+                concepts</linktext> </link> </related-links></task>

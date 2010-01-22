@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-9529C9C5-D16D-5766-AE64-C2DB8A07C444"><title>Opening a Session That Uses the GPS/A-GPS PSY</title><shortdesc>This shows how to open a session using the GPS/A-GPS PSY. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>The GPS/A-GPS PSY is used by the Location Server <codeph>eposserver.exe</codeph> to connect to positioning hardware using the A-GPS Location Manager and an A-GPS Integration Module. </p> <p>To use the GPS/A-GPS PSY a <xref href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita">Location Acquisition API</xref> client opens an <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita"><apiname>RPositioner</apiname></xref> subsession using one of the following methods: </p> <ul><li id="GUID-BB3C6009-A331-5B67-B85F-5D1FB58D6656"><p>Explicitly using a PSY implementation UID </p> </li> <li id="GUID-4054B1F6-EB90-5EA7-8E61-D0DE2879EB9D"><p>Implicitly (the Location Server uses the Default PSY) </p> </li> </ul> <p>These methods are described in more detail below. </p> </context> <steps id="GUID-CAF7809C-00B4-53F3-8D59-245A52D67B1B"><step id="GUID-696BD1DE-7839-5373-B83D-DD0E247B3AB7"><cmd/><info>To use the A-GPS PSY, open a session using its implementation UID, which is <codeph>0x10285abc</codeph>. </info> <info>Open a session and subsession using the Location Acquisition API as shown below: </info> <stepxmp><codeblock id="GUID-ED888F57-9542-5B60-9C68-4C80CC4EC701" xml:space="preserve">#include &lt;lbs.h&gt;
+#include &lt;lbserrors.h&gt;
+
+
+const TInt KAGPSPSYImpl = 0x10285abc;
+
+...
+
+RPositionServer server;
+RPositioner positioner;
+
+/Create a session with the location server
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Create a subsession with the Location Server using the A-GPS PSY
+User::LeaveIfError(positioner.Open(server, TUid::Uid(KAGPSPSYImpl)));
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal - see API documentation for more details
+
+...
+
+// Close the session
+
+CleanupStack::PopAndDestroy(&amp;positioner);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </stepxmp> </step> <step id="GUID-0DDF74B3-479F-5FDB-BBCA-5D3D13F9F053"><cmd>To use the GPS PSY, open a session using its implementation UID, which is <codeph>0x102869C7</codeph>. </cmd> <stepxmp><codeblock id="GUID-E7D44C51-7105-5864-9BEE-77B483DC98C3" xml:space="preserve">
+#include &lt;lbs.h&gt;
+#include &lt;lbserrors.h&gt;
+
+const TInt KGPSPSYImpl = 0x102869C7;
+
+...
+
+RPositionServer server;
+RPositioner positioner;
+
+/Create a session with the location server
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Create a subsession with the Location Server using the GPS PSY
+User::LeaveIfError(positioner.Open(server, TUid::Uid(KGPSPSYImpl)));
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal - see API documentation for more details
+
+...
+
+// Close the session
+
+CleanupStack::PopAndDestroy(&amp;positioner);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </stepxmp> </step> <step id="GUID-5DCB4A95-8675-5262-8A01-C8D7E815C5CF"><cmd>To use the Default PSY, open a session without specifying a PSY UID. </cmd> <stepxmp><codeblock id="GUID-C4B99601-CCD3-5D01-A448-ED2C90ECA568" xml:space="preserve">
+...
+
+//Create a session with the location server
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Location Server uses the default PSY, which can use the GPS/A-GPS PSY
+User::LeaveIfError(positioner.Open(server);
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal...
+
+...
+</codeblock> </stepxmp> <info>The Default PSY has a list of all available PSYs. If the GPS PSY and A-GPS PSY are installed, one of them can be used by the Default PSY. The choice of which PSY is used is based on the priority and availability of the PSYs. </info> <info>See <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref> for more information about PSY settings. </info> <info>See <xref href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita">Default PSY</xref> for information about how a PSY is selected. </info> </step> </steps> </taskbody><related-links><link href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita"><linktext>Default
+                PSY</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita"><linktext>Location Acquisition API</linktext> </link> </related-links></task>

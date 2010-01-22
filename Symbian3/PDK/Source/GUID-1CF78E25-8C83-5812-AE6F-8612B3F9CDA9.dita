@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9" xml:lang="en"><title>Deriving
+from COpenFontRasterizer</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Overview</title> <p>Classes derived from <codeph>COpenFontRasterizer</codeph> are
+used to recognize font files and create objects to manage them. To derive
+from <codeph>COpenFontRasterizer</codeph> you need only provide an implementation
+of its pure virtual function <codeph>NewFontFileL()</codeph>. The implementation
+of this function is discussed in the following section. </p> <p>The derived
+class <i>should</i> also define the DLL's single exported function. This function
+is discussed further in the previous topic: <xref href="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5.dita#GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5/GUID-ADA409CE-7326-5586-8DC4-B1E3FEBCE070">The
+exported function</xref>. </p> <p>In addition, font rasterizer classes often
+need to store an 'engine context'. For example, FreeType relies on a <codeph>TT_Engine</codeph> object;
+this is kept in the <codeph>CFreeTypeRasterizer</codeph>, in a <codeph>CFreeTypeRasterizerContext</codeph>.
+The context is derived from <codeph>COpenFontRasterizerContext</codeph>, a
+utility base class that provides functions that make it easier to write the
+glyph bitmap during rasterization. </p> </section>
+<section><title>Implementing NewFontFileL()</title> <p>The implementation
+must examine a specified file and, if it is of the correct type, attempt to
+create a <codeph>COpenFontFile</codeph> derived object to open it. The function
+must return NULL if it cannot recognize the file. It may also leave if there
+is an error. The caller is responsible for deleting the <codeph>COpenFontFile</codeph> object. </p> <p>The
+function prototype is given below: </p> <codeblock id="GUID-25C6CABB-E2C6-52E6-BEB8-36AD98AAAD0D" xml:space="preserve">virtual COpenFontFile* NewFontFileL(TInt aUid,
+        const TDesC&amp; aFileName, RFs&amp; aFileSession) = 0;</codeblock> <p> <codeph>aUid</codeph> is
+an ID to be used for the font file — the application framework requires that
+each typeface have a UID, so one is dynamically allocated for font files that
+are not Symbian-native. The ID must be passed to the <codeph>COpenFontFile</codeph> derived
+class's constructor. </p> <p> <codeph>aFileName</codeph> is the full path
+and filename of the file that the font rasterizer is attempting to open. This
+filename must also be passed to the <codeph>COpenFontFile</codeph> derived
+class's constructor. </p> <p> <codeph>aFileSession</codeph> is the file session
+owned by the Font and Bitmap server. This reference should be used for any
+file access. If <codeph>COpenFontFile</codeph> derived objects need to keep
+files open, <codeph>aFileSession</codeph> should be stored in a place that
+is accessible to them. </p> </section>
+<example><p>The FreeType implementation of <codeph>NewFontFileL()</codeph> is
+given below. It recognizes the file only by its extension, relying on the
+construction of the font file object to perform stricter checking.</p><codeblock id="GUID-7AA7FB45-1399-5A22-892D-2B365F8F0C60" xml:space="preserve">COpenFontFile* CFreeTypeRasterizer::NewFontFileL(TInt aUid,
+    const TDesC&amp; aFileName,RFs&amp; aFileSession)
+    {
+    TBool is_ttf = EFalse;
+
+    //Tests if the filename extension is ".ttf" or ".ttc".
+    if (aFileName.Length() &gt; 4)
+        {
+        _LIT(KExtensionTTF,".ttf"); // Extension for truetype font file.
+        _LIT(KExtensionTTC,".ttc"); // Extension for truetype collection file.
+        TPtrC ext = aFileName.Right(4);
+        if ((ext.CompareF(KExtensionTTF) == 0) | (ext.CompareF(KExtensionTTC)==0))
+          is_ttf = ETrue;
+        }
+    // If the extension is not .ttf or .ttc then we can't read the file.
+    if (!is_ttf)  
+      return NULL; 
+    
+    //If extension is .ttf then attempt to create the font file reader.
+    //return it to the caller.
+    return CFreeTypeFontFile::NewL(iContext,aUid,
+    aFileName,aFileSession);
+    }
+</codeblock></example>
+</conbody><related-links>
+<link href="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5.dita"><linktext>Creating
+a Font Rasterizer Plug-in</linktext></link>
+<link href="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547.dita"><linktext>Deriving
+from COpenFontFile</linktext></link>
+<link href="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C.dita"><linktext>Deriving
+from COpenFont</linktext></link>
+<link href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita"><linktext>Deriving
+from COpenFontRasterizerContext</linktext></link>
+</related-links></concept>

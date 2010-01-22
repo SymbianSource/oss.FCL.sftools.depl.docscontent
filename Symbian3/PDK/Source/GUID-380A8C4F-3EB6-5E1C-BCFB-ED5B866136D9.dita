@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-380A8C4F-3EB6-5E1C-BCFB-ED5B866136D9" xml:lang="en"><title>How
+to use UIDs</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A UID is a globally unique identifier consisting of a 32-bit number. </p>
+<p>In Symbian platform, objects are identified by a compound identifier, known
+as the <keyword>UID type</keyword>, which is constructed from three 32 bit
+identifiers. The individual UIDs making up the UID type are referred to as <keyword>UID1</keyword>, <keyword>UID2</keyword> and <keyword>UID3</keyword>. </p>
+<p>Symbian platform makes widespread use of UIDs: </p>
+<ul>
+<li id="GUID-CD464385-25EF-5953-AA1F-31F99A12B7F1"><p>UIDs are used to identify
+the types of objects at runtime and loadtime, for example identifying executables,
+DLLs, filestores. </p> </li>
+<li id="GUID-E57A5374-9526-5BEA-BC18-14852DD30423"><p>UIDs are used to verify
+that objects present compatible and expected interfaces at runtime and loadtime,
+for example verifying that DLLs or filestores are of the expected type. </p> </li>
+<li id="GUID-5A2B51EC-DA36-5CC3-A2FA-0F318B80E983"><p>UIDs are fundamental
+to the association of applications with documents. For example, associating
+a document with an application allows the system to launch the application
+when the document is opened. </p> </li>
+</ul>
+<p>A file's three UIDs are stored in the first 12 bytes of the file. </p>
+<p>To program successfully, Symbian developers need to understand why and
+how to use UIDs in their programs. </p>
+<section><title>What UIDs are for</title> <p>From a user's point of view,
+conventional file names are preferable to UIDs for file identification. Symbian
+platform therefore supports a flexible, long filename, file naming scheme. </p> <p>However
+from a system point of view, guaranteed unique, 32-bit numbers provide for
+much safer, systematic, and more lightweight identification. </p> <p>UID1,
+UID2 and UID3 have the following general characteristics: </p> <ul>
+<li id="GUID-251CC75C-E12F-5602-AC72-D61769536325"><p> <keyword>UID1</keyword> indicates
+the structure of the file, for example, whether it is an executable, a DLL
+or a file store. </p> </li>
+<li id="GUID-04F9AE5C-CE1C-5A78-A58E-843CAA821975"><p>The meaning of <keyword>UID2</keyword> depends
+on the type of object it applies to. For polymorphic interface (plug-in framework)
+DLLs, UID2 identifies the interface that the DLL implements. For static interface
+(shared library) DLLs that others link to, the UID2 value is always the same.
+For executables the UID value has to be set to <codeph>KUidApp</codeph> or <codeph>NULL</codeph>. </p> </li>
+<li id="GUID-0C52BBE3-8971-5D13-92D9-1958BD053C90"><p> <keyword>UID3</keyword> distinguishes
+between objects with the same UID2 and can be thought of as a project identifier.
+For example, for an application, the same UID3 is shared by the executable,
+registration file (which defines the application's icon, caption, and some
+capability information), and all documents. </p> <p>The <xref href="GUID-A98F7AA2-A908-527E-9AEC-54DDD10A49C1.dita">SECUREID</xref> need
+not be explicitly specified in the .mmp file, but if it is omitted, then the
+value of the UID3, specified elsewhere in the .mmp file, is used. If the UID3
+is not specified, then the secureid will take the value <codeph>KNullUID</codeph>.
+This has several consequences, including lack of privacy for data used by
+that application. </p> </li>
+</ul> <p>The UID type is a <codeph>TUidType</codeph> object and is constructed
+from a combination of all or some of the three possible UIDs. The UID type
+can be queried to return its component <keyword>UID1</keyword>, <keyword>UID2</keyword> and <keyword>UID3</keyword> values. </p> <p>If
+no UIDs are attached to an object, then all three component UIDs are returned
+as <codeph>KUidNull</codeph>. </p> </section>
+<section><title>UID1, UID2, UID3, and the no UIDs case</title> <p>An object
+in Symbian platform and more particularly files in Symbian platform may have
+all, some, or none of the three possible UIDs defined. </p> <p>Symbian platform
+predefines all possible UID1 values and the UID2 values used for GUI applications
+and static interface DLLs at system level. Symbian developers refer to them
+by their constant names, although in project (<filepath>.mmp</filepath>) files,
+hexadecimal numbers are used. </p> <ul>
+<li id="GUID-95B7B621-CE04-53DE-A708-FCBD4DB5A36D"><p>UID1: examples include <codeph>KExecutableImageUid</codeph>, <codeph>KDynamicLibraryUid</codeph> and <codeph>KDirectFileStoreLayoutUid</codeph>  </p> </li>
+<li id="GUID-8956CAD8-C680-5BD6-9C3F-86821A268C1B"><p>UID2: examples include <codeph>KSharedLibraryUid</codeph> (0x1000008d)
+for a static interface DLL and <codeph>KUidApp</codeph> (0x100039CE) or NULL
+for a GUI application. <b>Note:</b> Both <codeph>KUidApp</codeph> and NULL
+are acceptable values for UID2 when the application is an EXE, although at
+the present time these values are ignored. At a later stage UID2 may be used
+for other purposes, so setting UID2 to values outside of these values is not
+recommended. </p> </li>
+<li id="GUID-BECDDD3F-58E9-5414-ACC7-25BE2217D81A"><p>Symbian developers are
+responsible for ensuring that where UID3 values are required, they are properly
+allocated. See the <xref href="https://www.symbiansigned.com" scope="external">Symbian
+Signed</xref> web site for information on how to allocate UIDs (free registration
+is required to see the FAQ). </p> </li>
+</ul> <p>Note that in project (<filepath>.mmp</filepath>) files, UID2 and
+UID3 values can be specified, but UID1 values cannot; the UID1 value is implied
+by the project's target type. </p> </section>
+<section><title>EXE targets and UIDs</title> <p>All executable targets have
+a UID1 of <codeph>KExecutableImageUid</codeph>. This is defined by Symbian
+platform and is automatically built into any executable target based on the <codeph>exe</codeph> target
+type declared in the project file. </p> <p>A UID2 value should be specified
+by GUI applications (.EXE) and the application architecture expects this to
+be <codeph>KUidApp</codeph> (0x100039CE) or NULL. Console applications (also
+.EXE), which are often used for testing and as example code, do not need to
+specify a UID2, and if they do, it is ignored. </p> </section>
+<section><title>DLLs and UIDs</title> <p>All DLLs, whether they have static
+or polymorphic interfaces, have a UID1 of <codeph>KDynamicLibraryUid</codeph>.
+This is defined by Symbian platform and is automatically built into any DLL
+target based on the <filepath>dll</filepath> target type declared in the project
+file. </p> <p>For static interface DLLs, the UID2 is <codeph>KSharedLibraryUid.</codeph> The
+UID3, which is used to identify the interface to the library, must be allocated
+by Symbian Signed. </p> <p>For polymorphic DLLs (for instance ECom plugins,
+device drivers and front end processors), UID2 identifies the interface that
+the DLL implements. UID3 (which, if required, must be allocated by Symbian
+Signed) may be used to identify a specific implementation of that interface. </p> </section>
+<section><title>Documents and UIDs</title> <p>In Symbian platform, documents
+are really file-stores: stores which can be closed and re-opened. There are
+two different kinds of file store, <keyword>direct file stores</keyword> which
+are write-once-read-many, and <keyword>permanent file stores</keyword> which
+are write-many-read-many. </p> <p>A document's UID1 will therefore be one
+of <codeph>KDirectFileStoreLayoutUid</codeph> or <codeph>KPermanentFileStoreLayoutUid</codeph>.
+The UID2 and/or UID3 will be application dependent. </p> <p>Every native document
+must have an appropriate UID1 which should be set by the application which
+creates the document. Typically documents may have a UID2 of <codeph>KUidAppDllDoc</codeph> and
+a UID3 shared with the creating application. More precisely, a document’s
+UID3 should match that of the application which will open it. </p> <p>Only
+the UID1 is required, but in most cases Symbian developers will want to specify
+second and third UIDs for the documents their applications create and use.
+These UIDs are used by the application architecture framework to manage associations
+between applications and their documents. This allows an application to be
+found and launched when a file is opened, and it also allows an application
+icon to be associated with documents in system shell displays. Conversely,
+it allows an application, when opening files, to select only applicable files. </p> <p>Symbian
+platform also allows default file associations with the implication that in
+some cases users may want to select a different application to open a file.
+Applications which support this must therefore be able to open documents whose
+third UID differs from their own. </p> <p>Applications may also want to open
+non-native documents which have no UIDs, and may wish to be specified as default
+applications for these documents. </p> </section>
+<section><title>UIDs in package files</title> <p>Package (.PKG) files are
+used in Symbian platform to provide the information required to create Symbian
+installation (.SIS) files. Each SIS file contains a UID, which is defined
+in the package file's <xref href="GUID-D9D20EE0-AC86-512A-91C0-EA0ACF3912A7.dita">package
+header</xref>. This UID should be allocated in the same way
+as other UIDs, through Symbian Signed. </p> </section>
+<section id="GUID-8D9B0F56-4CD1-506C-A8DF-A310DC5F58CE"><title>Uniqueness
+and allocation</title> <p>Because UIDs are fundamental to Symbian platform,
+it is important that they are used correctly when developing programs. To
+ensure uniqueness, it is essential that UIDs are properly allocated. </p> <p>Uniqueness
+is guaranteed by managing allocation centrally from a single database. All
+UIDs must therefore be assigned to users by a central allocating authority. </p> <p>UIDs
+are also split into protected and unprotected ranges. Any UID values falling
+below 0x7FFFFFFF are classed as "protected" and are only intended for use
+with signed applications (or those pre-installed in ROM). The software installer
+will refuse to install an unsigned application if it uses a package UID in
+the protected range. </p> <p>Symbian developers can request UIDs through <xref href="https://www.symbiansigned.com" scope="external">https://www.symbiansigned.com</xref>.
+For more information, see the Symbian Signed FAQ (free registration required).
+Note that from version 9 of Symbian platform, UIDs are no longer requested
+from uid@symbiandevnet.com. </p></section>
+<section><title>Reserved UID range for development only</title><p>During development,
+or for test code, temporary UIDs may be chosen from the unprotected test range
+0xExxxxxxx. These UIDs can be used during development for unsigned applications
+but must not be used in released software. Note that such applications may
+not be installable via a SIS file. See the Symbian Signed website for more
+information. </p> <p>Care must still be taken to avoid clashes within development
+teams and between multiple projects, including old projects which may still
+be installed on a Symbian emulator or native platforms. UID clashes may stop
+a program from loading correctly, typically leading to <systemoutput>Not Found</systemoutput> errors. </p> </section>
+</conbody></concept>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A2793EFD-F765-5392-8471-C8A0C2FFC163"><title>How to set service security requirements</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The security requirements that can be set for a service are simple: you can only specify whether authentication, authorisation, and/or encryption are required or not. You cannot, for example, set the security algorithms used: these are the same for all Bluetooth devices.</p> <p>To set security requirements, take the following steps:</p> <ul><li id="GUID-C593CAD4-B3CF-5B7D-A91A-3A3607870C56"><p> Create a security settings object, <xref href="GUID-BC29B643-2CE8-30C1-BF41-4D2B5585DC81.dita"><apiname>TBTServiceSecurity</apiname></xref>. Initialise it with the service's Bluetooth protocol, its port, and a unique identifier for the service (this identifier is <i>not</i> related to the service class UUID).</p> </li> <li id="GUID-BCFD92A9-4FF6-5A2A-900A-CDF1C5BC8345"><p>Set in the <codeph>TBTServiceSecurity</codeph> object whether authentication, authorisation, and/or encryption are required.</p> </li> <li id="GUID-7EC0E37C-1AE9-5572-B01C-F0F249407106"><p>Call <xref href="GUID-D536FA83-2535-3BF2-AC0D-EA0C7CA806BA.dita#GUID-D536FA83-2535-3BF2-AC0D-EA0C7CA806BA/GUID-026CE232-E988-3C7E-A01D-6C70A3CCFC63"><apiname>RBTSecuritySettings::RegisterService()</apiname></xref> to pass the settings to the security manager.</p> </li> </ul> <p><b>Example</b> </p> <p>The following example sets that authentication, authorisation, and encryption are required for a service.</p> <codeblock id="GUID-9953CEBA-273F-5277-A3C5-78FF1171AB16" xml:space="preserve">// Assumes secmanSubSession is an open subsession, and channel
+// is the port on which an RFCOMM service is running
+
+// 1. Create security settings object
+TUid serviceUID;
+serviceUID.iUid = 0X10008AD0;
+TBTServiceSecurity secSettings(serviceUID, KSolBtRFCOMM, channel);
+
+// 2. Set the security options
+secSettings.SetAuthentication(ETrue);
+secSettings.SetAuthorisation(ETrue);
+secSettings.SetEncryption(ETrue);
+
+// 3. Register the service
+TRequestStatus status;
+secmanSubSession.RegisterService(secSettings,status);
+User::WaitForRequest(status);</codeblock> </conbody></concept>

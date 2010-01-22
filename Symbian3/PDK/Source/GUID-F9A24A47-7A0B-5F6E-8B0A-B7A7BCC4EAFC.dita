@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC" xml:lang="en"><title>Decrypting
+RTCP Packet Data</title><abstract>SRTP generates SRTP packets from the RTP or RTCP stream and forwards
+the packets to the receiver. SRTP transforms incoming SRTP packets to RTP/RTCP
+packets and passes them up the stack. To ensure the confidentiality of the
+packet content, data encryption is used. Encrypted RTP packet data is encapsulated
+for transmission in a single lower-layer packet as a unit. The presence of
+encryption and the correct usage of key are confirmed by the receiver through
+header and payload validity checks.   <p/>At the receiving end, the packet
+is authenticated first. Authentication is followed by is decoding the encrypted
+payload. This process is known as decryption. Decryption requires a decryption
+key.<p/></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>An SRTP session must be created and initialized before an application
+requests for a RTCP payload decryption. </p> </prereq>
+<steps id="GUID-CFD08369-E326-5C0D-B3D1-20B1C8C7BEE2">
+<step id="GUID-41BF395B-F3A0-5F32-9779-452E83CCDBD3"><cmd>An application requests
+for decryption of RTCP packet. </cmd>
+</step>
+<step id="GUID-9F86B8B4-D036-5414-BD50-0CBAAF6D4F0E"><cmd>The SRTP DLL checks
+for the cryptographic context of the input stream. If a match is not found,
+SRTP DLL checks for the cryptographic context of the session. </cmd>
+</step>
+<step id="GUID-3E04E9F0-EB72-5225-9769-9F58018F2D22"><cmd>The SRTP DLL checks
+the replay list for the packet index. If a packet with the same index is found
+in the replay list the packet is dropped. </cmd>
+</step>
+<step id="GUID-DFD6C096-6EAD-5217-9B58-FA4531FFF2C7"><cmd>The SRTP DLL computes
+the authentication tag for the packet. The computed tag is matched with the
+tag in the packet. If the tags match, the packet is accepted and the packet
+index is added to the replay list. </cmd>
+</step>
+<step id="GUID-32C9E93C-7AAA-5039-B705-FD8A665E69EA"><cmd/>
+<info>The packet is decrypted using <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>UnprotectRTCPL()</apiname></xref> API
+of the class <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>CSRTPSession</apiname></xref>.The session
+keys in the cryptographic context of the current SRTP session are used for
+decryption. </info>
+<substeps id="GUID-64F100C5-B100-5362-B196-053822365927">
+<substep id="GUID-CC7F0063-A04A-5878-BCCB-380946857800"><cmd/>
+<info>The prototype for the <codeph>API UnprotectRTCPL()</codeph> is as described
+below. </info>
+<stepxmp><codeblock id="GUID-6B0B89C1-9085-5674-8C5F-8E3C6A297AE5" xml:space="preserve">
+                     IMPORT_C HBufC8* UnprotectRTCPL(TUint aSSRC, const TDesC8&amp; aPacket);
+                  </codeblock> </stepxmp>
+
+<info>This API is invoked if the session finds a match stream and unprotect
+stream. </info>
+<info>aSSRC is the input parameter that contains the Synchronisation Source(SSRC).
+Synchronisation Source is the source for the stream of RTP packets identified
+by a 32 bit numeric. SSRC identifier is a part of the RTCP packet header. </info>
+<stepxmp>aPacket is the input parameter that contains packet to be unprotected.
+The length of descriptor should match the actual data length. A mismatch in
+the length descriptor and actual length may lead to incorrect encryption. </stepxmp>
+<info>HBufC8 is the output parameter that contains the decrypted packet. </info>
+<stepresult><p>The API leaves, if matching stream is not found. </p> <p>In
+late binding cases, the API tries to find a stream with SSRC is equal to zero
+and unprotect the packet. </p> </stepresult>
+</substep>
+</substeps>
+</step>
+<step id="GUID-13C77140-79F2-5D9B-8483-823C1414889C"><cmd>The SRTP DLL updates
+the count of packets decrypted. </cmd>
+</step>
+</steps>
+<result><p>On successful execution of the API, decrypted data is returned. </p> <p>If
+any of the above mentioned checks fail, the packet is discarded. </p> </result>
+</taskbody><related-links>
+<link href="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352.dita"><linktext>Creating
+an SRTP                 Session</linktext></link>
+<link href="GUID-425A208C-5D2D-55FD-8623-9E00006E2781.dita"><linktext>Creating
+a                 Cryptographic Context</linktext></link>
+<link href="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7.dita"><linktext>Creating
+an SRTP                 Stream</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-922F292E-9420-593B-B226-2764C5F29DF9.dita"><linktext>Encrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Managing
+                Master Key</linktext></link>
+</related-links></task>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-B541BD01-29BE-4CB7-9420-ABEE0BDC9BA4" xml:lang="en"><title>Writing
+a Standard Registration Resource File</title><shortdesc>For Symbian OS V9.1 and onwards, the name of the standard registration
+resource file must be the same as that of the executable with <filepath>.rss</filepath> extension.
+All the registration resource structure types are defined in <codeph>RegistryInfo.rh</codeph>.
+This file has to be included in the registration resource file.  </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-11-1-1-8-1-4-1-5-1-4-1-5-1-4-1-3-1">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-7-1-11-1-1-8-1-4-1-5-1-4-1-5-1-4-1-3-1-1"><cmd>Define a single <codeph>REGISTRY_INFO</codeph> resource.
+ </cmd>
+</step>
+<step id="GUID-0711500A-DB15-4AF2-86E7-07751B7D0CE6"><cmd>Set the dll_uid
+to the DLL's UID.  </cmd>
+</step>
+<step id="GUID-73CC8347-CE83-43E4-81D2-FFB10C058E5B"><cmd>Set interfaces member
+to be an array of <codeph>INTERFACE_INFO</codeph> resources.  </cmd>
+<info><p>Each <codeph>INTERFACE_INFO</codeph> resource defines registration
+information for implementations of the interface identified by interface_uid
+member. The information takes the form of an array of <codeph>IMPLEMENTATION_INFO</codeph> resources.
+ </p></info>
+</step>
+<step id="GUID-BB178AA4-0BE4-4DC2-9A4E-28D8AFEBA2A2"><cmd>Each <codeph>IMPLEMENTATION_INFO</codeph> resource
+declares the properties of a single implementation. It has five members:  </cmd>
+<substeps id="GUID-D09853C8-5054-4D4D-AE76-E5787263F02B">
+<substep id="GUID-5F45453F-4D21-4983-ABA8-DB2F025A9326"><cmd><codeph>implementation_uid</codeph>:
+An unique identifier for the implementation.  </cmd>
+<info><p>For this value, use a new UID allocated by Symbian Signed. The allocated
+value can be from the protected or non-protected range of UIDs.  </p></info>
+</substep>
+<substep id="GUID-2AC39D58-D817-43D4-8130-F012C7CBA9A9"><cmd><codeph>version_no</codeph>:
+The version of the interface implementation.  </cmd>
+</substep>
+<substep id="GUID-4F545F1B-AD20-4EFC-B09A-6F7E19E27B75"><cmd><codeph>display_name</codeph>:
+The external name of the implementation. </cmd>
+</substep>
+<substep id="GUID-078E43CD-C238-4361-86D7-5372CA9ACD23"><cmd><codeph>default_data</codeph>:
+The data identifier field used by the resolver to determine if the implementation
+matches a client request. </cmd>
+</substep>
+<substep id="GUID-CE0BE654-08E5-4693-AF25-9098080640B9"><cmd><codeph>opaque_data</codeph>:
+A binary data field that can contain additional data. This additional data
+can be used by the custom resolvers. </cmd>
+</substep>
+</substeps>
+</step>
+</steps>
+<example><p>The following example depicts a resource registration file for
+an implementation collection with two implementations.</p><codeblock xml:space="preserve">// 10009DB1.RSS
+//
+#include "RegistryInfo.rh"
+
+RESOURCE REGISTRY_INFO theInfo
+{
+dll_uid = 0x10009DB1;
+interfaces = 
+	{
+	INTERFACE_INFO
+		{
+		interface_uid = 0x10009DC0;
+		implementations = 
+			{
+			IMPLEMENTATION_INFO
+				{
+				implementation_uid = 0x10009DC3;
+				version_no = 1;
+				display_name = "Implementation name 1";
+				default_data = "text/wml";
+				opaque_data = "some extra data";
+				},
+			IMPLEMENTATION_INFO
+				{
+				implementation_uid = 0x10009DC4;
+				version_no = 1;
+				display_name = "Implementation name 1";
+				default_data = "text/xml||Type of data handled";
+				opaque_data = "";
+				}
+			};
+		}
+	};
+}</codeblock></example>
+</taskbody><related-links>
+<link href="GUID-64D62DD8-3D9C-4659-9658-C0B4D74D6E69.dita"><linktext>Writing
+the Version 2 Registration Resource File</linktext></link>
+<link href="GUID-39186342-960A-46A4-BC35-851F53665FA8.dita"><linktext>Writing the
+Version 3 Registration Resource File</linktext></link>
+</related-links></task>

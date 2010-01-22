@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6D8A1FC7-095B-587E-8274-23C132978C53" xml:lang="en"><title>Enabling
+the Graphics Architecture Variants</title><shortdesc>There are two variants of the graphics architecture. These are
+referred to as the ScreenPlay and the Non-ScreenPlay variants, respectively.
+This topic describes how to build and enable these two variants.  </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-FF8E36E5-83D3-42AE-9CE7-97166E1B9BB9"><title>Enabling the
+ScreenPlay variant</title><p>To enable ScreenPlay using OpenWF Composition
+(OpenWF-C), declare the following variant macros in the <filepath>Symbian_OS.hrh</filepath> file: </p><codeblock xml:space="preserve">SYMBIAN_BUILD_GCE
+SYMBIAN_GRAPHICS_BUILD_OPENWF_WSERV</codeblock><p>To select the ScreenPlay
+variant in the emulator, add the following line to the <filepath>epoc.ini</filepath> file: </p><codeblock id="GUID-1B30B0A9-4DC8-5377-B269-6F0E153B7FB4" xml:space="preserve">SYMBIAN_GRAPHICS_USE_GCE ON</codeblock><p>The
+Symbian OpenWF-C implementation provides support for the emulator only.</p></section>
+
+<section id="GUID-90D11BF6-3D26-4F73-B130-6711EADE35D7"><title>Enabling the
+non-ScreenPlay variant</title> <p>By default, the non-ScreenPlay versions
+of the components are built in addition to the ScreenPlay ones and are included
+in the ROM. For some of the components that are present in both variants (such
+as Window Server, BitGDI and Screen Driver), different binaries are produced
+for the two variants. </p> <p>Selecting the correct components is relatively
+straightforward when running and testing on hardware, because the choice is
+made at ROM build time. However, it is more complicated on the emulator, because
+the choice is made at runtime. Screen Driver is particularly significant in
+this respect because it is an adaptation component that can be modified by
+device creators. </p> <p>If you extend the interface of the Screen Driver
+DLL (that is, you change the <filepath>.def</filepath> file or introduce new
+exports compared to the reference component), and want to build for the emulator,
+you need to regenerate the switch code as well. Although this is relatively
+easy, it can be confusing. The steps are as follows: </p> <ol id="GUID-76039660-7048-58B1-9EF2-96021A311823">
+<li id="GUID-EE40F32B-BE13-55BE-AE69-40D28D191A51"><p>Update the exports. </p> </li>
+<li id="GUID-880C0C95-93A6-54A6-B280-875E3C03F7FA"><p>Make the following files
+writable: </p> <ul>
+<li id="GUID-C06C5DEF-1D66-5122-AE34-14CF3F9AD74A"><p>The header (<filepath>.h</filepath>)
+file in the <filepath>Graphics\screendriver\scdv_switch</filepath> directory. </p> </li>
+<li id="GUID-376268D3-FA57-544F-88CC-F369319CCBF1"><p>The <filepath>scdvswitchu.def</filepath> file
+in the corresponding <filepath>..\bwins</filepath> directory. </p> </li>
+</ul> </li>
+<li id="GUID-0863DFA5-223A-56AA-9D28-6CDA9E7B6160"><p>Run the <filepath>generate_stubs.pl</filepath> Perl
+script to update these files. </p> </li>
+<li id="GUID-F93CC2A8-C72B-554E-ADA4-34B8098789B8"><p>Rebuild the component. </p> </li>
+</ol>  </section>
+</conbody><related-links>
+<link href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita"><linktext>The ScreenPlay
+Graphics Architecture</linktext></link>
+<link href="GUID-EF62BF88-3687-505D-8BD7-EEDF36246E56.dita"><linktext>Graphics
+Hardware Acceleration</linktext></link>
+<link href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita"><linktext>The Non-ScreenPlay
+Graphics Architecture</linktext></link>
+<link href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita"><linktext>Selection
+of Adaptations</linktext></link>
+</related-links></concept>

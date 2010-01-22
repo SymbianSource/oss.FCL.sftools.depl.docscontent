@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F09740DA-015B-449D-A124-0BEABBDDCB52" xml:lang="en"><title>Enabling
+and Disabling</title><shortdesc>This document describes how device drivers enable and disable interrupts.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Drivers can enable and disable the interrupts on the relevant interrupt
+sources while handling the interrupts using the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class.
+Typically, handling an interrupt is done with disabled interrupts. The interrupt
+is then enabled after the completion of interrupt handling. </p>
+<codeblock id="GUID-7805933A-51F6-5169-81D0-C1A8E9647C0D" xml:space="preserve">Interrupt::Disable(aIntId);
+...
+// handle interrupt
+...
+Interrupt::Enable(aIntId);
+</codeblock>
+<codeblock id="GUID-87C0A4CF-BA67-58DE-A180-EA30189BEDF4" xml:space="preserve">/**
+ Interrupt Service Routine (ISR) for the UART driver. This function
+ is associated with the UART interrupt, EUartIrq (value obtained from 
+ TRM). This function is called whenever there is an interrupt on this 
+ interrupt line and the interrupt source is enabled. The ISR must be a 
+ static void function, taking a single TAny* parameter, which is an 
+ object passed at the time of binding, usually a pointer to the owning
+ class. Interrupt::Enable() must be called to start receiving 
+ interrupts.
+ 
+ The ISR implementation is hardware and driver specific. The ISR must
+ be self-contained as the state of the system is indeterminate. It
+ should not signal threads, allocate or de-allocate memory, copy
+ memory to or from user processes, or call most Kernel functions.
+ Also the whole system is blocked while the ISR is running, so it must be
+ kept as short as possible. Any lengthy processing must be done in a
+ delayed function call (DFC).
+ 
+ A typical ISR would,
+   Clear the interrupt in the peripheral.
+   Disable the interrupt.
+   Read or write peripheral registers, e.g. to determine errors, or 
+   to start a new task.
+   Read data from, or write data to, the peripheral.
+   Start or stop NTimers or DMA transfer operations.
+   Queue DFCs.
+ 
+ @param     aParam
+         pointer to object passed as parameter while binding
+ */    
+
+void DExUartPhysicalChannelH4::UartIsr(TAny* aParam)
+    {
+    // Do the high priority device specific interrupt handling
+    // i.e. read the interrupt type from device, clear the 
+    // interrupt.
+    ...
+    // Defer the remaining processing by queuing the respective 
+    // DFC based on the interrupt type
+    ...
+    }</codeblock>
+<p>Some operations may need to be performed with all the interrupts, not just
+the particular interrupt source, disabled. In this case, the <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita"><apiname>NKern</apiname></xref> class
+must be used to disable and enable all interrupts globally at the Interrupt
+controller. <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-8C251C65-FDE7-3161-8D2B-61401FB6487F"><apiname>NKern::DisableAllInterrupts()</apiname></xref> can disable all
+IRQs, or IRQs and FIQs. <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2D328082-3A9F-3467-81CF-B1C68866E163"><apiname>NKern::RestoreInterrupts()</apiname></xref> can
+restore the interrupts to their state before disabling. </p>
+<codeblock id="GUID-A34A1AEB-9B00-556D-A280-9BFF7A6BAA8C" xml:space="preserve">alevel = 1; // 1 to disable IRQs and 2 to disable IRQs and FIQs
+state = NKern::DisableAllInterrupts(aLevel);
+...
+// perform the required operations
+...
+NKern::RestoreInterrupts(state);
+</codeblock>
+</conbody></concept>

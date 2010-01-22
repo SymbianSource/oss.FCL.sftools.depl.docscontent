@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395"><title>Deriving from COpenFontRasterizerContext</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Overview</title> <p>The font rasterizer context provides the link between the framework required by the open font system, and the font rasterizer engine. As such it should contain a function to return a bitmap for the specified character, and then convert it into Symbian's run-length encoded format. Information about this format is provided in "How to derive from <codeph>COpenFont</codeph> ". </p> <p> <codeph>COpenFontRasterizerContext</codeph> is a convenience class — use of this class is optional. It contains a number of utility functions to make it easier to write glyph bitmaps in Symbian's bitmap format. </p> <p>Use <codeph>COpenFontRasterizer::StartGlyph()</codeph> to initialize the buffer for writing the bitmap. Use <codeph>COpenFontRasterizer::WriteGlyphBit()</codeph> to write the individual bits to the buffer. When all the bits have been added to the buffer, call <codeph>COpenFontRasterizer::EndGlyph()</codeph> to write the glyph bitmap to <codeph>aGlyphData-&gt;iBitmapBuffer</codeph>  </p> </section> <section><title>Example</title> <p>The following code fragment shows a partial implementation of <codeph>CFreeTypeContext::RasterizeL()</codeph>. This function creates the glyph bitmap used to represent a specified character, based on the specification in the font file. </p> <p>This fragment has been provided because it shows how the glyph information is obtained from the font file, and how to implement the algorithm to write a glyph in Symbian run-length encoded format. Note the use of <codeph>StartGlyph()</codeph>, <codeph>WriteGlyphBit()</codeph> and <codeph>EndGlyph()</codeph>. </p> <codeblock id="GUID-650B3D46-EFBD-55A2-ABD6-2CAA6A5795D0" xml:space="preserve">//code before here writes the character metrics to aGlyphData
+
+ // Try to use the built in raster map; if it's not big enough use a temporary bigger one.
+    TBool use_temp_raster_map = width &gt; KRasterWidth || height &gt; KRasterHeight;
+    CRasterMap* cur_raster_map = iRasterMap;
+    if (use_temp_raster_map)
+        {
+        cur_raster_map = CRasterMap::NewL(width,height);
+        CleanupStack::PushL(cur_raster_map);
+        }
+    
+    cur_raster_map-&gt;Clear();
+    TT_Raster_Map&amp; tt_raster_map = cur_raster_map-&gt;RasterMap();
+    error = TT_Get_Glyph_Bitmap(aGlyph, &amp;tt_raster_map,-tt_metrics.bearingX,
+    (tt_raster_map.rows - ascent) &lt;&lt; 6);
+    if (error)
+        User::Leave(KErrGeneral);
+    
+    StartGlyph(aGlyphData);
+    const TUint8* p = (const TUint8*)tt_raster_map.bitmap;
+    int row = 0;
+    while (row &lt; height)
+        {
+        // Find the number of repeating or non-repeating rows (up to 15)
+        int count = 1;
+        TBool repeating = EFalse;
+        const TUint8* cur = p;
+        while (count &lt; 15 &amp;&amp; row + count &lt; height)
+            {
+            const TUint8* prev = cur;
+            cur += tt_raster_map.cols;
+            TBool same = Mem::Compare(prev,width_bytes,cur,width_bytes) == 0;
+            if (count == 1)
+                repeating = same;
+            else if (repeating != same)
+                break;
+            count++;
+            }
+    
+        // Write a 0 for repeating or a 1 for non-repeating.
+        WriteGlyphBit(repeating ? 0 : 1);
+    
+        // Write the count.
+        WriteGlyphBit(count &amp; 1 ? 1 : 0);
+        WriteGlyphBit(count &amp; 2 ? 1 : 0);
+        WriteGlyphBit(count &amp; 4 ? 1 : 0);
+        WriteGlyphBit(count &amp; 8 ? 1 : 0);
+    
+        // Write a single repeating row or all the non-repeating rows.
+        int rows_written = repeating ? 1 : count;
+        cur = p;
+        for (int row_written = 0; row_written &lt; rows_written; row_written++, 
+       cur += tt_raster_map.cols)
+            {
+            int col = 0;
+            for (int byte = 0; byte &lt; width_bytes; byte++)
+                {
+                unsigned char x = cur[byte];
+                for (int bit = 0; bit &lt; 8 &amp;&amp; col &lt; width; bit++, col++, x &lt;&lt;= 1)
+                    WriteGlyphBit(x &amp; 128 ? 1 : 0);
+                }
+            }
+    
+        row += count;
+        p += tt_raster_map.cols * count;
+        }
+    
+    EndGlyph();
+    if (use_temp_raster_map)
+        CleanupStack::PopAndDestroy();    // cur_raster_map
+    }</codeblock> </section> </conbody><related-links><link href="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5.dita"><linktext>Creating a
+                Font Rasterizer Plug-in</linktext> </link> <link href="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9.dita"><linktext>Deriving
+                from COpenFontRasterizer</linktext> </link> <link href="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547.dita"><linktext>Deriving from
+                COpenFontFile</linktext> </link> <link href="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C.dita"><linktext>Deriving from
+                COpenFont</linktext> </link> </related-links></concept>

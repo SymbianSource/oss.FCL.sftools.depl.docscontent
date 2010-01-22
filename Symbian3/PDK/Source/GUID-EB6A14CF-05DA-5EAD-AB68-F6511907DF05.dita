@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-EB6A14CF-05DA-5EAD-AB68-F6511907DF05"><title>Use of the Externalize class</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The implementation of the family of operators <xref href="GUID-50F3A8F9-DA0A-3377-A75C-282F1E920E2D.dita"><apiname>operator&lt;&lt;()</apiname></xref> calls the internal Symbian OS function <codeph>DoExternalizeL()</codeph>. There are two variants of this function distinguished by the value of the third parameter as either <xref href="GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B.dita#GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B/GUID-9D890F4B-3F84-3261-8C4C-275031651229"><apiname>Externalize::Member</apiname></xref> or <xref href="GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B.dita#GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B/GUID-886A0861-06AA-3346-B458-C97F332DDD21"><apiname>Externalize::Function</apiname></xref>.</p> <p>The family of operators <xref href="GUID-50F3A8F9-DA0A-3377-A75C-282F1E920E2D.dita"><apiname>operator&lt;&lt;()</apiname></xref> are implemented as follows:</p> <codeblock id="GUID-472120FA-4058-5316-96D4-9A594D39A359" xml:space="preserve">template &lt;class T&gt;
+inline RWriteStream&amp; operator&lt;&lt;(RWriteStream&amp; aStream,const T&amp; anObject)
+    {
+    DoExternalizeL(anObject,aStream,Externalization(&amp;anObject));
+    return aStream;
+    }</codeblock> <p>The two variants of <codeph>DoExternalizeL()</codeph> are defined and implemented as:</p> <codeblock id="GUID-7FE54FB6-BDE8-5BD2-85BD-802BFB7430A8" xml:space="preserve">template &lt;class T&gt;
+inline void DoExternalizeL(const T&amp; anObject,RWriteStream&amp; aStream,Externalize::Member)
+    {anObject.ExternalizeL(aStream);}</codeblock> <codeblock id="GUID-FDD7942E-EBAD-5AF0-A731-FF210B44E91B" xml:space="preserve">template &lt;class T&gt;
+inline void DoExternalizeL(const T&amp; anObject,RWriteStream&amp; aStream,Externalize::Function)
+    {ExternalizeL(anObject,aStream);}</codeblock> <p>The variant called depends on the value returned from a call to the internal selector function, <codeph>Externalization()</codeph>. This selector function returns either <codeph>Externalize::Function</codeph> or <codeph>Externalize::Member</codeph>, depending on the type of <codeph>anObject</codeph>.</p> <p>The internal selector function <codeph>Externalization()</codeph> is a convenience mechanism that allows the <xref href="GUID-50F3A8F9-DA0A-3377-A75C-282F1E920E2D.dita"><apiname>operator&lt;&lt;()</apiname></xref> to call either the <codeph>ExternalizeL()</codeph> member function of a templated class or an <codeph>ExternalizeL()</codeph> templated global function.</p> <p>The store framework defines and implements a default selector function, prototyped as:</p> <codeblock id="GUID-E233C9ED-7ABC-554C-BB83-D6A00F4BE485" xml:space="preserve">Externalize::Member Externalization(const TAny*)</codeblock> <p>By default, a call to <codeph>Externalization()</codeph> passing a parameter of general class type, is resolved at compile time into a call to this variant, and the return type is <xref href="GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B.dita#GUID-43ED0606-199C-3C1A-B7E1-5EDB1DED469B/GUID-9D890F4B-3F84-3261-8C4C-275031651229"><apiname>Externalize::Member</apiname></xref>. The store framework also defines and implements a number of other variants that take more specific argument types; for example, as part of its implementation of <xref href="GUID-50F3A8F9-DA0A-3377-A75C-282F1E920E2D.dita"><apiname>operator&lt;&lt;()</apiname></xref> for descriptors, the framework defines and implements:</p> <codeblock id="GUID-BE0D631B-7CC6-5D9D-A49C-A18B209295C6" xml:space="preserve">Externalize::Function Externalization(const TDesC8*)</codeblock> </conbody></concept>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9D93F895-B975-4F2D-A2A3-817033EA5C12" xml:lang="en"><title> Data
+Integrity And Memory Barriers</title><shortdesc>This topic explains how memory barriers are used to maintain data
+integrity in a multi-CPU system with shared memory and I/O.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-8A6A93C2-AA57-4ABB-A6E0-64F34D12E05C"><title>Introduction</title><p>When
+a thread is executed on a single CPU system, there is an order to the read/write
+operations to shared memory and I/O. Since read and write operations cannot
+occur at the same time, the integrity of the data is maintained.</p><fig id="GUID-86081A73-848E-49A4-A663-77D681DC6784">
+<title>Shared Memory and I/O on a Single CPU System.</title>
+<image href="GUID-CFD41A5A-2FE2-47FE-8369-08E3C73CB9A5_d0e638914_href.png" placement="inline"/>
+</fig><p>Figure 1 shows how shared memory and I/O is handled on a single CPU
+system. The CPU switches between threads (this is called a context switch).
+Because only one thread can be executed at once, read and write operations
+to shared memory and I/O cannot occur at the same time. Hence the integrity
+of the data can be maintained.</p><fig id="GUID-38C5602A-15EF-4162-962B-932B13CC8377">
+<title>Shared Memory and I/O on a Multi CPU System.</title>
+<image href="GUID-4AB3C821-25B5-4B5B-BC20-C8FA42D69802_d0e638923_href.png" placement="inline"/>
+</fig><p>Figure 2 shows how shared memory and I/O is handled on a multi CPU
+system. In this system, it is possible that the read/write order will not
+be the one expected. This is due performance decisions made by the hardware
+used to interface memory to the rest of the system. Without some form of synchronisation
+mechanism in place, data corruption will occur.</p><p>To safeguard the integrity
+of data, a new synchronisation method known as a memory barrier has been implemented.</p> 
+   </section>
+<section id="GUID-1512CFA2-E4F7-4B02-90B3-A02BC560B821"><title>Memory Barriers</title><p>Memory
+barriers are used to enforce the order of memory access. They are also known
+as membar, memory fence or a fence instruction.</p><p>An example of their
+use is :</p><codeblock xml:space="preserve">thread 1: 
+
+	a = 1;
+	b = 1;
+
+thread 2: 
+
+	while (b != 1);
+	assert(a==1);
+</codeblock><p>In the above code on a single-core system, the condition in
+the assert statement would always be true, because the order of read/write
+operations can be guaranteed.</p><p>However on a multi-core system where the
+read/write operations cannot be guaranteed, a synchronization method has to
+be implemented that allows the contents of the shared memory to by synchronized
+across the whole system. This synchronisation method is the memory barrier.</p><p>With
+the above example, the memory barrier implementation would be :</p><codeblock xml:space="preserve">thread 1: 
+
+	a = 1;
+	memory_barrier;
+	b = 1;
+
+thread 2: 
+
+	while (b != 1);
+	memory_barrier;
+	assert(a==1);
+</codeblock><p>In the above example, the first memory barrier makes sure that
+the variables a and b are written to in the specified order. The second memory
+barrier makes sure that the read operations are done in the correct order
+(the value of variable b is read before the value of variable a).</p><p> Two
+forms of memory barrier are supported by the Symbian platform:</p><ul>
+<li><p>One that will only allow any subsequent memory access if all the previous
+memory access operations have been observed.</p><p> This memory barrier does
+not guarantee the order of completion of the memory requests.</p><p> This
+equates to the ARM DMB (Data Memory Barrier) instruction.</p><p> This is implemented
+via the<codeph> __e32_memory_barrier()</codeph> function.</p></li>
+<li><p>One that ensures that all previous memory and I/O access operations
+are complete before any new access instructions can be executed.</p><p> This
+equates to the ARM DSB (Data Synchronisation Barrier) instruction. The difference
+between this form of memory barrier and the previous one, is that all of the
+cache operations will have been completed before the memory barrier instruction
+completes and that no instruction can be executed until the memory barrier
+instruction has been completed.</p><p>This is implemented via the <codeph>___e32_io_completion_barrier()</codeph> function.</p></li>
+</ul><p>Memory barriers are used in implementing lockless algorithms, which
+perform shared memory operations without using locks. They are used in areas
+where performance is a prime requirement.</p><p>It is unlikely that memory
+barriers would be used by anyone other than device drivers (especially the <codeph>__e32_io_completion_barrier()</codeph> function).
+It is also unlikely that these functions would be used on their own. Instead
+they are most likely to be called via one of the atomic operation functions.
+An example of their use is :</p><codeblock xml:space="preserve">         /* Make sure change to iTail is not observed before the trace data reads which preceded the call to this function. */
+         __e32_memory_barrier();
+         buffer-&gt;iTail += iLastGetDataSize;
+</codeblock></section>
+</conbody></concept>

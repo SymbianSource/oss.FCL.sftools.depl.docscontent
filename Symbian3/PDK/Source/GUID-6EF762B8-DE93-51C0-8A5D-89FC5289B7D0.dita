@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-6EF762B8-DE93-51C0-8A5D-89FC5289B7D0"><title>MMP Tutorial </title><shortdesc>This tutorial describes how to set the paging options for an individual executable.  </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context id="GUID-412D61DE-4334-5ACA-B231-0FD4987DA854"><p>The paging options are:</p><ul id="UL_D8F99583C95448238D57C50ECFA5BB0B"><li id="LI_CFB9F842F9B949D7B7239F19D41663B6">code paging</li><li id="LI_2E3FB77DD0A94611A41B58CB389DB95C">data paging</li><li id="LI_2A568122EAFD4AEFA5635CA75EA475CB">both code and data paging</li></ul><p>Making executables (either exe or dll) paged is the finest level of control of paging at runtime. In the order of precedence for paging keywords, the values in this file will be overridden by those in the oby file. </p> <p>          The following keywords are used to indicate whether the executable is
+          unpaged or paged. If the executable is paged then the keywords indicate if code
+          paging, data paging or both are to be used.</p><table id="GUID-DDE5C1CD-112D-54B8-A819-C95FA0A120DB"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><tbody><row><entry><p> <b>Keyword</b>  </p> </entry> <entry><p> <b>Behaviour on Symbion OS v9.6 and later</b>  </p> </entry> </row> <row><entry><p>paged </p> </entry> <entry><p>Enables code and data paging </p> </entry> </row> <row><entry><p>unpaged </p> </entry> <entry><p>Disables code and data paging </p> </entry> </row> <row><entry><p>pagedcode </p> </entry> <entry><p>Enables code paging </p> </entry> </row> <row><entry><p>unpagedcode </p> </entry> <entry><p>Disables code paging </p> </entry> </row> <row><entry><p>pageddata </p> </entry> <entry><p>Enables data paging </p> </entry> </row> <row><entry><p>unpageddata </p> </entry> <entry><p>Disables data paging </p> </entry> </row> </tbody> </tgroup> </table><p>When using the above keywords, the following points must be considered. </p><ul id="UL_BF3F9DEA52E2443AA028E182B752D96B"><li id="LI_1494C506348640EE8EBB52377EA0F2ED">The keywords <i>pageddata</i> and <i>unpageddata</i> do not make sense for files that are not executable binaries, and will be ignored. </li><li id="LI_0D6678B8EFCE46AA9F5E0BD3BBA34116">The use of the <i>paged</i>, <i>unpaged</i>, <i>pagedcode</i> and <i>unpagedcode</i> keywords only states the default paging behaviour of the data that is to paged by the executable. The behaviour can be overridden by using the <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita"><apiname>TChunkCreateInfo</apiname></xref>, <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> and <xref href="GUID-3DCB92FB-9C74-3B73-B229-BF7944087EE9.dita"><apiname>TChunkHeapCreateInfo</apiname></xref> API. </li><li id="LI_62B6ADBE30C4482D854B48C32713B741">The keywords in the table above, should appear on a separate line on their own and with no arguments</li><li id="LI_A97184F27C5E4D7FADCBBFEE71551AA7">If the build tools are configured to compress executables while building them (this is the default behaviour), then executables marked with paged or the pagedcode keyword will be implicitly byte-pair compressed. </li><li id="LI_53B9F593A2354EB0BB81B86CE41E53A6">If a ROM/ROFS partition defines a <i>pagingoverride</i>, <i>codepagingoverride</i> or <i>datapagingoverride</i> as <i>defaultpaged</i> or <i>defaultunpaged</i>, then the pagability specified in the mmp file will be implemented.</li><li id="LI_DDD2067B2BF64D7FB0D22FBDCB5614AA">If a ROM/ROFS partition has defines <i>pagingoverride</i>, <i>codepagingoverride</i> or <i>datapagingoverride</i> as <i>nopaging</i> or <i>alwayspage</i>, then the pagability specified in the mmp file will be ignored. </li></ul></context>  <result id="GUID-66C2F1AC-E91D-524C-964E-C1F742F8E191"><p>Building the executable with the new keyword does not produce any errors or warnings. </p> </result> <example id="GUID-6D525725-8E22-55A9-8CD3-DFED9E1F09CB"><title>mmp file example</title> <p>Below is an example mmp file with paging: </p> <codeblock id="GUID-CFDB3A59-8379-5336-82F3-CB0463264844" xml:space="preserve">TARGET dummy.dll 
+TARGETTYPE DLL 
+
+UID 0x10003d3a 
+VENDORID 0x12345678 
+
+SOURCEPATH ../dummy 
+SOURCE dummy1.cpp dummy2.cpp 
+
+SYSTEMINCLUDE /epoc32/include 
+
+LIBRARY euser.lib 
+
+CAPABILITY PowerMgmt ReadDeviceData WriteDeviceData LocalServices ReadUserData WriteUserData 
+
+UNPAGED</codeblock> <p>The above mmp file, specifies that the <filepath>dummy.dll</filepath> file is not going to use demand paging. </p> </example> </taskbody></task>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-45F9389E-F31B-59DA-A4FE-E254EAEB2213"><title>Simulation PSY Settings API</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This guide describes how to use the Simulation PSY Settings API to control which data file is loaded by Simulation PSY. It is intended for application developers and device creators. </p> <section id="GUID-8ACF20AB-C9BA-5328-B120-E1369CE36AC8"><title>Purpose</title> <p>Simulation PSY loads a data file which contains simulated position data. As an application developer, you can create your own data files containing simulated position data to test your applications. </p> <p>The API described in this document allows you to set two properties: </p> <ul><li id="GUID-F1B43038-9A0B-5683-84B5-2EB0020FCC03"><p>The name of the data file loaded by Simulation PSY. </p> <p>If you create your own data file, you must use this API to tell the PSY where to find it. </p> </li> <li id="GUID-D6BFDD83-C5F1-574A-B672-862BDD4F2AFC"><p>The Data Set Mode used by Simulation PSY. </p> <p>The Data Set Modes are described in <xref href="GUID-22DB5009-A552-55F7-97EF-1C454E510782.dita">Simulation PSY User Guide</xref>. </p> </li> </ul> <p>The Simulation PSY Settings API uses the Central Repository API. </p> </section> <section id="GUID-931110FC-E746-5B48-9BF7-7982C10601AC"><title> API specification</title> <p>The Simulation PSY Settings API defines two Central Repository keys: </p> <ul><li id="GUID-69C9A8C0-D9D2-5137-AD91-FCB82F1093E2"><p> <xref href="GUID-15F449EB-FBD9-3C0E-90F5-1A128A39FAFA.dita"><apiname>KCRKeySimPSYSimulationFile</apiname></xref> defines the location of the simulation data file that Simulation PSY uses as its source of position data. </p> </li> <li id="GUID-CDC81383-29D9-57F3-AE1C-0A06EFABF474"><p> <xref href="GUID-395C2157-4442-3C80-86A4-9534975361FC.dita"><apiname>KCRKeySimPSYCommonDataSet</apiname></xref> defines whether the PSY operates in Independent Data Set Mode or Common Data Set Mode. </p> <p>For more information see <xref href="GUID-22DB5009-A552-55F7-97EF-1C454E510782.dita">Simulation PSY User Guide</xref>. </p> </li> </ul> <p>The keys are defined in the header file <filepath>SimulationPSYInternalCRKeys.h</filepath>. </p> </section> <section id="GUID-CC0C8811-9554-5C69-92F7-6835EDBF91FC"><title>Using the Simulation PSY Settings API</title> <p><b>Setting the data file </b> </p> <p>To change the data file that Simulation PSY uses as its source of position data, an application must set a fully qualified file name before opening its client subsession. Simulation PSY reads the data file name from the Central Repository when a subsession that uses the PSY is opened. </p> <p>To set a file name, a client application must: </p> <ul><li id="GUID-75ECDA16-0EB0-5FD5-8617-C19DA7260939"><p>Open a repository using the Central Repository UID <xref href="GUID-DA34EFF1-6F9E-3C4A-ADDF-3A60EFB25144.dita"><apiname>KCRUidSimulationPSY</apiname></xref>. </p> </li> <li id="GUID-334A874C-4768-535A-998B-D072E66343FF"><p>Write a fully qualified filename of type TDesC16 to the key <xref href="GUID-15F449EB-FBD9-3C0E-90F5-1A128A39FAFA.dita"><apiname>KCRKeySimPSYSimulationFile</apiname></xref>. </p> </li> <li id="GUID-3657255E-7733-52BF-A99F-459C8FFCACFF"><p>Close the repository </p> </li> </ul> <p>If a client does not set the data file name, Simulation PSY tries to use the default NMEA data file <filepath>default.nme</filepath>. If this default data file is missing, the PSY operates in Fixed Data Mode as described in <xref href="GUID-22DB5009-A552-55F7-97EF-1C454E510782.dita">Simulation PSY User Guide</xref>. </p> <p><b>Setting the Data Set Mode </b> </p> <p>To set the Data Set mode, a client must: </p> <ul><li id="GUID-32D46AB9-8AC8-5F3A-9A32-C054990427E6"><p>Open a repository using the Central Repository UID <xref href="GUID-DA34EFF1-6F9E-3C4A-ADDF-3A60EFB25144.dita"><apiname>KCRUidSimulationPSY</apiname></xref>. </p> </li> <li id="GUID-1BE8479E-1DC9-5F9D-81E4-EDAF97F6E97F"><p>Write a value to the key <xref href="GUID-395C2157-4442-3C80-86A4-9534975361FC.dita"><apiname>KCRKeySimPSYCommonDataSet</apiname></xref>. </p> <p>Set a value of 1 if the Common Data Set mode is required. </p> <p>Set a value of 0 if Independent Data Set mode is required. This is the default setting. </p> </li> <li id="GUID-619B39CD-5690-513A-8CCF-1503C99DB3E2"><p>Close the repository </p> </li> </ul> <p>In practice you will probably want to set the data file and the Data Set Mode as part of the same operation. An example is shown below. </p> <codeblock id="GUID-8FD27F15-158A-5FF7-9EE1-23B104A4EABB" xml:space="preserve">
+#include &lt;centralrepository.h&gt;
+#include &lt;SimulationPSYInternalCRKeys.h&gt;
+...
+
+// Declare a data file containing simulated movement data
+
+_LIT(KSimulationFile, "c:\\system\\data\\simulationData.sps" );
+
+// Open a repository
+CRepository* repository = CRepository::NewLC(KCRUidSimulationPSY);
+
+// Set the simulation file
+User::LeaveIfError(repository-&gt;Set(KCRKeySimPSYSimulationFile, KSimulationFile));
+
+// Set Common Data Set mode
+User::LeaveIfError(repository-&gt;Set(KCrKeySimPSYCommonDataSet, 1);
+
+// Close the repository
+CleanupStack::PopAndDestroy(repository);
+
+// ‘KSimulationFile’ is ready for use.
+</codeblock> <p>Note: Capability <codeph>WriteDeviceData</codeph> is required to write the Central Repository settings. </p> </section> <section id="GUID-689C0C92-8AE2-55DE-8A1A-E762048FED6E"><title>Code architecture</title> <fig id="GUID-0BE8DB62-853D-51F4-B40A-1FDC4745AE00"><title>
+             Figure 1: Files needed by a Simulation PSY Settings client 
+          </title> <image href="GUID-FE1F6768-FCF8-5670-8621-DC0DBDB0B706_d0e455507_href.png" placement="inline"/></fig> <p>The <filepath>centralrepository.lib</filepath> file contains information needed at link time by the client. The <filepath>centralrepository.dll</filepath> file contains the run-time information. </p> </section> </conbody><related-links><link href="GUID-1A9BA6A1-C6BB-5196-B2D8-355A78B79AE3.dita"><linktext>Simulation
+                PSY Overview</linktext> </link> <link href="GUID-22DB5009-A552-55F7-97EF-1C454E510782.dita"><linktext>Simulation PSY User
+                Guide</linktext> </link> </related-links></concept>

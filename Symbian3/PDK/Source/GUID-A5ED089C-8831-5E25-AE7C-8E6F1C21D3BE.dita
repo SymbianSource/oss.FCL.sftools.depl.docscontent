@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A5ED089C-8831-5E25-AE7C-8E6F1C21D3BE" xml:lang="en"><title>Writing
+a CSBEClient for Restore</title><shortdesc>This section describes the recommended <apiname>conn::CSBEClient</apiname> function
+calls for a partial and incremental restore. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Context</title> <p>A partial restore restores the data of
+specified data owners. The Security IDs (SIDs) of the specified data owners
+must be passed to the Backup Engine. </p> <p>An incremental restore restores
+files that are saved in the previous incremental backup. After each incremental
+backup, a snapshot, which saves the file list and details of each data owner,
+is saved. Before each incremental restore, the previously saved backup snapshots
+must be provided to the Backup Engine. </p> </section>
+<section id="GUID-FAF6DC1F-C569-5573-9503-EC65FF9C94E1"><title>Steps</title><ol id="GUID-5CF38BF0-1174-575C-929E-64C260260C0C">
+<li id="GUID-AA22D309-4E70-527F-8B97-B18423E7A8CC"><p>The user application
+must instantiate <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> to connect to the Backup
+Engine. </p> <codeblock id="GUID-01B82F51-F453-5042-B77D-3AF1BC046A5F" xml:space="preserve">iRestoreClient = CSBEClient::NewL();</codeblock> </li>
+<li id="GUID-4DC27B19-1573-520F-98E7-FA77F524EEC1"><p>Supply the list of data
+owners got from the host PC to the Backup Engine. </p> <p>To restore the data
+of specified data owners, pass the array of the SID of these data owners to
+the Backup Engine. </p> <codeblock id="GUID-5F0F4CE6-AC01-5248-B9D5-BF15A3F7E38A" xml:space="preserve">iRestoreClient-&gt;SetSIDListForPartialBURL(RSIDArray&amp; aSIDs);</codeblock> </li>
+<li id="GUID-1A91A122-BB2D-590F-8D3C-74BCA5100ABC"><p>Set the Back Engine
+to the restore mode which signals the start of a restore. </p> <p>The Backup
+Engine then <xref href="GUID-88A5F321-17BA-566B-B025-22DB11664E54.dita">publishes
+the mode to the subscribed data owners</xref>. This gives the data owners
+some time to prepare for the restore, for example they can release resources
+in case of file lock or data conflict. </p> <p>The mode contains the restore
+types: full or partial, base or incremental. </p> <codeblock id="GUID-223EE0DD-DBD2-543C-9917-CD4DB938154E" xml:space="preserve">iRestoreClient-&gt;SetBURModeL (
+                              const TDriveList&amp; aDriveList,
+                             
+                              //Specify partial restore,
+                              //defined in epoc32/include/connect/sbdefs.h
+                              TBURPartType aBURType,      
+
+                              //Specifiy incremental restore,
+                              //defined in epoc32/include/connect/sbdefs.h
+                              TBackupIncType aBackupIncType
+                            );
+</codeblock> </li>
+<li id="GUID-7F3051A3-BD5C-591A-ABCE-74DED46E9E3D"><p>Supply system files
+to the Backup Engine for restore. </p> <codeblock id="GUID-8E1098CB-B432-51CE-8D80-292B6E185A70" xml:space="preserve">iRestoreClient -&gt;SupplyDataL(
+                              CSBGenericTransferType&amp; aGenericTransferType,
+                              TBool aFinished
+                             );</codeblock> </li>
+<li id="GUID-89F6E682-8B16-5B83-A791-52BE036EBC89"><p>Signal that all system
+files have been restored. </p> <p>This step must be invoked to ensure that
+system files have been released for data owners to use. It triggers the Backup
+Engine to start data owners for the restore. </p> <codeblock id="GUID-9F669D8B-3BFB-5EB2-A4A3-456B2F75DC4E" xml:space="preserve">iRestoreClient-&gt;AllSystemFilesRestored();</codeblock> </li>
+<li id="GUID-7BCA299B-803F-5C10-B9FB-4833983B0619"><p>Request the state of
+active data owners. </p> <p>This step ensures that the data owners are ready
+to supply the data, for example file locks are released. </p> <codeblock id="GUID-80A8205B-5B54-5986-A285-F185587573E6" xml:space="preserve">iRestoreClient-&gt;SIDStatusL(RSIDStatusArray&amp; aSIDStatus);</codeblock> </li>
+<li id="GUID-113A8BCF-B055-51A7-B54B-AF1A8FA57A21"><p>Supply passive private
+data and its snapshot to the Backup Engine for restore. </p> <codeblock id="GUID-32C548A1-A04D-5470-B6BF-72B994183DFB" xml:space="preserve">iRestoreClient-&gt;SupplyDataL(
+                             CSBGenericTransferType&amp; aGenericTransferType,
+                             TBool aFinished
+                            );</codeblock> <p> <b>Note</b>: For more information
+about creating snapshot transfer types, refer to the <xref href="GUID-8BFC185E-91FD-5E04-A26C-728B06F31FDD-GENID-1-7-1-23-1-1-4-1-3-1-6-1-6-1.dita">Creating
+transfer types</xref> section. </p> </li>
+<li id="GUID-C5ED3083-8876-59CB-8D3C-CB404F1CCC71"><p>The backup server restores
+the public files. </p> <p>Similar to a backup, the Backup Engine does not
+restore public files. Device creators must get the public files from the host
+PC and restore them to the device in their backup server implementations. </p> </li>
+<li id="GUID-2BE0338B-6C06-5159-A3F1-4B8B85E56048"><p>Supply active private
+data to the Backup Engine for restore. </p> <codeblock id="GUID-9CC18592-E7F6-517B-8937-4E06A2EC1E80" xml:space="preserve">iRestoreClient-&gt;SupplyDataL(
+                             CSBGenericTransferType&amp; aGenericTransferType,
+                             TBool aFinished
+                            );</codeblock> </li>
+<li id="GUID-04CC0D4A-F4C1-5515-ABA3-9D746309455D"><p>Set the Backup Engine
+into the normal mode. </p> <p>After the data is restored on the device, set
+the Backup Engine to the normal mode. The subscribed data owners respond to
+the signal and resume the state before the backup. For example resume file
+locks or a GUI application recovers to the state and view prior to the restore. </p> <codeblock id="GUID-DA11715F-2F70-5AA8-978E-982B2C857E37" xml:space="preserve">iRestoreClient-&gt;SetBURModeL(
+                             const TDriveList&amp; aDriveList,
+                             TBURPartType aBURType,
+                             TBackupIncType aBackupIncType
+                            );</codeblock> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-0BD22FDB-1A5C-56AA-A7FC-BD2271B2F928.dita"><linktext>Writing a
+Backup Engine Client (CSBEClient)</linktext></link>
+</related-links></concept>

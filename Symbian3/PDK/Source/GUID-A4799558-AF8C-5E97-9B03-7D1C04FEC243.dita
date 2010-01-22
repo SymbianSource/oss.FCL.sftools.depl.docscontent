@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A4799558-AF8C-5E97-9B03-7D1C04FEC243" xml:lang="en"><title>Duplicating
+handles to Kernel side objects</title><shortdesc>This document describes when you should duplicate a handle in kernel
+side programming.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-E9B67C16-E1D1-42D4-872D-6731F94DBC87"><title>Duplicating a thread-relative handle in another thread</title> <p>A
+handle in one thread (a thread-relative handle) may be duplicated in another
+thread within the same process.</p> <p>Typically, thread B may want to access
+a Kernel object which already exists and for which thread A, within the same
+process, already holds a handle.</p> <p>For example, if thread A has a handle
+on a semaphore, it is insufficient to pass a copy of the handle, an <codeph>RSemaphore</codeph>,
+to thread B. The handle passed to thread B does not refer to anything known
+by thread B. In order for thread B to gain a valid handle on the DLL, the
+handle must be duplicated.</p> <p>Note that, in practice, real code may or
+may not want to duplicate a semaphore handle, however the principle remains
+valid.</p> <p>In thread B, then:</p> <codeblock id="GUID-A6110799-7A92-5EF9-9AE8-CBB532D7542B" xml:space="preserve">...
+RSemaphore cs;
+cs.SetHandle(h.Handle()); 
+                          // ...where  h  is an RSemaphore, the
+                          // handle to the DLL, and
+                          // passed from thread A code.
+                                  
+cs.Duplicate(tA);
+                          // ...where  tA  is an RThread, the handle to
+                          // thread A, and passed from threadA code.
+                          // Duplicate also opens the resulting
+                          // handle, cs.
+...
+</codeblock> <p>The dotted line in the following diagram shows the effect
+of this:</p> <fig id="GUID-731954F6-D85E-5940-96A4-15AC6E3AA5F5">
+<image href="GUID-5BABDDEC-1D81-5847-9ADB-65DF8E404BFA_d0e322698_href.png" placement="inline"/>
+</fig> <p>Note that for process-relative handles, there is no need to use <codeph>Duplicate()</codeph>;
+the handle passed from thread A to thread B can be used directly.</p> </section>
+<section id="GUID-83BE173E-F73D-46A8-8267-A1055E486FE3"><title>Making specific handles from generic handles</title> <p>There
+are two types of generic handle, one for threads and one for processes, both
+of which are created using the default constructor of the appropriate handle.</p> <codeblock id="GUID-F42A0EEB-3142-527A-9BD4-724B9969CF5D" xml:space="preserve">RThread  thisThread;  // Generic handle meaning "the current thread"
+RProcess thisProcess; // Generic handle meaning "the current process"
+</codeblock> <p>An important fact about generic handles is that they make
+no claim on the object that they refer to, so you don't need to call <codeph>Close()</codeph> when
+you get rid of them. This is not true of specific handles, which always add
+a reference to the object that they refer to, preventing that object being
+fully destroyed until all specific handles have been closed.</p> <p>Use Duplicate()
+to make a specific handle from a generic handle; for example:</p> <codeblock id="GUID-D5588FB1-8ACE-526F-A8D7-6E2C5C089823" xml:space="preserve">RThread thisThread;                        // generic handle
+TInt err=thisThread.Duplicate(thisThread);    // a specific handle
+...
+thisThread.Close();                        // don't forget.
+</codeblock> </section>
+<section id="GUID-83C281F6-1C91-4F1A-9C69-3C5BF3843DE5"><title>Promoting a thread-relative handle to a process-wide handle</title> <p>The
+second parameter passed to <codeph>Duplicate()</codeph> specifies whether
+the resulting handle is specific to the calling thread, or is valid for all
+threads in the same process.</p> <p><codeph>Duplicate()</codeph> offers a
+way of making a handle, which is specific to a thread, known to all the threads
+in a process.</p> <p>This does not work for all handles but <codeph>RLibrary</codeph> is
+an example of one where it can make sense to promote an <codeph>RLibrary</codeph> thread-relative
+handle to a process-relative handle because this ensures that the library
+will not be automatically unloaded when the original thread terminates. For
+example:</p> <codeblock id="GUID-E02BE012-EE3F-53A0-A3E0-7B57E03B9D28" xml:space="preserve">...
+_LIT(KMyLib,"MYLIB");
+...
+RLibrary threadLibrary;
+err=threadLibrary.Load(KMyLib);        // Load up a DLL, this gives
+                                       // a thread-specific handle.
+RLibrary aDup=threadLibrary;           // Copies handle without
+                                       // doing Open().
+err=threadLibrary.Duplicate(RThread());// Overwrite the original.
+if (err==KErrNone)
+    {
+       aDup.Close();                      // Close the original.
+    }
+...
+</codeblock> </section>
+</conbody></concept>

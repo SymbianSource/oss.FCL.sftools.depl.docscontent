@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-124AC7EE-E227-5358-A755-628FFE257250" xml:lang="en"><title>HAL Handler
+Implementation</title><shortdesc>Describes how to implement or change a new HAL handler when you
+create a base port. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A HAL handler gets or sets hardware-specific settings, for example, the
+display contrast.</p>
+<p>A HAL handler is normally implemented in the kernel extension or a driver
+that provides the hardware-specific functionality. </p>
+<p>The easiest way to see the general pattern for implementing HAL handlers
+is to look at a real example. We will use the screen (i.e. video or LCD) driver
+for the template reference board, which is implemented in <filepath>...\template_variant\specific\lcd.cpp</filepath>. </p>
+<section id="GUID-B0EF5EC5-E7DA-5700-A187-4B8D14A3956A"><title>HAL handler
+function signature</title> <p>The HAL handler function has a signature that
+is defined by the <xref href="GUID-A65A16CA-488D-3A16-A034-F01C9C0B9D15.dita"><apiname>THalFunc</apiname></xref> typedef that is exported in <filepath>epoc32\include\kernel\kernel.h</filepath>. </p> <p>For
+example: </p> <codeblock id="GUID-0C6E606C-7916-50D3-8E89-D27BC3EB8C54" xml:space="preserve">TInt halFunction(TAny* aPtr, TInt aFunction, TAny* a1, TAny* a2)</codeblock> </section>
+<section id="GUID-217DAB35-D227-5FB7-8342-7EFD69E6CDBC"><title>Registering
+the HAL handler</title> <p>Before the handler can do anything, the extension
+or driver must register its handler for a specific HAL group. It does so by
+calling: </p> <codeblock id="GUID-0B935CC7-DA21-56A7-9BBE-F90B61EACDE0" xml:space="preserve">Kern::AddHalEntry(group, handler_func, ptr);</codeblock> <p>where: </p> <ul>
+<li id="GUID-17F56160-DFE5-5703-959F-EE93C748F74D"><p> <codeph>group</codeph> is
+the number of the <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-366CC4B8-C6BD-5DCC-B55D-6D87CD5C8E64">HAL
+group attribute</xref> for which the HAL handler is being registered. </p> </li>
+<li id="GUID-C6D34824-AD21-514E-BC4E-EE1323E5A9C9"><p> <codeph>handler_func</codeph> is
+a pointer to the HAL handler function. </p> </li>
+<li id="GUID-195CE0E3-9658-51D4-B5FA-10B0263FBE60"><p> <codeph>ptr</codeph> is
+a pointer that is passed to the HAL handler function when it is called. This
+is usually a pointer to an object that can handle the specified HAL attribute. </p> </li>
+</ul> <p><note> A group can only have one handler, any attempt to register
+another handler returns an error. Typically, a driver will register its handler
+during its initialisation phase. </note></p> <p>Nearly all the functionality
+of the template screen driver is implemented in a single class, the LCD power
+handler object; its <codeph>DLcdPowerHandler::Create()</codeph> function is
+called as part of startup processing. It is this function that registers the
+HAL handler: </p> <codeblock id="GUID-09BCD8E9-60DB-5805-9A32-F5652C434AEE" xml:space="preserve">...
+// install the HAL function
+r=Kern::AddHalEntry(EHalGroupDisplay,halFunction,this);
+if (r!=KErrNone)
+    return r;
+...
+</codeblock> <p>Note that the third parameter is, in general, an optional
+pointer. It is a pointer to the current object, i.e. the <codeph>DLcdPowerHandler</codeph> object.
+It is this pointer that is passed on to the HAL handler function as its first
+argument. </p> </section>
+<section id="GUID-DAE573D1-EAA1-530F-93D4-0F4F8BC7EA60"><title>Common implementation
+pattern</title> <p>Using the template screen driver as an example, the driver
+provides the HAL handler for dealing with information related to the display
+HAL group, <xref href="GUID-7F299BFC-D8A5-3A5A-B8DA-39BF42C99DC6.dita"><apiname>EHalGroupDisplay</apiname></xref>. The HAL handler is the function: </p> <codeblock id="GUID-646A151D-79E3-54A8-8D52-D732C3E5F5AE" xml:space="preserve">LOCAL_C TInt halFunction(TAny* aPtr, TInt aFunction, TAny* a1, TAny* a2)
+    {
+    DLcdPowerHandler* pH=(DLcdPowerHandler*)aPtr;
+    return pH-&gt;HalFunction(aFunction,a1,a2);
+    }
+</codeblock> <p>This is a stand-alone function. The first parameter <codeph>aPtr</codeph> is
+the pointer that was originally passed to the kernel when the HAL handler
+was registered via the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8C8DCE9D-0094-3909-8FDA-2F3134D0BC88"><apiname>Kern::AddHalEntry()</apiname></xref> call, and in
+this case, points to the LCD's power handler object. In this example, the
+main implementation of the HAL handler is the member function <codeph>HalFunction()</codeph> of
+the <codeph>DLcdPowerHandler</codeph> instance. </p> <p>Whether you use this
+kind of technique depends on the way your drivers are implemented, but it
+is a pattern that is also used by the digitiser and the keyboard driver, as
+well as by the Symbian implemented HAL handlers. </p> <p>The other parameters
+passed to the HAL handler function, i.e. <codeph>aFunction</codeph>, <codeph>a1</codeph>,
+and <codeph>a2</codeph> are the ones passed into a call to <xref href="GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9.dita#GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9/GUID-7F07C14C-E69A-3277-8BFF-0CE2A820166D"><apiname>UserSvr::HalFunction()</apiname></xref>,
+which itself is called by the various accessor functions; see <xref href="GUID-9D4B8CDF-60D7-5952-AAAF-94A3C1E8908F.dita">the
+overall picture</xref>. </p> <p>It's useful to note that a single HAL handler
+may end up being called as a result of calls to different accessor functions.
+For example, <codeph>ProcessDisplayCurrentModeInfo()</codeph> and <codeph>GetBacklightPresent()</codeph> are
+accessor functions that result in a call to the screen driver's HAL handler. </p> <p>To
+further distinguish between the different characteristics represented by a
+group, each group has an associated set of function-ids. The function id is
+the second parameter passed to the HAL handler function, and the most common
+pattern for an implementation is to code a simple switch statement based on
+this value. For example, the function-ids associated with the <xref href="GUID-7F299BFC-D8A5-3A5A-B8DA-39BF42C99DC6.dita"><apiname>EHalGroupDisplay</apiname></xref> are
+represented by the set of enum values defined by the <xref href="GUID-BB011D9B-105F-345C-9FC0-39B0BA509394.dita"><apiname>TDisplayHalFunction</apiname></xref> enum.
+This is a fragment taken from the template screen driver: </p> <codeblock id="GUID-F1CA7147-4659-572E-8AEB-437B7E9CA2CF" xml:space="preserve">TInt DLcdPowerHandler::HalFunction(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    TInt r=KErrNone;
+    switch(aFunction)
+        {
+        case EDisplayHalScreenInfo:
+            {
+            TPckgBuf&lt;TScreenInfoV01&gt; vPckg;
+            ScreenInfo(vPckg());
+            Kern::InfoCopy(*(TDes8*)a1,vPckg);
+            break;
+            }
+
+        case EDisplayHalWsRegisterSwitchOnScreenHandling:
+            iWsSwitchOnScreen=(TBool)a1;
+            break;
+        
+        case EDisplayHalWsSwitchOnScreen:
+            WsSwitchOnScreen();
+            break;
+        
+        case EDisplayHalMaxDisplayContrast:
+            {
+            TInt mc=KMaxDisplayContrast;
+            kumemput32(a1,&amp;mc,sizeof(mc));
+            break;
+            }
+        ...
+        default:
+            r=KErrNotSupported;
+            break;
+        }
+    ...
+    }</codeblock> <p>If the HAL handler function does not deal with a specific
+function-id, then it returns <codeph>KErrNotSupported</codeph>. </p> <p>The
+meaning of the parameters <codeph>a1</codeph> and <codeph>a2</codeph> passed
+to the HAL handler depends on the group and function-id; see the list: <xref href="GUID-857F981E-711B-5CA8-AB37-5C700A6140FA.dita">groups and the location of
+their HAL handlers</xref> and <xref href="GUID-E49A8036-EACF-5181-91DA-AE89D3B6E815.dita">Cross
+reference: attribute --&gt; group/function-id/capabilities</xref> for the full
+detail. </p> <p id="GUID-D75D3A65-590D-5716-84A7-0195DFCD1656"><b>Dealing with the HAL::GetAll()
+function</b> </p> <p>Calls that come through the <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-EF03B832-E9AA-32CF-903F-DFFA63A3E9AB"><apiname>HAL::GetAll()</apiname></xref> function
+must be dealt with by the HAL handler implementation in a particular way. </p> <p> <codeph>GetAll()</codeph> calls
+the HAL handler and passes -1. The HAL handler must return the HAL attribute
+value when it is passed a -1 as its parameter unless the handler requires
+additional parameters. If the handler expects more than one parameter then
+it must return the error code <codeph>KErrArgument</codeph>. </p> <p>For example,
+using a <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> request with the attribute <xref href="GUID-DEEDAD63-57EB-3FFC-9D1C-5AD32C424879.dita"><apiname>EDisplayBrightness</apiname></xref> returns
+the brightness for the <i>specified</i> device (screen). </p> <codeblock id="GUID-27357ABD-D38C-5B09-85B7-3B33440FC911" xml:space="preserve">HALArg = 0;
+ret = HAL::Get(screen, HAL::EDisplayBrightness, HALArg);</codeblock> <p>The
+information cannot be retrieved by the <codeph>GetAll()</codeph> function. </p> <p>When
+the HAL handler is expecting a value that specifies a particular mode or setting
+but receives a -1 the HAL handler must return the error code <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref> to
+indicate that an additional parameter was expected. </p><p>See <xref href="GUID-85AB6B6F-216E-3716-8A86-D0C44EE8008E.dita"><apiname>&gt;THalImplementation</apiname></xref> and <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-EF03B832-E9AA-32CF-903F-DFFA63A3E9AB"><apiname>HAL::GetAll()</apiname></xref>.</p> </section>
+<section id="GUID-01D6179B-F1B6-5186-A96E-A1A5EDDC7A7A"><title>Context of
+the call to the HAL handler</title> <p>The HAL handler itself is only called
+by the kernel, and is the end result of a sequence that starts either with
+a call to the user interface functions provided by the HAL class (<xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref>, <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> or <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-EF03B832-E9AA-32CF-903F-DFFA63A3E9AB"><apiname>HAL::GetAll()</apiname></xref>), or with a call to the kernel side <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DA115709-A225-3E2A-BCCD-6E2BB15979B9"><apiname>Kern::HalFunction()</apiname></xref>. </p> <p>The
+handler runs on the kernel side in the context of the calling thread with
+no kernel mutexes or fast mutexes held; the calling thread is not placed into
+a critical section. It is the responsibility of the handler to do any thread
+synchronisation required. The handler returns a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref>, which
+is passed back to the user side, or the caller of <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DA115709-A225-3E2A-BCCD-6E2BB15979B9"><apiname>Kern::HalFunction()</apiname></xref>. </p> </section>
+<section id="GUID-9C3570E1-50F6-5178-B9A1-99BCBB01ECA3"><title>Platform security</title> <p>If
+you are providing or porting a HAL handler, you need to be aware of platform
+security issues. In principle, for each call into the HAL handler, you need
+to check the capabilities of the caller's process. </p> <p>Recall that <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-366CC4B8-C6BD-5DCC-B55D-6D87CD5C8E64">function-ids</xref> are
+used to distinguish between the different requests made on a given HAL handler.
+Different requests may require different capabilities, although many requests
+require no special capabilities. This means that each function-id is associated
+with a capability, and means that code that is dealing with a request associated
+with a specific function-id, must check the associated capability. </p> <p>For
+example, the screen (i.e. video or LCD) driver must check that the caller
+has the <xref href="GUID-C607209F-6FC5-31DE-8034-E5B799B857A8.dita"><apiname>ECapabilityWriteDeviceData</apiname></xref> capability before proceeding
+with a request to set the device's backlight on. This is a capability that
+grants write access to settings that control the behaviour of the device. </p> <codeblock id="GUID-AC4567DA-400E-53FB-8D90-E3D537AF68A3" xml:space="preserve">TInt DLcdPowerHandler::HalFunction(TInt aFunction, TAny* a1, TAny* a2)
+    {
+    TInt r=KErrNone;
+    switch(aFunction)
+        {
+        ...
+        case EDisplayHalSetBacklightOn:
+        if(!Kern::CurrentThreadHasCapability(ECapabilityWriteDeviceData,__PLATSEC_DIAGNOSTIC_STRING("Checked by Hal function EDisplayHalSetBacklightOn")))
+            {
+            return KErrPermissionDenied;
+            )
+        ...
+        break;
+        ...
+    }</codeblock> <p>To find the capabilities associated with function-ids,
+see the <xref href="GUID-E49A8036-EACF-5181-91DA-AE89D3B6E815.dita">HAL Attributes
+and Related Function IDs Tables</xref> section. Capabilities are documented
+as part of the API reference for each function-id. </p> </section>
+</conbody></concept>

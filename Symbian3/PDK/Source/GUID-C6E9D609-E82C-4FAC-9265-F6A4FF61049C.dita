@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C6E9D609-E82C-4FAC-9265-F6A4FF61049C" xml:lang="en"><title>Drawing
+in the view architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Symbian platform calls <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> when a control area needs
+to be updated on the display. Controls may implement <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> or leave the drawing
+to their child controls. For more information on control hierarchies, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/guide/Application-Framework-subsystem-guide/UIControlFrameworkGuide/UIControlFrameworkGuide2/RunTimeControlHierarchy.guide.html" format="application/java-archive">The run-time control hierarchy</xref>. </p>
+<p>The Symbian platform calls <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> for the parent control
+first, and then recursively for each control.</p>
+<p>Controls should override <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> to draw their content.
+The override should do nothing else and should be as fast as possible. For
+example, it is bad design to create fonts dynamically, and read any bitmaps
+or resources while drawing. A good rule of thumb is that there should not
+be trap handlers in the method override; any time-consuming functionality
+that can be done beforehand should be cached.</p>
+<p>In most cases controls are drawn on the display using the screen device
+graphics context, accessed with <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aSystemGc%28%29const" format="application/java-archive"><parmname>CCoeControl::SystemGc()</parmname></xref>. The graphics context provides a wide set of <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/GDI/index.html" format="application/java-archive">GDI</xref> (Graphics
+Device Interface  - common Symbian platform graphics API) drawing primitives
+that can be used for drawing virtually anything on screen.</p>
+<p>An example of a basic override of <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> for a control that is
+a top-level window in an application is as follows:</p>
+<codeblock id="GUID-9EF298F3-9B92-48C1-BA7C-0C91143D075C" xml:space="preserve">void CMyAppView::Draw( const TRect&amp; /*aRect*/ ) const
+    {
+    // Get the standard graphics context
+    CWindowGc&amp; gc = SystemGc();
+    gc.SetPenStyle( CGraphicsContext::ENullPen );
+    gc.SetBrushColor( KRgbWhite);
+    gc.SetBrushStyle( CGraphicsContext::ESolidBrush );
+
+    // Gets the control's extent
+    TRect rect( Rect());
+
+        {
+        gc.Clear( rect );
+        }
+    }
+</codeblock>
+<p>, where</p>
+<ul>
+<li><p><parmname>CWindowGc&amp; gc = SystemGc();</parmname> gets
+the graphics context that is used when drawing the control.</p></li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Window_Server/CWindowGcClass.html#%3a%3aCWindowGc%3a%3aSetPenStyle%28TPenStyle%29" format="application/java-archive"><parmname>CWindowGc::SetPenStyle</parmname></xref>, <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Window_Server/CWindowGcClass.html#%3a%3aCWindowGc%3a%3aSetBrushColor%28const%20TRgb%20%26amp%3b%29" format="application/java-archive"><parmname>CWindowGc::SetBrushColor</parmname></xref>, and <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Window_Server/CWindowGcClass.html#%3a%3aCWindowGc%3a%3aSetBrushStyle%28TBrushStyle%29" format="application/java-archive"><parmname>CWindowGc::SetBrushStyle</parmname></xref> are used to set the drawing primatives for the context.</p>
+</li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TRectClass.html" format="application/java-archive"><parmname>TRect</parmname></xref> gets
+the size of the control rectangle.</p></li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Window_Server/CWindowGcClass.html#%3a%3aCWindowGc%3a%3aClear%28const%20TRect%20%26amp%3b%29" format="application/java-archive"><parmname>CWindowGc:Clear(rect)</parmname></xref> clears the control rectangle.</p>
+</li>
+</ul>
+<section id="GUID-DBACBFCC-F260-4ABE-B55C-BBB23F332E42"><title>Drawing with
+caches</title>
+<p>For controls that perform intensive drawing operations, the drawing
+should be cached: a process also known as double-buffering. Here the drawing
+is done to a memory context first and then in the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> method only the context's
+bitmap is passed to screen. In the Symbian platform, the easiest way to implement
+a double buffer is to create a <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Font_and_Bitmap_Server/CFbsBitmapClass.html" format="application/java-archive"><parmname>CFbsBitmap</parmname></xref> and
+then bind a graphics context to that  - this makes it possible to use the
+same GDI interface for drawing as the display context. The drawing is done
+to a memory bitmap buffer, and when the Symbian platform updates the invalidated
+screen area, the memory buffer is copied to it. Double-buffering is a common
+paradigm used in games, but can also be utilized in any application when performance
+of drawing controls is important.</p>
+<p>The following is a short example of how a double buffer is created and
+used:</p>
+<codeblock id="GUID-995DBACE-EE60-4666-BDCF-975EE98B01FD" xml:space="preserve">iGcBmp = new (ELeave) CWsBitmap(iEikonEnv-&gt;WsSession());
+User::LeaveIfError(iGcBmp-&gt;Create(aClientRect.Size(), iEikonEnv-&gt;ScreenDevice()-&gt;DisplayMode()));
+iGcDevice = CFbsBitmapDevice::NewL(iGcBmp);
+User::LeaveIfError(iGcDevice-&gt;CreateBitmapContext(iGc));
+</codeblock>
+<p><parmname>iGcBmp</parmname> is a pointer to <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Window_Server/CWsBitmapClass.html" format="application/java-archive"><parmname>CWsBitmap</parmname></xref>,
+the bitmap memory buffer, that is created with the same width and height as
+the top-level window and with the same color bit depth as the display.<parmname> iGcDevice</parmname> is
+a pointer to the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/GDI/CBitmapDeviceClass.html" format="application/java-archive"><parmname>CBitmapDevice</parmname></xref> device
+class and the context <parmname>iGc</parmname> holds the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/GDI/CBitmapContextClass.html" format="application/java-archive"><parmname>CBitmapContext</parmname></xref> instance. <parmname>iGc</parmname> is then used instead of <parmname>CScreenGc</parmname>, obtained from the <parmname>CCoeControl::SystemGc()</parmname> method,
+when the control draws itself. The double-buffer drawing should be done outside
+of the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDraw%28const%20TRect%20%26amp%3b%29const" format="application/java-archive"><parmname>CCoeControl::Draw</parmname></xref> method and can be called
+directly when needed. Only at the end of the off-screen drawing is the memory
+buffer flushed to the screen by calling <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aDrawDeferred%28%29const" format="application/java-archive"><parmname>CCoeControl::DrawDeferred()</parmname></xref></p>
+<codeblock id="GUID-13A1E553-7A78-422C-85AC-7C89696B2D18" xml:space="preserve">void CMyDrawingExample::Draw(const TRect&amp; /*aRect*/) const
+    {
+    SystemGc().BitBlt(TPoint(0, 0), iGcBmp);
+    }</codeblock>
+</section>
+</conbody></concept>

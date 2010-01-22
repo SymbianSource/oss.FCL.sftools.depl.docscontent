@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-29AE56A8-DA08-5FB3-89F1-26B4308336BC"><title>Modifying a Clock Time</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Use the <xref href="GUID-7FA65BF7-2F4F-3AA9-A52F-2CF655053AB7.dita"><apiname>clock_settime()</apiname></xref> function to modify the clock time. </p> <p> <b>Important:</b> The clock time can be modified only by a process having the <b>WriteDeviceData</b> capability. </p> <p>The following example code demonstrates how the current clock time can be moved forward by a minute. </p> <p>The following example code performs the following tasks: </p> <ol id="GUID-B0FCAD80-A053-54B7-8639-36CE5F5F433E"><li id="GUID-3E194156-6B50-52A5-B778-B1EF64D79EE9"><p>Gets the clock id of the system clock and stores it in <codeph>ClockId</codeph>. </p> </li> <li id="GUID-4E4A0E00-C69A-52DE-8AE8-D749E14A77BF"><p>Gets the current time associated with <codeph>ClockId</codeph> using <xref href="GUID-2E94C94E-6D65-3B18-959D-60E6224E6C40.dita"><apiname>clock_gettime()</apiname></xref> and stores it in <codeph>CurrTime</codeph>. </p> </li> <li id="GUID-D48B1B9E-E14A-57F8-AF87-FA1C20BDF163"><p>Increments current time by a minute. </p> </li> <li id="GUID-FBB32410-DB7F-5810-9990-8E2E2527F733"><p>Sets the current time as <codeph>CurrTime</codeph> using <xref href="GUID-7FA65BF7-2F4F-3AA9-A52F-2CF655053AB7.dita"><apiname>clock_settime()</apiname></xref>. </p> </li> </ol> <codeblock id="GUID-3C3B7BFA-245C-54E1-A9B3-ACC1D35F3384" xml:space="preserve">#include &lt;time.h&gt;
+#include &lt;stdio.h&gt;
+#include&lt;errno.h&gt;
+#include&lt;string.h&gt;
+int main()
+    {
+    int Ret;
+    clockid_t ClockId; //Stores the clock id of the system clock
+    struct timespec CurrTime; //Stores the current time
+    memset(&amp;CurrTime, 0, sizeof (struct timespec)); 
+    
+    //Will return the supported clock id only for the pid_t of 0.
+    Ret = clock_getcpuclockid(0,&amp;ClockId);
+    if (Ret == 0)
+        {
+        //get the current time of ClockId.
+        if(clock_gettime(ClockId, &amp;CurrTime) == 0)
+            {
+            CurrTime.tv_sec+=60; //forward the time by one minute
+            //set the new time for ClockId.
+            Ret = clock_settime(ClockId, &amp;CurrTime);
+            if (Ret != 0)
+                {
+                printf("clock_settime () failed with %d\n", errno);
+                }
+               else
+                {
+                printf("clock_settime() passed\n");
+                }     
+            }
+        else
+            {
+            printf("clock_gettime() failed with %d\n", errno);
+            }
+        }
+    else
+        {
+        printf("clock_getcpuclockid () failed with %d\n", errno);
+        }
+    return Ret;
+    }</codeblock> <p>The output of the above program is: </p> <codeblock id="GUID-DEAFE1C0-9C12-5F02-8EB9-BF55438C3F71" xml:space="preserve">clock_settime() passed</codeblock> </conbody></concept>

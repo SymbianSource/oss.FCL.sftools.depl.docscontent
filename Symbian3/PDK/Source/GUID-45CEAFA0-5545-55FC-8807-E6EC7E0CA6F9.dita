@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-45CEAFA0-5545-55FC-8807-E6EC7E0CA6F9" xml:lang="en"><title>Managing
+Shutdown</title><shortdesc>This document explains how to handle and acknowledge shutdown notification
+and close the session. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>Before you start, you must know: </p> <ul>
+<li id="GUID-B7B23533-D737-52F4-853B-CF3751EA9433"><p>the APIs for components
+that must be system state aware. </p> </li>
+<li id="GUID-BD498155-27BD-5EDB-808E-D35B4570FBB9"><p>the shutdown state events
+such as Start-up, Normal, Shutdown and Fail. </p> </li>
+</ul> </prereq>
+<context><p>The <xref href="GUID-C7F9288F-75A5-3CD4-B5A5-9386D2763B82.dita"><apiname>AcknowledgeAndRequestStateNotification()</apiname></xref> acknowledges
+the request and registers the component for any state changes. The <xref href="GUID-C7F9288F-75A5-3CD4-B5A5-9386D2763B82.dita"><apiname>AcknowledgeAndRequestStateNotification()</apiname></xref> is
+called if the component needs another state change notification else <xref href="GUID-0ADDBE59-4C2B-3B22-82A9-8B1FD7988897.dita"><apiname>AcknowledgeStateNotification()</apiname></xref> is
+called. These functions are called only after the clean-up task is completed. </p> <p>Follow
+the steps given below to handle and acknowledge shutdown notification, and
+also to close the session:</p></context>
+<steps id="GUID-AF548DB5-F810-5635-8B72-DADC1E630144">
+<step id="GUID-A5A9610A-D67A-5166-B45A-0ACDE496C11E"><cmd/>
+<info>Handle and Acknowledge shutdown notification. </info>
+<substeps id="GUID-F1A6B778-E5F0-5138-B468-640C937206ED">
+<substep id="GUID-ED8932A0-9835-5540-A192-5FC34653A03E"><cmd/>
+<info>Acknowledge the request and register the component for any state changes
+as shown in the code snippet using <codeph>AcknowledgeAndRequestStateNotification()</codeph>. </info>
+<stepxmp><codeblock id="GUID-7BC23ED0-CAB7-5BB6-813E-5854FCEFC8CA" xml:space="preserve">iStateAwareSession.AcknowledgeAndRequestStateNotification( KErrNone, iStatus );</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-5E257F7F-8E98-5A28-953A-9D3FD382CE89"><cmd/>
+<info>Handle the acknowledge the state change and request notification for
+the next state change as shown in the code snippet using <codeph>AcknowledgeStateNotification()</codeph>  </info>
+<stepxmp><codeblock id="GUID-475C8603-94C2-5AD9-B8D8-E89B7AC23628" xml:space="preserve">iStateAwareSession.AcknowledgeStateNotification( KErrNone );</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+<step id="GUID-7FFFEBF2-34CD-52D6-831D-E9725AB15F19"><cmd/>
+<info>Close the session </info>
+<substeps id="GUID-7757B840-53FC-5F89-8FD4-D01457F60D45">
+<substep id="GUID-C5C2012A-DE1E-545B-A1D5-80635E53DF85"><cmd/>
+<info>Free the resources that were used during the <codeph>Connect()</codeph> as
+shown in the code snippet using the <codeph>Close()</codeph>. </info>
+<stepxmp><codeblock id="GUID-4AE72CE5-4E7E-550B-A310-50964D503CC5" xml:space="preserve">
+CExample::~CExample
+{
+    iStateAwareSession.Close();
+}
+</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+</steps>
+<result><p>The component is acknowledged for the shutdown notification and
+the session is closed. </p> </result>
+</taskbody><related-links>
+<link href="GUID-833BF27D-B288-506A-B545-E748C9FE7AEA.dita"><linktext>Making a
+Component Shutdown Aware</linktext></link>
+<link href="GUID-BBA7D3E2-1766-53CA-8D58-4F0B3BAA4873.dita"><linktext>Registering
+for Shutdown Notification</linktext></link>
+</related-links></task>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-67D02FE2-3FF6-5FAD-8F74-A677FC397F25" xml:lang="en"><title>Guide
+to Large Files</title><shortdesc>The enhanced file server supports large files, greater than 2GB,
+by introducing 64-bit variants of existing functions. This maintains binary
+and source compatibility. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-B4ADB469-2CED-4589-96F2-E1D3A473F3F0"><title>Introduction</title><p>The file server client, file server
+and file systems have been modified to use 64-bit arguments and arithmetic.
+The overhead of these changes are small in relation to the number of calls
+per second for streaming read, write and recursive file access operations.
+These changes have no impact on performance. </p><p>The following components
+have been enhanced to support large file access: </p><ul>
+<li id="GUID-C669A1A3-D7FA-50F7-9668-E10D03A74C7B"><p>file server client API </p> </li>
+<li id="GUID-ABCBF8A2-B9DB-58CE-9A44-6C2640968223"><p>file server </p> </li>
+<li id="GUID-1D109EB4-5BF3-5E26-BA55-7E6574E648E3"><p>FAT32 file system. </p> </li>
+</ul></section>
+<section id="GUID-E8719A5F-ACD4-4FD3-B8F0-BD9A6DCFEC3D"><title>File server client API</title><p>The change to 64-bit file
+use is not automatic. Code must be modified to use 64-bit file support. Any
+code that is not modified will continue to operate in legacy 32-bit mode. </p><p>Applications
+that are not designed to handle large files may experience behavioural breaks.
+For example, unexpected return codes or values when an attempt is made to
+seek to the end of a large file using the 32-bit APIs, and code that sits
+in a loop counting bytes written may overflow if <codeph>TInt32</codeph> values
+are used. </p><p>These values have been changed to support 64-bit operations: </p><ul>
+<li id="GUID-61D742A0-A565-58EC-9094-3B63F1038EBD"><p>the <i>size</i> of a
+file </p> </li>
+<li id="GUID-873E3345-BADA-5933-B548-FFA31498221C"><p>the current <i>position</i> in
+a file </p> </li>
+<li id="GUID-9C6FA09C-33B4-5317-9B89-7783E8A1D52F"><p>the <i>length</i> for
+lock and unlock operations on a file. </p> </li>
+</ul> <p><b>RFile64</b> </p><p>The
+existing <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref> APIs have not been changed but extended
+so that legacy code can be easily altered. The class <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> has
+been added that enables the 64-bit APIs for use by new applications. </p> <p>The <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> class
+provides the following main functions: </p> <ul>
+<li id="GUID-153482C6-9BFD-59C2-88B0-9A1406ACC2DA"><p>Methods to create a
+new file handle: </p> <ul>
+<li id="GUID-D9063861-FC2F-53A6-9A92-1F90AF6C7D0A"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-C21D963A-3A25-3337-9C2C-2F38FC8B3978"><apiname>RFile64::Open()</apiname></xref>  </p> </li>
+<li id="GUID-A3ACE92F-0597-5D1D-9460-619810DA81FE"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-4CFB5583-14DC-3624-949E-4DC3371C87C3"><apiname>RFile64::Create()</apiname></xref>  </p> </li>
+<li id="GUID-CC766AF7-C92F-50FE-B8E4-2C38642833BB"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-8C0839D4-3A34-3A5D-987F-D1835A9E5D48"><apiname>RFile64::Replace()</apiname></xref>  </p> </li>
+<li id="GUID-D0782E41-A028-5A27-BCA1-C2A47818F865"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-FBF7B5A8-F674-3864-90D8-F611957E3594"><apiname>RFile64::Temp()</apiname></xref>  </p> </li>
+<li id="GUID-8446EA24-F3FA-57C3-8270-2316E43384B3"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-FB9777D6-047E-3063-B107-AB3C9C85DA29"><apiname>RFile64::AdoptFromServer()</apiname></xref>  </p> </li>
+<li id="GUID-1C9B8CFC-164C-5F00-8DEA-78F943C2902C"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-F1F12145-DB88-3101-9A08-7F77B130FE03"><apiname>RFile64::AdoptFromClient()</apiname></xref> </p> </li>
+<li id="GUID-A7DF9C14-C178-53C2-924F-972BB9386920"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-0AD3ACA4-8453-3A8D-A77F-3102B7B93936"><apiname>RFile64::AdoptFromCreator()</apiname></xref> </p> </li>
+</ul> </li>
+<li id="GUID-9C7CA734-7D80-5889-9660-F0447C38CD8A"><p>Set of 64-Bit <codeph>Read()</codeph> and <codeph>Write()</codeph> APIs: </p> <ul>
+<li id="GUID-39306BF8-834D-52C2-8976-AE765D9CF1B8"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-69D2F421-3391-3D39-88E8-49D106047065"><apiname>RFile64::Read()</apiname></xref>  </p> </li>
+<li id="GUID-87EFAF4A-AE3B-5114-B5EC-88655E16C5E7"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-D8D2D145-5703-3415-9738-34924C80B6A1"><apiname>RFile64::Write()</apiname></xref>  </p> </li>
+</ul> </li>
+<li id="GUID-C5BFC289-B33A-5216-973A-BEB95F5E0E86"><p>64-Bit versions of versions
+of: </p> <ul>
+<li id="GUID-AC1E1BEE-36A5-5FDA-B4E9-DE55255E3BCD"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-01ACE541-916F-3811-A596-E25F1EF1C409"><apiname>RFile::Size()</apiname></xref>  </p> </li>
+<li id="GUID-C4601CA8-CA7B-5BE8-944F-7806F30124E1"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-8592B60E-70E7-37D6-AFD2-4D2A1A87C886"><apiname>RFile::SetSize()</apiname></xref>  </p> </li>
+<li id="GUID-898FBD04-B302-53AF-9A36-F02CB3D19215"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref>  </p> </li>
+<li id="GUID-EE9376DE-DF4C-5935-B9BD-5B684A7C283E"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-4B12909C-0BC6-3FFE-8825-FA98312F74C2"><apiname>RFile::Lock()</apiname></xref>  </p> </li>
+<li id="GUID-30B8A5E7-792D-52A2-8CB6-932C4031C23A"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-125FDD99-A448-33CA-A9BB-8BF8593EB445"><apiname>RFile::Unlock()</apiname></xref>. </p> </li>
+</ul> </li>
+</ul><p>A mechanism has been provided that assists the porting of code from
+32-bit to 64-bit APIs. To assist migration, use the <xref href="GUID-F06E7AFA-F635-3DE5-9FA6-5593A25A8DBE.dita"><apiname>_F32_STRICT_64_BIT_MIGRATION</apiname></xref> macro
+to force compiler errors if <codeph>TInt</codeph> or<codeph>TUint</codeph> variables
+are used. <note>This does not guarantee that all areas of code will be highlighted.
+For example, a function can operate on a large file using 32-bit APIs, which
+can only be guaranteed to be detected by close code inspection. </note></p><p>The
+legacy 32-bit versions of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref> and <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-01ACE541-916F-3811-A596-E25F1EF1C409"><apiname>RFile::Size()</apiname></xref> are
+privately overloaded so that any software that migrates from <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref> to <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> without
+updating their code to use the <codeph>TInt64</codeph> versions of these APIs
+will encounter build errors. This guarantees that 64-bit aware clients will
+use the correct APIs. </p> <p><b>Compatibility</b></p><p>A file opened by a 32-bit client can also be opened by a client with
+64-bit awareness, and as a result the size of this file can grow beyond the
+2GB-1 boundary if the 64-bit client increases the size of the file. This can
+result in the client experiencing situations where an error (<codeph>KErrTooBig</codeph>,
+or a negative file size) is returned by calls to <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-01ACE541-916F-3811-A596-E25F1EF1C409"><apiname>RFile::Size()</apiname></xref> or
+to <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref>. </p> <p>The 32-bit function <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-94CCC141-8E26-3FA3-A222-D9A658AEA8A9"><apiname>RFile::Read()</apiname></xref> returns <codeph>KErrTooBig</codeph> when
+attempting to read from a position greater than 2GB–1. This did not occur
+before the File Server was enhanced as a large file could not be opened. </p> </section>
+<section id="GUID-DB207810-B599-4DBC-8760-02FED87DB4DC"><title>File server</title><p>The file server has been modified to
+handle 64-bit parameters from the user to the file system. Currently, the
+arguments representing file size, position and length for <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-4B12909C-0BC6-3FFE-8825-FA98312F74C2"><apiname>RFile::Lock()</apiname></xref> and <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-9083CCAD-F9ED-36FB-9C80-79D2F1B46B77"><apiname>RFile::UnLock()</apiname></xref> are
+stored in a <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> object and are sent to the server
+using <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-479FE087-DD9F-31D7-98F7-9F96535F0584"><apiname>RSessionBase::SendReceive()</apiname></xref> as a file server request. </p><p>As
+these parameters do not require more than 32-bits, they are packaged as <codeph>TInt</codeph> values
+in a <codeph>TIpcArgs</codeph> slot. When <codeph>Lock()</codeph> and <codeph>UnLock()</codeph> require
+64-bit values for position, size and length, these values are packaged using
+a package descriptor that is stored in the <codeph>TIpcArgs</codeph> instead
+of the value itself. </p><p>On the file server side the following changes
+have been implemented:<ul>
+<li id="GUID-DFE1E1A6-E46F-5246-8C04-02E14A411B36"><p>The server now handles
+64-bit wide <keyword>IPC</keyword> parameters from the client library, only
+when the value is greater than 32 bits. </p> </li>
+<li id="GUID-5AF36E4B-D085-5842-949E-AB2FA132A0BB"><p>File server side classes
+have been modified to use 64-bit file sizes. This includes changes to operations
+that enable file sharing, cache, file lock &amp; asynchronous requests, position
+and lock/unlock section lengths. </p> </li>
+<li id="GUID-F95C5CA0-876E-5B6C-8E47-B1A35B4C3A6E"><p>Calls to the file system's
+32-bit functions from within the file server have been replaced with calls
+to 64-bit variants. </p> </li>
+</ul></p><p>See <xref href="GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727.dita">Interfacing
+File Systems to the 64-bit File Server</xref>. </p> <p><b>IPC</b></p><p>64-Bit APIs require an additional IPC data transfer between
+file server &amp; client when accessing file data beyond 4GB-1. This IPC overhead
+is expected to impose some degradation in performance when using cached I/O,
+particularly when issuing requests for small quantities of data (compared
+to the equivalent operations below the 4GB boundary and legacy APIs where
+no additional IPC is required). </p></section>
+<section id="GUID-BAFC691E-56EB-46A5-89FA-D10CB7E971A4"><title>FAT32 file system</title><p>The standard FAT32 file system
+only supports file sizes up to 4GB-1. The current <xref href="GUID-D3C0AFFC-EE30-32ED-89A2-71023EB28A4D.dita#GUID-D3C0AFFC-EE30-32ED-89A2-71023EB28A4D/GUID-1585DE93-228D-3BAF-8016-7364B4F983BE"><apiname>CFatFileCB::MExtendedFileInterface</apiname></xref> restricts
+operations to sizes less than 2GB-1. The FAT32 file system has been modified
+to support files of sizes up to 4GB–1. </p><p>The <xref href="GUID-D3C0AFFC-EE30-32ED-89A2-71023EB28A4D.dita#GUID-D3C0AFFC-EE30-32ED-89A2-71023EB28A4D/GUID-1585DE93-228D-3BAF-8016-7364B4F983BE"><apiname>CFatFileCB::MExtendedFileInterface</apiname></xref> implementation
+has been altered to allow operations up to 4GB–1. All <codeph>signed int</codeph> and <codeph>TInt</codeph> types
+are now treated as <codeph>unsigned int</codeph> and <codeph>TUint</codeph> to
+support large file access. </p><p>The <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-18B9D722-1EAB-38E4-9027-4CED524E8A9B"><apiname>CMountCB::MFileExtendedInterface</apiname></xref> class
+has been introduced along with the <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655"><apiname>CFileCB::MExtendedFileInterface</apiname></xref> class
+to support reading large files from RFs, as described in the tutorials <xref href="GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727.dita#GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727/GUID-43DF580B-45D3-501B-A014-5CDF0B0B3FE2">Using
+the CMountCB function ReadSectionL()</xref> and <xref href="GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727.dita#GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727/GUID-BF5DB004-7BBC-5960-8726-1CAF98CE2790">Using
+the CFileCB functions ReadL(), WriteL() and SetSizeL()</xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-B69FE02E-3A78-5438-BA7C-F7BB4CD3EB76.dita"><linktext>File Server
+Client Side Overview</linktext></link>
+<link href="GUID-F0D5C8DB-3AD0-53F1-8301-C0F69A4F13C1.dita"><linktext>More about
+the File Server</linktext></link>
+</related-links></concept>

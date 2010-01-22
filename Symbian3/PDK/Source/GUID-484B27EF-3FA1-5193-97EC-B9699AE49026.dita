@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-484B27EF-3FA1-5193-97EC-B9699AE49026" xml:lang="en"><title>System
+Health Manager Concepts</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section explains the policies involved in a process monitoring. </p>
+<section id="GUID-30C01801-01F4-5C20-9CA0-910498D47982"><title>Relaunch policy</title> <p>Once
+a monitored process has failed, SHMA attempts to re-launch the process. If
+all re-launch attempts fail, then SHMA either ignores the failure of the process,
+or restarts the device (for a critical component). </p> <p>If a monitored
+component is successfully relaunched, and then subsequently fails, the next
+re-launch attempt will only occur after at least <xref href="GUID-38CFBD6A-15CD-343D-8165-836AB53B29E2.dita"><apiname>KWaitTime</apiname></xref> seconds
+has elapsed (since the last re-launch attempt). This mechanism is referred
+to a ‘re-launch throttling’ </p> <p>SHMA provides a method to control process
+restart which involves specifying the ‘rate of failure’ (i.e., restart) of
+a monitored process. If the process's failure rate exceeds the value that
+is set for the component, no new restart attempts is performed on the component.
+The individual restart count decrements (if restart count is greater than
+zero) at regular intervals (defined by <xref href="GUID-38CFBD6A-15CD-343D-8165-836AB53B29E2.dita"><apiname>KWaitTime</apiname></xref> patchable
+constant). At a restart attempt, if the count exceeds the specified limit,
+the process is not restarted and the Retry Failure policy is enacted. </p> </section>
+<section id="GUID-6A9855C6-0D0E-5D4F-9042-5BA34F3E002C"><title>Retry failure
+policy</title> <p>The purpose of the SHMA is to restart processes which fail
+unexpectedly. Retry failure policy specifies the action to be taken by the
+System Health Manager if a process fails to restart within the specified limit
+(set in the patchable constant <xref href="GUID-38CFBD6A-15CD-343D-8165-836AB53B29E2.dita"><apiname>KWaitTime</apiname></xref>). </p> <p>Following
+are the possible courses of action: </p> <ul>
+<li id="GUID-0E5D9FC9-198D-54B4-8283-A14C6872D77E"><p>ignore the failure </p> </li>
+<li id="GUID-F25405A0-0553-5497-8D89-DB197710B742"><p>restart the OS </p> </li>
+<li id="GUID-58F72AFF-8637-5223-8730-FAA9C302FD04"><p>restart the OS in a
+different start-up mode (for example, normal mode, textual mode) </p> </li>
+</ul> <p>Retry failure policy for each monitoring request must be specified
+by the client. The client requires certain capabilities to request each course
+of action. </p> <p> <b>NOTE</b>: System Health Manager may be requested to
+restart the OS when a critical process fails without attempting to restart
+the failed process. </p> </section>
+<section><title>Capabilities required </title> <p>When requesting monitoring,
+a client requires the following capabilities: </p> <table id="GUID-38587108-0309-5868-9CCC-3C8ABD536E5C">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>Retry Failure Policy</entry>
+<entry>Description</entry>
+<entry>Capability Required</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>ESsmIgnoreOnFailure</codeph>  </p> </entry>
+<entry><p>Failure to restart is ignored, no action is taken. </p> </entry>
+<entry><p>None (for self monitoring) </p> <p> <codeph>ProtServ</codeph> (for
+monitoring another process) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ESsmRestartOS</codeph>  </p> </entry>
+<entry><p>System is restarted in normal mode. </p> </entry>
+<entry><p> <codeph>ProtServ</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ESsmRestartOSWithMode</codeph>  </p> </entry>
+<entry><p>System is restarted in a specific start-up mode based on a value
+set in the ROM. </p> </entry>
+<entry><p> <codeph>ProtServ</codeph> and <codeph>PowerMgmt</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ESsmCriticalNoRetries</codeph>  </p> </entry>
+<entry><p>System is restarted (with no attempts to restart the component being
+attempted). </p> </entry>
+<entry><p> <codeph>ProtServ</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>See also</title> <ul>
+<li><p><xref href="GUID-8BC13552-7C7D-52AC-AF91-1BB7476912AF.dita">System Health
+Manager Overview</xref></p></li>
+<li><p><xref href="GUID-723F8716-1FDD-57B4-B685-672D3A755592.dita">Requesting and
+canceling monitoring for a process</xref></p></li>
+</ul></section>
+</conbody></concept>

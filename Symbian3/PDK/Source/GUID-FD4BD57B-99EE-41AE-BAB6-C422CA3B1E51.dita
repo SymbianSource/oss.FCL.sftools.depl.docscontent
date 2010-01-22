@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FD4BD57B-99EE-41AE-BAB6-C422CA3B1E51" xml:lang="en"><title>Enabling
+MTP over USB using the Symbian USB Manager</title><shortdesc>This section describes the steps to enable MTP over USB using the
+Symbian USB Manager.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>The USB Manager provides functions to enable MTP over USB.</p> 
+   </context>
+<steps id="GUID-12E76F69-4DA0-4F58-8B02-68180F2576ED">
+<step id="GUID-B66CE19F-A6A0-46BD-AE1F-D93B773858D6"><cmd>In the user application which requests USB services, create a USB
+Manager session by using the RUsb::Connect() function.</cmd>
+<info><p/></info>
+</step>
+<step id="GUID-6B178935-1C5F-496F-8EF2-10CCE25C1C61"><cmd>Call the function RUsb::TryStart() and pass the personality ID
+of the USB Still Image Class to the method. For more information about Personality
+ID, see <xref href="GUID-92976123-FA75-5B55-B86E-F7B404E762CF.dita">Discovering
+details of USB personalities</xref></cmd>
+</step>
+<step id="GUID-B013CA86-3A98-445E-AC7A-D6DA31DD73B0"><cmd>The USB Manager automatically loads the USB Still Image Class Controller
+which is a client of the MTP server. The Controller starts the MTP server
+and asks it to load the USB MTP Transport plug-in.</cmd>
+</step>
+</steps>
+<example><codeblock xml:space="preserve">RUsb usb;
+TInt err = usb.Connect();
+if( err != KErrNone)
+   {
+    // Error in connecting with the USB Manager
+   }
+
+// Find the personality that supports MTP USB SIC 
+TInt personalityId(KErrNotFound);
+RArray&lt;TInt&gt; personalityIds;
+
+err = usb.GetPersonalityIds(personalityIds);
+if ( err != KErrNone)
+   {
+   // Error handling
+   }
+        
+TInt count = personalityIds.Count();    
+for (TInt i(0); i &lt; count; i++)
+   {
+   TBool supported(EFalse);
+   err = usb.ClassSupported(personalityIds[i], KUsbMTPUsbSicClassControllerUID, supported);
+   if (err != KErrNone)
+      {
+      // Error handling
+      }
+
+   if (supported)
+      {
+      personalityId = personalityIds[i];    
+      break;
+      }
+   }
+personalityIds.Close();
+
+if (personalityId != KErrNotFound)
+   {
+   TRequestStatus status ;
+   usb.TryStart(personalityId, status);
+   User::WaitForRequest(status);
+   if(status.Int() != KErrNone)
+      {
+       // Error in trying to start the MTP service
+      }
+    }
+...
+
+usb.Close();
+</codeblock></example>
+</taskbody></task>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A7ECF51F-F96A-5251-A71F-2F269C8C0664" xml:lang="en"><title>Accessor
+Functions for Derived Attributes</title><shortdesc>Explains how to add accessor functions for derived attributes.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You can change HAL to add accessor functions for new derived attributes.
+This step is not often done, because all normal accessor functions are already
+defined in <filepath>...\hal\src\userhal.cpp</filepath>. </p>
+<p>Each derived attribute is declared with an associated function name in <xref href="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F.dita#GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F/GUID-8648B87A-B712-5458-850A-FDF318669FE3">Config
+file</xref>. A function with that name must be provided, and it must have
+the following signature, which is also defined by the <xref href="GUID-0885487F-1482-3BD4-9EA8-9E9643125A0A.dita"><apiname>THalImplementation</apiname></xref> typedef: </p>
+<codeblock id="GUID-53946166-A153-57E1-8FAB-BB3870B0B829" xml:space="preserve">TInt Function(TInt aAttrib, TBool aSet, TAny* aInOut);</codeblock>
+<p>This function is called whenever any client of the HAL references the associated
+attribute. </p>
+<table id="GUID-2672A463-7AB1-504E-9D0C-2AA29757178A">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>aAttrib</codeph>  </p> </entry>
+<entry><p>Contains the attribute number. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>aSet</codeph>  </p> </entry>
+<entry><p>Defines whether the attribute is being set or being read: <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> means
+that the attribute value is being set; <xref href="GUID-A759CA2D-8327-348F-9337-4886E619D920.dita"><apiname>EFalse</apiname></xref> means that
+the attribute value is being read. </p> <p>Note that if the attribute, as
+defined in the <filepath>config.hcf</filepath> file, does not have the settable
+property, then <codeph>aSet</codeph> is ignored . </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>aInOut</codeph>  </p> </entry>
+<entry><p>A pointer to a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> type, that contains: </p> <ul>
+<li id="GUID-B7598EEB-4B73-5E51-8F92-EC527FCED605"><p>the attribute value
+to be set, if <codeph>aSet</codeph> is <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref>  </p> </li>
+<li id="GUID-BEA21EED-2D95-5169-B09C-DD6CC7CE4507"><p>the attribute value
+to be read, if <codeph>aSet</codeph> is <xref href="GUID-A759CA2D-8327-348F-9337-4886E619D920.dita"><apiname>EFalse</apiname></xref>. </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>Once the config file has been written, the Perl script <filepath>...\hal\group\halcfg.pl</filepath> can
+be used to generate a skeleton implementation file. For example, calling </p>
+<p><userinput>perl \hal\group\halcfg.pl -s \hal\inc\hal_data.h config.hcf
+imp.cpp</userinput> </p>
+<p>produces the file <filepath>imp.cpp</filepath> containing the following
+skeleton code for <i>each</i> derived attribute: </p>
+<codeblock id="GUID-EAA857F6-61FB-5FAE-815E-9B3601CF182C" xml:space="preserve">// EAttributeName
+TInt Function(TInt /*aAttrib*/, TBool /*aSet*/, TAny* aInOut)
+    {
+    return KErrNone;
+    }
+</codeblock>
+<p>The full implementation for the function can now be written. </p>
+<p>Notes: </p>
+<ul>
+<li id="GUID-25545667-6870-5AAF-9271-D7402E9F777E"><p>The <codeph>aAttrib</codeph> parameter
+is always marked as a comment because it is not usually needed; it is only
+needed if the same function is used to implement more than one attribute. </p> </li>
+<li id="GUID-8DE7C359-AA59-5158-82BD-2184D874168C"><p>The <codeph>aSet</codeph> parameter
+is marked as a comment if the attribute does not have the <i>settable</i> property. </p> </li>
+<li id="GUID-27CE60FA-8104-511C-9FC2-3D4557D92BBC"><p>On some platforms it
+may be necessary to access some HAL attributes via a device driver or server,
+rather than using <codeph>UserSvr::HalFunction()</codeph> . In this case,
+a handle to the device driver or server must be opened on the first access.
+Use the <codeph>HalInternal::Tls()</codeph> function to do this. </p> </li>
+<li id="GUID-72462FB8-F607-56D8-9F0B-FD9980FDCEBD"><p>Access to any HAL attribute
+requiring the use of a server or device driver can fail due to lack of memory. </p> </li>
+</ul>
+<p>Thee code fragments in the <xref href="GUID-A7ECF51F-F96A-5251-A71F-2F269C8C0664.dita#GUID-A7ECF51F-F96A-5251-A71F-2F269C8C0664/GUID-61707920-B82E-5580-8821-4FD1DC3BE77A">example
+accessor functions</xref> show the cases where the HAL has an attribute that
+requires a device driver and another attribute that requires a server. </p>
+<p>See also <xref href="GUID-F8B8C030-B5E1-5EB3-A672-83BF35555801.dita">halcfg.pl
+Syntax</xref>. </p>
+<section id="GUID-61707920-B82E-5580-8821-4FD1DC3BE77A"><title>Example accessor
+functions for derived attributes using a device driver and a server</title> <p>This
+code fragment shows the implementation of accessor functions for two HAL derived
+attributes. One uses a device driver, and the other uses a server to provide
+the necessary functionality. </p> <p>The examples assume that the attributes
+are defined in the <filepath>config.hcf</filepath> file with function names <codeph>Attrib1</codeph> and <codeph>Attrib2</codeph>. </p> <p><b>Using a device driver</b> </p> <codeblock id="GUID-810DF0E3-4AE7-5FFC-8434-A845513BCC65" xml:space="preserve">TInt Attrib1(TInt /*aAttrib*/, TBool aSet, TAny* aInOut)
+    {
+       // Do something with the device driver
+       RHwDevice d;
+       TInt r=GetDeviceDriverHandle(d);
+       if (r==KErrNone)
+        {
+        if (aSet)
+            {
+            r=d.Write((TInt)aInOut);
+            }
+        else
+            {
+            r=d.Read(*(TInt*)aInOut);
+            }
+         }
+    return r;
+    }</codeblock> <codeblock id="GUID-88E9FA83-D669-5073-B92A-48A22BFEC4B2" xml:space="preserve">TInt GetDeviceDriverHandle(RHwDevice&amp; aDevice)
+    {
+    // Return the device driver handle for this thread
+    // If it doesn't exist, attempt to open a handle
+    // Careful with OOM errors
+
+    SHandles* pH=GetHandles();
+    if (!pH)
+        {
+        return KErrNoMemory;    // couldn't allocate TLS memory
+        }
+    if (pH-&gt;iDevHandle)
+        {
+        // device driver handle already open
+        aDevice.SetHandle(pH-&gt;iDevHandle);
+        return KErrNone;
+        }
+
+    // note: Someone should have previously loaded the required
+    // device driver.  Eg.
+    // User::LoadLogicalDevice(_L("HARDWARE.LDD"));
+    // This can be done here, but it is inefficient since it will
+    // happen once per thread.  It's much better to do it once
+    // at Hal start-up.
+
+    TInt r=aDevice.Open();    // open handle to driver
+    if (r==KErrNone)
+        {
+           pH-&gt;iDevHandle=aDevice.Handle();    // store handle
+        }
+    return r;
+    }</codeblock> <codeblock id="GUID-264AF5EC-A4F3-5BA7-AC47-576C338D81F2" xml:space="preserve">struct SHandles
+    {
+    TInt iDevHandle;
+    TInt iSvrHandle;
+    };
+</codeblock> <codeblock id="GUID-7F5DC241-B4B1-501F-A7B6-0B864676A4A2" xml:space="preserve">SHandles* GetHandles()
+    {
+    // Return a pointer to the SHandles structure for this thread
+    // If it doesn't exist, attempt to create it
+
+    // This function zeros a newly allocated memory block
+    return (SHandles*)HalInternal::Tls(sizeof(SHandles));
+    }
+</codeblock> <p><b>Using
+a server</b> </p> <codeblock id="GUID-E0CB12CC-2F83-5AB6-B1F3-B494AD7346CB" xml:space="preserve">TInt Attrib2(TInt /*aAttrib*/, TBool aSet, TAny* aInOut)
+    {
+    // Do something with the server
+    RHwServer s;
+    TInt r=GetServerHandle(s);
+    if (r==KErrNone)
+        {
+        if (aSet)
+            {
+            r=s.Write((TInt)aInOut);
+            }
+            else
+            {
+            r=s.Read(*(TInt*)aInOut);
+            }
+        }
+    return r;
+    }</codeblock> <codeblock id="GUID-C74F36A5-78CA-52A6-A8E9-6BEAAC7B9257" xml:space="preserve">TInt GetServerHandle(RHwServer&amp; aServer)
+    {
+    // Return the server handle for this thread
+    // If it doesn't exist, attempt to open a handle
+    // Careful with OOM errors
+
+    SHandles* pH=GetHandles();
+    if (!pH)
+        {
+        return KErrNoMemory;    // couldn't allocate TLS memory
+        }
+    if (pH-&gt;iSvrHandle)
+        {
+        // server handle already open
+           aServer.SetHandle(pH-&gt;iSvrHandle);
+           return KErrNone;
+        }
+    TInt r=aServer.Connect();    // create session with server
+    if (r==KErrNone)
+        {
+        pH-&gt;iSvrHandle=aServer.Handle();    // store handle
+        }
+    return r;
+    }</codeblock> <codeblock id="GUID-9527E73D-FAFA-519A-80F1-FD10E5AF3D40" xml:space="preserve">struct SHandles
+    {
+    TInt iDevHandle;
+    TInt iSvrHandle;
+    };
+</codeblock> <codeblock id="GUID-6C88ED9C-E8D1-5901-BE00-F52130F3509C" xml:space="preserve">SHandles* GetHandles()
+    {
+    // Return a pointer to the SHandles structure for this thread
+    // If it doesn't exist, attempt to create it
+
+    // This function zeros a newly allocated memory block
+    return (SHandles*)HalInternal::Tls(sizeof(SHandles));
+    }
+</codeblock> </section>
+</conbody></concept>

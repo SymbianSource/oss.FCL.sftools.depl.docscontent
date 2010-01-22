@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B015C4A3-469E-5AC4-B9B9-A24AF7444E65" xml:lang="en"><title>SendAs
+Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section describes the overview and functions provided by the SendAs
+component. </p>
+<section><title>Purpose</title> <p>The SendAs component provides a high-level
+APIs for client applications that wish to include a <b>SendAs</b> menu to
+allow users to send content through any of the supported message types. It
+acts as a wrapper that allows access to the common functionality of email,
+SMS, and OBEX components. </p> <p>For example, SendAs allows a word processor
+document to be sent as an email, or a contact as a vCard (either attached
+to an email or as an SMS). </p> </section>
+<section><title>Key terms</title> <dl>
+<dlentry>
+<dt>SendAs Server</dt>
+<dd><p>The server that maintains and controls access to all the SendAs entries. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Message Type Module (MTM)</dt>
+<dd><p>A group of components that together provide message handling functionality
+for a particular protocol. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Architecture</title> <p>The main client-side API is the <xref href="GUID-E1699CAB-423D-3AFA-BE77-3AFF38886EA3.dita"><apiname>RSendAs</apiname></xref> class.
+Client applications use this to connect to the SendAs Server. </p> <p>Client
+applications create messages using the <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita"><apiname>RSendAsMessage</apiname></xref> API.
+Opening an <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita"><apiname>RSendAsMessage</apiname></xref> object on SendAs Server session
+creates a SendAs message in the SendAs Server. This allows client applications
+to create multiple messages concurrently. </p> <p> <b>Important:</b> There
+is no exposure to Message Server APIs on the client-side. The SendAs Server
+encapsulates the Message Server completely. </p> <fig id="GUID-4B2E7B20-8C11-5E21-ABA1-AA01129A32DC">
+<title>              SendAs architecture            </title>
+<image href="GUID-27EC3C5B-175C-5D27-874C-43D46AA44C08_d0e479046_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-24801AA6-6CDE-584F-A233-F7B68C1C59E3"><title>SendAs Server</title> <p>The <xref href="GUID-BA7B9BA6-B840-5182-90B0-A4914592A40D.dita">SendAs Server</xref> maintains
+all SendAs entries and controls the access to a Message Store. It allows client
+applications to create messages in the Drafts folder of a Message Store. The
+SendAs APIs also allow a client application to launch an appropriate message
+editor for a given message type. They support two methods of sending messages:
+confirmed or unconfirmed send. A confirmed send requires a confirmation by
+the UI MTM; typically it queries the phone user. An unconfirmed send does
+not require confirmation by the UI MTM. </p> <p>The following are the key
+functions of SendAs Server : </p> <ul>
+<li id="GUID-8235CD94-6D3E-5728-850D-4153386263F6"><p>Get a list of the names
+of the MTMs that have the required capabilities. </p> </li>
+<li id="GUID-946F453E-BAEA-5035-AA6D-2B4AE7C2BCB0"><p>Get a list of the services
+that can be used with the chosen MTM. </p> </li>
+<li id="GUID-A1E21B0F-AAA7-57B3-850D-BB52CEDD74C4"><p>Create a message, define
+the body and attachments for that message, without forcing the client application
+to start any message-specific user interface. </p> </li>
+<li id="GUID-FE2A9EC0-4442-5294-A4FC-F8D2036353C1"><p>Store the message so
+that it is ready for sending from the device next time it is connected to
+the appropriate service. </p> </li>
+<li id="GUID-0E735F08-EAA7-5FBF-A50A-F1FDEB8347AA"><p>Send the message. </p> </li>
+<li id="GUID-7D0587B2-CCD8-54FE-B3D3-F8D74334B292"><p>Start the editor for
+the message type. </p> </li>
+<li id="GUID-F638D1BC-E4D1-5FF7-9142-95EA38E55CBD"><p>Allow client applications
+to query the message type. </p> </li>
+</ul> </section>
+<section><title>API summary</title> <p>The following are the two main SendAs
+Server classes: </p> <ul>
+<li id="GUID-7C72A929-BE6C-557F-A1BB-5923F97573AE"><p>The <xref href="GUID-E1699CAB-423D-3AFA-BE77-3AFF38886EA3.dita"><apiname>RSendAs</apiname></xref> class
+is the main interface to the SendAs Server. </p> </li>
+<li id="GUID-52BF638C-7C93-5F44-A0DB-4EB7651EF837"><p>The <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita"><apiname>RSendAsMessage</apiname></xref> class
+encapsulates creating and sending a message. It requires a connected <xref href="GUID-E1699CAB-423D-3AFA-BE77-3AFF38886EA3.dita"><apiname>RSendAs</apiname></xref> session. </p> </li>
+</ul> </section>
+<section><title>Typical use cases</title> <p>The <xref href="GUID-E1699CAB-423D-3AFA-BE77-3AFF38886EA3.dita"><apiname>RSendAs</apiname></xref> class
+is used for the following tasks: </p> <ul>
+<li id="GUID-0A747A06-DF16-53D2-9B36-A5C0CC9BB538"><p>Connecting to and disconnecting
+from the SendAs Server </p> </li>
+<li id="GUID-D5969E75-99AC-5ED1-A05A-719E60782FC3"><p>Querying the message
+type registry </p> </li>
+</ul> <p>The <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita"><apiname>RSendAsMessage</apiname></xref> class is used for the following
+tasks: </p> <ul>
+<li id="GUID-E9F965AB-9B58-5EF0-950D-5AA56FE38927"><p>Creating and managing
+a SendAs message </p> </li>
+<li id="GUID-E343398A-7261-5D21-BADF-96D676A41F81"><p>Launching a message
+editor for the created SendAs message </p> </li>
+<li id="GUID-15195205-3175-5597-9CF0-E70B50F674DD"><p>Modifying a SendAs message </p> </li>
+<li id="GUID-9EED6F4B-83F8-524F-896A-808725A0A729"><p>Sending a SendAs message </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-BA7B9BA6-B840-5182-90B0-A4914592A40D.dita"><linktext>SendAs Server</linktext>
+</link>
+<link href="GUID-382B8A9D-9D10-54CD-91A6-B9E7A2477662.dita"><linktext>SendAs Example
+Code</linktext></link>
+</related-links></concept>

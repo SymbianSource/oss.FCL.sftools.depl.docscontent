@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7B114A67-356A-5FCE-B57B-761F5477A2B2" xml:lang="en"><title>Using
+the Configchange.pl script</title><shortdesc> The <codeph>configchange.pl</codeph> script generates the emulator's
+ethernet configuration files.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>These files tell Symbian platform the addresses of your ethernet card.
+The script can also be used to create the comms database settings. </p>
+<p> Before using the emulator, you should run this script. You should run
+it again if you change your PC's ethernet hardware or network configuration. </p>
+<p> Use the script as follows: </p>
+<ol id="GUID-9825030A-8BFE-56CA-A819-405EA9E63EE9">
+<li id="GUID-CD0BAEE5-5923-5AD2-A2E9-4D153622DE72"><p> Ensure that the <codeph>configchange.pl</codeph> and <filepath>netcards.exe</filepath> files
+are in your <filepath>epoc32\tools\</filepath> directory. Start a command
+prompt and <codeph>cd</codeph> to that directory. If the <codeph>EPOCROOT</codeph> environment
+variable is not set, then set it to the path of the directory containing the <filepath>epoc32</filepath> directory.</p> </li>
+<li id="GUID-9C0D679D-A5B2-585D-A12E-21473174CDAC"><p>  <b>Run the configchange.pl
+script</b>  </p> <p> It has the following format: </p> <p><userinput>perl
+configchange.pl --config &lt;ethernetNoCommDB, ethernetWithCommDB or restoreCommDB&gt;
+--kernel EKA2 --target &lt;wins or winscw&gt; --variant &lt;UDEB or UREL&gt;</userinput> </p> <p><note> If
+your machine has multiple network interfaces, <filepath>netcards.exe</filepath> prompts
+you to select an appropriate network interface from the list.</note> </p> <dl>
+<dlentry>
+<dt>--config &lt;ethernetNoCommDB, ethernetWithCommDB or restoreCommDB&gt;</dt>
+<dd><ul>
+<li id="GUID-56FD8E6F-D23D-528A-B5CB-FFA0BCBAB318"><p>  <filepath>ethernetNoCommDB</filepath> sets
+up the ethernet configuration files. If you are <xref href="GUID-88E89E94-7C9E-5583-827C-84FADD50F97E.dita">Modifying
+your current configuration for ethernet</xref> then use <filepath>ethernetNoCommDB</filepath>. </p> </li>
+<li id="GUID-F22498CC-BBC6-5A46-B8F0-FFAF818F16E7"><p>  <filepath>ethernetWithCommDB</filepath> sets
+up both the ethernet configuration files and also the comms database. If you
+are following <xref href="GUID-3C6935E1-66C9-5115-901E-D3B1D0C2E783.dita">Quick
+ethernet configuration</xref> use <filepath>ethernetWithCommDB</filepath>.
+Make sure you have already edited the <filepath>ethernetCed.xml</filepath> file.
+Your current comms database will be backed up before being replaced by the
+new configuration. </p> </li>
+<li id="GUID-DFE2391A-4AA0-54F6-9A1F-8B584A0D494F"><p>  <filepath>restoreCommDB</filepath> restores
+the original comms database after it is replaced by <filepath>ethernetWithCommDB</filepath>. </p> </li>
+</ul> </dd>
+</dlentry>
+<dlentry>
+<dt>--kernel EKA2</dt>
+<dd><p> This is the Symbian platform kernel that you are using. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>--target &lt;wins or winscw&gt;</dt>
+<dd><p> Use <filepath>winscw</filepath> if you are developing with Code Warrior,
+otherwise use <filepath>wins</filepath>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>--variant &lt;UDEB or UREL&gt;</dt>
+<dd><p> Use <filepath>UREL</filepath> if you are developing with the release
+version of Symbian platform, otherwise use <filepath>UDEB</filepath> to develop
+with the debug version. </p> </dd>
+</dlentry>
+</dl> </li>
+<li id="GUID-C7CAD72A-4562-58EA-8F9D-46C3E5EE938A"><p>  <b>Check the result</b>  </p> <p>Settings
+similar to those below should be present in your <filepath>epoc.ini</filepath> file,
+normally located in <filepath>\epoc32\data</filepath>: </p> <codeblock id="GUID-141FED00-358E-56A3-A9F7-4E6876D6D6CB" xml:space="preserve">ETHER_NIF=\Device\NPF_{8A2D1EEF-A264-49CF-A681-6BFFB7608F48}
+ETHER_MAC=0202a5b856c9
+ETHER_SPEED=10Mbps</codeblock> </li>
+<li id="GUID-4CD96A62-C672-5625-8582-52B07478823F"><p>  <b>Modify the MAC
+address</b>  </p> <p> In order for the emulator to function unobtrusively
+and share the ethernet NIC (Network Interface Card) with the host PC unhindered,
+the emulator requires a separate and unique ethernet hardware address. This
+is more commonly known as a <i>MAC Address</i>. </p> <p>  <codeph>configchange.pl</codeph> chooses
+a MAC address for Symbian platform based on the MAC address of your PC. It
+is stored in the ethernet configuration files; see <b>checking the result</b> above.
+This MAC address will work on many networks but not all. If you have problems
+connecting the emulator then the choice of MAC address may be to blame: </p> <ul>
+<li id="GUID-A1C1B078-E639-5E54-AB1E-07FE0E131FF6"><p> Some networks will
+block NICs with unfamiliar MAC addresses. Your network administrator will
+know if this is the case. They must either configure the network to accept <codeph>configchange.pl</codeph>'s
+choice of MAC address, or give you a MAC address that the network already
+accepts. In the latter case, replace the one chosen by <codeph>configchange.pl</codeph> by
+editing the files in <b>checking the result</b> above. </p> </li>
+<li id="GUID-27910D71-7D86-5B8C-AF28-0DCF1970585C"><p>  <codeph>configchange.pl</codeph> generates
+a MAC address based on your PC's MAC address. It changes the first byte of
+the PC's address from 0 to 2. As an example, if your PC's address is <systemoutput>00095B59009B</systemoutput> then
+the emulator's address will be <systemoutput>02095B59009B</systemoutput>.
+This changes the scope of the MAC address from ‘<i>global</i> ’ to ‘<i>local</i> ’. </p> <p> Some
+NICs do not support a locally-scoped MAC address, and you will need an unused
+address from elsewhere. You could use the address of a Bluetooth device that
+you are not currently using, or you network administrator may be able to supply
+you with an address. </p> </li>
+</ul> </li>
+</ol>
+</conbody></concept>

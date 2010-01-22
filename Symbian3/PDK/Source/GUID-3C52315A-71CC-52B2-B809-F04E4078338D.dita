@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-3C52315A-71CC-52B2-B809-F04E4078338D"><title>Reporting on Several Features Dynamically Using RFeatureControl </title><shortdesc>How to query a feature set using <apiname>RFeatureControl</apiname> dynamically. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context id="GUID-D435755B-4860-5047-B0F3-5D297A00561B"><p>To query whether the features in a featuer set are supported using <xref href="GUID-F6AAAC24-4A62-383A-86C6-2E46335C3FD4.dita"><apiname>RFeatureControl</apiname></xref> dynamically, take the following steps. </p> </context> <steps id="GUID-7C657DAE-251F-5B36-A47F-E91C5E2016DC"><step id="GUID-5DC0C6B1-7947-5C46-95C6-50BFFD28AD21"><cmd/><info>Create an instance of <xref href="GUID-F6AAAC24-4A62-383A-86C6-2E46335C3FD4.dita"><apiname>RFeatureControl</apiname></xref>, </info> <stepxmp><codeblock id="GUID-32FFB8CF-CF3D-527F-B825-C2776F298A38" xml:space="preserve">
+// replace &lt;featureUID&gt; with a real Uid ) 
+#include &lt;featurecontrol.h&gt;
+#include &lt;featureinfo.h&gt; // for feature definitions
+CMyClass::MyMethodL()
+     {
+     // Replace KFeatureUidx with real feature Uid.
+     // Open() must be called before calling any other methods. 
+     // Disconnect is done by calling the Close() method.
+     RFeatureControl featureControl;</codeblock> </stepxmp> </step> <step id="GUID-3263EBF0-1E89-5330-9055-B720252337E4"><cmd/><info>call its <xref href="GUID-20D0D10F-3401-3F72-8AF6-DC35F6025DC2.dita"><apiname>Open()</apiname></xref> function, </info> <stepxmp><codeblock id="GUID-5AFF3F7B-CA95-5A8D-982A-E76D7981F9D0" xml:space="preserve">
+     TInt err = featureControl.Open();
+</codeblock> </stepxmp> </step> <step id="GUID-2000A9B6-B7F0-5769-B6CD-3F4CB969BBCE"><cmd/><info>determine the features you want a report on, </info> </step> <step id="GUID-BF013910-45D9-5449-ADD3-BF088848548B"><cmd/><info>create an instance of <xref href="GUID-144E257F-A162-3680-B1C5-C28BEAA902BC.dita"><apiname>RFeatureArray</apiname></xref> (an array of <xref href="GUID-80C51259-F2C4-3877-97B4-EC0C85DE93DE.dita"><apiname>TFeatureEntry</apiname></xref> objects), </info> <stepxmp><codeblock id="GUID-06FC0606-3075-53FE-95EF-0429285F7538" xml:space="preserve">
+     if ( err == KErrNone )
+         {
+         // Query multiple features statuses (single IPC-call, so less overhead)
+          RFeatureArray Uids;
+          CleanupClosePushL(Uids);
+</codeblock> </stepxmp> </step> <step id="GUID-547B9DBD-1BF5-5398-8494-7CE919EF752B"><cmd/><info>append the Uid of each feature entry to the array, </info> <stepxmp><codeblock id="GUID-8F20BBE0-437E-5DE5-835B-DDAC0F52ABCD" xml:space="preserve">
+          Uids.AppendL( KFeatureUid1 );
+          Uids.AppendL( KFeatureUid2 );
+</codeblock> </stepxmp> </step> <step id="GUID-DC02D882-B5C9-54EB-AC32-F2E7E2128326"><cmd/><info>call the <xref href="GUID-EA75A8A3-9862-3AAE-AC00-FCBEBA42BE34.dita"><apiname>FeaturesSupported()</apiname></xref> function of the <xref href="GUID-F6AAAC24-4A62-383A-86C6-2E46335C3FD4.dita"><apiname>RFeatureControl</apiname></xref> object with a reference to the feature array as argument, and </info> <stepxmp><codeblock id="GUID-8F6E8297-A7A5-5C38-968C-805F752E3A3F" xml:space="preserve">
+         TInt err = control.FeaturesSupported( Uids );
+</codeblock> </stepxmp> </step> <step id="GUID-116FCD6C-6EC5-5C21-85B4-7769F0118AFA"><cmd/><info>call the <xref href="GUID-01D2AF56-21E1-3FF3-BF86-0C356A1658EF.dita"><apiname>Close()</apiname></xref> function of the <xref href="GUID-F6AAAC24-4A62-383A-86C6-2E46335C3FD4.dita"><apiname>RFeatureControl</apiname></xref> object. </info> <stepxmp><codeblock id="GUID-BAD42B37-536F-5040-BE9C-1667AEBF2D73" xml:space="preserve">
+         // Remember to call CloseL after using RFeatureControl.
+         // It disconnects the Feature Manager server.
+         featureControl.Close();  
+         }
+</codeblock> </stepxmp> </step> </steps> <result id="GUID-001EF8C7-AE81-5BD7-8356-3D52A7D6A83E"><p> <xref href="GUID-8394EE7A-ECC4-3E11-85A4-F39FDA25C1E4.dita"><apiname> FeatureSupported()</apiname></xref> returns: </p> <ul><li id="GUID-5195C77F-51C7-52C9-8420-71CB75F052C7"><p> <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> if the status of each feature was fetched successfully, </p> </li> <li id="GUID-281FB3E7-6CF2-514C-97DA-8B11D92F7F16"><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref> if the array was empty, and </p> </li> <li id="GUID-7D974A65-12D4-570E-8A3C-9357E5674A18"><p>otherwise returns an error code. </p> </li> </ul> <p>If any of the feature entries in the array does not exist, the call to <xref href="GUID-8394EE7A-ECC4-3E11-85A4-F39FDA25C1E4.dita"><apiname>FeatureSupported()</apiname></xref> removes the feature entry Uid from the list. To discover whether a feature entry exists, call the <xref href="GUID-3D9FBB4B-907F-33BC-9C90-5A896FBEE290.dita"><apiname>Find()</apiname></xref> function of <xref href="GUID-144E257F-A162-3680-B1C5-C28BEAA902BC.dita"><apiname>RFeatureArray</apiname></xref> with the Uid of the entry as argument. To discover whether a feature which exists is also enabled, query its <xref href="GUID-E1F92B88-BB5D-302E-BA3D-30EA3105673F.dita"><apiname>EFeatureEnabled</apiname></xref> status bit. </p> </result> </taskbody><related-links><link href="GUID-BE841768-0F22-5B9D-B783-B02C74E89AFB.dita"><linktext>Reporting
+                Feature Data for a Single Feature Dynamically Using RFeatureControl</linktext> </link> <link href="GUID-981C138C-1CF1-5D77-BEB5-81163AC71E44.dita"><linktext>Reporting on all Features on a
+                Device Dynamically Using RFeatureControl</linktext> </link> <link href="GUID-B71AC5E3-8AA8-55AD-916F-9E873926011B.dita"><linktext>Feature Manager Collection Overview</linktext> </link> <link href="GUID-F2489DE2-18E2-5C5B-A174-49B5B7A64A7C.dita"><linktext>Feature Manager ReportingTutorials</linktext> </link> </related-links></task>

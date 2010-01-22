@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-07D2ED79-90B2-4ABC-A61F-108DAEE21955" xml:lang="en"><title>Implementing
+framework requirements</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<fig id="GUID-9F184193-87DA-40F1-B946-BE7D101626DA"><title>Application menu</title><image href="GUID-98AC61E5-57C9-445E-98CB-79C6642CB041_d0e63518_href.png"/></fig>
+<p>In the Symbian platform, mobile device users start applications from
+the application menu. When the mobile device user selects an application,
+the application framework calls the application's entry point to launch the
+application. In some cases, applications can also be started by other executables.</p>
+<fig id="GUID-5A76CBEA-8AF3-4F68-B2FB-9F402D748DF3"><title>Application launch</title><image href="GUID-370F4A51-EC67-4B6C-B14A-5C640A58688B_d0e63526_href.png"/></fig>
+<p>When an application starts, objects are created in the following order:</p>
+<ol>
+<li id="GUID-BC07E865-8B42-4654-90F9-4644B202EDBC"><p>application
+(<xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknApplication.html" format="application/java-archive"><parmname>CAknApplication</parmname></xref>)</p></li>
+<li id="GUID-0B6D8737-8FC7-486B-B3ED-6F91CFA69670"><p>document (<xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknDocument.html" format="application/java-archive"><parmname>CAknDocument</parmname></xref>)</p>
+</li>
+<li id="GUID-FAAD10CF-2F0F-4589-B2B8-A2A8A3696CA5"><p>UI controller
+(<xref href="GUID-B5DE1C86-2B16-4B22-887F-7079E54A8ED6.dita"><parmname>CAknAppUI</parmname></xref> or <xref href="GUID-68B999C2-0993-4804-9624-42C3D88BE5C7.dita"><parmname>CAknAppViewUI</parmname></xref> depending
+upon your approach)</p></li>
+<li id="GUID-ED56D892-18C4-447C-A7AB-811E1D90C2DA"><p>in <xref href="GUID-68B999C2-0993-4804-9624-42C3D88BE5C7.dita">Symbian
+view applications</xref> , view controller (<xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html" format="application/java-archive"><parmname>CAknView</parmname></xref>)</p>
+</li>
+<li id="GUID-5BFF07E4-6575-4B23-9FA5-824DB057A55C"><p>view (<xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>)</p></li>
+</ol>
+<section id="GUID-B8AA011F-23EB-4BA5-9FA6-1382D37E13A9"><title>Entry point</title>
+<p>The two methods that you need to implement for the entry point are as
+follows:</p>
+<ul>
+<li><p>an entry point for the application, with the following syntax:</p>
+<itemgroup>
+<codeblock id="GUID-F09C226F-B1D6-4435-8983-7DD62D1BBD26" xml:space="preserve">GLDEF_C TInt E32Main()
+	{
+	return EikStart::RunApplication( NewApplication );
+	}</codeblock>
+<p>where:</p>
+<p><parmname>E32Main()</parmname> is the entry point method called by the
+application framework</p>
+<p><parmname>return EikStart::RunApplication(NewApplication )</parmname> calls <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/EikStartClass.html#%3a%3aEikStart%3a%3aRunApplication%28%29" format="application/java-archive"><parmname>EikStart::RunApplication</parmname></xref></p>
+</itemgroup>
+</li>
+<li><p>a non-leaving factory method that creates a new instance
+of the application class, or <parmname>NULL</parmname> if the class cannot
+be instantiated. The expected syntax is as follows:</p>
+<itemgroup>
+<codeblock id="GUID-D1F8BE18-84A5-4F32-9BC8-D5458455492A" xml:space="preserve">LOCAL_C CApaApplication* NewApplication()
+    {
+    return new CMyAppClass;
+    }</codeblock>
+<p>where:</p>
+<p><parmname>NewApplication()</parmname> is a method that returns a pointer
+to a <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Architecture/CApaApplicationClass.html" format="application/java-archive"><parmname>CApaApplication</parmname></xref> object.</p>
+<p><parmname>return new CMyAppClass</parmname> returns an instance of the
+application class as created by the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknApplication.html" format="application/java-archive"><parmname>CAknApplication</parmname></xref> derived
+class</p>
+<p>The application framework expects the factory method to have exactly
+this prototype. In other words, the factory function should be like the above
+code fragment.</p>
+</itemgroup>
+</li>
+</ul>
+</section>
+<section id="GUID-63C94373-F55D-4B58-9637-7BA0E1B14ACF"><title>CAknApplication</title>
+<p>You must implement at least the following two methods in your <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknApplication.html" format="application/java-archive"><parmname>CAknApplication</parmname></xref> derived
+class:</p>
+<ul>
+<li><p>a method that returns the application UID. The syntax is
+as follows:</p>
+<codeblock id="GUID-77921F31-5A36-4A6B-AD2C-E9364A50E0F6" xml:space="preserve">TUid CMyAppClass::AppDllUid() const
+    {
+    return KUidMyApp;
+    }</codeblock>
+<p>where:</p>
+<itemgroup>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Architecture/CApaApplicationClass.html#%3a%3aCApaApplication%3a%3aAppDllUid%28%29const" format="application/java-archive">CApaApplication::AppDllUid()</xref> is used to get the application
+UID</p>
+<p><parmname>KUidMyApp</parmname> is the UID for your application, which
+is typically declared in an application header file</p>
+</itemgroup>
+<p>The application framework calls the <parmname>AppDllUid()</parmname> method
+to get the application UID. The application framework checks to see if there
+is an instance of the application with the same UID already running. If so,
+then the application framework switches to the already existing application. </p>
+<note>
+<p>You must return the same UID that you declared for the UID3 in the <xref href="GUID-1F7E1476-D7A3-49E4-B05B-F3A0FD6333B6.dita"><parmname>mmp</parmname></xref> and <xref href="GUID-FE9017F4-4197-472F-A3E7-267169A51ABD.dita">registration</xref> files.</p>
+</note>
+</li>
+<li><p>a factory function for creating an object of the document
+class for your application. The expected syntax is as follows:</p>
+<codeblock id="GUID-C56EAA45-A671-47D6-8FE6-492B154813BF" xml:space="preserve">CApaDocument* CMyAppClass::CreateDocumentL()
+    {
+    return CMyAppDocument::NewL( *this );
+    }
+</codeblock>
+<p>where:</p>
+<itemgroup>
+<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Architecture/CApaApplicationClass.html#%3a%3aCApaApplication%3a%3aCreateDocumentL%28CApaProcess%20%2a%29" format="application/java-archive"><parmname>CEikApplication::CreateDocumentL</parmname></xref> is called
+by the application framework</p>
+<p> <parmname>return CMyAppDocument::NewL( *this )</parmname> returns an
+instance of the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknDocument.html" format="application/java-archive"><parmname>CAknDocument</parmname></xref> derived
+class of your application. It represents the data that relates to a particular
+instance of the application and owns the application <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita">UI
+controller</xref>.</p>
+</itemgroup>
+</li>
+</ul>
+<note>
+<p>The application framework owns the document object and is responsible
+for destroying it.</p>
+</note>
+</section>
+<section id="GUID-73A8D2EE-F22A-483D-A23A-5E46D709A718"><title>CAknDocument</title>
+<p>You must implement a <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknDocument.html" format="application/java-archive"><parmname>CAknDocument</parmname></xref> derived
+class for your application, even if you do not store data, as this is the
+class that owns the <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita">UI
+controller</xref> for your application. The expected syntax for creating the
+UI controller class is as follows:</p>
+<codeblock id="GUID-C016DB83-2B28-4DEC-8027-A9291E380191" xml:space="preserve">CEikAppUi* CMyAppDocument::CreateAppUiL()
+    {
+    return new ( ELeave ) CMyAppAppUi;
+    }</codeblock>
+<p>where:</p>
+<ul>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikDocumentClass.html#%3a%3aCEikDocument%3a%3aCreateAppUiL%28%29" format="application/java-archive"><parmname>CEikDocument::CreateAppUiL</parmname></xref> carries out the first phase construction of the UI controller</p>
+</li>
+<li><p><parmname>new ( ELeave ) CMyAppAppUi </parmname> is a method
+that creates an instance of the UI controller class of your application</p>
+</li>
+</ul>
+<p>The application framework owns the UI controller object of the application
+and is responsible for destroying it. There are two alternate classes from
+which you can derive your UI controller class, <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknAppUi.html" format="application/java-archive"><parmname>CAknAppUi</parmname></xref> or <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknViewAppUi.html" format="application/java-archive"><parmname>CAknViewAppUi</parmname></xref>.</p>
+<p>For more information on the UI controller options, see <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita">UI controller</xref></p>
+</section>
+</conbody></concept>

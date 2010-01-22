@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AC99E9ED-2C02-561A-ABA4-DCDD415E8653" xml:lang="en"><title>Math
+functions</title><shortdesc>Describes the maths functions used by application programs.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-965ABD80-2C30-43D1-8F40-7BF573301630"><title>Calling syntax</title> <p>Math functions are designed for
+use by application programs which must be able firstly to do the desired calculation
+and secondly to handle error conditions arising from the calculations. Thus,
+the ANSI-style functions of the form</p> <codeblock id="GUID-C277F9D8-5FDD-5460-B059-DF02E36B4948" xml:space="preserve">double sin(double); // typical declaration</codeblock> <codeblock id="GUID-8A9C44FE-7EDF-59DB-AFE0-B48148CBE0C8" xml:space="preserve">double x=1; // argument
+double a; // result
+a=sin(x); // typical use</codeblock> <p>are not implemented by the Symbian
+software platform. Rather, all functions return error information explicitly.</p> <p>All
+functions are provided as static member functions of the <codeph>Math</codeph> class.
+This is a convenient packaging mechanism. A typical math function is thus
+declared like this:</p> <codeblock id="GUID-C363CF23-CE56-59FA-A4EB-2DA2AD886C0D" xml:space="preserve">class Math
+    {
+public:
+    // ...
+    static TInt Sin(TReal &amp;aTrg,const TReal &amp;aSrc);
+    // ...
+    };</codeblock> <p>and used like this:</p> <codeblock id="GUID-EA13F019-D473-5757-B036-8461BD3B0143" xml:space="preserve">TReal x=1; // argument
+TReal a; // result
+TInt matherror; // error indication
+matherror=Math::ASin(a,x); // get result and error
+User::LeaveIfError(matherror); // handle error</codeblock> <p>This syntax
+is unusual for those used to the ANSI library. However, the ANSI library functions
+are designed for speed, and for users whose programs control the valid range
+of the arguments, and can thus reasonably ensure that they are within range.
+The <codeph>Math</codeph> class, however, provides direct support to expression
+interpreters acting on numbers entered by users. In this context, error checking
+is a vital part of the process.</p> <p>In most cases, the same variable may
+be used for both argument and result, i.e., <codeph>Math::Sin(x,x)</codeph> will
+work as expected, because the function has finished with the argument by the
+time the result is written to.</p> </section>
+<section id="GUID-8633E2E3-316D-40AE-9F88-77E6CF7FA041"><title>Precision</title> <p>The <codeph>TReal</codeph> type is equated
+to <codeph>double</codeph>. With an IEEE754 floating-point implementation,
+this gives a range from about 2.225074 × 10<sup>–</sup> <sup>308</sup> to
+about 1.797693 × 10<sup>+308</sup>, and an accuracy of 15 decimal places.</p> </section>
+<section id="GUID-2D26DDD3-FE18-4D0A-AC10-F445708750BB"><title>Error indications</title> <p>All functions return a standard
+error code. </p> </section>
+</conbody></concept>

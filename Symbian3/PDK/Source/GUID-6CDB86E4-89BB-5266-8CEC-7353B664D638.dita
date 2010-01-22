@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6CDB86E4-89BB-5266-8CEC-7353B664D638" xml:lang="en"><title>Importing
+Certificates</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Symbian certstore allows two types of certificates to be imported:
+root certificates and user certificates. </p>
+<p>Please note that certificates must be in DER format to be imported. Also,
+the absolute path to the certificate file must be given regardless of the
+current directory in the shell. For example, if you are in the directory c:\temp
+which contains mycert.der, to import the certificate you must issue the command: </p>
+<p><userinput>certtool –import c:\temp\mycert.der</userinput> </p>
+<p>A certificate always has a label associated with it. A label can be specified
+during the import operation with the –label option, if this option is not
+present, the full path to the certificate file is taken as label. Labels must
+be unique within a specific certstore implementation. If a label is not unique,
+an error occurs. For instance, if the certstore contains a certificate with
+label abc: </p>
+<p><userinput>certtool –list abc</userinput> </p>
+<codeblock id="GUID-685BAF1F-36A2-5725-B3A4-73EB1E916233" xml:space="preserve">Symbian OS CertStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Label: abc            Format: WTLS     Owner Type: Root (CA)
+Issuer Name: Limited Liability        Subject Name: Limited Liability
+Valid From: 15:13:18 Tue 29th Feb 2000 Valid Until: 15:43:18 Sat 29th Feb 2020
+Trusted for Applications: </codeblock>
+<p>If you try to import a certificate with the same label, an error occurs. </p>
+<codeblock id="GUID-066EACF2-C947-51B7-A6DB-CCEAD7679720" xml:space="preserve">c:\&gt;certtool –label abc –import c:\certstore\ent-wtls2.cer
+Symbian OS CertStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+The given label is invalid, or already present in the certstore.
+Label: abc            Format: WTLS     Owner Type: Root (CA)
+Issuer Name: Limited Liability        Subject Name: Limited Liability
+Valid From: 15:13:18 Tue 29th Feb 2000 Valid Until: 15:43:18 Sat 29th Feb 2020
+Trusted for Applications: </codeblock>
+<p>However, this happens because of the attempt made to insert the certificate
+in a certstore implementation where the same label already exists. Certstore
+implementation is not specified for use in a command. It is possible to insert
+the certificate with label abc in the certstore implementation with index
+1 (Index 0 is used by default). </p>
+<p><userinput>certtool –label abc –store 1 –import c:\certstore\ent-wtls2.cer</userinput> </p>
+<codeblock id="GUID-F16C6BA0-9408-50E1-B525-275F2C020B99" xml:space="preserve">Symbian OS CertStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Certificate imported successfully.
+Label: abc            Format: WTLS     Owner Type: Root (CA)
+Issuer Name: Limited Liability        Subject Name: Limited Liability
+Valid From: 15:13:18 Tue 29th Feb 2000 Valid Until: 15:43:18 Sat 29th Feb 2020
+Trusted for Applications: </codeblock>
+<p><b>Importing root certificates </b> </p>
+<p>Root certificates typically belong to a certificate authority (CA) and
+a number of them are present on a final product. Root certificates are used
+to verify the authenticity of signed content. Root certificates are self-signed,
+and often termed top-level certificates. </p>
+<p>All the examples in the previous sections referred to root certificates. </p>
+<p>A certificate is imported as a CA root certificate if and only if the corresponding
+private key cannot be found in the keystore. </p>
+<p><b>Importing user certificates </b> </p>
+<p>User certificates belong to the phone owner. Using user certificate, the
+phone owners can authenticate themselves. For example, during SSL/TLS, the
+owner can perform client authentication. To import a user certificate both
+the certificate and its corresponding private key must be stored in the Symbian
+keystore. </p>
+<p>If the private key corresponding to a given certificate is already present
+in the Symbian keystore, the certificate will be automatically imported as
+a user certificate. </p>
+<p>Assume that the private DSA key corresponding to the certificate stored
+in dsa_cert1.der is present in the Symbian keystore. The following command
+imports the certificate as a user certificate: </p>
+<p><userinput>certtool –label abc –import c:\certstore\data\dsa_cert1.der</userinput> </p>
+<codeblock id="GUID-8343DE09-42AE-597C-B0B5-66A29E85C1FE" xml:space="preserve">Symbian OS CertStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Certificate imported successfully.
+Label: abc            Format: X509     Owner Type: User
+Issuer Name: 10.32.193.163        Subject Name: Internet Widgits Pty Ltd
+Valid From: 16:06:43 Tue 02nd Jun 2009 Valid Until: 16:03:43 Sat 01st Aug 2009
+Trusted for Applications: </codeblock>
+<p>If the private key is not already present in the keystore, the same command
+imports the certificate as a CA certificate. </p>
+<p>Keytool can be used to include private keys in the Symbian keystore. Alternatively,
+if you only want to include a user certificate, point to a DER-encoded PKCS8
+file containing the key using the <codeph>-private</codeph> option. After
+importing the key, <codeph>certtool</codeph> will make the owner of the key
+as "WriteDeviceData", so that keytool will able to manipulate the key, performing
+actions such as <codeph>remove</codeph> or <codeph>setuser</codeph>. </p>
+<p>Assume the DSA private key corresponding to the certificate stored in <filepath>dsa_cert1.der</filepath> is
+not present in the keystore and that the required DSA private key is stored
+in pkcs8 DER-encoded format in the file <filepath>pkcs8dsa1.001</filepath>. </p>
+<p><userinput>certtool –label abc –private c:\certstore\data\pkcs8dsa1.001
+–import c:\certstore\data\dsa_cert1.der </userinput> </p>
+<codeblock id="GUID-801FA528-BC21-5807-9CB4-AC2E46B7D645" xml:space="preserve">Symbian OS CertStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+Certificate imported successfully.
+Label: abc            Format: X509     Owner Type: User
+Issuer Name: 10.32.193.163        Subject Name: Internet Widgits Pty Ltd
+Valid From: 16:06:43 Tue 02nd Jun 2009 Valid Until: 16:03:43 Wed 01st Jul 2009
+Trusted for Applications: </codeblock>
+<p>Note: Either <filepath>secdlg</filepath> or <filepath>tsecdlg</filepath> need
+to be in <filepath>\epoc32\release\winscw\udeb</filepath>. However, if both
+of them are present in the specified location, it will cause a panic. </p>
+<p>In addition, the corresponding DSA key is inserted in the keystore with
+the same label as the certificate. </p>
+<p><userinput>keytool –d –list abc</userinput> </p>
+<codeblock id="GUID-BBF41E07-B425-5D8E-9C66-D235B6030714" xml:space="preserve">Symbian OS KeyStore Manipulation Tool
+Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).  All rights reserved.
+    Algorithm: DSA    Size: 512 bits
+    Usage: PKCS15 Sign     Code: 0x4
+    User: No Users registered.
+    Access flags: Extractable
+    ID: c0 fa d9 …
+    Label: abc
+    Native: Yes
+    Start date: not set    End data: not set</codeblock>
+</conbody><related-links>
+<link href="GUID-88EC0D74-5595-5FA8-B7BA-B914CC8022FB.dita"><linktext>Listing Contents
+of Certificate Stores</linktext></link>
+<link href="GUID-F6C20181-0F03-5B8A-B548-C81FF8824503.dita"><linktext>Working with
+Multiple Certificate Store Implementations</linktext></link>
+<link href="GUID-DCC2060B-BFEC-5ECF-8154-5AE9C8513F75.dita"><linktext>Removing
+Certificates</linktext></link>
+<link href="GUID-B946BDF0-C5D8-57E2-9D05-7BE134AD032E.dita#GUID-B946BDF0-C5D8-57E2-9D05-7BE134AD032E/GUID-DD7D5D55-A2F1-54FB-AA38-B4A7C920B6A6">
+<linktext>Manipulating Applicability and Trust Settings for a Certificate</linktext>
+</link>
+</related-links></concept>

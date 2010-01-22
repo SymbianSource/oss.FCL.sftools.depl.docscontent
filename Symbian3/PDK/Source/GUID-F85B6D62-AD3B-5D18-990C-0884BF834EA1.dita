@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-F85B6D62-AD3B-5D18-990C-0884BF834EA1"><title>Phone Power Status Tutorial</title><shortdesc>This section describes how to retrieve the power status using multimode phone sub-sessions. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps-unordered> <step id="GUID-7E06F97A-E255-5F62-9A96-B024F0E11D5F"><cmd>Test if the power information can be obtained using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetBatteryCaps()</apiname></xref>. </cmd> <info>Power information capabilities are described in an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneBatteryCaps</apiname></xref>. </info> </step> <step id="GUID-CED8552A-A83D-5428-BFAE-970FC87E7AFD"><cmd>Get the power information using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetBatteryInfo()</apiname></xref>. </cmd> <info>Power status and charge level is returned in an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneBatteryInfoV1</apiname></xref> object. </info> </step> <step id="GUID-FB157958-4AA5-5910-ABBD-65B6895F75E9"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyBatteryInfoChange()</apiname></xref> to get the notification of any changes to the power information. </cmd> </step> </steps-unordered> <result><p>The function should return the battery power level status. </p> </result> <example><title>Power status example</title> <p>The following code checks if the power information can be obtained, and if so, gets the charge level in a percentage value of the battery, if the phone is currently being powered by batteries. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-6F62BDEB-25AC-5CF8-8222-A3618A6E681C" xml:space="preserve">TUint32 batteryCaps;
+User::LeaveIfError(iMobilePhone.GetBatteryCaps(batteryCaps));
+
+TInt charge = -1;
+if (batteryCaps &amp; RMobilePhone::KCapsGetBatteryInfo)
+    {
+    RMobilePhone::TMobilePhoneBatteryInfoV1 mobilePhoneBatteryInfo;
+    TRequestStatus status;
+    iMobilePhone.GetBatteryInfo(status, mobilePhoneBatteryInfo);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    if (mobilePhoneBatteryInfo.iStatus == RMobilePhone::EPoweredByBattery)
+        charge = mobilePhoneBatteryInfo.iChargeLevel;
+    }
+</codeblock> </example> </taskbody></task>

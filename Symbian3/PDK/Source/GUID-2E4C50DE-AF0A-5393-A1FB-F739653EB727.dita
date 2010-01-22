@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2E4C50DE-AF0A-5393-A1FB-F739653EB727" xml:lang="en"><title>Interfacing
+File Systems to the 64-bit File Server</title><shortdesc>Describes the changes to existing file system interface APIs. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-9F86B97F-2CBB-54DD-AF18-22B4A8C1AC48"><title>Introduction</title><p>64-bit
+versions of some functions have been added to the plugin framework to allow
+you to handle large files. Other functions have been modified that they may
+now handle larger files. Changes you may need to make to existing code are
+detailed here. </p> <p>This is a list of 32-bit functions that have been replaced
+with 64-bit equivalents to enable large files to be handled: </p><ul>
+<li id="GUID-EAFE1663-169F-58C9-BA7E-2CE8ED1AD79C"><p> <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E591EB49-0E32-3428-8318-AB34B7469E79"><apiname>CFileCB::Size()</apiname></xref>  </p> </li>
+<li id="GUID-D0232F4A-3CDC-5EA6-8664-304D39D42549"><p> <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-DA4988F5-651B-3CBA-BB7A-C435B985B53E"><apiname>CFileCB::SetSize(TInt
+aSize)</apiname></xref>  </p> </li>
+<li id="GUID-C1B2845F-E1F7-5264-AEFB-B962CEDAA6E6"><p> <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-64C7E8C3-44A1-30BC-95D5-B8A919DD4751"><apiname>CFileCB::ReadL(TInt
+aPos,TInt&amp; aLength,const TAny* aDes,const RMessagePtr2&amp; aMessage)</apiname></xref>  </p> </li>
+<li id="GUID-1989817D-F04E-5659-9F91-CA1782EE0362"><p> <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-0D0B98AC-709C-3512-8251-F6BB08E65098"><apiname>CFileCB::WriteL(TInt
+aPos,TInt&amp; aLength,const TAny* aDes,const RMessagePtr2&amp; aMessage)</apiname></xref>  </p> </li>
+<li id="GUID-82DA2B2C-2DAC-5627-A013-FE45BC38CC3D"><p> <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-494116CC-1BF8-3226-89BB-110DE6CA3279"><apiname>CFileCB::SetSizeL(TInt
+aSize)</apiname></xref>  </p> </li>
+<li id="GUID-2A02A7C7-F45D-52CE-BA5F-D1816D766127"><p> <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-A0CC2AA6-0887-32E5-A067-4A61092861DB"><apiname>CMountCB::ReadSectionL(const
+TDesC&amp; aName,TInt aPos,TAny* aTrg,TInt aLength,const RMessagePtr2&amp;
+aMessage)</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-71C79849-81B6-56EF-8983-615ADFFD229F"><title>Using the CFileCB
+functions Size() and SetSize()</title><p>New functions have been added to
+the class <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita"><apiname>CFileCB</apiname></xref> to allow the handling of 64-bit file
+sizes. File system plugins using the existing 32-bit functions to support
+large files should replace these with the 64-bit functions:<ul>
+<li id="GUID-B99707D7-7DC6-5434-9A66-B33BC6291A44"><p>use <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-C7D33970-B958-333E-B338-E99C6BE6CA64"><apiname>CFileCB::Sze64()</apiname></xref> instead
+of <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E591EB49-0E32-3428-8318-AB34B7469E79"><apiname>CFileCB::Size()</apiname></xref>  </p> </li>
+<li id="GUID-EAD06C55-4CCB-5974-B22B-7CBA66C4D353"><p>use <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-FC2D5C0E-105E-37F3-9F5F-E24183071A3B"><apiname>CFileCB::SetSize64(TInt64
+aSize, TBool aDriveLocked)</apiname></xref> instead of <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-DA4988F5-651B-3CBA-BB7A-C435B985B53E"><apiname>CFileCB::SetSize(TInt
+aSize)</apiname></xref>. </p> </li>
+<li id="GUID-803F0BB8-0A85-5296-9088-50EA3FBB2A73"><p>Replace 32-bit function
+calls by 64-bit function calls and change <codeph>TInt</codeph> variables
+to <codeph>TInt64</codeph>. <codeblock id="GUID-991F4BF5-984B-5799-8A1D-B89BFEA5C59C" xml:space="preserve">CFileCB file;
+TInt64    iSize;      
+...
+file-&gt;SetSize64(iSize, EFalse);</codeblock></p></li>
+</ul></p> <p> The 32-bit versions of these functions are used widely by the
+file server and the file system. Alter calls to the 32-bit versions of these
+functions to handle large files. </p> </section>
+<section id="GUID-BF5DB004-7BBC-5960-8726-1CAF98CE2790"><title>Using the CFileCB
+functions ReadL(), WriteL() and SetSizeL()</title><p>If you use the <codeph>ReadL()</codeph>, <codeph>WriteL()</codeph> and <codeph>SetSize()</codeph> functions, you must modify the implementation to replace them with their
+64-bit versions: </p><ul>
+<li id="GUID-119274EC-FDC6-54C1-8725-C3ACEB37ED67"><p> <xref href="GUID-463972E3-5932-3AC1-84F7-BE865ECE57C7.dita"><apiname>ReadL(TInt64
+aPos, TInt&amp; aLength, TDes8* aDes, const RMessagePtr2&amp; aMessage, TInt
+aOffset)</apiname></xref>  </p> </li>
+<li id="GUID-A73F8B1E-C7E2-5789-86BF-4AEDDDF1D175"><p> <xref href="GUID-7137C656-D259-3DF6-A9B8-78821DD26B3A.dita"><apiname>WriteL(TInt64
+aPos, TInt&amp; aLength, const TDesC8* aDes, const RMessagePtr2&amp; aMessage,
+TInt aOffset)</apiname></xref>  </p> </li>
+<li id="GUID-CEFC6B27-5ECE-5F2B-AEEC-2C2A02DEA54F"><p> <xref href="GUID-198B428B-06C2-3CC8-A692-9C8AB944FF6C.dita"><apiname>SetSizeL(TInt64
+aSize)</apiname></xref>  </p> </li>
+</ul>The file system plugin developer must implement the extended interface
+class <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655"><apiname>CFileCB::MExtendedFileInterface</apiname></xref> to perform 64-bit
+file accesses.<p>The file server retrieves the extended interface by calling <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-CBCFC605-C942-3D4E-8ABA-2EF454E5A44B"><apiname>CFileCB::GetInterface()</apiname></xref> with <codeph>EExtendedFileInterface</codeph> as an argument. Sub-classes of <codeph>CFileCB</codeph> that support large
+file access will need to inherit this class and implement the interface. </p> <ol id="GUID-CE9AD3AD-2CD6-5894-BFAA-BF247EC88625">
+<li id="GUID-36045756-CA8F-515D-9B98-76981D57BF8D"><p>Derive <codeph>CYourFileSystemFileCB</codeph> from
+the classes <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita"><apiname>CFileCB</apiname></xref> and <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655"><apiname>CFileCB::MExtendedFileInterface</apiname></xref>. </p> <p><codeblock id="GUID-81EFD4A3-46DF-5082-8DF8-9287A7D5BDCB" xml:space="preserve">class CYourFileSystemFileCB : public CFileCB,
+                              ...
+                              public CFileCB::MExtendedFileInterface
+    {
+public:
+    // Implement this function to return the CFileCB::MExtendedFileInterface 
+    // interface pointer to the file server.
+    
+    virtual TInt GetInterface(TInt aInterfaceId,
+                              TAny*&amp; aInterface,
+                              TAny* aInput);
+
+public:
+    // Implement the CFileCB::MExtendedFileInterface interface extension functions 
+    // for 64-bit Read, Write and SetSize.
+    virtual void ReadL(TInt64 aPos,
+                       TInt&amp; aLength,
+                       TDes8* aDes,
+                       const RMessagePtr2&amp; aMessage,
+                       TInt aOffset);
+    virtual void WriteL(TInt64 aPos,
+                        TInt&amp; aLength,
+                        const TDesC8* aDes,
+                        const RMessagePtr2&amp; aMessage,
+                        TInt aOffset);
+    virtual void SetSizeL(TInt64 aSize);
+    ...
+    }</codeblock> </p> </li>
+<li id="GUID-70154DA9-F20B-5434-BFDA-4CD132394EE1"><p>In the function <codeph>CYourFileSystemFileCB::GetInterface()</codeph>,
+return the pointer to a <codeph>CYourFileSystemFileCB</codeph> object through
+the <codeph>aInterface</codeph> output parameter when the input parameter <codeph>aInterfaceId</codeph> is <xref href="GUID-AC7AF411-725C-33C5-AE33-5F41701705B6.dita#GUID-AC7AF411-725C-33C5-AE33-5F41701705B6/GUID-2FC24879-6235-3063-BB4B-CB57E4465E6E"><apiname>CFileCB::TInterfaceId::EExtendedFileInterface</apiname></xref>. This enables the file server to invoke the 64-bit functions for file access. </p> <p><codeblock id="GUID-ED0A64F5-9EFF-5963-A884-8E5F44896C5E" xml:space="preserve">TInt CYourFileSystemFileCB::GetInterface(TInt aInterfaceId, 
+                                         TAny*&amp; aInterface,
+                                         TAny* aInput)
+    {
+    switch(aInterfaceId)
+        {
+        // For supporting large file ReadFileSection
+        case CFileCB::EExtendedFileInterface:
+            aInterface = (CFileCB::MExtendedFileInterface*) (this);
+            return KErrNone;
+        ...
+        default:
+            return(CFileCB::GetInterface(aInterfaceId, aInterface, aInput));
+        }
+    }</codeblock> </p> </li>
+<li id="GUID-68E292D2-8D32-59C4-879F-F092F18F1C89"><p>Implement the <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655"><apiname>CFileCB::MExtendedFileInterface</apiname></xref> functions <codeph>ReadL()</codeph>, <codeph>WriteL()</codeph> and <codeph>SetSizeL()</codeph> in <codeph>CYourFileSystemFileCB</codeph> class
+to provide the 64-bit file access functionality. </p> <p><codeblock id="GUID-5375842E-6856-5EEB-B164-4A005B7AD879" xml:space="preserve">void CYourFileSystemFileCB::ReadL(TInt64 aPos,
+                                TInt&amp; aLength,
+                                TDes8* aDes,
+                                const RMessagePtr2&amp; aMessage,
+                                TInt aOffset)
+    {
+    // 64-bit Read implementation.
+    ...
+    }
+
+void CYourFileSystemFileCB::WriteL(TInt64 aPos,
+                                 TInt&amp; aLength,
+                                 const TDesC8* aDes,
+                                 const RMessagePtr2&amp; aMessage,
+                                 TInt aOffset)
+    {
+    // 64-bit Write implementation.
+    ...
+    }
+
+void CYourFileSystemFileCB::SetSizeL(TInt64 aSize)
+    {
+    // 64-bit Set Size implementation.
+    ...
+    }</codeblock> </p> </li>
+</ol><note>  <p>The <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita#GUID-63DF657C-434D-353D-A536-8AF9D97C8260/GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655"><apiname>CFileCB::MExtendedFileInterface</apiname></xref>  also
+supports fair scheduling. Implementations of the functions <xref href="GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655.dita#GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655/GUID-A89B2E8F-4DEA-355E-9DCD-A4AACE016A10"><apiname>CFileCB::MExtendedFileInterface::ReadL()</apiname></xref> and <xref href="GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655.dita#GUID-E57D0ED6-C351-37F4-8E80-5A64144B6655/GUID-DE844202-026F-3BE3-90D5-2E426E1A0D7D"><apiname>CFileCB::MExtendedFileInterface::WriteL()</apiname></xref> should also support <xref href="GUID-5B24741C-7CE0-58E8-98C9-1D1CACCD476F.dita#GUID-5B24741C-7CE0-58E8-98C9-1D1CACCD476F/GUID-CBF527A2-EF30-5D4D-9BF4-631748315BE9">Fair
+scheduling</xref>.</p></note> </section>
+<section id="GUID-43DF580B-45D3-501B-A014-5CDF0B0B3FE2"><title>Using the CMountCB
+function ReadSectionL()</title><p>To enable large files access, calls to the
+32-bit <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-E5D9D0D9-2748-3F95-9E33-4127195A3FE6"><apiname>CMountCB::ReadSectionL()</apiname></xref> function should be replaced
+by calls to the 64-bit <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-B6078FAE-CC95-3DE0-B4C7-1B957CC650A2"><apiname>CMountCB::ReadSection64L()</apiname></xref> function. </p><codeblock xml:space="preserve">ReadSection64L(const TDesC&amp; aName, TInt64 aPos, TAny* aTrg, TInt aLength, const RMessagePtr2&amp; aMessage)</codeblock> <p>To enable 64-bit file access, you must implement the extended interface
+class <codeph>CMountCB::MFileExtendedInterface</codeph>. </p> <p>The file
+server retrieves the interface by calling <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-CABEF8F6-637C-3223-80C6-FBC8B7247030"><apiname>CMountCB::GetInterface()</apiname></xref> with <codeph>EFileExtendedInterface</codeph> as
+an argument. Sub-classes of <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita"><apiname>CMountCB</apiname></xref> that support large
+file accesses need to inherit this class and implement the interface. </p> <ol id="GUID-6298E69C-4275-5626-A3BE-799B780BD6EE">
+<li id="GUID-83E32E94-CDCF-5410-8915-B59618EC150D"><p>Derive <codeph>CYourFileSystemMountCB</codeph> from
+the classes <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita#GUID-FADDE053-CC1C-39BC-A52D-27093041BE20/GUID-75BD3B63-51EB-3FCB-A96F-DE65C73E3983"><apiname>CMountCB::MFileAccessor</apiname></xref> and <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita"><apiname>CMountCB</apiname></xref>. </p> <p><codeblock id="GUID-CB2471A8-2373-5C2C-949B-152A203E9639" xml:space="preserve">class CYourFileSystemMountCB : public CMountCB, public CMountCB::MFileAccessor
+    {
+    ...  
+
+public:
+    // Implement this function to return the CMountCB::MFileExtendedInterface
+    // interface pointer to file server.
+    virtual TInt GetInterface(TInt aInterfaceId,
+                              TAny*&amp; aInterface,
+                              TAny* aInput);
+    ...
+
+public:
+    // The CMountCB::MFileExtendedInterface interface extension function 
+    // for 64-bit read file section implementation
+    virtual void ReadSection64L(const TDesC&amp; aName, 
+                                      TInt64 aPos, 
+                                      TAny* aTrg, 
+                                      TInt aLength,
+                                      const RMessagePtr2&amp; aMessage);
+    ...
+    }</codeblock> </p> </li>
+<li id="GUID-A560B3AF-296F-5B8F-943C-FDB3ED1C8C8F"><p>When your implementation
+of <codeph>GetInterface()</codeph> is passed <xref href="GUID-8B0D74A4-37CC-3ED5-851A-C677161EC0C1.dita#GUID-8B0D74A4-37CC-3ED5-851A-C677161EC0C1/GUID-DD96F07B-9F44-39AF-B217-8FB7DECC932E"><apiname>TInterfaceIds::EFileAccessor</apiname></xref> through
+the <codeph>aInterfaceId</codeph> parameter, return a pointer to the <codeph>CYourFileSystemMountCB</codeph> object
+through the <codeph>aInterface</codeph> output parameter. </p> <p><codeblock id="GUID-AB4D1F74-73C3-5C54-8CF5-42C5471AA657" xml:space="preserve">TInt CYourFileSystemMountCB::GetInterface(TInt aInterfaceId, TAny*&amp; aInterface, TAny* aInput)
+    {
+    switch(aInterfaceId)
+        {
+        case (CMountCB::EFileAccessor):
+            ((CMountCB::MFileAccessor*&amp;) aInterface) = this;
+            return KErrNone;
+        ...
+        default:
+            return(CMountCB::GetInterface(aInterfaceId, aInterface, aInput));
+        }
+    }</codeblock> </p> </li>
+<li id="GUID-F4D62E80-382F-5D25-9A11-6D6AB2044EBD"><p>Implement <codeph>CYourFileSystemMountCB::ReadSection64L()</codeph> to
+perform a 64-bit read from a file. </p> <p><codeblock id="GUID-79DED59B-B1E9-58BC-8394-974D0DA16DE7" xml:space="preserve">void CYourFileSystemMountCB::ReadSection64L(const TDesC&amp; aName,
+                                                  TInt64 aPos,
+                                                  TAny* aTrg,
+                                                  TInt aLength,
+                                                  const RMessagePtr2&amp; aMessage)
+    {
+    // 64-bit Read File Section implementation.
+    ...
+    }</codeblock> </p> </li>
+</ol> </section>
+</conbody></concept>

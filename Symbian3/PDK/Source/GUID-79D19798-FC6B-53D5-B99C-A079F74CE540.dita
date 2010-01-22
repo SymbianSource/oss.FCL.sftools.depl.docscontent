@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-79D19798-FC6B-53D5-B99C-A079F74CE540" xml:lang="en"><title> Call
+Barring Settings Tutorial</title><shortdesc>This tutorial describes how to get and set the call barring settings
+in a Symbian OS device. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<context><p>The Call Barring supplementary service of the GSM prevents the
+subscriber
+from making or receiving certain types of call. CDMA does not have this service,
+though phone manufacturers can prevent certain call types by using internal
+settings. 
+</p></context>
+<steps-unordered>
+<step id="GUID-0F44B07D-9B51-5386-8B7A-A2280BF50538"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CRetrieveMobilePhoneCBList</apiname></xref> to
+get a list in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CMobilePhoneCBList</apiname></xref> object
+of call barring entries for one or more call barring conditions. </cmd>
+<info>For example the condition can be barring of incoming calls. Conditions
+are enumerated in <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCBCondition</apiname></xref>. </info>
+<info>A list is required as there can be different barring situations for
+different service groups such as voice, fax, data and auxiliary voice. Each
+entry in the list is a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCBInfoEntryV1</apiname></xref> object,
+recording the condition, service group, and the status. </info>
+</step>
+<step id="GUID-C389E8CE-2DDD-57BB-B9F9-80DBB34441B4"><cmd>Set the status of
+the call barring services using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetCallBarringStatus()</apiname></xref>. </cmd>
+<info>The change is described in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCBChangeV1</apiname></xref> object. </info>
+</step>
+<step id="GUID-71B99CD0-CA3A-50C6-A1F4-5D7E89C9BAD1"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCallBarringStatusChange()</apiname></xref> to get the notification of any chages to the status of a call barring service. </cmd>
+</step>
+<step id="GUID-B23F54F5-CF85-57BD-835A-660191FBF473"><cmd>Change the password
+associated with the call barring service using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetCallBarringPassword()</apiname></xref>. </cmd>
+<info>Old and new passwords are provided in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhonePasswordChangeV1</apiname></xref> object. </info>
+</step>
+</steps-unordered>
+<example><title>Call barring example</title> <p>The following code gets the
+list of call barring entries for outgoing international calls, and prints
+each service group for which call barring is active. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is
+an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-2688D7A3-FD8A-559D-8990-448CA8C252AD" xml:space="preserve">void CClientApp::CallBarringL()
+    {
+    // Create and start CB retriever for outgoing international calls
+    CRetrieveMobilePhoneCBList* retrieveCBList = CRetrieveMobilePhoneCBList::NewL(iMobilePhone);
+
+    CleanupStack::PushL(retrieveCBList);
+
+    TRequestStatus status;
+
+    retrieveCBList-&gt;Start(status, RMobilePhone::EBarOutgoingInternational);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    // Get the list of call barring entries
+    CMobilePhoneCBList* cbList = retrieveCBList-&gt;RetrieveListL();
+    CleanupStack::PushL(cbList);
+
+    // Print each service group for which CB active
+    TInt nEntries = cbList-&gt;Enumerate();
+    RMobilePhone::TMobilePhoneCBInfoEntryV1 cbEntry;
+
+    TText* aServiceGroupNameStings[]={_S("Unspecified"), _S("Voice"), _S("Auxiliary Voice"),
+        _S("CSD"),_S("Packet"),_S("Fax"),_S("SMS"),_S("All")};
+    TPtr aServiceGroupName(NULL,20);
+
+    for (TInt i=0; i&lt;=nEntries; i++)
+        {        
+         cbEntry = cbList-&gt;GetEntryL(i);
+         if (cbEntry.iStatus == RMobilePhone::ECallBarringStatusActive)
+            {
+             aServiceGroupName = aServiceGroupNameStings[cbEntry.iServiceGroup];
+             console-&gt;Printf(_L("Outgoing international barring set for %S\n"), aServiceGroupName);
+            }
+        }
+
+    // Clean up
+    CleanupStack::PopAndDestroy(2); // cbList, retrieveCBList    
+
+    }</codeblock> </example>
+</taskbody></task>

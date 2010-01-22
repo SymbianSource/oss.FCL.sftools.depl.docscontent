@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D0F6E95B-B35A-4EA1-8CC3-D86D1E0E6DD3" xml:lang="en"><title>Creating
+stylus pop-up menu</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Construct the menu using the method <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknStylusPopUpMenu.html#9dda70f72d42d0877cbbf9ca299649af" format="application/java-archive"><codeph>NewL()</codeph></xref>in the class <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknStylusPopUpMenu.html" format="application/java-archive"><codeph>CAknStylusPopUpMenu</codeph></xref>.</p>
+<note> <p>The last parameter in the constructor is a pointer to the preview
+pop-up from which the stylus pop-up menu is launched. If you are not constructing
+a pop-up menu for a preview pop-up, set the parameter as <codeph>NULL</codeph>.</p></note>
+<p>To construct the menu from a resource, use the method <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknStylusPopUpMenu.html#75cd95c35a6ed4734b93713596bb51d5" format="application/java-archive"><codeph>CAknStylusPopUpMenu::ConstructFromResourceL()</codeph></xref>.</p>
+<p>The following example illustrates a stylus pop-up menu opened in the location
+(not a preview pop-up) where the user taps with the stylus as well as the
+resource that defines the menu items:</p>
+<note><p>The menu is constructed only once: when <codeph>HandlePointerEventL</codeph> runs
+for the first time. Later the already constructed menu is shown again.</p></note>
+<codeblock xml:space="preserve">void CMyAppView::HandlePointerEventL
+    ( const TPointerEvent&amp; aPointerEvent )
+    {
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
+        {
+        if ( !iMenu )
+            {
+            iMenu = CAknStylusPopUpMenu::NewL( 
+                    iMenuObserver, 
+                    aPointerEvent.iParentPosition, 
+                    NULL );
+            TInt resourceReaderId = 0;
+            resourceReaderId = R_MYAPP_STYLUS_MENU;
+            TResourceReader reader;
+            iCoeEnv-&gt;CreateResourceReaderLC( 
+                    reader, resourceReaderId );
+            iMenu-&gt;ConstructFromResourceL( reader );
+            CleanupStack::PopAndDestroy(); // reader
+            }
+        iMenu-&gt;SetPosition( aPointerEvent.iParentPosition );
+        iMenu-&gt;ShowMenu();
+        }
+    // Forward event to base class too.
+    CCoeControl::HandlePointerEventL( aPointerEvent );
+    }
+
+RESOURCE STYLUS_POPUP_MENU r_myapp_stylus_menu
+    {
+    items =
+        {
+        STYLUS_POPUP_MENU_ITEM 
+            {
+            txt = "Stylus Popup Menu Item 1"; 
+            command = EMyAppMenuItemCmd1;
+            },
+        STYLUS_POPUP_MENU_ITEM 
+            {
+            txt = "Stylus Popup Menu Item 2"; 
+            command = EMyAppMenuItemCmd2; 
+            },
+        STYLUS_POPUP_MENU_ITEM 
+            { 
+            txt = "Stylus Popup Menu Item 3"; 
+            command = EMyAppMenuItemCmd3; 
+            }
+        };
+    }
+</codeblock>
+</conbody></concept>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-D74EFE44-A99C-5851-AE48-C1542B7F89EA" xml:lang="en"><title>Managing RGB Color of Light Targets</title><shortdesc>The Symbian platform provides device-independent interfaces for
+setting RGB color values for the various light targets on the device. This
+means extend class<apiname>CHWRMLight</apiname> to set the RGB color value
+of the specific light target. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>Before you start, you must know: </p> <ul>
+<li id="GUID-7F8A3091-80FC-503B-A6CB-96F2B0EF105F"><p> <b>UI Application :</b> A
+software component that requires access to the LEDs of the device. </p> </li>
+<li id="GUID-E2F0E51D-1918-50B8-B279-B8D1FB9C6074"><p> <b>Hardware Resource
+Manger (HWRM) :</b> A component that provides device-independent interfaces
+for accessing and controlling various hardware resources on the device. </p> </li>
+<li id="GUID-5CC55A2A-DA84-57B2-B60C-329EF5781489"><p> <b>Light adaptation
+plug-in :</b> An ECOM plug-in that implements the HWRM light plug-in interfaces
+described by the HWRM server component. </p> </li>
+</ul> <p>Follow the steps given below to manage the RGB color of light targets:</p></prereq>
+<steps id="GUID-DF744FD7-6731-5B3D-853B-BF79A36B4283">
+<step id="GUID-C33E995E-E9B6-5F61-BBAE-7DA91A790E07"><cmd/>
+<info>Instantiate the light interface object. </info>
+<stepxmp><codeblock id="GUID-388ADCD9-ADBB-5665-9444-2CE6631CD6ED" xml:space="preserve">CHWRMLight * p = CHWRMLight::NewL();</codeblock> </stepxmp>
+</step>
+<step id="GUID-70FE2DBB-F4CB-5A0F-B84D-5D4EC9772ABC"><cmd/>
+<info>2. Set the default RGB color for a selected target by using the following
+methods. </info>
+<stepxmp><table id="GUID-B9BEA298-DB2E-55B2-9325-87E167CC59F7">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Method</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p><codeph>SetLightColorL()</codeph> </p> </entry>
+<entry><p>Sets the specific RGB color for the target. </p> </entry>
+</row>
+<row>
+<entry><p><codeph>SetLightDefaultColorL()</codeph> </p> </entry>
+<entry><p>Sets the default color of light target. </p> </entry>
+</row>
+<row>
+<entry><p><codeph>LightOn(TargetX, 10sec, RGB(Y))</codeph> </p> </entry>
+<entry><p>Restores the default color after a specific duration. </p> </entry>
+</row>
+<row>
+<entry><p><codeph>SetLightColorL(TargetX, RGB(X))</codeph> </p> </entry>
+<entry><p>Restores the specific RGB color to default state. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </stepxmp>
+</step>
+</steps>
+<result><p>The default RGB color is set for a light target. </p> <p>The following
+code snippet illustartes the use of <xref href="GUID-6F99FC99-555A-39DD-B018-7CC37E6AFD70.dita"><apiname>SetLightDefaultColorL()</apiname></xref> method. </p> <codeblock id="GUID-DABAF907-DB06-59A4-8AC4-A518CF051501" xml:space="preserve">
+EXPORT_C CHWRMLight * CHWRMLight::NewL ( )
+{
+    CHWRMLight * self = NewLC ( );
+    CleanupStack::Pop ( self );
+    return self ;
+}
+
+    //Used for setting default color of Light Target(s).
+    // Target Defines which light should be controlled. Multiple lights can be specified with using bitwise-or.
+    // KErrNotSupported One or more of specified targets are not supported.
+    // KErrBadHandle Light session has been invalidated.
+    // KErrTimedOut Timeout occurred in controlling light.
+    // KErrInUse One or more of specified targets are not reserved for this client but are reserved for others.
+    // KErrNoMemory There is a memory allocation failure. 
+
+void CHWRLight::SETLightDefaultColorL()
+{
+    INFO_PRINTF1 ( _L ("Start test step: SETLightDefaultColorL" ) );
+    AddLightPreparationStatesL();
+    AddTargetStateL( this, &amp;CHWRMLight::DisplayLightDefaultColorL, KTwoTimeUnits );
+    AddTargetStateL( this, &amp;CHWRMLight::DisplayAndKeyboardLightDefaultColorL, KTwoTimeUnits );
+    ExecuteSETLightDefaultColorL();
+}
+....
+</codeblock> </result>
+</taskbody><related-links>
+<link href="GUID-1969956D-CDA0-5DA0-ACF8-69AFBBEC1408.dita"><linktext>Light API</linktext>
+</link>
+<link href="GUID-40A9EAE3-F0AA-52FF-B3E8-455E820AA410.dita"><linktext>Extended
+Light API</linktext></link>
+</related-links></task>

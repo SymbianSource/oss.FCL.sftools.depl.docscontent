@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543" xml:lang="en"><title>Selection
+of Adaptations</title><shortdesc>The Graphics package contains a number of adaptation and customization
+components. These are called <b>adaptations</b> in this topic. Symbian provides
+implementations of these components. However, device creators can create their
+own implementations—for example, to take advantage of the specific hardware
+that is available in a particular device. This topic describes how to select
+adaptations for inclusion in a ROM. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<section id="GUID-2E93EB5D-5060-4E73-8B93-A6C0D7742AB7"><title>Adaptation
+naming conventions</title> <p>Adaptations must have a specific name in the
+ROM. The mechanism for selecting adaptations is based on the assumption that
+all Symbian and non-Symbian adaptations have unique names and are renamed
+to the required adaptation name during the ROM build process. This means that
+all adaptation DLL, EXE and IBY files must have unique names. </p> <p>By convention,
+these files have names of the form <codeph>component_&lt;vendor or feature&gt;.ext</codeph>,
+where <codeph>component</codeph> is the abbreviated name of the component, <codeph>&lt;vendor
+or feature&gt;</codeph> is the name of the implementer or some identifying feature
+of the adaptation and <codeph>.ext</codeph> is the filename extension. </p> <p>For
+example, here is the IBY file for an EGL adaptation. This has the name <filepath>egl_sw_abc.iby</filepath>.
+The <filepath>sw</filepath> in the name indicates that the implementation
+uses a software rather than a hardware solution and <filepath>abc</filepath> is
+the name of the hypothetical implementer. </p> <codeblock id="GUID-1172A380-EEF2-5A1D-89DA-D503CBDC16D2" xml:space="preserve">// egl_sw_abc.iby
+            
+#ifndef __EGL_SW_ABC_IBY__
+#define __EGL_SW_ABC_IBY__
+    
+file=ABI_DIR\BUILD_DIR\libegl_sw_abc.dll                 \sys\bin\libEGL.dll
+#include &lt;graphicsresource.iby&gt;
+    
+#endif // __EGL_SW_ABC_IBY__
+</codeblock> <p>In addition to the <b>adaptation-specific</b> IBY file, each
+adaptation component has a <b>generic</b> IBY file, which has a name of the
+form <filepath>component.iby</filepath>. For example, the generic IBY file
+for EGL is called <filepath>egl.iby</filepath>. </p> <p>If you change the
+name of a DLL during the ROM building process, use the <codeph>LINKAS</codeph> statement
+in the MMP file to specify the required adaptation name. For example: </p> <codeblock id="GUID-74500A23-C098-5481-B512-583B63512610" xml:space="preserve">TARGET      libegl_sw_abc.dll
+TARGETTYPE  DLL
+LINKAS      libEGL.dll
+...</codeblock> </section>
+<section id="GUID-70CE663F-3B37-4654-BD21-E7B6CB848356"><title>Component-specific
+macros</title> <p>The selection of adaptations for inclusion in a ROM involves
+component-specific macros. These macros have names of the form <codeph>COMPONENT_DRV</codeph>,
+where <codeph>COMPONENT</codeph> is the abbreviated component name and <codeph>_DRV</codeph> indicates
+that it refers to an adaptation or driver. The following table lists the adaptation
+components and their corresponding macros. </p> <table id="GUID-1E1802AD-D786-5BBD-9180-FC3F4A43A27F">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Component</entry>
+<entry>Macro</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><xref href="GUID-BB4F5388-32EA-5A2E-845D-E5339D2040E9.dita">DirectGDI Adaptation</xref> </entry>
+<entry><codeph>DIRECTGDI_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14.dita">EGL Implementation</xref> </entry>
+<entry><codeph>EGL_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-E6E6A439-B3CC-5FEA-9148-2DB5F37003F2.dita">Extended Bitmap
+Rasterizer Plug-in</xref> </entry>
+<entry><codeph>FBSRASTERIZER_DRV</codeph> </entry>
+</row>
+
+<row>
+<entry><xref href="GUID-5E46C0EE-BD7D-5C85-8083-575BB2888AA7.dita">Graphics Resource
+Adaptation</xref>  </entry>
+<entry><codeph>GRAPHICSRESOURCE_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-7DD1BC7B-B3F7-515D-8DC8-B699B947B434.dita">OpenGLES Implementation</xref> </entry>
+<entry><codeph>OPENGLES_DRV</codeph>  </entry>
+</row>
+<row>
+<entry><xref href="GUID-20419A98-3787-5F10-9CAD-2BC5D7560776.dita">OpenVG Implementation</xref>  </entry>
+<entry><codeph>OPENVG_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-8BEE0411-C6E9-5840-BE22-EC271A4D97DD.dita">OpenWF Composition
+Implementation</xref></entry>
+<entry><codeph>OPENWFCLIB_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-C7B420DE-CEDA-5D3F-8095-71136E862CDF.dita">Surface Manager</xref> </entry>
+<entry><codeph>SURFACEMANAGER_DRV</codeph> </entry>
+</row>
+<row>
+<entry><xref href="GUID-81A0A2E9-4BB9-58BF-B2D3-08098E7E9C7C.dita">Surface Update
+Server</xref> </entry>
+<entry><codeph>SURFACEUPDATE_DRV</codeph> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>These macros are defined in a central file called <filepath>graphics_adaptation.hby</filepath>,
+which is exported from the Common Graphics Header component. The <filepath>.hby</filepath> filename
+extension indicates that it is a header file for inclusion in OBEY files.
+OBEY files that use these macros must <codeph>#include</codeph> this HBY file
+like this. </p> <codeblock id="GUID-B118E007-2AE3-5267-BC8C-3EDBB386F04A" xml:space="preserve">#include &lt;graphics_adaptation.hby&gt;</codeblock> <p>The
+HBY file assigns the name of one of the Symbian adaptation's IBY file to each
+of these macros. For example: </p> <codeblock id="GUID-CA1400A1-159D-5460-9CED-C9EB45BF7BC6" xml:space="preserve">#define EGL_DRV &lt;egl_sw_abc.iby&gt;</codeblock> <p>Each
+component's generic IBY file includes the component's macro. For example,
+here is the generic EGL IBY file: </p> <codeblock id="GUID-DF7F660B-5A6E-58DE-B53B-6138E3D6CEAB" xml:space="preserve">// egl.iby
+            
+#ifndef __EGL_IBY__
+#define __EGL_IBY__
+        
+#include &lt;graphics_adaptation.hby&gt;
+#include EGL_DRV
+        
+#endif</codeblock> <p>To select a custom adaptation simply redefine the relevant
+macro to specify the custom adaptation IBY file. You can do this in the OBY
+file for the ROM build or on the ROMBUILD command line as described next. </p> <p>Symbian
+also provides a number of named configurations to simplify the selection of
+a set of Symbian adaptations for a particular environment. These named configurations
+are described below. </p> </section>
+<section id="GUID-3D02BA62-F9C9-4B57-902E-39D6728CA5E9"><title>Selecting
+a custom adaptation</title> <p>Selecting a custom adaptation involves defining
+the adaptation component's macro to specify the filename of the custom adaptation's
+IBY file. The preferred way of doing this is in the OBY file. However, it
+is also possible to do it on the ROMBUILD command line. Both methods override
+the corresponding <codeph>#define</codeph> in <filepath>graphics_adaptation.hby</filepath>. </p> <p><b>Specifying
+the custom adaptation in the OBY file </b> </p> <p>To select a specific custom
+adaptation, <codeph>#define</codeph> the component's macro in the OBY file
+for the ROM build. For example: </p> <codeblock id="GUID-8C1738C3-B9A8-5449-B0D4-89AC1BAB7ECA" xml:space="preserve">#define EGL_DRV &lt;egl_sw_abc.iby&gt;</codeblock> <p>This is the recommended way of specifying custom adaptations. </p> <p><b>Specifying
+the custom adaptation on the Command Line </b> </p> <p>To select a custom
+adaptation on the Command Line, specify the custom adaptation's IBY file in
+the BUILDROM command as follows: </p> <codeblock id="GUID-D2020015-B7E8-5E2C-9AC0-73A09FA78264" xml:space="preserve">BUILDROM ... –DCOMPONENT_DRV="^&lt;"component_adaptation.iby"^&gt;" ... 
+</codeblock> <p>Where <codeph>COMPONENT_DRV</codeph> is the name of the macro
+and <filepath>component_adaptation.iby</filepath> is the name of the custom
+adaptation's IBY file. The ^ character is required to escape the &lt; and
+&gt; characters. </p> <p>Here is an example: </p> <codeblock id="GUID-4FF32002-4665-500A-A5A5-465EED6EC824" xml:space="preserve">-DEGL_DRV="^&lt;"egl_sw_abc.iby"^&gt;"</codeblock> <p>This overrides the default value set out in <filepath>graphics_adaptation.hby</filepath>.
+You can override multiple components on the Command Line. However, configuring
+the OBY file as explained above is the preferred approach. </p> </section>
+<section id="GUID-F4A3FFFF-7A5C-40AF-8CA2-25AD82950D58"><title>Configurations</title><p>Symbian
+provides named configurations to simplify the selection of adaptations for
+a particular environment. The named configurations are shown in the following
+table. </p> <table id="GUID-4633D949-513D-5A47-985A-3F88F9A67CDE">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Configuration</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>SGA_CLASSIC</codeph>  </p> </entry>
+<entry><p>Non-ScreenPlay environment. Used by default for non-ScreenPlay. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>SGA_SW</codeph>  </p> </entry>
+<entry><p>ScreenPlay environment using software-based adaptations. Used by
+default for ScreenPlay. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>SGA_SW_NO_GRAPHICSRESOURCE</codeph>  </p> </entry>
+<entry><p>ScreenPlay environment using software-based adaptation and stubbed-out
+Graphics Resource and DirectGDI adapters. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>You can select a configuration at ROM build time by using the <codeph>SYMBIAN_GRAPHICS_ADAPTATION</codeph> macro.
+For example: </p> <codeblock id="GUID-FAE4A161-B77B-5AEE-AB00-1F195587CCA5" xml:space="preserve">BUILDROM ... –DSYMBIAN_GRAPHICS_ADAPTATION=SGA_SW ...</codeblock> <p>You
+can use this macro in conjunction with the <codeph>SYMBIAN_GRAPHICS_USE_OPENWF</codeph> macro
+(which is described in <xref href="GUID-6D8A1FC7-095B-587E-8274-23C132978C53.dita">Enabling
+the Graphics Architecture Variants</xref>). </p> <p>These configurations select
+adaptations by specifying the adaptation IBY files to use. The following table
+shows the macro names for the relevant ScreenPlay components and the corresponding
+IBY file for each of the ScreenPlay configurations. The trailing <filepath>.iby</filepath> characters
+have been omitted to save space. </p> <table id="GUID-0BFCC648-77CF-59FF-B811-C1705B9114D1">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>Macro</entry>
+<entry><codeph>SGA_SW</codeph> </entry>
+<entry><codeph>                 SGA_SW_NO_GRAPHICSRESOURCE</codeph> </entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>SURFACEMANAGER_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>surfacemanager_ref</filepath>  </p> </entry>
+<entry><p> <filepath>surfacemanager_ref</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>SURFACEUPDATE_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>surfaceupdate_ref</filepath>  </p> </entry>
+<entry><p> <filepath>surfaceupdate_ref</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>GRAPHICSRESOURCE_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>graphicsresourceadapter_sw</filepath>  </p> </entry>
+<entry><p> <filepath>N/A</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>DIRECTGDI_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>directgdiadapter_sw</filepath>  </p> </entry>
+<entry><p> <filepath>N/A</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EGL_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>egl_ref.iby</filepath>  </p> </entry>
+<entry><p> <filepath>egl_ref.iby</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>OPENGLES_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>opengles_sw</filepath>  </p> </entry>
+<entry><p> <filepath>opengles_sw</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>OPENVG_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>openvg_sw</filepath>  </p> </entry>
+<entry><p> <filepath>openvg_sw</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>OPENWFCLIB_DRV</codeph>  </p></entry>
+<entry><p> <filepath>openwfc_ref</filepath> </p></entry>
+<entry><p> <filepath>openwfc_ref</filepath>  </p></entry>
+</row>
+<row>
+<entry><p> <codeph>FBSRASTERIZER_DRV</codeph>  </p> </entry>
+<entry><p> <filepath> fbsrasterizer_stub</filepath>  </p> </entry>
+<entry><p> <filepath>fbsrasterizer_stub</filepath>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The following table shows the equivalent information for the non-ScreenPlay
+configuration. </p> <table id="GUID-9974BDAA-3FC0-50BC-9BC7-F414035E755B">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Macro</entry>
+<entry><codeph>SGA_CLASSIC</codeph> </entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>EGL_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>egl_sw_nongce</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>OPENGLES_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>opengles_sw</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>OPENVG_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>openvg_sw</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FBSRASTERIZER_DRV</codeph>  </p> </entry>
+<entry><p> <filepath>fbsrasterizer_stub </filepath>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+
+</conbody><related-links>
+<link href="GUID-6D8A1FC7-095B-587E-8274-23C132978C53.dita"><linktext>Enabling
+the Graphics Architecture                 Variants</linktext></link>
+<link href="GUID-EF62BF88-3687-505D-8BD7-EEDF36246E56.dita"><linktext>Graphics
+Hardware Acceleration</linktext></link>
+</related-links></concept>

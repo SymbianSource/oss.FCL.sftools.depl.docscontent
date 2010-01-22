@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-31FB604F-893D-4829-8C69-F7056C9A0F46" xml:lang="en"><title>Error
+Handling</title><shortdesc>The streaming player middleware (the multimedia controller) must
+be made aware, when a stream cannot be played because of lack of rights. In
+a regular file DRM standard scenario, this task is relatively easy, as the
+CAF agent checks whether corresponding rights exist, during instantiation
+of <apiname>ContentAccess::CData</apiname>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The key stream cannot be decoded in the following scenarios:  <ul>
+<li id="GUID-15CAE294-B512-532B-A4A0-679BE57C25D3"><p> <b> Pay-per-view</b>:
+The user may have bought rights to view a particular programme, but not the
+rights for the programme that follows it on the same channel. Thus, even if
+the user had rights when the key stream decoder was instantiated, this may
+no longer be the case in 1-2 hours, and the same key stream cannot be decoded
+anymore. </p> </li>
+<li id="GUID-0BB99E59-4F01-5AED-ABA8-22F137AC0109"><p> <b> Subscription expiry</b>:
+The user may have subscribed to the channel, but while viewing the stream,
+the subscription expires. Again, the same key stream cannot be decoded anymore. </p> </li>
+</ul></p>
+<section><title>Limitations</title><p>CAF cannot determine whether a stream
+can be decoded during instantiation of the key stream decoder. It only identifies
+whether a specific stream is supported and if so, associates it with an appropriate
+key stream decoder for decryption of stream data. </p><p>Key stream decoder
+cannot determine whether it can decrypt short-term keys, till it receives
+key messages. If decrypted information does not reach (or, if for ISMACryp,
+it cannot be decrypted), the multimedia controller polls to verify whether
+a decoder can decrypt the packets. <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita#GUID-EE67D14D-1011-3B27-ADEC-C6C192339903/GUID-AF8669AA-BE1B-3FFA-84A2-E54DDDCBC485"><apiname>CKeyStreamDecoder::GetAttribute()</apiname></xref> method
+with the <codeph>TAttribute</codeph> parameter <codeph>ECanPlay</codeph> is
+used for verification. </p><note>This method allows the controller to query
+the key stream decoder whether it has failed to decrypt short-term keys, even
+if the decryption process fails and the multimedia controller does not have
+any plaintext data. <p>If the decoder cannot decrypt the key packets, it must
+drop them and must not push the information to the multimedia controller.</p></note> 
+   </section>
+</conbody><related-links>
+<link href="GUID-6AEA1BCF-EF19-5F6A-9452-E1149C949727.dita"><linktext>Using Streaming
+CAF</linktext></link>
+</related-links></concept>

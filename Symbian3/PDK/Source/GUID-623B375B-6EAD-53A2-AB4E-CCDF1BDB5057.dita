@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-623B375B-6EAD-53A2-AB4E-CCDF1BDB5057"><title>Creating a Dynamic Startup Configuration</title><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>A Dynamic Startup Configuration (DSC) is a list of items stored in a DSC database. Each item represents a AMC (After Market Component) to be launched at phone boot time. </p> <p>A DSC API client, <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref> requires connection to a DSC database before issuing any requests concerning a DSC. A client opens a connection to the underlying database server using this API. Each DSC is identified by a UID. One DSC has a default UID (<codeph>KDefaultSymbianDsc</codeph>) provided by Symbian. By default, this DSC is executed at the end of the startup procedure. The purpose of the default DSC is to allow generic AMCs. </p> <p>Though all of the insertion points for DSCs (and therefore their UIDs) are fixed when the ROM is built, DSCs themselves may be created and deleted at run time. Items may be added, removed, updated and retrieved using the functions supported by <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref>. For more information, see <xref href="GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1.dita">Managing a Dynamic Startup Configuration</xref>. </p> <p> <b>Important:</b> Any application wishing to read or write using the DSC API requires either or both <b>ReadDeviceData</b> and <b>WriteDeviceData</b> capability. </p> </context> <steps id="GUID-20BA0E96-B33D-5D99-8E01-D7511C0A3806"><step id="GUID-28636324-962A-5112-A78C-D1A576A621AC"><cmd>Connect to the DSC database using <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita#GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F/GUID-5E74EFDC-99D8-3E02-B1EA-94359017AEB5"><apiname>RDscStore::OpenL()</apiname></xref>. </cmd> <info>The following code shows how the DSC API client connects to a DSC database: </info> <stepxmp><codeblock id="GUID-D251C680-2CFE-5C9B-B43C-485936611247" xml:space="preserve">RDscStore iDscClient; 
+iDscClient.OpenL();</codeblock> </stepxmp> </step> <step id="GUID-35DA9184-3AD1-5F31-9CD9-8B7F5132A3D8"><cmd/><info>Create the DSC using <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita#GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F/GUID-03E5738C-6D3B-3A59-A627-ED655566E552"><apiname>RDscStore::CreateDscL()</apiname></xref>. </info> <info>The following example code illustrates how to create a default Symbian DSC using the type <xref href="GUID-AE06A528-F27E-38A8-A0EA-9D0166695568.dita"><apiname>KDefaultSymbianDsc</apiname></xref> or by passing an UID: </info> <stepxmp><codeblock id="GUID-0B97D294-EB59-55BE-AF87-FB9E333E0DC5" xml:space="preserve">RDscStore iDscClient;
+iDscClient.OpenL();
+if ( iDscClient.IsOpened() )
+    {
+    
+    // Create DSC with KDefaultSymbianDsc by default
+    iDscClient.CreateDscL();
+
+    // Alternatively, you can create a DSC by passing an UID
+    // A DSC with Id=5 is created 
+    TUid iDscUid = TUid::Uid( 5 );
+    _LIT( KDescription, "DSC 5" );
+    iDscClient.CreateDscL( iDscUid, KDescription );
+    iDscClient.Close();
+    }</codeblock> </stepxmp> </step> </steps> </taskbody><related-links><link href="GUID-70202CC9-BC49-539A-8255-4B0B9C24A702.dita"><linktext>After Market Application Starter Overview</linktext> </link> <link href="GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1.dita"><linktext>Managing a Dynamic Startup
+                Configuration</linktext> </link> </related-links></task>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-1AAA88BB-19AD-5B8E-993C-11F4B7CD90EB" xml:lang="en"><title>Writing
+a MIME Recognizer</title><abstract><p>The Mime Recognizers provide the implementation for data type
+(MIME Type) recognition using the MIME recognition framework. </p><p>Each
+MIME recognizer specifies the MIME type it supports along with the priority
+and confidence of recognition. A MIME recognizer reads a small piece of data
+and identifies the data type. Once the data type is identified, it is passed
+to the <xref href="GUID-1578590A-FC00-5C3B-8BF9-F6E43CA9D9A0.dita">Application
+Architecture </xref> (AppArc). AppArc launches the application
+that best handles the identified data type.  </p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-6799E3F3-353E-5C00-A38C-D32F888392AA-GENID-1-7-1-11-1-1-6-1-6-1-4-1-3-1-3-1"><p>Symbian OS v9.1
+and onwards, MIME recognizers are <xref href="GUID-9E92EE30-F2E2-5F28-BB2A-391C09EC69D2.dita">ECOM</xref> plug-ins.
+They are located in <b>\sys\bin\</b>. </p> <p>Each MIME recognizer is loaded
+by the <xref href="GUID-1578590A-FC00-5C3B-8BF9-F6E43CA9D9A0.dita">Application
+Architecture (AppArc)</xref> during the startup sequence. </p> </context>
+<steps id="GUID-45E4FFC7-5C92-5101-B21B-581C2AFB9CF0">
+<step id="GUID-016BE2C1-DFB1-51B0-9A5C-C3A926C48E33"><cmd/>
+<info>Create a project file (<filepath>.mmp</filepath>) for the MIME recognizer
+and ensure the following parameters are set. </info>
+<stepxmp><table id="GUID-8A194C7E-8927-5A8A-B1EA-EB9D7A23CF0C">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b>Variable Name</b>  </p> </entry>
+<entry><p> <b>Value</b>  </p> </entry>
+<entry><p> <b>Description</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>TargetType</codeph>  </p> </entry>
+<entry><p> <codeph>plugin</codeph>  </p> </entry>
+<entry><p>Specifies the type of binary. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Resource</codeph>  </p> </entry>
+<entry><p>Use the block <codeph>start resource ... end</codeph>  </p> </entry>
+<entry><p>The variable <codeph>Resource</codeph> is set to the registration
+resource file (<filepath>.rss)</filepath>)of the MIME recognizer. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>UID</codeph>  </p> </entry>
+<entry><p> <codeph>0x10009D8D</codeph> and the <codeph>DLL UID</codeph>  </p> </entry>
+<entry><p>The variable <codeph>UID</codeph> requires two values. The first
+value is 0x10009D8D and is constant for all MIME recognizers. The second value
+is the UID of the DLL. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Capability</codeph>  </p> </entry>
+<entry><p> <codeph>Protserv</codeph>  </p> </entry>
+<entry><p>The AppArc server has <codeph>protserv</codeph> capability.The MIME
+recognizers are loaded by the AppArc server on requirement. The MIME recognizers
+must have <codeph>protserv</codeph> capability to be loaded by the AppArc
+server. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </stepxmp>
+<info>For more details, refer <xref href="GUID-641A276D-F618-50CE-BA5A-658DCC26BAB5.dita">Creating
+a Project File</xref>. </info>
+<info>The code below shows a sample <filepath>.mmp</filepath> file with the
+above parameters set. </info>
+<stepxmp><codeblock id="GUID-B21A3AEB-C21C-5C9B-8BE3-715336ECBFD0" xml:space="preserve">target exampleRecognizer.dll
+
+capability          Protserv
+targettype          plugin
+uid                    0x10009d8d 0x1d1f75ed
+vendorid            0x70000001
+
+sourcepath          .
+source                 exampleRecognizer.cpp
+systeminclude       \EPOC32\INCLUDE
+systeminclude       \EPOC32\INCLUDE\ECOM 
+
+library                EUSER.LIB APMIME.LIB 
+
+start resource   1d1f75ed.rss
+target           exampleRecognizer.rsc
+end</codeblock> </stepxmp>
+</step>
+<step id="GUID-98A72A42-24D2-5A16-A0DE-15223FD1A685"><cmd/>
+<info>Export the factory code function of the MIME recognizer as shown below.
+This is required to create an instance of the MIME recognizer. </info>
+<info>The class <codeph>CExampleRecognizer</codeph> is derived from <xref href="GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0.dita"><apiname>CApaDataRecognizerType</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-F61F7E5E-37E0-5F4B-8E9A-E4C106005554" xml:space="preserve">const TInt KImplementationUID = 0x101F7DA1;
+
+CApaDataRecognizerType* CExampleRecognizer::CreateRecognizerL()
+       {
+         return new (ELeave) CExampleRecognizer;
+       }
+
+const TImplementationProxy ImplementationTable[] = 
+       {
+        IMPLEMENTATION_PROXY_ENTRY(KImplementationUID,CExampleRecognizer::CreateRecognizerL);
+       }
+
+EXPORT_C const TImplementationProxy* ImplementationGroupProxy(TInt&amp; aTableCount)
+       {
+        aTableCount = sizeof(ImplementationTable) / sizeof(TImplementationProxy);
+        return ImplementationTable;
+    }
+</codeblock> </stepxmp>
+<info>For more details refer <xref href="GUID-895A685E-83E8-51A3-A823-3A0E07B1E609.dita">Exporting
+Implementation Factories.</xref>  </info>
+</step>
+<step id="GUID-B06E4D48-5CC2-5BEB-8C28-8DE5EFF62FE1"><cmd/>
+<info>Implement <codeph>CApaDataRecognizerType</codeph> polymorphic interface. </info>
+<substeps id="GUID-C29E1469-92CF-53D6-867F-FA73E223929C">
+<substep id="GUID-B670112D-ACEB-5001-8F60-F16DF4240CE7"><cmd/>
+<info>The code below shows a sample constructor implementation. </info>
+<stepxmp><codeblock id="GUID-F8BD0190-4751-5731-BBF8-BD41644755F5" xml:space="preserve">const TUid KExampleUid = {0x1d1f75ed};
+
+const TInt KNumDataTypes = 1;
+
+CExampleRecognizer::CExampleRecognizer() : CApaDataRecognizerType(KExampleUid,CApaDataRecognizerType::EHigh) 
+
+  { 
+     iCountDataTypes = KNumDataTypes;
+ 
+  } 
+
+</codeblock> </stepxmp>
+<info>Specify a UID (the <codeph>DLL UID</codeph> as specified in the plug-in
+project definition file) and a <xref href="GUID-EBD1242B-6BD9-5ABB-B471-24ABC78A918C.dita">priority</xref> in
+the constructor. </info>
+<info>The <codeph>iCountDataTypes</codeph> variable, represents the number
+of data types supported by the recognizer can also be set in the constructor.
+The value set for this variable should match the implementation of <xref href="GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0.dita#GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0/GUID-FBCE07F2-9566-3AD1-B943-2FFF5C5AAE67"><apiname>CApaDataRecognizerType::SupportedDataTypeL()</apiname></xref>. </info>
+</substep>
+<substep id="GUID-5F36C1F6-3EDA-5817-801D-9B5C6F9F4927"><cmd/>
+<info>Implement the pure virtual function <xref href="GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0.dita#GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0/GUID-FBCE07F2-9566-3AD1-B943-2FFF5C5AAE67"><apiname>CApaDataRecognizerType::SupportedDataTypeL()</apiname></xref>.
+It returns the MIME types that the recognizer is capable of recognizing. </info>
+<info>The code below shows a sample implementation of <codeph>SupportedDataTypeL()</codeph> for
+supporting MIME type/ subtype "text/example". </info>
+<stepxmp><codeblock id="GUID-D2DDF2A2-2897-544A-ACA7-DA3A60FB27E9" xml:space="preserve">
+_LIT8(KExampleTextMimeType, "text/example"); 
+
+
+TDataType CExampleRecognizer::SupportedDataTypeL(TInt aIndex) const
+
+    {
+        return TDataType(KExampleTextMimeType);
+
+    }</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-4C2CD90F-17AB-53B5-883A-7022E1231E2E"><cmd/>
+<info>Implement <xref href="GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0.dita#GUID-EBE480D9-E377-32F4-9AE5-9C58684BEFF0/GUID-74ED8BEA-52AA-3AC4-92D9-5E4FB4F25DDD"><apiname>CApaDataRecognizerType::DoRecognizeL()</apiname></xref>.
+This function executes data type recognition. </info>
+<info>The code below shows a sample implementation of <codeph>DoRecognizeL()</codeph> for
+recognizing the MIME type <codeph>"/text/example"</codeph> contained in files
+with <filepath>.example</filepath> extension with maximum confidence. </info>
+<stepxmp><codeblock id="GUID-C8F82861-AF59-5E23-9F1D-8656B2D1EE54" xml:space="preserve">void CExampleRecognizer::DoRecognizeL(const TDesC&amp; aName, const TDesC8&amp; aBuffer)
+    {
+    _LIT8(KExampleData, "example");
+    _LIT(KDotExample, ".Example");
+
+    TParse parse;
+    parse.Set(aName,NULL,NULL);
+    TPtrC ext=parse.Ext(); // extract the extension from the filename
+
+    if (ext.CompareF(KDotExample)==0 &amp;&amp; aBuffer.FindF(KExampleData)!=KErrNotFound)
+         {
+          iConfidence=ECertain;
+          iDataType=TDataType(KExampleTextMimeType); 
+        }
+    }</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+</steps>
+</taskbody></task>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-7DD1BC7B-B3F7-515D-8DC8-B699B947B434"><title>OpenGL ES Porting Guide</title><shortdesc>This topic provides a guide for implementers of OpenGL ES on the Symbian platform. It is designed to be used in conjunction with the EGL Porting Guide. It does not specify how to implement OpenGL ES itself. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref> and <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay</xref>. <b>Target audience</b>: Device creators. </p> <section><title>Required functionality </title> <p>The implementation DLL must implement all of the standard functions declared in the <xref href="GUID-12D5C140-DFDA-549B-9CCF-EF7488B832AE.dita">OpenGLES Interface component</xref> and optionally any implementation-specific functions. Alternatively, implementation-specific functions can be placed into a separate DLL. </p> <p>In order to avoid future binary compatibility issues, the reserved ordinal entry points are reserved for new functions introduced into the specification. Therefore you must not use them for implementation-specific functions. </p> </section> <section><title> LIB files </title> <p>The OpenGL ES implementation must not deliver the LIB files, because they are provided by the <xref href="GUID-12D5C140-DFDA-549B-9CCF-EF7488B832AE.dita">OpenGLES Interface component</xref> and are part of the interface declaration and not its implementation. To prevent LIB files being automatically generated, place the <codeph>NOEXPORTLIBRARY</codeph> directive in the MMP project file that builds the implementation DLL. </p> <p>The LIB files delivered in the OpenGLES Interface component have only OpenGL ES standard functions and no implementation-specific functions. This is to ensure that client programs do not link to implementation-specific functions and so are portable across OpenGL ES implementations. </p> </section> <section><title>Extension functions</title> <p>An OpenGL ES implementation can optionally provide extension functions. When you add an extension function, if possible do not add new exports to the OpenGL ES library, because this means you must also add them to the DEF file. This may lead to an ordinal conflict and therefore a compatibility break for clients in the future—for example, if the specification introduces new functions and these are added to the DEF file at the same ordinal position. </p> <p>Clients can use the standard EGL function <codeph>eglGetProcAddress()</codeph> to access the extension functionality instead. If function exports cannot be avoided, place them in a separate library so that they can have their own DEF file. If required, this can be linked to the OpenGL ES implementation so that <codeph>eglGetProcAddress()</codeph> can also return the address. </p> <p><b>glQueryMatrixxOES </b> </p> <p>The <codeph>glQueryMatrixxOES()</codeph> extension function is an exception to this rule. It has been explicitly added to the OpenGL ES 1.0 and 1.1 DEF files (<filepath>openglesu.def</filepath> and <filepath>opengles11u.def</filepath>, respectively. This function is therefore expected to be present, even if stubbed out, in implementations of OpenGL ES 1.0 and 1.1. However, this approach has changed in OpenGL ES 1.1 v1. This entry is not present in <filepath>libglesv1_cm11u.def</filepath> and <codeph>eglGetProcAddress()</codeph> should be used instead to call the <codeph>glQueryMatrixxOES()</codeph> extension. </p> <p>Note that the <codeph>glQueryMatrixxOES()</codeph> extension has been deprecated in OpenGL ES 1.1. Instead you can get the various matrices by calling <codeph>GetFixedv()</codeph> or <codeph>GetFloatv()</codeph>, or by using the <codeph>OES_matrix_get()</codeph> core extension. </p> </section> <section><title> Internal functions</title> <p>Sometimes internal access to the OpenGL ES implementation is required—for example, in a bench marking or regression test for the OpenGL ES implementation. To avoid tight coupling with a specific implementation in these circumstances, it is recommended that the OpenGL ES implementation provides a separate vendor-specific LIB file containing the internal API calls. Then appropriate clients can link to that internal LIB file when required. This mechanism ensures that normal clients never see the internal API calls. </p> </section> <section><title>UIDs</title> <p>Symbian platform libraries are given unique identifiers when they are built. The following UIDs have been allocated for OpenGL ES implementations: </p> <table id="GUID-FEDE5BE7-956E-5794-86F9-7343940714A9"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry>Library</entry> <entry>UID2</entry> <entry>UID3</entry> </row> </thead> <tbody><row><entry><p>OpenGL ES 1.1 v1 Common Profile </p> </entry> <entry><p> <codeph>0x1000008d</codeph>  </p> </entry> <entry><p> <codeph>0x102836BE </codeph>  </p> </entry> </row> <row><entry><p>OpenGL ES 1.1 Common Profile </p> </entry> <entry><p> <codeph>0x1000008d</codeph>  </p> </entry> <entry><p> <codeph>0x101FCABD</codeph>  </p> </entry> </row> <row><entry><p>OpenGL ES 1.1 Common-Lite Profile </p> </entry> <entry><p> <codeph>0x1000008d</codeph>  </p> </entry> <entry><p> <codeph>0x101FCAE8</codeph>  </p> </entry> </row> <row><entry><p>OpenGL ES 2.0 </p> </entry> <entry><p> <codeph>0x1000008d</codeph>  </p> </entry> <entry><p> <codeph>0x10285A7A</codeph>  </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title>ROM building </title> <p>Building a ROM image for a target platform involves using IBY files. There is a generic IBY file called <filepath>opengles.iby</filepath> for the OpenGL ES implementation. This must not be replaced. However, you can create an implementation-specific IBY file. This should have a unique name in the format <filepath>opengles_adaptation.iby</filepath>, where <filepath>adaptation</filepath> is replaced by the vendor's name. For example: </p> <codeblock id="GUID-E3F09E47-5BD8-5BC2-A401-6083D616B086" xml:space="preserve">// OPENGLES_VENDOR.IBY
+    
+#ifndef __OPENGLES_VENDOR_IBY__
+#define __OPENGLES_VENDOR_IBY__
+    
+REM OpenGL ES implementation
+    
+// Includes the EGL entry points.
+file=ABI_DIR/BUILD_DIR/libGLES_CM.dll      sys/bin/libGLES_CM.dll
+    
+// Does NOT include the EGL entry points.
+file=ABI_DIR/BUILD_DIR/libGLESv1_CM.dll    sys/bin/libGLESv1_CM.dll
+    
+#endif</codeblock> <p>This IBY file must be exported by the <filepath>bld.inf</filepath> file to the <filepath>\epoc32\rom\include\</filepath> folder. </p> <p>You can include this implementation-specific IBY file in a device ROM configuration file by adding the following line to a top-level OBY file like this: </p> <codeblock id="GUID-74FB1F80-7281-519F-98C6-956D5A191C5C" xml:space="preserve">#define OPENGLES_DRV &lt;opengles_vendor.iby&gt;</codeblock> <p>This is the preferred method. However, an alternative is to specify the IBY on the BUILDROM command line like this: </p> <codeblock id="GUID-A2ED5B58-F6D5-5AA6-8D8E-AF3B35814E50" xml:space="preserve">BUILDROM ... –DOPENGLES_DRV="^&lt;"opengles_vendor.iby"^&gt;" ... </codeblock> <p>Notice that the ^ character is used as an escape character for the &lt; and &gt; characters. </p> <p>See <xref href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita">Selection of Adaptations</xref> for more information. </p> </section> <section><title>Project file macros</title> <p>When providing an implementation of OpenGL ES (rather than merely using OpenGL ES), the header files must be included in such a way that the functions are declared as exported symbols (rather than imported symbols). This is a distinction seen at link-time. To achieve this, place the following macros in the implementation's MMP file: </p> <table id="GUID-BBB999B5-129C-5AA6-BF26-22611F422CCE"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>OpenGL ES API</entry> <entry>MMP Project File Macro</entry> </row> </thead> <tbody><row><entry><p>OpenGL ES 1.X </p> </entry> <entry><p> <codeph>MACRO __GL_EXPORTS</codeph>  </p> </entry> </row> <row><entry><p>OpenGL ES 2.0 </p> </entry> <entry><p> <codeph>MACRO SYMBIAN_OGLES_DLL_EXPORTS</codeph>  </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title> Example project (MMP) file </title> <p>Here is an example MMP file: </p> <codeblock id="GUID-9A804D2B-6F9E-540C-AF0A-6E8E6D99E4DA" xml:space="preserve">#include "/epoc32/include/platform/GLES/openglesuids.hrh"       // For uids
+    
+// These statements are always required:
+target          libGLES_CM.dll                         // Destination filename
+targettype      dll                                    // Binary build type
+capability      All -TCB                               // Platform Security requirement
+uid             KUidSharedDllUidValue    KUidOpenGLESCommonProfileDllUidValue
+vendorid        &lt;your vendor id in hex&gt;
+noexportlibrary                                        // Suppress generation of LIB/DSO file
+DEFFILE         opengles.def
+
+macro           __GL_EXPORTS
+      
+// These statements are examples and may vary:
+userinclude     ../include                             // Local include files
+systeminclude   /epoc32/include                        // General Symbian include files
+     
+sourcepath      ../opengles                            // Relative path to source files
+     
+source          context.cpp                            // Source files
+source          display.cpp
+source          egl.cpp
+source          surface.cpp
+     
+library         euser.lib 
+library         fbscli.lib                             // For CFbsBitmap, etc.
+library         bitgdi.lib                             // For CFbsBitmapDevice, CFbsBitGc, etc.
+library         ws32.lib                               // For RWindow, Direct Screen Access, etc.</codeblock> </section> <section><title>Example bld.inf file </title> <p>The <filepath>bld.inf</filepath> file specifies the exports and the MMP files. For example: </p> <codeblock id="GUID-D3C2ABB3-EB06-5900-A5A9-1FB0F41E80EA" xml:space="preserve">PRJ_PLATFORMS
+DEFAULT    
+    
+PRJ_EXPORTS
+opengles_vendor.iby       /epoc32/rom/include/opengles_vendor.iby
+    
+PRJ_MMPFILES
+./opengles.mmp</codeblock> </section> </conbody><related-links><link href="GUID-90A4BDE2-839A-5A37-ACAA-EB33FE39DE54.dita"><linktext>Variability Choices</linktext> </link> <link href="GUID-BB7F358E-3AC8-566B-8AE3-52FA0F9082C6.dita"><linktext>OpenGL ES 2.0 Shader Programs</linktext> </link> <link href="GUID-011A0A93-42DF-5235-BC8E-7BD88B572277.dita"><linktext>Security
+                Threats and Measures</linktext> </link> <link href="GUID-1A8ED0EB-B3B7-553F-95E3-2120D877966B.dita"><linktext>OpenGL ES Collection Overview</linktext> </link> <link href="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14.dita"><linktext>EGL Porting Guide</linktext> </link> </related-links></concept>

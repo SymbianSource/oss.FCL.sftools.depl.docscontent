@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81" xml:lang="en"><title>File
+Server Extensions Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Describes how to develop and use a file server extension. </p>
+<p>See <xref href="GUID-983F0ABD-470C-51C3-B6AE-1B1AA55AB4A2.dita">File Server
+Extensions</xref> for more information about the file server extension architecture. </p>
+<section id="GUID-4FEA7E17-8ACE-58E2-B90A-FB2F9BB33766"><title>Developing
+an extension</title><p>This section describes how to use the APIs defined
+by the file server to implement a new extension. It contains the following
+sections: <ul>
+<li><p><xref href="GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81.dita#GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81/GUID-4CFC2D17-60B9-512F-8896-54AA0F8221CE">Project
+file and build</xref> describes the requirements for an extension's project
+file. </p></li>
+<li><p><xref href="GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81.dita#GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81/GUID-7744238A-BFE2-53BD-9B57-D38ED08811EB">Implementing
+the factory class</xref> describes the factory class that each extension DLL
+must implement to create proxy driver objects. </p></li>
+<li><p><xref href="GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81.dita#GUID-E10F01A3-6451-52AF-BB35-D93D8D27DD81/GUID-6B7F5F60-D50F-5BB0-AB3D-8D065FE5865A">Implementing
+the proxy drive extension class</xref> describes the proxy drive class that
+each extension DLL must implement to provide its extension functionality. </p></li>
+</ul></p><p>The examples quoted are taken from the <codeph>t_logext</codeph> test
+extension, which is available in the Symbian platform source code at <filepath>os/kernelhwsrv/kerneltest/f32test/ext/t_logext.cpp</filepath>.
+That test code simply logs when the extension functions are called. </p> <p id="GUID-4CFC2D17-60B9-512F-8896-54AA0F8221CE"><b>Project file and build</b> </p><p>A
+file server extension is implemented as a polymorphic DLL. Its project file
+must be written as follows: </p><ul>
+<li id="GUID-8D625BD6-E5D5-53B1-B9D2-634C59DC213F"><p> <codeph>TARGETTYPE</codeph> should
+be set to <codeph>fsy</codeph>. This means that the project does not require
+a <filepath>.def</filepath> file to specify its frozen exports: the build
+tools will assume the correct frozen exports for the type. </p> </li>
+<li id="GUID-66234A27-AB5D-5534-9267-25B65F4821D9"><p>The DLL name is conventionally
+given the extension <filepath>.fxt</filepath>. </p> </li>
+<li id="GUID-D0718103-1D7B-5926-822E-1CB4B24C68B8"><p>The second UID should
+be <codeph>0x100039df</codeph>. </p> </li>
+<li id="GUID-910E63DC-9A65-5124-950B-A7F2BF2929CC"><p>The DLL is loaded by
+the file server, and therefore must have the same platform security capabilities
+as that process: <codeph>TCB ProtServ DiskAdmin AllFiles PowerMgmt CommDD</codeph>. </p></li>
+</ul><p>The following shows an example project file: </p><codeblock id="GUID-0DAA1B8E-2A55-5942-A166-B09666258967" xml:space="preserve">TARGET            t_logext.fxt
+TARGETTYPE        fsy
+
+SOURCEPATH    ../ext
+SOURCE            t_logext.cpp
+
+SYSTEMINCLUDE        /epoc32/include 
+
+LIBRARY            euser.lib efile.lib
+
+UID        0x100039df 0x10000CEE
+VENDORID 0x70000001
+
+#include "../../f32/group/f32caps.mmh"  // Include capabilities of File Server process</codeblock> <p id="GUID-7744238A-BFE2-53BD-9B57-D38ED08811EB"><b>Implementing the factory
+class</b> </p><p>Each extension DLL must implement a factory class that is
+responsible for creating proxy driver objects. This is done by implementing
+a class derived from <xref href="GUID-57D0E9E3-D1B9-36A1-9038-96336F58EA08.dita"><apiname>CProxyDriveFactory</apiname></xref>. A pointer to an
+object of this class must be returned by the first function exported from
+the extension DLL. </p><codeblock id="GUID-ABBFEF73-38FE-5689-B89A-FA8207DD2F81" xml:space="preserve">class CLoggerProxyDriveFactory : public CProxyDriveFactory
+    {
+public:
+    CLoggerProxyDriveFactory();
+    virtual TInt Install();            
+    virtual CProxyDrive* NewProxyDriveL(CProxyDrive* aProxy,CMountCB* aMount);
+    };
+
+...
+
+// Create a new factory
+EXPORT_C CProxyDriveFactory* CreateFileSystem()
+    {
+    return(new CLoggerProxyDriveFactory());
+    }
+</codeblock> <p><b>Factory
+initialisation </b> </p> <p> <codeph>CProxyDriveFactory</codeph> defines a
+pure virtual function <codeph>Install()</codeph> that is called once by the
+file server before any other factory object function. You must implement this
+to do any required setup. <codeph>CProxyDriveFactory</codeph> is derived from <xref href="GUID-578CD638-601C-353D-B1C4-557C72A00DF1.dita"><apiname>CFsObject</apiname></xref>,
+which means that the file server maintains a reference count of its use, and
+allows clients to refer to the object through a name (a string). The <codeph>Install()</codeph> function's
+implementation should set the extension's name: </p><codeblock id="GUID-ACF692BF-8C52-5430-80C6-9702EFD0FB7D" xml:space="preserve">TInt CLoggerProxyDriveFactory::Install()
+    {
+    _LIT(KLoggerName,"Logger");
+    return(SetName(&amp;KLoggerName));
+    }
+</codeblock> <p>Clients can get the name of an extension using <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-F00D3D91-212A-3192-8A2E-989912AAA9DD"><apiname>RFs::ExtensionName()</apiname></xref>,
+and then use it to specify the extension in functions such as <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-5003658C-C5A0-39F0-A518-65B20CD41567"><apiname>RFs::MountExtension()</apiname></xref>. </p><p><codeph>CProxyDriveFactory</codeph> also defines a virtual function <codeph>Remove()</codeph>, which is called
+just before when the factory object is destroyed. You can override this to
+do any required cleanup. </p> <p><b>Proxy drive factory </b> </p><p><codeph>CProxyDriveFactory</codeph> defines
+a pure virtual function <codeph>NewProxyDriveL()</codeph> that is called by
+the file server to obtain a new proxy drive extension object. You must implement
+this to create the proxy drive extension. </p><codeblock id="GUID-77B7A963-83D7-5D80-9374-53D296E2248B" xml:space="preserve">CProxyDrive* CLoggerProxyDriveFactory::NewProxyDriveL(CProxyDrive* aProxy,CMountCB* aMount)
+    {
+    return(CLoggerExtProxyDrive::NewL(aProxy,aMount));
+    }</codeblock><p>The <codeph>aProxy</codeph> argument represents the last
+extension to be mounted. The new extension will be mounted on top of it. <codeph>aProxy</codeph> could
+be an object from another extension library, or a file server <codeph>CLocalProxyDrive</codeph> object
+that calls the media sub-system. </p><p><codeph>aMount</codeph> represents
+the mounted drive to which the extension is being added. </p><p><codeph>aProxy</codeph> and <codeph>aMount</codeph> are
+required by the proxy drive extension base class (<codeph>CBaseExtProxyDrive</codeph>)
+constructor: </p><codeblock id="GUID-EF379FC2-F2A5-5F47-8BA6-2C286DF746FA" xml:space="preserve">CLoggerExtProxyDrive::CLoggerExtProxyDrive(CProxyDrive* aProxyDrive, CMountCB* aMount)
+    :CBaseExtProxyDrive(aProxyDrive,aMount)
+    {
+    ...
+    }</codeblock><p>The arguments are used to initialise private data in <codeph>CBaseExtProxyDrive</codeph>. </p> <p><b>DLL's first exported function</b></p><p>The DLL's first exported function
+should create a new instance of the factory class: </p><codeblock id="GUID-9173B82F-90BA-5FBD-9EC9-FA7EB08E3794" xml:space="preserve">EXPORT_C CProxyDriveFactory* CreateFileSystem()
+//
+// Create a new file system
+//
+    {
+    return(new CLoggerProxyDriveFactory());
+    }</codeblock> <p id="GUID-6B7F5F60-D50F-5BB0-AB3D-8D065FE5865A"><b>Implementing the proxy drive
+extension class</b> </p><p>An extension DLL must contain a proxy drive class
+that implements the extension. This is done by implementing a class derived
+from <xref href="GUID-FAFF712B-2295-3907-B839-D77F052160DA.dita"><apiname>CBaseExtProxyDrive</apiname></xref>. <codeph>CBaseExtProxyDrive</codeph> defines
+virtual functions that are called by the file system to handle requests such
+as reading and writing data from the drive. The functions have default implementations
+that simply pass on the request to the media driver, or possibly, to another
+extension if one is installed. Your derived class implementation can override
+these functions to modify this default functionality. Such a function implementation
+typically performs its particular functionality, then calls the corresponding
+base class function to pass on the request to the media driver. </p><p>The
+sequence of calls made to the extension, and the format of the data passed
+in those calls, vary according to the file system type. Therefore, to implement
+a file system extension you need a good understanding of the particular file
+system for which the extension is targeted. </p> <p><b>Initialisation</b> </p><p>The file server calls the proxy drive class <xref href="GUID-E735AB4A-E9D5-33C7-ACEC-815013C0777A.dita"><apiname>Initialise()</apiname></xref> function
+after construction. You can override this function to do any set up you require.
+Your implementation should end by calling the base class function <xref href="GUID-FAFF712B-2295-3907-B839-D77F052160DA.dita#GUID-FAFF712B-2295-3907-B839-D77F052160DA/GUID-0B9ABB2C-6B33-389C-9FF9-04A4799682D9"><apiname>CBaseExtProxyDrive::Initialise()</apiname></xref> to
+pass on the request. </p><codeblock id="GUID-B52DB6C7-1A2E-516F-A6EB-14A71B2E7BF3" xml:space="preserve">TInt CLoggerExtProxyDrive::Initialise()
+    {
+    // extension specific initialisation 
+    // ...
+    return(CBaseExtProxyDrive::Initialise());
+    }</codeblock><p>The file system may at initialisation and at later times
+request capability information from the drive using the <codeph>Caps()</codeph> function: </p><codeblock id="GUID-9436817E-396D-57D8-A7D7-BE6060DA0C32" xml:space="preserve">TInt Caps(TDes8 &amp;anInfo);</codeblock><p>On
+return, <codeph>anInfo</codeph> is a packaged capability structure, as defined
+in <filepath>d32locd.h</filepath>. <codeph>CBaseExtProxyDrive</codeph> implements <codeph>Caps()</codeph> to
+get the capabilities from the drive. </p><p><b> Cleanup</b> </p><p>If the drive is dismounted, the extension is notified by a call to
+its <codeph>Dismounted()</codeph> function, and the proxy drive object is
+deleted. </p><p><b>Reading
+data from the drive</b> </p><p>A file system requests to read data from the
+drive by calling the proxy drive's virtual <codeph>Read()</codeph> functions,
+of which there are three overloads. A proxy drive extension can override these
+functions to modify the read functionality. The implementation should as usual
+pass on the request to the drive using the base class's functions. </p><codeblock id="GUID-45E9CADA-5278-59D2-91B4-C6C687730642" xml:space="preserve">TInt CLoggerExtProxyDrive::Read(TInt64 aPos,TInt aLength,TDes8&amp; aTrg)
+    {
+    // do extension specific operations
+    // ...
+    return(CBaseExtProxyDrive::Read(aPos,aLength,aTrg));
+    }
+</codeblock><p><b>Writing
+data to the drive</b> </p><p>A file system requests to write data to the drive
+by calling the proxy drive's virtual <codeph>Write()</codeph> functions, of
+which there are three overloads. A proxy drive extension can override these
+functions to modify the write functionality. The implementation should as
+usual pass on the request to the drive using the base class function. </p><codeblock id="GUID-BA726003-1033-5609-84CE-61747F6EA287" xml:space="preserve">TInt CLoggerExtProxyDrive::Write(TInt64 aPos,const TDesC8&amp; aSrc)
+    {
+    // do extension specific operations
+    // ...
+    return(CBaseExtProxyDrive::Write(aPos,aSrc));
+    }
+</codeblock><p>It is possible for some media, such as a RAM disk type drive,
+to be dynamically resized to fit the data being written to it. The proxy drive
+interface's <codeph>Enlarge()</codeph> and <codeph>ReduceSize()</codeph> functions
+handle such resizing requests. An extension can override these functions if
+required. </p><p><b>Formatting
+a drive</b> </p><p>A file system requests to format a drive by calling the
+proxy drive's virtual <xref href="GUID-A13BA97D-AB50-30C9-B0A6-51EFCD1A93D6.dita"><apiname>Format()</apiname></xref> functions, of which there
+are two overloads. A proxy drive extension can override these functions to
+modify the drive format functionality. The implementations should as usual
+pass on the request to the drive using the base class functions. </p><p><b>Password and drive locking</b> </p><p>Some drive types can be locked using
+a password, using functions such as <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-1FFBA354-A069-36D4-BEFF-0BD5CCF125E1"><apiname>RFs::LockDrive()</apiname></xref>. The
+proxy drive class defines a number of functions, <xref href="GUID-5BCEAABF-D060-3F29-A8AE-0C14A8DFC1D2.dita"><apiname>Clear()</apiname></xref>, <xref href="GUID-216F09C2-60A8-3E42-B466-5D47233E125B.dita"><apiname>ErasePassword()</apiname></xref>, <xref href="GUID-55300467-B647-3CAC-899E-AF7D2A6C1792.dita"><apiname>Lock()</apiname></xref>,
+and <xref href="GUID-17D8CCBA-9880-3E8D-B58F-7869218AF986.dita"><apiname>Unlock()</apiname></xref>, to handle such requests. Extensions can override
+these functions and should pass on the request to the drive using the base
+class functions. </p><p><b>Error
+information</b> </p><p>File systems can in some circumstances request information
+from the media driver about the last error that occurred. The proxy drive
+class defines the function <xref href="GUID-46546BBB-46C0-3AA7-A6F5-CD68A24EF5E9.dita"><apiname>GetLastErrorInfo()</apiname></xref> to handle
+such requests. Extensions can override this function or use the default implementation
+provided by the base class. The error information is a packaged <codeph>TErrorInfo</codeph> structure. </p><p><b>Extension functions</b> </p><p>The proxy drive class implements the common
+Symbian platform pattern that allows new functionality to be added to an existing
+class without altering the interface, which could cause a compatibility break.
+The <codeph>GetInterface()</codeph> function takes an ID argument indicating
+the functionality being requested, and generic input and output arguments.
+An extension can override this if required. </p><codeblock id="GUID-3C50ABD5-D485-5BC5-8D34-0FA40E78BF6A" xml:space="preserve">TInt CLoggerExtProxyDrive::GetInterface(TInt aInterfaceId,TAny*&amp; aInterface,TAny* aInput)
+    {
+    switch(aInterfaceId)
+        {
+        // file caching supported, so pass query on to next extension
+        case ELocalBufferSupport:
+            return CBaseExtProxyDrive::LocalBufferSupport();
+
+        default:
+            return CBaseExtProxyDrive::GetInterface(aInterfaceId, aInterface, aInput);
+        }
+    }</codeblock> <p><b>Test
+operations</b> </p><p>The file server offers an interface, <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-DEB7A7A9-7E75-3F6A-9C20-2E5FC8FB6128"><apiname>RFs::ControlIo()</apiname></xref>,
+that allows a message to be sent to a media driver in debug builds, in order
+to simplify writing test programs. </p><p>The proxy drive class defines the
+function <xref href="GUID-446113DA-8032-375C-9000-16C8E6704E67.dita"><apiname>ControlIO()</apiname></xref> to handle such requests. Extensions
+can override this function or use the default implementation provided by the
+base class. </p></section>
+<section id="GUID-9E7099C2-9A97-503A-B8D7-ADD8A66C8D59"><title>Deploying and
+using an extension</title><p>An extension library is only called after a client
+has requested the file server to load the extension library and to mount it
+on a particular drive. This section first describes how to do this at the
+same time as mounting the target file system, and then how to add an extension
+to an already mounted file system. </p> <p><b>Mounting
+extensions in the Base Starter</b> </p><p>To mount a primary extension, modify
+the <xref href="GUID-80698E62-E310-59CA-A524-5CF44C437BE4.dita">Base Starter</xref> to
+use the <xref href="GUID-EDED466A-BBD8-30E7-A50D-3A0631B73AE9.dita"><apiname>RFs:AddExtension()</apiname></xref> and <xref href="GUID-9CE6C690-F1C4-329C-B9AF-84A8FAB3E1F0.dita"><apiname>RFs:MountFileSystem()</apiname></xref> functions
+as shown below. </p><codeblock id="GUID-F3802A21-365A-5291-A57F-856B11FCEC81" xml:space="preserve">// If an extension is required, assume its name is set in iExtName
+if (iExtName)
+    {
+    TPtrC extname(iExtName);
+    r=iFs.AddExtension(extname);
+    if (r==KErrNone || r==KErrAlreadyExists)
+    r=iFs.MountFileSystem(fileSysName,extname,drive);
+    }
+else
+                r=iFs.MountFileSystem(fileSysName,drive);</codeblock> <p><xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-0754C075-92B6-37B3-8959-61D8D65DB491"><apiname>RFs::MountFileSystem()</apiname></xref> can
+be passed a flag to specify whether the drive is mounted as synchronous or
+asynchronous. An asynchronous drive has its own processing thread, i.e. operations
+on it do not block the file server and other drives. A synchronous drive's
+requests are processed by the main file server thread and it is possible to
+block it with operations on other drives. A drive should be mounted as synchronous
+if it is very fast, such an internal RAM or ROFS drive.</p><p> <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-7546C0FA-4FD4-3C3D-B9E5-92F371759A4B"><apiname>RFs::DismountFileSystem()</apiname></xref> is
+used to dismount a file system and any primary and secondary extensions mounted
+on the drive. </p><p>No resources can be open on the drive while an extension
+is mounted as this operation involves a dismount/remount. If the remount fails,
+then the extension is dismounted from the drive. </p> <p><b>Mounting by client-side request</b> </p><p>The functions in the file server
+client API allow extensions to be managed by file server clients. </p><p>Most
+of these functions require the name of the extension. Use <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-F00D3D91-212A-3192-8A2E-989912AAA9DD"><apiname>RFs::ExtensionName()</apiname></xref> to
+get the name of an extension on the specified drive at position <codeph>aPos</codeph>.
+The position is the location in the extension chain, the first extension added
+is equal to zero. If an extension is not found at <codeph>aPos</codeph> then <codeph>KErrNotFound</codeph> is
+returned. </p><codeblock id="GUID-C435F3B8-635D-56EB-BCEE-E4EE4CF390DC" xml:space="preserve">const TInt KMaxFileSystemExtNameLength = 100; // Arbitrary length
+TBuf&lt;KMaxFileSystemExtNameLength&gt; fsExtName;
+r = TheFs.ExtensionName(fsExtName, driveNo, 0);</codeblock><p>To mount a secondary
+extension it must first be added to the file server using <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-D45FD363-EEF9-3F77-8FA1-49270D8E89A0"><apiname>RFs::AddExtension()</apiname></xref>.
+This loads the specified extension and adds it to the extension container
+in the file server. The extension can then be mounted onto the specified drive
+using <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-5003658C-C5A0-39F0-A518-65B20CD41567"><apiname>RFs::MountExtension()</apiname></xref>. </p><p>To dismount an extension
+from a specified drive, use <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-D8D25E61-6480-30A0-9A3E-BE7A28FD896C"><apiname>RFs::DismountExtension()</apiname></xref>. This
+can only dismount extensions that were mounted using <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-5003658C-C5A0-39F0-A518-65B20CD41567"><apiname>RFs::MountExtension()</apiname></xref>.
+No resources can be open on the drive when an extension is dismounted. This
+operation involves a dismount/remount if there is a current <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita"><apiname>CMountCB</apiname></xref> object
+mounted on the drive. An extension can be removed from the file server using <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-7B8DB8F9-DE75-3FF3-8AE6-1467C3CD4ACF"><apiname>RFs::RemoveExtension()</apiname></xref>. </p> </section>
+<section id="GUID-789DB94B-0650-4FE5-A8B6-312A8A9B499F"><title>Possible issues with file server extensions</title><p>Loading
+other libraries (such as device drivers and DLLs) from an extension uses the
+kernel's loader, which in turn uses the file server. This raises the possibility
+of deadlock. Even if your file system extension is for a different file system
+than from the one where your driver lives, the loader may still scan other
+drives. </p><p>Note that <xref href="GUID-57D0E9E3-D1B9-36A1-9038-96336F58EA08.dita#GUID-57D0E9E3-D1B9-36A1-9038-96336F58EA08/GUID-F3CA0484-A983-31A1-A44C-A067E711E528"><apiname>CProxyDriveFactory::Install()</apiname></xref> is
+called from the file server's main thread, so using the file server from there
+is guaranteed to deadlock. The simplest solution to this is to have the client
+that calls <codeph>RFs::AddExtension()</codeph> load the required library
+beforehand. </p><p>An alternative approach would be to create
+a new thread from the <codeph>Install()</codeph> function and, in order to
+load a driver, call <codeph>User::LoadLogicalDevice()</codeph> in that thread.
+Your code would need to solve the synchronisation problem of ensuring that
+the <codeph>User::LoadLogicalDevice()</codeph> call has completed before attempting
+to mount the extension on a drive. </p> </section>
+</conbody></concept>

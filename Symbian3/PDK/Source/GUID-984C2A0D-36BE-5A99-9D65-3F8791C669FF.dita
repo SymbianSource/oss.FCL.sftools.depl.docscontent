@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-984C2A0D-36BE-5A99-9D65-3F8791C669FF" xml:lang="en"><title>ASSP/Variant
+Architecture</title><shortdesc>A base port must provide a software layer called the ASSP/Variant.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The ASSP/Variant layer provides two main functions. First, it implements
+a small number of hardware-specific functions that are used by the Kernel.
+Second, it implements common peripheral control functions that other extensions
+and device drivers can use. </p>
+<p id="GUID-95C34114-F986-5428-9D40-5CF64429CDBD">  The most important of
+these functions is interrupt dispatching. During initialisation the ASSP/Variant
+must specify a dispatch function to be called for all hardware interrupts. </p>
+<p>In general, the ASSP/Variant provides control functions for hardware which
+is shared between multiple devices. For example it is often not possible to
+do a read-modify-write on a GPIO port in order to change the state of an individual
+output line. This may be either because an output port register is write-only
+or because reading the port register reads the actual logic levels on the
+pins, not the last value written to the register, and the pin level typically
+lags the written value due to capacitive loading. In this case, the ASSP/Variant
+could provide a function to set and clear individual port bits, keeping a
+RAM copy of the last value written to the port register. </p>
+<p>The simplest implementation is put all the code in a single DLL, called
+the Variant DLL (<filepath>ecust.dll</filepath>). For hardware architectures
+based on an ASSP, you can allow multiple types of phones that use the same
+ASSP to share the common code. To do this, the common ASSP code is implemented
+in a kernel extension, and the Variant DLL implements the code that is specific
+to the phone type. </p>
+<fig id="GUID-A42AFED6-372D-54A3-BC9D-FA99725464EF">
+<image href="GUID-71271D1C-C385-5687-8A90-46E8B590BB1E_d0e365587_href.png" placement="inline"/>
+</fig>
+<p>In the Base Porting Guide, we refer to the ASSP layer and the Variant Layer,
+where the ASSP layer contains the source code tailored to a range of different
+microprocessors (e.g. ARM720/920/SA1/Xscale), and the Variant layer contains
+the source code associated with off-chip hardware (same CPU, different peripherals). </p>
+<p>For example, the standard Symbian port for the template reference board
+is split into a core layer (in directory <filepath>...\template_assp\...</filepath>)
+and code specific to the template board (in directory <filepath>...\template_variant\...</filepath>).
+The <filepath>.mmp</filepath> file for the ASSP layer is <filepath>...\template_assp\katemplate.mmp</filepath>,
+and the <filepath>.mmp</filepath> file for the Variant layer is <filepath>...\template_variant\vtemplate.mmp</filepath>. </p>
+<section id="GUID-C05E021D-6DD6-5169-947B-192026A4364F"><title>The Asic class</title> <p>The
+heart of the ASSP/Variant is the <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><apiname>Asic</apiname></xref> class, defined in <filepath>..\e32\include\kernel\arm\assp.h</filepath>.
+This is a class that contains a number of pure virtual functions that must
+be implemented. </p> <p>Where there is an ASSP/Variant split, the ASSP layer
+should derive a concrete implementation from the <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><apiname>Asic</apiname></xref> class.
+The most convenient way of implementing the Variant layer is to further derive
+from this ASSP class. Only the Variant DLL is declared as ‘variant’ in the
+ROM – the ASSP is declared as an extension. If there is no ASSP/Variant split,
+then the Variant is simply a concrete implementation of the <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><apiname>Asic</apiname></xref> class. </p> <p>The
+ASSP layer can, itself, define additional functions to be implemented in the
+Variant layer. For example, the ASSP layer defines the pure virtual function <codeph>VideoRamSize()</codeph> which
+the Variant layer provides to map the video frame buffer. </p> <p>The template
+reference board port has the ASSP/Variant split. The ASSP layer is implemented
+by the <codeph>TemplateAssp</codeph> class, and the Variant layer is implemented
+by the <codeph>Template</codeph> class. </p> <p>For reference: the template
+port ASSP layer implementation's <filepath>.mmp</filepath> file is at <filepath>...\template_assp\katemplate.mmp</filepath>,
+and the Variant layer implementation's <filepath>.mmp</filepath> file is at <filepath>...\template_variant\vtemplate.mmp</filepath>. </p> <p>Note
+that one of the source files that forms the ASSP layer must have the <codeph>DECLARE_STANDARD_ASSP()</codeph> declaration.
+See <filepath>...\template_assp\assp.cpp</filepath>. </p> </section>
+</conbody><related-links>
+<link href="GUID-E0DCBDCF-C056-53E5-A375-778327F848E4.dita"><linktext>Asic Class
+                Tutorial</linktext></link>
+<link href="GUID-B498EDA0-677E-5521-9E4F-24D7C2048F2E.dita"><linktext>Implementing
+the ASSP                 Register</linktext></link>
+<link href="GUID-5194A7B6-471B-5BCF-8569-16A3BA59000A.dita"><linktext>Using the
+ASSP Register</linktext></link>
+<link href="GUID-77DF7A6B-F01D-5B9F-9C7A-662A04ED8BE7.dita"><linktext>ASSP Kernel
+Extension                 Overview</linktext></link>
+<link href="GUID-89291394-ABDF-5895-9E09-0D80D7A9F3EC.dita"><linktext>Integrated
+Interchip Sound</linktext></link>
+</related-links></concept>

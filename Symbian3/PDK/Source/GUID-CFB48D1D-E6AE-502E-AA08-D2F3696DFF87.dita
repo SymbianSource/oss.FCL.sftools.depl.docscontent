@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-CFB48D1D-E6AE-502E-AA08-D2F3696DFF87" xml:lang="en"><title>Locking
+a Large File </title><shortdesc>How to lock a section of a large file. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-7DF213D0-7049-579A-B786-306E1F109BC9"><p>The <codeph>RFile64::Lock()</codeph> function
+has a <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> parameter that specifies the position to lock
+from. By using a <codeph>TInt64</codeph> rather than a <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref>,
+the function can lock a section of file that is greater than 2GB–1. </p><p>See <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-86E8E305-488A-3E30-94C0-00B037C48522"><apiname>RFile64::Lock(TInt64
+aPos, TInt64 aLength)</apiname></xref>. </p> </context>
+<steps id="GUID-6FB69C50-F3DD-5D53-BD29-DEAA7D144757">
+<step id="GUID-1ADA27CC-8D41-5CD5-B298-30C39894D476"><cmd>Use 64-bit <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> rather
+than <codeph>RFile</codeph>.</cmd>
+<stepxmp><codeblock id="GUID-4AE64F52-6971-502E-97E5-99E1C73B19BA" xml:space="preserve">// RFile file;
+RFile64 file;</codeblock></stepxmp>
+</step>
+<step id="GUID-C9DF41B1-E7F5-58CD-B029-F0862CDB47DD"><cmd>Replace <codeph>TInt</codeph> variables
+with <codeph>TInt64</codeph> variables. </cmd>
+<info>Use a <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> variable if a lock position in a file
+that is greater than 2GB–1 is required. </info>
+<stepxmp><codeblock id="GUID-62691085-AB09-5B47-BDC2-52839B24378C" xml:space="preserve">// TInt lockPosition, lockLength;
+TInt64 lockPosition, lockLength;</codeblock></stepxmp>
+</step>
+</steps>
+<example><title>Lock example</title><p>The example below shows a variable
+of the type <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> being used to specify the lock position
+and the lock length being used together with the <codeph>RFile64</codeph> class. </p><codeblock id="GUID-DE93DE0A-9D39-5CA9-90A1-811BD5611F9B" xml:space="preserve">//    RFile file;
+    RFile64 file;
+    TInt err = file.Open(TheFs, _L(“BIGFILE.BIG”), EFileWrite);
+    if(err != KErrNone)
+     {
+        // handle error
+        return err;
+     }
+
+    // Large file access is now supported!
+    // TInt lockPosition, lockLength;
+    TInt64 lockPosition, lockLength;
+    err = file.Lock(lockPosition,lockLength);
+        if(err != KErrNone)
+            {
+            //could return with KErrArgument if lockPosition+lockLength&gt;63Bytes   
+            return err;
+            }
+</codeblock></example>
+<postreq id="GUID-0FDA0029-47E5-571B-845A-CE59F5B5E153"><p>You must unlock
+the section of file using <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-5955E095-D4DB-34CE-8254-D6B5C9BFC05B"><apiname>RFile64::Unlock()</apiname></xref>, as explained
+in <xref href="GUID-B31D30BF-9D55-5215-9D34-DD619D4E4D47.dita">Unlocking a Large
+File</xref>. </p></postreq>
+</taskbody></task>

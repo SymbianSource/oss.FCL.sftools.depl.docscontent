@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-772C2721-DD84-54A6-ACE0-ECACC6432B95" xml:lang="en"><title>Kernel
+Objects and Containers Information Commands</title><shortdesc>Describes how to use the <codeph>c</codeph> and <codeph>o</codeph> commands
+to get information about kernel objects. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-3D86C17E-3412-5DD9-ADA2-ABC24D5D6C32"><title>Kernel objects</title> <p>Kernel
+objects such as <codeph>DProcess</codeph>, <codeph>DThread</codeph>, <codeph>DSemaphore</codeph>, <codeph>DChunk</codeph> are
+all instances of classes derived from <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>. </p> <p>To
+show basic information about a <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>, use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-3494E61C-7097-544C-AE7D-73750337744A">o</xref> command. </p> <p>To show more detail, use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-1DED2B2F-E780-50A0-8325-5DA22BC7D3E0">O</xref> command. </p> <p>As an example, use these commands to show information
+about a <codeph>DProcess</codeph> object whose address is shown using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D0175D78-6F84-5F4F-BA90-2C591B473C69">i</xref> command: </p> <codeblock id="GUID-DA14CB69-B70E-5D79-8EBF-64EB2E60C625" xml:space="preserve">...
+TheCurrentDataSectionProcess=6403bb4c
+...</codeblock> <p><userinput>o 6403bb4c</userinput> </p> <p>This gives: </p> <codeblock id="GUID-C94EEF55-67D2-59A5-88D2-8AB75179F295" xml:space="preserve">.o 6403bb4c
+PROCESS at 6403bb4c VPTR=f8046c78 AccessCount=6 Owner=00000000
+Full name crash
+</codeblock> <p>All objects derived from <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> have a virtual
+table pointer, access count, owner and name. Using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-1DED2B2F-E780-50A0-8325-5DA22BC7D3E0">O</xref> command on this address would you give you the full process information. </p> <p>You
+can use <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-3494E61C-7097-544C-AE7D-73750337744A">o</xref> to
+examine other types of objects, for example chunks. The thread information
+for the current data section process shows two chunks: </p> <codeblock id="GUID-DD8E61B2-B96F-5BE6-86C7-4890163D70B9" xml:space="preserve">NumChunks=2
+0: Chunk 6403c044, run 00400000, access count 1
+1: Chunk 64039688, run 00600000, access count 1
+</codeblock> <p>Using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-3494E61C-7097-544C-AE7D-73750337744A">o</xref> command
+on the first of these chunk objects gives you the basic information: </p> <codeblock id="GUID-19B3111C-B977-5088-B86A-7648F1895FE4" xml:space="preserve">.o 6403c044
+CHUNK at 6403c044 VPTR=f8046b50 AccessCount=1 Owner=6403bb4c
+Full name crash::$DAT
+</codeblock> <p>Using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-1DED2B2F-E780-50A0-8325-5DA22BC7D3E0">O</xref> command
+gives you more detailed information: </p> <codeblock id="GUID-A4F93D43-5A6C-5D11-8C63-4DB0FAB3C157" xml:space="preserve">.q 6403c044
+CHUNK at 6403c044 VPTR=f8046b50 AccessCount=1 Owner=6403bb4c
+Full name crash::$DAT
+Owning Process 6403bb4c
+Size 2000, MaxSize 200000, Base 00400000
+Attrib 6, StartPos 0
+Type 6, State 2, Home Base 68900000
+Home Region Offset 00000000
+Home Region Base 68900000
+Home Region Size 00100000
+PTE: 0000055e, PDE: 00000021 00000001 00000001
+NumPdes=1, iPdes=61000010, iHomePdes=61001a24
+PdeBitMap=00000001, PageBitMap=6403c0c8
+Domain -1
+</codeblock> <p> <i> The information displayed is memory model dependent.
+It is shown here for the moving memory model.</i>  </p> <p>Notes: </p> <ul>
+<li id="GUID-D1F01CCC-D5E4-5D61-8955-062F52225796"><codeblock id="GUID-DB35CBBC-B0E4-54BB-9F7B-733734D7C2CB" xml:space="preserve">Size 2000, MaxSize 200000, Base 00400000</codeblock> <p>The <codeph>Size</codeph> field shows the current size of the chunk,
+in bytes. </p> <p>The <codeph>MaxSize</codeph> field shows the maximum size
+of the chunk, in bytes. </p> <p>The <codeph>Base</codeph> field shows the
+base address in the run region. </p> </li>
+<li id="GUID-BBC60AE0-64C4-52CC-85BC-CFA59B1EA075"><codeblock id="GUID-C50F4A12-C1C4-5E99-8525-735F369B4A4E" xml:space="preserve">Attrib 6, StartPos 0</codeblock> <p>The <codeph>Attrib</codeph> field shows the attributes of the chunk. </p> <p>The <codeph>StartPos</codeph> field
+shows the offset, in bytes, between the base address and the start of the
+committed area. This is non-zero for double-ended chunks only. </p> </li>
+<li id="GUID-A9312AAA-A917-5E03-8413-8403E3EC2709"><codeblock id="GUID-6E824231-EBF8-5A9E-BEF8-DCD8BB77FB7C" xml:space="preserve">Type 6, State 2, Home Base 68900000</codeblock> <p>The <codeph>Type</codeph> field shows the type of chunk. This corresponds
+to a <codeph>TChunkType</codeph> enum value. </p> <p>The <codeph>State</codeph> field
+shows the current state of the chunk. This corresponds to a <codeph>TChunkState</codeph> enum
+value, which is itself defined within the scope of the Symbian OS internal
+class <codeph>DMemModelChunk</codeph>. </p> <p>The <codeph>Home Base</codeph> field
+is the base address of the chunk in the home region. </p> </li>
+<li id="GUID-BE855CD6-F67F-585E-BA0E-2B50742EE841"><codeblock id="GUID-CA932A12-DA54-5B1E-8566-394D5886761C" xml:space="preserve">Home Region Offset 00000000
+Home Region Base 68900000
+Home Region Size 00100000
+</codeblock> <p>These three lines show the offset, base address and size (the
+reserved size) of the chunk in the home region. </p> </li>
+</ul> </section>
+<section id="GUID-52FF751C-A3D2-50B5-AAEF-433F67B4CDC5"><title>Kernel containers</title> <p>Internally,
+the kernel maintains lists of all current objects, organized by type. Each
+list is a container, a <codeph>DObjectCon</codeph> object, with one for each
+object type. </p> <p>The <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-FB2E24A6-9744-5169-BA90-DDF84DF1D3E5">c</xref> command
+will walk through all objects in a given list. The type of object is identified
+by appending a number after the command. For example, <codeph>DProcess</codeph> objects
+are identified by the number 1, so to walk through all current <codeph>DProcess</codeph> objects
+type: </p> <p><userinput>c1</userinput> </p> <p>The command effectively executes
+a <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-1DED2B2F-E780-50A0-8325-5DA22BC7D3E0">O</xref> command
+on each object in the "processes" container. </p> </section>
+</conbody></concept>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0142B290-DA6C-5574-83D7-7555D804D9B5" xml:lang="en"><title>How
+to initialise array RESOURCE members</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><i><codeph>&lt;array-initialiser&gt;</codeph></i> </p>
+<p><b>array-initialiser ::=</b>     </p>
+<p><b> {</b> <i><codeph>&lt;array-initialiser-item-comma-list&gt;</codeph></i><b> }</b> <i><codeph>&lt;array-initialiser-item&gt;</codeph></i> </p>
+<p><b>array-initialiser-item ::=</b>     </p>
+<p><codeph><i>&lt;initialiser&gt;</i></codeph></p>
+<p><b>Fixed-length arrays</b> </p>
+<p>If a member is declared as a fixed-length array in the <codeph>STRUCT</codeph> or <codeph>RESOURCE</codeph> definition,
+for example,</p>
+<codeblock id="GUID-B2D4E3E1-2F01-53A4-92AE-AB99E3D2A680" xml:space="preserve">WORD elements[10]</codeblock>
+<p>then you must not specify any more items than were given in the length. </p>
+<p>If fewer items are specified in the default initialisation (i.e. in the <codeph>STRUCT</codeph> definition),
+then an error also results. </p>
+<p>Note that no values will be given to unspecified elements at the end of
+the array, even if they have been default initialised in the <codeph>STRUCT</codeph> definition.
+Take the following example:</p>
+<codeblock id="GUID-02A51707-F693-588B-9B84-35D5F04E26EB" xml:space="preserve">STRUCT SAMPLE
+ {
+ BYTE bts[3]={1,2,3};
+ }</codeblock>
+<p>In the following resource:</p>
+<codeblock id="GUID-D1C8604D-6877-54EA-A880-14316BC11008" xml:space="preserve">RESOURCE SAMPLE default
+ {}</codeblock>
+<p>the output will be the whole default array</p>
+<codeblock id="GUID-6CA06CBD-03A3-5CA9-8E66-69E8F703470D" xml:space="preserve">0x01 0x02 0x03</codeblock>
+<p>but in this resource:</p>
+<codeblock id="GUID-4B3D2892-C408-547F-9D83-40963CF68D19" xml:space="preserve">RESOURCE SAMPLE first_specified
+ {
+ bts={5};
+ }</codeblock>
+<p>the output is:</p>
+<codeblock id="GUID-DE3C3486-1084-5A69-8BAE-0DDC0975D8B6" xml:space="preserve">0x05</codeblock>
+<p>with the second and third elements lost. </p>
+<p>If you specify only the second element in the <codeph>RESOURCE</codeph> definition,
+then the first element is taken from the default initialisation, the second
+from the explicit initialisation and the third element is lost. The following
+resource:</p>
+<codeblock id="GUID-0A8BB7DF-64BC-5399-921C-82E304B0F58D" xml:space="preserve">RESOURCE SAMPLE  second_specified
+ {
+ bts[1]=5;
+ }</codeblock>
+<p>results in the 2-byte output:</p>
+<codeblock id="GUID-90DEAE7C-41E3-5D14-B074-A9BDC3862363" xml:space="preserve">0x01 0x05</codeblock>
+<p>If, however, you explicitly initialise an element in the middle of an array
+without having supplied default values for array members before it, then an
+error will result.</p>
+<section><title>Using expressions to initialise array elements</title> <p>You
+may initialise array elements with expressions. You must explicitly initialise
+each member component of the array otherwise the expressions will be evaluated
+incorrectly. The following resource:</p> <codeblock id="GUID-59A9B709-7E44-51BE-A690-7E126EBF4483" xml:space="preserve">RESOURCE SAMPLE correct_expression
+ {
+ bts[0]=3+1;
+ bts[1]=2;
+ bts[2]=3;
+ }</codeblock> <p>will generate the correct output <codeph>0x04  0x02 0x03</codeph>.
+However, if you use the following syntax:</p> <codeblock id="GUID-943761CA-D4ED-5B8E-9997-17785E1881FB" xml:space="preserve">RESOURCE SAMPLE incorrect_expression
+ {
+ bts={3+1,2,3};
+ }</codeblock> <p>the output will be <codeph>0x03 0x02 0x03</codeph>. This
+is because the pre-processor treats <codeph>3+1</codeph> as a literal string
+that is then interpreted by the compiler as 3. In the resource <codeph>correct_expression</codeph> above
+the ‘=‘ sign forces the pre-processor to evaluate the expression.</p> </section>
+</conbody></concept>

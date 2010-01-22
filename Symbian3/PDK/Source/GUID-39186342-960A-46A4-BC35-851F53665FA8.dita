@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-39186342-960A-46A4-BC35-851F53665FA8" xml:lang="en"><title>Writing
+the Version 3 Registration Resource File</title><shortdesc>The version 3 registration resource file is an evolution of the
+version 2 . This version is evolved to accommodate extended interfaces. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-11-1-1-8-1-4-1-5-1-4-1-5-1-6-1-3-1">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-7-1-11-1-1-8-1-4-1-5-1-4-1-5-1-6-1-3-1-1"><cmd>Set Info_format
+to the type of info record that is, <codeph>IMPLEMENTATION_INFO</codeph> or <codeph>BINARY_IMPLEMENTATION_INFO</codeph>.
+ </cmd>
+</step>
+<step id="GUID-BCDAAECA-1C25-4D09-A495-97949B5EF2C8"><cmd><codeph>default_data</codeph>:
+The data identifier field used by the resolver to determine if the implementation
+matches a client request.</cmd>
+<info><p>In <codeph>IMPLEMENTATION_INFO</codeph> structure, the data type
+is changed to accommodate maximum 2 strings with 255 bytes each. </p><p>In <codeph>BINARY_IMPLEMENTATION_INFO</codeph>,
+the data type is changed to accommodate a maximum 512 bytes.  </p></info>
+</step>
+<step id="GUID-7892DD48-0E0A-4209-B463-5DDA71F8021D"><cmd><codeph>opaque_data</codeph>:
+A binary data field that can contain additional data. This additional data
+can be used by the custom resolvers.  </cmd>
+<info><p>In <codeph>IMPLEMENTATION_INFO</codeph> structure, the data type
+is changed to accommodate maximum 2 strings with 255 bytes each. </p><p>In <codeph>BINARY_IMPLEMENTATION_INFO</codeph> structure,
+the data type is changed to accommodate a maximum 512 bytes.  </p></info>
+</step>
+<step id="GUID-3A4E66EE-31A6-4717-A6A6-14C4881E962C"><cmd><codeph>extended_interfaces</codeph> a
+maximum 8 UID's extended interfaces for both <codeph>IMPLEMENTATION_INFO</codeph> structure
+and <codeph>BINARY_IMPLEMENTATION_INFO</codeph> structure.  </cmd>
+</step>
+<step id="GUID-76A1CE8A-169C-43A2-9231-B310FDF8EEC2"><cmd><codeph>FLAG_ROM_ONLY</codeph> changed
+from bool data type to bit flag.  </cmd>
+<info><p><codeph>rom_only</codeph> set to 1 indicates the ROM-only implementation
+must be used.  </p><p><codeph>rom_only</codeph> set to 0 indicates the ROM-only
+implementation can be overidden.</p></info>
+</step>
+<step id="GUID-AF2EFD83-7116-472A-A1AE-4043236EA238"><cmd>In <codeph>REGISTRY_INFO</codeph> structure,
+the resource_format_version must be <codeph>RESOURCE_FORMAT_VERSION_3</codeph> .
+ </cmd>
+</step>
+<step id="GUID-668E4137-3339-4C40-8721-9F9109C936A1"><cmd>In I<codeph>NTERFACE_INFOstructure</codeph>,
+the <codeph>interface_uid</codeph> is renamed to <codeph>instantiation_interface_uid</codeph>. </cmd>
+</step>
+<step id="GUID-C4B7C81E-0472-4401-8CA2-EC46D5E48EC5"><cmd>In <codeph>REGISTRY_INFO</codeph> structure,
+the <codeph>resource_format_version</codeph> must be <codeph>RESOURCE_FORMAT_VERSION_3</codeph>.
+ </cmd>
+</step>
+</steps>
+<example><codeblock xml:space="preserve">#define IMPLEMENTATION_INFO_RECORD_TYPE1 1
+STRUCT IMPLEMENTATION_INFO
+	{
+	BYTE		info_format;		// = IMPLEMENTATION_INFO_RECORD_TYPE1
+	LONG   		implementation_uid;
+	BYTE   		version_no;
+	LTEXT  		display_name;
+	LEN BYTE LTEXT8  default_data[];		// maximum 2 strings with 255 bytes each	
+	LEN BYTE LTEXT8  opaque_data[];		// maximum 2 strings with 255 bytes each
+	LONG   		extended_interfaces[]; 	// maximum 8 extended interfaces 
+	BYTE		flags;			
+	}
+
+#define IMPLEMENTATION_INFO_RECORD_TYPE2 2
+STRUCT BINARY_IMPLEMENTATION_INFO
+	{
+	BYTE	  info_format;		        // = IMPLEMENTATION_INFO_RECORD_TYPE2
+	LONG	  implementation_uid;
+	BYTE	  version_no;
+	LTEXT	  display_name;
+	BYTE      default_data[];			// maximum 512 bytes
+	BYTE 	  opaque_data[];			// maximum 512 bytes
+	LONG	  extended_interfaces[];		// maximum 8 extended interfaces 
+	BYTE	  flags;			
+	}
+
+STRUCT INTERFACE_INFO
+	{
+	LONG	instantiation_interface_uid;
+	STRUCT	implementations[];		// maximum 8 implementations for each interface
+	}
+
+STRUCT REGISTRY_INFO
+	{
+	LONG	resource_format_version;    	// Use RESOURCE_FORMAT_VERSION_3
+	LONG	dll_uid;
+	STRUCT	interfaces[];			// maximum 4 interfaces
+	} </codeblock></example>
+<postreq><p><ul>
+<li><p>Maximum of four<codeph>INTERFACE_INFO</codeph> structures can be defined
+in one resource file.  </p></li>
+<li><p>Maximum of eight <codeph>IMPLEMENTATION_INFO</codeph> or <codeph>BINARY_IMPLEMENTATION_INFO</codeph> structures
+in each <codeph>INTERFACE_INFO</codeph> . Totally eight structures can be
+defined.  </p></li>
+<li><p>Maximum eight extended interfaces in each<codeph> IMPLEMENTATION_INFO</codeph> record. </p></li>
+<li><p>In a <codeph>IMPLEMENTATION_INFO</codeph> record a maximum of two strings
+with 255 bytes each can be used for <codeph>default_data</codeph> or<codeph>opaque_data</codeph> definitions. </p></li>
+<li><p>In a <codeph>BINARY_IMPLEMENTATION_INFO</codeph> record, a maximum
+of 512 bytes each for <codeph>default_data</codeph> or <codeph>opaque_data</codeph> definitions.
+ </p></li>
+</ul></p></postreq>
+</taskbody><related-links>
+<link href="GUID-B541BD01-29BE-4CB7-9420-ABEE0BDC9BA4.dita"><linktext>Writing a
+Standard Registration Resource File</linktext></link>
+<link href="GUID-64D62DD8-3D9C-4659-9658-C0B4D74D6E69.dita"><linktext>Writing the
+Version 2 Registration Resource File</linktext></link>
+</related-links></task>

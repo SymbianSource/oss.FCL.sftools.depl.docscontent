@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-3367B0DC-B23A-5161-ACEA-2611DC883E0D"><title>Device Data Provider Configuration Parameters</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The Device Data Provider implements a number of configurability parameters using the <codeph>opaque_data</codeph> field of the <codeph>MTP_DATA_PROVIDER</codeph> resource, and using the <codeph>DRIVEARRAY</codeph> resource found in the Device Data Provider’s configuration resource file. </p> <section><title>Syntax</title> <p> <b>Folder Exclusion List</b>  </p> <p>This parameter specifies the set of Symbian file system folders that are excluded from the object enumeration process. </p> <p>The parameter is specified as an array of strings that specifies an excluded folder. Each folder must be specified as a full path and can include a drive letter. If a drive letter is specified the folder path is excluded on the specified drive only. If a drive letter is not specified then the folder path is excluded on all available drives. Any backslash at the end is ignored. </p> <p>The exclusion list does not prevent the root folder of a drive from getting specified (for example by specifying “K:”). If specified, Device Data Provider excludes all folders and data objects on the specified drive. To prevent objects being added to the device and then not being visible to the MTP Initiator that created them, any attempt by an MTP Initiator to write data (<codeph>SendObject</codeph>) to an excluded root folder will be rejected with an Access Denied MTP response code. </p> <codeblock id="GUID-FC2AB5E5-87D6-5F19-8CB3-D101DE7C89FE" xml:space="preserve">
+RESOURCE MTP_DATA_PROVIDER dpConfig
+    {
+    type = KMTPDataProviderTypeECOM;
+    major_version = 1;
+    object_enumeration_persistent = 0;
+    supported_modes = KMTPModeMTP;  
+    server_name = "";
+    server_image_name = "";
+    opaque_resource = folderConfig;
+    }
+
+RESOURCE MTP_DEVICEDP_CONFIG folderConfig
+    {
+    enumeration_iteration_length = 32;
+    folder_exclusion_list = 
+        {
+        "?:\\private",
+        "?:\\resource",
+        "?:\\sys",
+        "?:\\system",
+        "?:\\logs",
+        "z:\\*",
+        "Z:\\*"
+        };
+    }</codeblock> <p> <b>Drive List</b>  </p> <p>This parameter list provides a mechanism to specify a friendly volume name and its root directory path for each drive (0 to 25, A to Z drive). For example, you can set the MMC card drive’s volume name to “<i>E Drive</i> ” or “<i>MMC</i> ”, etc and have <filepath>E:\Media\</filepath> instead of <filepath>E:\</filepath> as the drive’s root directory when MTP is accessing the drive. </p> <p>You can specify friendly drive name and root directory name in <codeph>DRIVEARRAY</codeph> field of the <filepath>mtpdevicedp_config.rss</filepath> file. </p> <codeblock id="GUID-8FC0E6AB-4E36-5557-B33F-E83ADC0E6655" xml:space="preserve">/**
+ * Update the drive number and provide the name that you wish to have. 
+ * Drive number varies from 0 to 25, '0' represent 
+ * A drive and '25' represent Z drive.
+ *
+ */
+        DRIVE
+            {
+            driveNo = 0;
+            driveName = "A Drive";
+            rootDirPath = "\\";
+            },</codeblock> <p> <b>Format Order List</b>  </p> <p>This parameter list provides a mechanism to specify the order of the supported formats. For instance in a Data Provider supporting two formats ‘<filepath>wma</filepath> ’ and ‘<filepath>mp3</filepath> ’, if you want <filepath>mp3</filepath> to be ordered first then specify the order of format (mp3) first in <codeph>FORMATS</codeph> field of the <codeph>mtpdevicedp_config.rss</codeph> file. </p> <codeblock id="GUID-7A8B11F6-693A-51AD-990B-FCC06A7D7589" xml:space="preserve">/**
+ *This resource used to create supported format ordered.
+ */ 
+RESOURCE FORMATSARRAY formats
+    {
+    //put the required format code in "" to enable format ordered property
+    objFormats = {"3009", "B901"}; //MP3, WMA
+    }</codeblock> <p> <b>Extension Plug-in List</b>  </p> <p>This parameter list provides a mechanism to extend device properties for Get/Set/Reset (for example Device Icon, Session initiator version info etc). Licensee can specify implementation UID for their own plug-ins (that has extenstion for any device property) in the <codeph>EXTNPLUGINUIDS</codeph> field of <filepath>mtpdevicedp_config.rss</filepath> file. </p> <codeblock id="GUID-9DFF6F6C-CA88-5B91-B206-1F579099B48A" xml:space="preserve">// This resource is used to load the extension device properties for Device data provider. 
+RESOURCE PLUGINUIDARRAY extnpluginuids
+    {
+    //Put the extension plugin implementation UID in "" to load 
+
+particular exn plugin
+    // If more than one plugin is needed then seperate then by ',' 
+
+    //For example, "20010ADB" ,"20010ADC"
+    uid_list = {"20010ADB"}; //For example, 20010ADB can be a UID for extending a reset plug-in.
+    }</codeblock> <p> </p> </section> </conbody></concept>

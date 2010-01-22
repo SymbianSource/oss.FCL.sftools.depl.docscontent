@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-7B6073BF-6D8C-5F00-98EC-966573777677" xml:lang="en"><title>Managing
+Master Key</title><abstract><p>The Secure Real-Time Transport Protocol (SRTP) stream requires
+the sender and receiver to maintain the cryptographic context of the packets.
+SRTP uses two types of keys: master keys and session keys for packet encryption
+and decryption. Master key is a random bit string. The session keys are derived
+from the master key. The Session key is used directly in cryptographic transform
+for encryption or message authentication.  </p><p> A single master key provides
+keying material for confidentiality and integrity protection of both SRTP
+and the corresponding SRTCP stream. For each master key, a count of processed
+packets is maintained. There is a limit on the number of packets processed
+by a single master key. SRTCP maintains a separate counter for master key
+even if the master key is the same as that for SRTP. The counter counts the
+number of SRTCP packets processed with the key.   </p><p>The SRTP stack checks
+for the count of packet processed when the RTP/RTCP packets are encrypted
+or decrypted. If the number of packets processed is maximum, the master key
+status is identified as stale. The SRTP notifies the SRTP client of the master
+key status. This is Notifying the Master Key Expiry.  </p><p> The SRTP stack
+can request for a new master key(ReKey) even before the master key status
+is identified as stale.This is ReKey request.</p></abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-E3BEB74D-79C7-59A9-9366-CCD8B52DB7F8-GENID-1-7-1-19-1-1-6-1-5-1-10-1-3-1"><p>An SRTP session
+must be created and initialized before an application requests for a RTP/RTCP
+packet decryption and encryption. </p> <p>The two variants of the API <xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname>SRTPMasterKeyStaleEvent()</apiname></xref> must be
+implemented by the application. </p> </prereq>
+<steps id="GUID-FB88B32D-6FD6-504B-A39F-D2882FF355FB">
+<step id="GUID-B7B460C7-C6C2-5AB0-957B-2ABA30877680"><cmd>An RTP/RTCP packet
+is encrypted or decrypted . </cmd>
+</step>
+<step id="GUID-67F4846F-16C8-5DB1-ABB2-3886993AF5A4"><cmd>The SRTP uses the
+current master key to check the count of packet processed. If the number of
+packets processed is not the maximum permissible value, the count is increased.
+If the number of packets processed has reached maximum permissible value,
+the SRTP DLL notifies the expiry(stale) state of the current master key. </cmd>
+</step>
+<step id="GUID-BB007F89-6FC5-58D0-9C89-5A04643C508F"><cmd>The SRTP DLL notifies
+the master key status using the API's <xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname>SRTPMasterKeyStaleEvent()</apiname></xref> of
+the class <xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname>MSRTPReKeyingObserver</apiname></xref> .The
+notification can be initiated by MSRTPReKeyingObserver or CSRTPSession. </cmd>
+<substeps id="GUID-7DD25E11-8593-53E4-AFFB-1DEFBA4EB9EC">
+<substep id="GUID-69A703E5-6CA8-5BC1-A910-533981F9374C"><cmd/>
+<info>The prototypes for both the variants of <xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname>SRTPMasterKeyStaleEvent()</apiname></xref> are
+described below: </info>
+<info><ul>
+<li id="GUID-B9D9F267-48AD-55A6-AD8A-54B3C85C8764"><codeblock id="GUID-4373AEA4-66E2-5968-B6C9-13E300C1617B" xml:space="preserve"> virtual void SRTPMasterKeyStaleEvent(const CSRTPStream&amp; aStream)=0;
+                     
+                  </codeblock> <p>This API is called
+by the SRTP Stream initiated with MSRTPReKeyingObserver, if a master key is
+identified as stale and needs to be refreshed. </p> <p>aStream is the input
+parameter. It contains the stream of the master key that needs to be refreshed. </p> </li>
+</ul> </info>
+<info><ul>
+<li id="GUID-A652F1E7-E2F9-59CB-B050-8FB3221FD7FA"><codeblock id="GUID-12C8EF78-DA37-5BA4-A62E-162B32EC301A" xml:space="preserve"> virtual void SRTPMasterKeyStaleEvent(const CSRTPSession&amp; aSession)=0;
+                     
+                  </codeblock> <p>This API is called
+by SRTP Stream initiated with CSRTPSession if a master key is identified as
+stale and needs to be refreshed. </p> <p>aSession is the input parameter.
+It contains the session of the master key that needs to be refreshed. </p> </li>
+</ul> </info>
+</substep>
+</substeps>
+</step>
+<step id="GUID-4A10324C-9356-5083-B109-C1CE1EEDEBED"><cmd>The SRTP DLL requests
+for a new master key using the API <xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname> 
+               ReKeyNeeded()</apiname></xref> of the class<xref href="GUID-4301A1D8-5A9B-39F6-B4F0-84A7A1698617.dita"><apiname>CSRTPSession</apiname></xref>. </cmd>
+<substeps id="GUID-56DEF32A-0762-5D93-9F5D-D025DBB03533">
+<substep id="GUID-876D52C4-F774-569F-9A09-BEAD80557D07"><cmd/>
+<info>The prototype of the API is as described below: </info>
+<info><ul>
+<li id="GUID-06E4B681-D1C0-52C3-AE2B-A5BA4F5A037D"><codeblock id="GUID-B005930E-F049-5144-AF9F-2AD38DCF1F50" xml:space="preserve">void ReKeyNeeded(const CSRTPStream&amp; aStream, TBool aIsStrmCrypto);
+                     
+                  </codeblock> <p>This API requests
+for ReKey. </p> <p>aStream is the input parameter that needs the Rekey. </p> <p>aIsStrmCrypto
+is the boolean input parameter. It contains true if stream has its own cryptographic
+context. Else the value is false. </p> </li>
+</ul> </info>
+</substep>
+</substeps>
+</step>
+</steps>
+<result><p>SRTP stack notifies the SRTP client of the master key expiry state. </p> <p>SRTP
+stack requests for ReKey. </p> </result>
+</taskbody><related-links>
+<link href="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352.dita"><linktext>Creating
+an SRTP                 Session</linktext></link>
+<link href="GUID-425A208C-5D2D-55FD-8623-9E00006E2781.dita"><linktext>Creating
+a                 Cryptographic Context</linktext></link>
+<link href="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7.dita"><linktext>Creating
+an SRTP                 Stream</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-922F292E-9420-593B-B226-2764C5F29DF9.dita"><linktext>Encrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Decrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+</related-links></task>

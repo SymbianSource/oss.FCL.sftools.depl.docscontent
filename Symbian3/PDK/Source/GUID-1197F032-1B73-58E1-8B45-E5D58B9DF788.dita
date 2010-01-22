@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1197F032-1B73-58E1-8B45-E5D58B9DF788" xml:lang="en"><title>Domain
+Management Policy DLL</title><shortdesc>This provides an implementation of the domain tree, and a suitable
+implementation of the <apiname>DmPolicy</apiname> class that the domain manager
+uses to access that tree.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A base port must supply a Domain Policy DLL that defines a domain tree.
+The domain manager uses the domain tree, which represents the domain hierarchy. </p>
+<p>The domain tree is a static structure that is defined by domain management
+policy at system initialization, and remains fixed after system initialization. </p>
+<p>The policy that governs the management of domains and its implementation
+is entirely up to the device. The only mandatory requirement that Symbian
+platform makes is that you supply a Domain Policy DLL. This provides an implementation
+of the domain tree, and a suitable implementation of the <xref href="GUID-15CAA28D-943B-3B92-B4E1-8AA466DFA407.dita"><apiname>DmPolicy</apiname></xref> class
+that the domain manager uses to access that tree. A default implementation
+is provided by Symbian platform. </p>
+<fig id="GUID-C902A1BA-C300-5A93-8385-F4D39FB6F86A">
+<image href="GUID-CE3C8A77-8797-53FB-984E-A91A413BA254_d0e363473_href.png" placement="inline"/>
+</fig>
+<p>The domain hierarchy itself is defined in terms of a simple array of <xref href="GUID-15A31C41-77E0-3E6D-B106-D4FBFA9A52C6.dita"><apiname>TDmDomainSpec</apiname></xref> objects.
+Each <codeph>TDmDomainSpec</codeph> item defines a domain, its characteristics,
+and its position in the domain hierarchy. A default domain hierarchy is supplied
+by Symbian platform, but domain management policy can define additional domain
+identifiers, <xref href="GUID-4F284AB0-85A5-3871-B973-8BCAB4AA91BC.dita"><apiname>TDmDomainId</apiname></xref> types, and consequently domains.
+The only requirement that the domain manager makes is that the root of the
+domain tree must have domain Id <codeph>KDmIdRoot</codeph>. </p>
+<fig id="GUID-7590D6B6-A264-58A6-8764-8491020B921C">
+<title>           Default domain tree          </title>
+<image href="GUID-32C58139-E341-5A15-B20C-D3EA4117AC6E_d0e363498_href.png" placement="inline"/>
+</fig>
+<p>The default domain hierarchy supplied by Symbian platform in <filepath>domainpolicy.cpp</filepath> is
+simply: </p>
+<codeblock id="GUID-89939191-2C55-54B5-BCBA-DA8D1430D849" xml:space="preserve">static const TDmDomainSpec    DomainHierarchy[] = 
+    
+    {
+        { KDmIdRoot,    KDmIdNone,    KCapabilityWriteSystemData, EPwActive,    100000 /* 100ms */    },
+        { KDmIdApps,    KDmIdRoot,    KCapabilityNone,            EPwActive,    100000 /* 100ms */    },
+        { KDmIdUiApps,    KDmIdRoot,    KCapabilityNone,            EPwActive,    100000 /* 100ms */    },
+        { KDmIdNone,    KDmIdNone,    0,                            EPwActive,    0    }
+    };
+    </codeblock>
+<p>The domain manager uses the domain tree specification (i.e. the <codeph>TDmDomainSpec</codeph> array)
+to build its own internal representation of the domain hierarchy. It calls <xref href="GUID-15CAA28D-943B-3B92-B4E1-8AA466DFA407.dita#GUID-15CAA28D-943B-3B92-B4E1-8AA466DFA407/GUID-A3E21E8F-5920-3DBD-B735-D4B8DE8E382D"><apiname>DmPolicy::GetDomainSpecs()</apiname></xref> to
+access the domain tree specification, and calls <xref href="GUID-15CAA28D-943B-3B92-B4E1-8AA466DFA407.dita#GUID-15CAA28D-943B-3B92-B4E1-8AA466DFA407/GUID-5A1DD864-7059-3322-8DF2-BB7A53237CB6"><apiname>DmPolicy::Release()</apiname></xref> to
+free that specification. The default implementation of <codeph>GetDomainSpecs()</codeph> simply
+returns a pointer to the specification, which means that the default implementation
+of <codeph>Release()</codeph> has nothing to do, and is indeed empty. </p>
+</conbody></concept>

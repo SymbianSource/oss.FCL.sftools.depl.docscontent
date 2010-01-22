@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A3BCC33F-D11B-4F98-BCC3-9A06381A02E7" xml:lang="en"><title>Constructing
+the view controller in the view architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Each view controller acts like a small UI controller.</p>
+<p>The call on the first phase constructor of the view controller occurs
+in the<xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita"> UI controller</xref>.</p>
+<p>The methods you need to implement in your <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html" format="application/java-archive"><parmname>CAknView</parmname></xref>-derived
+class are as follows:</p>
+<ul>
+<li><p>C++ default constructor, which cannot contain any code that
+might leave. A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-CA1A42F0-2B6F-4520-B408-1B46037B6E29" xml:space="preserve">
+CMyViewAppView::CMyViewAppView()
+    {
+    }</codeblock>
+<p>The class declaration for this constructor in the class header file
+needs to be public to support the construction method required.</p>
+</itemgroup>
+</li>
+<li><p>two-phase constructor, a common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-A98C61E4-8C11-4F7D-9782-C440B8FAE374" xml:space="preserve">CMyViewAppView* CMyViewAppView::NewL( const TRect&amp; aRect )
+    {
+    CMyViewAppView* self = CMyViewAppView::NewLC( aRect );
+    CleanupStack::Pop( self );
+    return self;
+    }
+
+CMyViewAppView* CMyViewAppView::NewLC( const TRect&amp; aRect )
+    {
+    CMyViewAppView* self = new ( ELeave ) CMyViewAppView;
+    CleanupStack::PushL( self );
+    self-&gt;ConstructL( aRect );
+    return self;
+    }
+</codeblock>
+<p>The declarations for <parmname>CMyViewAppView::NewL</parmname> and <parmname>CMyViewAppView::NewLC</parmname> in
+the class header file needs to be public to support the construction method
+required. </p>
+<p>In this approach, <parmname>CMyViewAppView::NewL</parmname> is called
+from the UI controller. It creates a view object by calling <parmname>CMyViewAppView::NewLC</parmname>. <parmname>CMyViewAppView::NewLC</parmname> calls new (<parmname>ELeave</parmname>) on the C++ default constructor <parmname>CMyViewAppView</parmname> to
+create the object (and leave if it cannot), <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/CCleanupClass.html#%3a%3aCCleanup%3a%3aPushL%28CBase%20%2a%29" format="application/java-archive">pushes</xref> a pointer to the clean-up stack in case the second phase construction method
+leaves, and then calls the second phase construction method of the object.
+When it returns to <parmname>CMyViewAppView::NewL</parmname>, the pointer
+pushed to the cleanup stack is <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/CCleanupClass.html#%3a%3aCCleanup%3a%3aPop%28%29" format="application/java-archive">removed</xref>.</p>
+</itemgroup>
+</li>
+<li><p>Symbian 2nd phase constructor with code that might leave.
+A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-F282B41C-0AF0-4B62-853A-812F34667C78" xml:space="preserve">void CMyViewAppView::ConstructL()
+    {
+    // construct r_name32 resources
+    BaseConstructL(r_name32 );
+    }
+</codeblock>
+<p><parmname>CMyViewAppView::ConstructL</parmname> is a public class providing
+the second phase construction that accepts the rectangle the view is drawn
+to.</p>
+<p><xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#04bb841d875636d632ada39cb12514c4" format="application/java-archive"><parmname>CAknView::BaseConstructL</parmname></xref> initializes this view with standard values. It accepts the
+symbolic ID name of a resource from the resource file.</p>
+</itemgroup>
+</li>
+<li><p>a method for returning the UID for the view. A common implementation
+is:</p>
+<itemgroup>
+<codeblock id="GUID-272134EE-D14C-4F97-A46D-0BEC71EF01ED" xml:space="preserve">
+TUid CMyViewAppView::Id() const
+    {
+    return KViewId;
+    }
+
+</codeblock>
+<p><parmname>CMyViewAppView::Id()</parmname> is the override of <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#71e3a172cd418a5d73071f598fe8d26d" format="application/java-archive"><parmname>CAknView::ID</parmname></xref> to return the UID of the view</p>
+<p><parmname>KViewId</parmname> is defined somewhere in a header file,
+and is unique to this application</p>
+</itemgroup>
+</li>
+</ul>
+<section id="GUID-952D9762-EA63-489D-9698-FC504BD73001"><title>Scalability</title>
+<p>If you wish to support <xref href="GUID-B02C762B-C452-4184-ABEA-4753E6CD47D2.dita">scalability</xref> in
+your application, then you need to implement <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/UIKON/CEikAppUiClass.html#%3a%3aCEikAppUi%3a%3aHandleResourceChangeL%28%29" format="application/java-archive"><parmname>CEikAppUi::HandleResourceChangeL</parmname></xref> in the <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita"> UI
+controller</xref>, and then a <parmname>HandleClientRectChange</parmname> method
+in the view controller.</p>
+<p>A common implementation is as follows:</p>
+<codeblock id="GUID-F5BC393D-EA47-45B2-8892-B71CE934F5B6" xml:space="preserve">
+void CMyViewAppView::HandleClientRectChange()
+    {
+    if ( iContainer )
+        {
+        iContainer-&gt;SetRect( ClientRect() );
+        }
+    }
+
+</codeblock>
+<p>, where</p>
+<p><parmname>CMyViewAppView::HandleClientRectChange</parmname> calls <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aSetRect%28const%20TRect%20%26amp%3b%29" format="application/java-archive"><parmname>CCoeControl::SetRect(aRect)</parmname></xref> to set the
+window size according to the requirements of the mobile device.</p>
+</section>
+<section id="GUID-DC760F92-C154-4DAA-AAD1-A0C02766C6B0"><title>Activating and
+deactivating views</title>
+<p>In order for a view to be displayed, it needs to be activated by <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#486d490d911ce5e9495e0ee19b0442db" format="application/java-archive"><parmname>CAknView::DoActivateL</parmname></xref>. The override of this method in the view controller must create
+a <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived view to display visual
+content to mobile device users. The <parmname>DoActivateL()</parmname> call
+must be prepared to handle the case where it is called while the view is already
+active.</p>
+<p>If the view is not published for external use, or does not handle message
+parameters, a simple check and return if the view is already active is sufficient.</p>
+<p>A common implementation is as follows:</p>
+<codeblock id="GUID-01819343-975C-499B-9DF6-14DA9BB5912E" xml:space="preserve">
+void CMyViewAppView::DoActivateL(
+   const TVwsViewId&amp; /*aPrevViewId*/,TUid /*aCustomMessageId*/,
+   const TDesC8&amp; /*aCustomMessage*/)
+    {
+    if (!iContainer)
+        {
+        iContainer = new (ELeave) CMyViewAppContainer;
+        iContainer-&gt;SetMopParent(this);
+        iContainer-&gt;ConstructL( ClientRect() );
+        AppUi()-&gt;AddToStackL( *this, iContainer );
+        } 
+
+    // Message handling would take place here.
+   }
+</codeblock>
+<p>, where</p>
+<ul>
+<li><p><parmname>CMyViewAppView::DoActivateL</parmname> is the override
+for <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#486d490d911ce5e9495e0ee19b0442db" format="application/java-archive"><parmname>CAknView::DoActivateL</parmname></xref> for the application.</p></li>
+<li><p><parmname>if (!iContainer)</parmname> checks to see if the
+view already exists.</p></li>
+<li><p><parmname>iContainer = new (ELeave) CMyViewAppContainer;</parmname> calls
+the first phase constructor of the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived
+class that provides the view.</p></li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html#%3a%3aCCoeControl%3a%3aSetMopParent%28MObjectProvider%20%2a%29" format="application/java-archive"><parmname>iContainer-&gt;SetMopParent(this);</parmname></xref> sets the
+context for the view being created. In this case, it assigns the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived view to the view controller.</p>
+</li>
+<li><p><parmname>iContainer-&gt;ConstructL( ClientRect() )</parmname> calls
+the second phase constructor of the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived
+class that provides the view.</p></li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeAppUiClass.html#%3a%3aCCoeAppUi%3a%3aAddToStackL%28CCoeControl%20%2a%2cTInt%2cTInt%29" format="application/java-archive"><parmname>AppUi()-&gt;AddToStackL( *this, iContainer );</parmname></xref> adds
+the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived view to the control
+stack for <xref href="GUID-542550FA-F9F1-46D6-8182-6E7FAA013572.dita">key event
+handling.</xref></p></li>
+</ul>
+<p>The view architecture supports an automatic recovery mechanism if <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#486d490d911ce5e9495e0ee19b0442db" format="application/java-archive"><parmname>CAknView::DoActivateL()</parmname></xref> leaves. The Symbian platform calls <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#f47363eacbe46c5827282407b354b535" format="application/java-archive"><parmname>CAknView::DoDeactivate()</parmname></xref> in
+the view that has left, reinstates the previous view of the application, and
+returns to the view that was just displayed. If the application had no previous
+view, it exits. If the application’s previous view was the same as the activating
+view (that is, the view is reactivated with a new message), the application
+attempts to recover to the default view.</p>
+<p>In most cases, this mechanism removes the need to put any recovery mechanism
+in the <parmname>DoActivateL()</parmname> methods. The one situation where
+you may consider something more complex is when the view can be reactivated
+(that is, activated with a new message while already active). In this case,
+the view may attempt a more complex strategy to preserve the existing state
+if a leave happens during the attempt to handle the new message.</p>
+<p>To destroy the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived
+control in a view control, you must override <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#f47363eacbe46c5827282407b354b535" format="application/java-archive"><parmname>CAknView::DoDeactivate</parmname></xref>.
+It is called when the application exits, or another view has been activated
+and the previous active window needs to be shut down. This order makes view
+switching fast. In <parmname>DoDeactivate</parmname> the view is removed from
+the stack and therefore the view’s container and its controls are destroyed.
+This function must not leave.</p>
+<p>A common implementation is as follows:</p>
+<codeblock id="GUID-01F7257D-47C2-4A42-9717-97D3913F3AB0" xml:space="preserve">
+void CMyViewAppView::DoDeactivate()
+    {
+    if ( iContainer )
+        {
+        AppUi()-&gt;RemoveFromViewStack( *this, iContainer );
+        }
+    
+    delete iContainer;
+    iContainer = NULL;
+    }</codeblock>
+<p>, where</p>
+<ul>
+<li><p><parmname>CMyViewAppView::DoDeactivateL</parmname> is the
+override for <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classCAknView.html#f47363eacbe46c5827282407b354b535" format="application/java-archive"><parmname>CAknView::DoDeactivateL</parmname></xref> for
+the application.</p></li>
+<li><p><parmname>if (!iContainer)</parmname> checks to see if the
+view already exists.</p></li>
+<li><p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeAppUiClass.html#%3a%3aCCoeAppUi%3a%3aRemoveFromViewStack%28const%20MCoeView%20%26amp%3b%2cCCoeControl%20%2a%29" format="application/java-archive"><parmname>AppUi()-&gt;RemoveFromViewStack( *this, iContainer );</parmname></xref> removes
+the <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Control_Environment/CCoeControlClass.html" format="application/java-archive"><parmname>CCoeControl</parmname></xref>-derived view from the control
+stack.</p></li>
+<li><p><parmname>delete iContainer;</parmname> deletes the <parmname>CCoeControl</parmname>-derived
+view.</p></li>
+</ul>
+</section>
+</conbody></concept>

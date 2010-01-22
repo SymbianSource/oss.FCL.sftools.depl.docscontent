@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-5BD60B1B-CEB7-557A-A9DC-1BB64575F3E2"><title>Content Access Agent ECom Resource File</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>CAF defines an ECom plug-in interface for third-party CAF agents. The interface allows new agents to be integrated dynamically, if required. In order to use CAF content, applications use the resource files. </p> <section><title>default_data</title> <p>The <codeph>default_data</codeph> section of an CA agent or CA agent proxy's resource file is used to specify three pieces of information: </p> <ul><li id="GUID-3AC35EFD-46B4-5540-96F1-50BF7C1A01B7"><p>The buffer size required by this agent to recognize a file when <xref href="GUID-D7457871-5361-3684-9A95-FBDB9C2689DD.dita#GUID-D7457871-5361-3684-9A95-FBDB9C2689DD/GUID-29D3983D-F2AC-3242-85F7-4B569ABE8DA1"><apiname>ContentAccess::CAgentManager::RecognizeFileL()</apiname></xref> is called. </p> </li> <li id="GUID-257A92D3-2664-526E-B462-311ABC45DA0C"><p>A list of supplier MIME types supported by this agent. </p> </li> <li id="GUID-19460444-63F4-5A92-8B74-E0538FA57CB2"><p>A list of consumer MIME types supported by this agent. </p> </li> </ul> <p>The buffer size section is separated from the supplier MIME types by a '<codeph>|</codeph>' character and the supplier MIME types are separated from the consumer MIME types by a '<codeph>:</codeph>' character. </p> <p>The following example explains the <codeph>default_data</codeph> section for an OMA DRM agent: </p> <p> <codeph>default_data="100|application/vnd.oma.drm.message,application/vnd.oma.drm.rights+xml:application/vnd.oma.drm.content";</codeph> </p> <ul><li id="GUID-46FB594E-6711-5907-B609-72F8EB9FFE03"><p>It requires at least the first 100 bytes of a file in order to do recognition. </p> </li> <li id="GUID-A0DBF98E-B4B0-5C37-B2CE-3111738B88D8"><p>It supports a supplier MIME types of <codeph>application/vnd.oma.drm.message</codeph> and <codeph>application/vnd.oma.drm.rights+xml</codeph>. </p> </li> <li id="GUID-2719810F-644B-562B-8C23-A9BD267FCB66"><p>It supports a consumer MIME type of <codeph>application/vnd.oma.drm.content</codeph>. </p> </li> </ul> </section> <section><title>opaque_data</title> <p>The <codeph>opaque_data</codeph> section is used to specify the agent's private directory under <filepath>c:\private\</filepath>. This is the <codeph>SID</codeph> (SecureId) of the server which owns the directory, for example: </p> <p> <codeph> opaque_data="12345678";</codeph>  </p> <p>If the agent does not have a corresponding private directory or does not wish to provide access to that directory, it must just leave the <codeph>opaque_data</codeph> section as an empty string. </p> </section> <section><title>An example agent resource file</title> <codeblock id="GUID-0144C830-20AE-55DE-BEBB-9AA3F58FC553" xml:space="preserve">// 101FE8F1.rss 
+// UIDs quick-ref 
+// 
+// ECom DLL UID: 0x101FE8F1 
+// CA agent interface UID: 0x10204740 
+// Test CAA Implementation: 0x101FE8F2
+
+#include "RegistryInfo.rh" 
+            
+RESOURCE REGISTRY_INFO theInfo 
+{
+
+    dll_uid = 0x101FE8F1; 
+                
+    interfaces = 
+    {
+        INTERFACE_INFO 
+        {
+           interface_uid = 0x10204740; 
+        implementations = 
+            {
+            IMPLEMENTATION_INFO 
+                {
+                implementation_uid = 0x101FE8F2; 
+                version_no = 1; 
+                display_name = "Test Agent"; 
+                default_data = "255|application/vnd.oma.drm.message,application/vnd.oma.drm.content:application/vnd.oma.drm.content";
+                // Sample CAF types 
+                opaque_data = "12345678"; 
+                }
+            };
+        }
+    };
+}</codeblock> </section> <section><title>Important UIDs for CA agents</title> <ul><li id="GUID-5D76A680-D69F-57E4-A1DA-ED37ADC2AE88"><p> <codeph>0x10009D8D</codeph> — the ECom DLL UID. Identifies a DLL as an ECom plug-in. </p> </li> <li id="GUID-68508FD2-262F-5653-91EF-5EE282AB8DF8"><p> <codeph>0x101FC2CE</codeph> — the Content Access Agent v1.0 interface. An implementation of <xref href="GUID-798F4B18-D6AE-36B9-B03F-C1FC55266CB5.dita#GUID-798F4B18-D6AE-36B9-B03F-C1FC55266CB5/GUID-467FAF6F-60EB-3B70-9523-5BEB33D7C601"><apiname>ContentAccess::CAgentFactory::NewL()</apiname></xref>. </p> </li> <li id="GUID-5C788FA4-5ABD-5B1F-B170-B846ADBD31C2"><p> <codeph>0x10204740</codeph> — the Content Access Agent v2.0 interface. An implementation of <xref href="GUID-798F4B18-D6AE-36B9-B03F-C1FC55266CB5.dita#GUID-798F4B18-D6AE-36B9-B03F-C1FC55266CB5/GUID-467FAF6F-60EB-3B70-9523-5BEB33D7C601"><apiname>ContentAccess::CAgentFactory::NewL()</apiname></xref>. </p> </li> </ul> <p> <b> Note:</b> When writing a new CA agent, all other UIDs used in the above examples must be replaced by new UIDs from the Symbian UID generator. </p> </section> </conbody></concept>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-91E0E87B-FECA-5D19-AD48-9DEFD42B86B3" xml:lang="en"><title>How
+to implement universal time and home time</title><shortdesc>Add universal time offset to display the home time.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>These code fragments demonstrate the various components which make up the
+time, including:</p>
+<ul>
+<li id="GUID-1224C41A-1736-528E-B782-16E8AF29B9D8"><p>the <keyword>universal
+time</keyword> </p> </li>
+<li id="GUID-790CEB46-8B7E-5B98-A9AF-00CAF254BA38"><p>the <keyword>universal
+time offset</keyword> </p> </li>
+</ul>
+<section id="GUID-70976CCC-3A00-4BAE-B6D8-1DD1CC621D9D"><title>Home time</title> <p>In the following example code fragment,
+the universal time offset is added to the universal time, giving the <keyword>home
+time</keyword>. The <keyword>universal time offset</keyword> is determined
+by the time zone, and by whether daylight savings is currently in effect.
+The offset is in seconds from <keyword>universal time</keyword>; this is positive
+for time zones east of universal time, and negative for time zones west of
+universal time. Home time is the same time as a wall clock would show, and
+it is not necessary to consider daylight savings independently of the time
+zone.</p> <codeblock id="GUID-C9B60594-EA11-5297-8546-99D6E2E64219" xml:space="preserve">TTime time;
+
+    // Get Universal time
+time.UniversalTime();
+
+    // Get Universal time offset
+TTimeIntervalSeconds universalTimeOffset(User::UTCOffset());
+
+    // Add locale's universal time offset to universal time
+    // to get the home time
+time+=universalTimeOffset;</codeblock> <p><codeph>time</codeph> now contains
+the home time. This may be tested by calling <codeph>TTime::HomeTime()</codeph>,
+which should give the same result.</p> <codeblock id="GUID-1E6576B5-CA22-5346-9076-B987741509C8" xml:space="preserve">TTime homeTime;
+homeTime.HomeTime(); // homeTime==time</codeblock> </section>
+</conbody></concept>

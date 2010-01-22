@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-8DCBAA05-9741-48C8-A831-966D37FBC05A" xml:lang="en"><title>Array
+Properties</title><shortdesc>A property that defines multiple discrete values inside one property
+ID is called an array property.</shortdesc><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section id="GUID-B38A0885-F52B-44F7-916D-F43530E74BC3">  <p>Array properties
+can be identified with array index, which can be queried using the <xref href="GUID-FA59DA5D-A9E4-3296-AB90-E445C7949FE9.dita#GUID-FA59DA5D-A9E4-3296-AB90-E445C7949FE9/GUID-2752A152-7821-30E8-AEC7-542F9F362575"><apiname>TSensrvProperty::GetArrayIndex()</apiname></xref> function.</p> 
+   </section>
+<example><p>The following example shows how to retrieve the current data rate
+of the channel, for which the data rate is declared as an array property. </p><p>Read
+the <codeph>KSensrvPropIdDataRate</codeph> property using the <xref href="GUID-22DC917F-D833-3531-AB2D-A6E2D52EF844.dita#GUID-22DC917F-D833-3531-AB2D-A6E2D52EF844/GUID-1E9D960B-23C4-30DF-A184-7E978AC9AC1B"><apiname>CSensrvChannel::GetPropertyL()</apiname></xref> function.</p><p>If
+the retrieved property is an array property the result of the <xref href="GUID-22DC917F-D833-3531-AB2D-A6E2D52EF844.dita#GUID-22DC917F-D833-3531-AB2D-A6E2D52EF844/GUID-1E9D960B-23C4-30DF-A184-7E978AC9AC1B"><apiname>CSensrvChannel::GetPropertyL()</apiname></xref> call
+is a property with array index <codeph>ESensrvArrayPropertyInfo</codeph>,
+ otherwise the array information index is <codeph>ESensrvSingleProperty</codeph>. </p><p>In
+case of an array property, the value of the current data rate is in the <codeph>KSensrvPropIdDataRate</codeph> property,
+for which the array index is the same as the array property's value. </p><codeblock xml:space="preserve">TSensrvProperty property;
+    TInt err( KErrNone );
+    TInt datarate( 0 );
+
+    iSensorChannel-&gt;GetPropertyL( KSensrvPropIdDataRate,
+                                  KSensrvItemIndexNone,
+                                  property );
+
+    if( ESensrvArrayPropertyInfo == property.GetArrayIndex() )
+        {
+        //Current data rate in use is in the KSensrvPropIdDataRate property
+        //for which the array index is declared in the array property's value.
+        TInt arrayIndex( 0 );
+        property.GetValue( arrayIndex );
+
+        iSensorChannel-&gt;GetPropertyL( KSensrvPropIdDataRate,
+                                      KSensrvItemIndexNone,
+                                      arrayIndex,
+                                      property );
+                                      
+        property.GetValue( datarate );
+        }
+    else
+        {
+        //KSensrvPropIdDataRate is a single property and current data rate can be read diretly from it.
+        property.GetValue( datarate );
+        }</codeblock></example>
+</refbody></reference>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-C0BA02F6-E852-55B3-8026-1056B2ADF6BC"><title>Porting Control Panel Plug-ins</title><shortdesc>The purpose of this document is to help migrate polymorphic DLLs to plug-ins as applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section id="GUID-D2B22D1F-BADC-5BCB-8B1F-3F5148179A38"><title>Introduction</title> <p>Different control panel plug-ins are likely to need different capabilities in order to change the phone's configuration. Rather than each plug-in running in a parent process with a dangerously large set of capabilities, each plug-in should run in its own process, so that each can have the minimal set of capabilities that it requires. For this reason, the decision was made to convert all existing control panel plug-ins, which are implemented as polymorphic DLLs, into standard applications, but with a special registration file. This registration file is used by the application server to distinguish the plug-in from a normal application. </p> </section> <section id="GUID-637E0247-3127-5E4E-BE0B-1644141C1CF9"><title>Required background</title> <ul><li id="GUID-CD6A341B-CD18-5261-8AC0-9F77810B3953"><p>The control panel application must be located in <filepath>\sys\bin\&lt;appname.exe&gt;</filepath>. Only executables (EXEs and DLLs) must exist in <filepath>\sys\bin\</filepath>. </p> </li> <li id="GUID-034BA5BD-E7A3-5C48-821C-D8ED99646CD6"><p>The control panel application's UI resource file must be located in <filepath>\Resource\apps\&lt;appname.rsc&gt;</filepath>. </p> </li> <li id="GUID-E39EA29A-6D93-5122-8C1B-87992050868E"><p>There must be a registration resource file for each control panel application in </p> <p> <filepath>\private\10003a3f\apps\</filepath> if it is either on the emulator or built into the ROM, or </p> <p> <filepath>\private\10003a3f\import\apps\</filepath> if it is installed using SWI. </p> </li> </ul> </section> <section id="GUID-0E173D05-301B-5C51-B39A-8B60884FBFC1"><title>Source code changes</title> <p>Each existing control panel plug-in has only one exported function, which is called by default. To convert the plug-in into an application, the four classes which are required components of any application must be provided, for example: </p> <ul><li id="GUID-AB6F5FBC-05C2-5A76-977A-7AC37167EFB1"><p> <codeph>class CExampleAppView : public</codeph> <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita"><apiname>CCoeControl</apiname></xref>  </p> </li> <li id="GUID-2B90796B-A708-5ABF-908C-DEAFA17C1F29"><p> <codeph>class CExampleAppUi : public</codeph> <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita"><apiname>CEikAppUi</apiname></xref>  </p> </li> <li id="GUID-01695E40-61CF-586F-9733-9BC9264D77B1"><p> <codeph> class CExampleDocument : public</codeph> <xref href="GUID-B33A8A56-D1BE-3E3D-B5AC-F644A5C764DB.dita"><apiname>CEikDocument</apiname></xref>  </p> </li> <li id="GUID-519A9912-947D-5633-9D35-DA729CFA71DF"><p> <codeph>class CExampleApplication : public</codeph> <xref href="GUID-E36E2F07-09E7-32BC-BB83-14DF9232E7D9.dita"><apiname>CEikApplication</apiname></xref>  </p> </li> </ul> <p> <b> Note:</b> that each System GUI provides its own application, app UI and document base classes. </p> <p>The executable's entry points need to be modified as follows: </p> <codeblock id="GUID-8F791856-BD98-5B1A-9582-DF52C159673F" xml:space="preserve">LOCAL_C CApaApplication* NewApplication()
+    {
+ return new CExampleApplication;
+    } 
+GLDEF_C TInt E32Main()
+    {
+    return EikStart::RunApplication(NewApplication);
+    } 
+#if defined(__WINS__) &amp;&amp; !defined(EKA2) 
+GLDEF_C TInt E32Dll(TDllReason)
+    {
+    return KErrNone;
+    } 
+EXPORT_C TInt WinsMain(TDesC* aCmdLine)
+    {
+    return EikStart::RunApplication(NewApplication, aCmdLine);
+    } 
+#endif</codeblock> </section> <section id="GUID-B1412B39-8480-5DF4-ABC5-C0CB5DE4A6B8"><title>Resource and MMP file changes</title> <p>For details on converting existing control panel plug-ins into applications, refer to the migration document: <xref href="GUID-3CAD7211-2164-5F93-9EA7-7167E1C14012.dita">Porting apps to exes</xref>. </p> </section> </conbody><related-links><link href="GUID-827AFAA3-75A4-5F08-8F83-1E36DAD8533D.dita"><linktext>Secure Software Install</linktext> </link> </related-links></concept>

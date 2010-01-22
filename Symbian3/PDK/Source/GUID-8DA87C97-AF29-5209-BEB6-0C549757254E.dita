@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-8DA87C97-AF29-5209-BEB6-0C549757254E"><title>Hardware Resource Manager Plug-in Tutorial</title><shortdesc>This tutorial describes how to write the plug-ins for HWRM. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section id="GUID-837884A8-DFBB-5B13-A961-BCC62AFB3A7E"><title>Introduction</title> <p>Symbian developers must implement the <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginService</apiname></xref> in their plug-in. The HWRM plug-in must create a new instance of the <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginServices</apiname></xref> using <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginService::NewL()</apiname></xref> method. A string and a callback pointer are passed as the parameters. The common strings used to identify the plug-in are <codeph>HWRMLight</codeph>, <codeph>HWRMVibra</codeph> and <codeph>HWRMPower</codeph>. The callback pointer is provided by the <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>MHWRMPluginCallback</apiname></xref> class. </p> <p>The client APIs requests are forwarded to the plug-in using a <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginServices::ProcessCommandL()</apiname></xref>. <codeph>Command
+          ID</codeph>, <codeph>transaction ID</codeph> and <codeph>command data</codeph> are passed as parameters. The plug-in communicates with the hardware using proprietary software developed by the licensees and convert the client requests into hardware control commands. After processing a request, the plug-in acknowledges the server by calling the <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>MHWRMPluginCallback::ProcessResponseL()</apiname></xref> callback function. The same command ID and transaction ID are passed as the parameters. An error code is also included in the acknowledgement message. </p> <p>Every <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>MHWRMPluginCallback::ProcessResponseL()</apiname></xref> is associated with an <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginServices::ProcessCommandL()</apiname></xref> request. Both functions can use asynchronous calls and leave. The HWRM server can cancel a <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginServices::ProcessCommandL()</apiname></xref> request by calling a <xref href="GUID-4603653B-34E4-3CC5-9978-95F9532A0616.dita"><apiname>CHWRMPluginService::CancelCommandL()</apiname></xref>. </p> </section> <section><title>Plug-in Configuration</title> <p>Configure HWRM plug-ins as an ECom plug-in. To load the plug-in correctly, the resource files must be configured carefully. </p> <p>The following code illustrates a sample resource file for Light and Vibra plug-ins: </p> <codeblock id="GUID-DDF2A6D0-C577-5F2C-8ED1-15543172CDB4" xml:space="preserve">
+#include "RegistryInfoV2.rh"
+
+//Sample resource file for Light and Vibra plug-ins
+
+RESOURCE REGISTRY_INFO theInfo
+    {
+    resource_format_version = RESOURCE_FORMAT_VERSION_2;
+    dll_uid = 0x12345678;
+    interfaces = 
+        {
+        INTERFACE_INFO
+            {
+            // UID of interface that is implemented
+            interface_uid = 0x10205028;
+            implementations = 
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = 0x11223344;
+                    version_no = 1;
+                    display_name = "Light plugin stub";
+                    default_data = "HWRMLight";      
+                    opaque_data = "";
+                    rom_only = 1;
+                    },
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = 0x55667788;
+                    version_no = 1;
+                    display_name = "Vibra plugin stub";
+                    default_data = "HWRMVibra";      
+                    opaque_data = "";
+                    rom_only = 1;
+                    }
+                };
+            }
+        };
+    }</codeblock> <p> <b>Note</b>: The value of <codeph>rom_only</codeph> must always be 1. The default data must be <codeph>HWRMLight</codeph>, <codeph>HWRMVibra</codeph>, <codeph>HWRMPower</codeph>. </p> </section> <example id="GUID-970B0B26-EBD0-557E-A4AE-8C40C908C538"><title>Sample Light plug-in example</title> <p>The following code snippet illustrates how a light plug-in is called by the HWRM server: </p> <codeblock id="GUID-ECC11C08-F70A-5636-9CE4-D4A15777192C" xml:space="preserve">
+#include "HWRMpluginService.h"
+
+_LIT8( KHWRMLightApiEComMatch, "HWRMLight" );
+
+iPlugin = CHWRMPluginService::NewL( KHWRMLightApiEComMatch, this );
+iTransCounter = 0;
+. . .
+HWRMLightCommand::TLightsOnData pluginCommand;
+pluginCommand.iTarget = 0x00000001; // Set target to primary display 
+pluginCommand.iIntensity = 50;
+pluginCommand.iFadeIn = EFalse;    
+HWRMLightCommand::TLightsOnCmdPackage pckg( pluginCommand );
+iPlugin-&gt;ProcessCommandL( HWRMLightCommand::ELightsOnCmdId, iTransCounter++, pckg );
+
+//Example of how ProcessResponseL() or EventL() might be handled
+
+HWRMLightCommand::TErrorCodeResponsePackage errPckg;
+errPckg.Copy( aData );
+TInt pluginErr = errPckg();
+
+// Handle error here
+</codeblock> </example> </conbody></concept>

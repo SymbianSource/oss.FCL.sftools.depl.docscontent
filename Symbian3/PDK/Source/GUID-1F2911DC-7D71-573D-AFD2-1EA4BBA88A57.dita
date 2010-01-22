@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1F2911DC-7D71-573D-AFD2-1EA4BBA88A57" xml:lang="en"><title>Guidelines
+to adapt the existing GSA components to SSMA</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The existing components of GSA are EStart, AMA Starter, and System Monitor.
+The following sections explain how each of these components adapt to the SSMA. </p>
+<section><title>EStart</title> <p>This component is launched by the File Server.
+It is responsible for completing the initialization of the File Server and
+co-ordinating the launch of some base-related components (example the Domain
+Manager). Then, it initiates the start up of the remaining system (example
+starting the window server). </p> <p>SSM is a new process in the chain of
+processes, which is responsible for starting all the major Symbian platform
+services. After the migration from GSA to SSMA EStart creates SSM component
+(<filepath>SysStateMgr</filepath>) instead of SysStart. </p> </section>
+<section><title>System Monitor</title> <p>The System Monitor (SysMon) checks
+applications and processes using SSM startup properties. An application or
+process can add itself to the System Monitor's list. </p> <p><b>Adaptations
+to the System Monitor</b> </p> <p>The System Health Management (SHM) manages
+the system health, including the monitoring of critical processes and their
+re-launch if they fail. System Monitor introduces a method for controlling
+re-launch and a new value for the retry_failure_recovery_method. The following
+sections explain how to monitor critical processes. </p> <p><b>Current re-launch
+policy </b> </p> <p>A component is re-launched after a monitored component
+has failed to re-launch the component 'n' times (where n = 1 or 2). If all
+the re-launch attempts fail, then SysMon either ignores the failure of the
+component, or the device is restarted (a critical component). </p> <note>An
+unsuccessful re-launch attempt consists of a component’s failure to meet with
+SysMon, within a finite period of time. If a monitored component is successfully
+(re-)launched, and then subsequently fails, the next re-launch attempt occurs
+only after atleast <codeph>KWaitTime</codeph> seconds has elapsed (since the
+last re-launch attempt). This mechanism is referred to as ‘Re-launch throttling’.</note> <p><b>Critical
+component functionality in SysMon</b> </p> <p>A new value for the retry_failure_recovery_method
+(that is <codeph>ECriticalNoRetries</codeph>) is introduced, which instructs
+SysMon to restart the Symbian platform when failure of a monitored component
+is detected. In this situation, any value set for 'no_of_retries_on_failure'
+is ignored by SysMon. </p> <p>The PlatSec capabilities required by a SysMon
+client to set this value is the same as for <codeph>retry_failure_recovery_method
+=                 ERestartOS</codeph>. If this new value (<codeph>ECriticalNoRetries</codeph>)
+is set as the <codeph>retry_failure_recovery_method</codeph> in a Static Command
+List (that is for launching a process/application), SysCLE treats this as <codeph>retry_failure_recovery_method
+= ERestartOS</codeph>, and performs (if needed) the number of retries indicated
+in no_of_retries_on_failure. </p> </section>
+<section id="GUID-E2D75D7D-98A5-5419-8B0E-0A995D3EFEC9"><title>System Command
+List Executer</title> <p>SCLs contain a list of commands that are run by the
+SSM. The SysCLE runs these commands as per the policy. The policy for deciding
+which commandLists are run by the SysCLE is included within the system state
+Manager component (<filepath>SysStateMgr.exe</filepath>). When there is a
+system state/property transition, SysState goes through a series of policy
+steps to find which commandList must be run by SysCLE. SysCLE responds with
+a result code which is passed back to the state policy plug-in. The next action
+returned by the state policy plug-in depends on this result code. </p> <p>SCLs
+contains a list of commands that are run by the SSM and SysCLe runs the commands
+as per the policy. </p> <p>SysCLE is based on SysStart, but it is converted
+into a DLL. After GSA is migrated to SSMA, the current Static Startup Configuration
+(SSC) commands are maintained. The following table lists the new commands
+and functions that are introduced into SysCLE. </p> <table id="GUID-80C526A2-BD7A-5E0D-A1FE-C0C5181F88ED">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+
+<entry><p><b>New commands</b></p></entry>
+<entry><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Change Domain Manager State </p> </entry>
+<entry><p>It changes the state in the Domain Manager. This ‘Change State’
+command is used only when a valid Domain Hierarchy is loaded (although this
+is not checked programmatically). This command allows SysCLE to run some commands
+before the state is changed. </p> </entry>
+</row>
+<row>
+<entry><p>Change system-wide property </p> </entry>
+<entry><p>Changes the value of a system-wide property (P&amp;S property). </p> </entry>
+</row>
+<row>
+<entry><p>Call asynchronous Custom Commands </p> </entry>
+<entry><p>It is a new method of calling asynchronous functionality in DLLs
+and is required in the SCLs (allowing asynchronous ‘Custom Commands’). To
+ease the creation of custom commands, the API allows setup and teardown methods
+to manage the common handles for many custom commands. It is also necessary
+to provide each custom command with an environment. This environment provides
+common handles, such as RFs, to the custom command and information from <filepath>SysStateMgr</filepath>,
+such as start-up mode and reason. This prevents the need for the custom commands
+to connect back to SysState to query state about the system. </p> <p> <b>Note:</b> Custom
+commands allow licensees and partners to provide commands that can be run
+by the SysCLE with those provided by Symbian. </p> </entry>
+</row>
+<row>
+<entry><p>Use the switch off and restart functionally provided by the kernel
+power API </p> </entry>
+<entry><p>It provides the ability to restart or shutdown the device. </p> <p> <b>Note:</b> It
+is expected that these commands are used as the last commands in the commandList
+for the shutdown state. </p> </entry>
+</row>
+<row>
+<entry><p>Sending save events to all clients registered to receive them through <codeph>CSaveNotifier </codeph>  </p> </entry>
+<entry><p>It notifies all clients that have requested notification through
+the existing <codeph>CSaveNotifier</codeph> interface of a save notification
+event. </p> </entry>
+</row>
+<row>
+<entry><p>Finalise the drives on the system using <codeph>RFs::FinaliseDrives() </codeph>  </p> </entry>
+<entry><p>It calls the <codeph>RFs::FinaliseDrives()</codeph> API to finalise
+the drives on the device. </p> <p> <b>Note:</b> This is intended for use in
+the shutdown commandList. </p> </entry>
+</row>
+<row>
+<entry><p>Request for BAFL to persist the HAL attributes </p> </entry>
+<entry><p>It calls the <codeph>BAFL::PersistHAL()</codeph> API to persist
+the persistent HAL values to disk. </p> <p> <b>Note:</b> This is intended
+for use in the shutdown commandList. </p> </entry>
+</row>
+<row>
+<entry><p>Request a state transition to occur </p> </entry>
+<entry><p>It calls the request system state transition that is provided by
+SSM. This request is treated like any other requested system state transition
+with the policy plug-in being able to accept, fail, or queue the transition.
+This command handles the automatic transition from the final commandList of
+the start-up state to the normal state. </p> </entry>
+</row>
+<row>
+<entry><p>Command severity information </p> </entry>
+<entry><p>When a command fails SSMA performs the following actions: Ignore,
+Low, Medium, High, and Severity. For more information on command severity,
+see <xref href="GUID-1F2911DC-7D71-573D-AFD2-1EA4BBA88A57.dita#GUID-1F2911DC-7D71-573D-AFD2-1EA4BBA88A57/GUID-AA207E56-2F87-54E5-B19D-5246C5526827">Command
+severity information</xref>. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-AA207E56-2F87-54E5-B19D-5246C5526827"><b>Command severity
+information</b> </p> <p>Each command supports a Severity level, to determine
+the response during a command failure. In SysStart two actions take place
+when a command fails that is panic and ignore. </p> <ul>
+<li id="GUID-2D276EEA-C5F2-5F0A-AF42-50B869963D6D"><p> <codeph>EPanicOnCommandFailure</codeph> -
+Panic the system starter if command fails. This causes the device to restart. </p> </li>
+<li id="GUID-3FD86DCE-FC7A-53A0-801E-8CDF9A6D8597"><p> <codeph>EIgnoreCommandFailure</codeph> -
+Ignore the command failure </p> </li>
+</ul> <p>In a similar way, in SSMA, the following actions takes place when
+a command fails: Ignore, Low, Medium, High, and Severity. </p> <p>The following
+example code shows an identifier for the level of severity to be associated
+with a command failure: </p> <codeblock id="GUID-9990B545-1B5C-5E93-A7A0-D37D7F7EF6FE" xml:space="preserve">/** @publishedPartner
+@prototype */
+enum TCmdErrorSeverity
+    {
+    /** Ignore the command failure.    */
+    ECmdIgnoreFailure = 0,
+    ECmdLowSeverity = 25,
+    ECmdMediumSeverity = 50,
+    ECmdHighSeverity = 75,
+ ECmdCriticalSeverity = 100
+    };</codeblock> <p>The following list shows how the new command severity
+is mapped to the existing ones: </p> <ul>
+<li id="GUID-F863355B-0A8B-5FED-A840-D3D60CB2703A"><p> <codeph>EIgnoreCommandFailure
+-&gt; ECmdIgnoreFailure</codeph>  </p> </li>
+<li id="GUID-18F6DB1E-A126-5F3F-9421-5BA5EB5C179B"><p> <codeph>EPanicOnCommandFailure
+-&gt; ECmdCriticalSeverity</codeph>  </p> </li>
+</ul> <p><b>Adaptations to convert SysStart into SysCLE</b> </p> <p>The general
+adaptations made to convert SysStart into SysCLE are: </p> <ul>
+<li id="GUID-7AE47B3F-B8C9-531E-A0D1-F95F23E4B39E"><p>The process starting
+code is removed. </p> </li>
+<li id="GUID-9412EC1A-896B-5A4A-92C2-B251D3525F6F"><p>The existing implementation
+to read the Start-up mode and convert this into an SSC filename is removed
+(and re-used by policy plug-in). </p> </li>
+<li id="GUID-9BE3D557-F031-52D6-B599-4564B804FA84"><p>The resource file reader
+code is removed (and re-used by policy plug-ins). </p> </li>
+<li id="GUID-32E427E3-59FF-5C54-8FB4-1F90D6A4A436"><p>The SysCLE client (internal)
+API is implemented to: </p> <ul>
+<li id="GUID-D719DD35-9F5E-50F3-95ED-06C9E31AB145"><p>Handle the commandList
+object being received, and run the commandList. </p> </li>
+<li id="GUID-81B84D78-9ED8-5B88-9AAA-B07AB4B3C9DA"><p>Handle a request, to
+immediately stop a commandList that is running. </p> </li>
+</ul> </li>
+<li id="GUID-92282F21-D127-5BDA-9848-A86873D506E6"><p>The existing implementation
+to Add (load) the Startup Domain Hierarchy is removed. </p> </li>
+<li id="GUID-0577911A-F289-5B28-A796-CA4FF000C6EF"><p>The SysCLE implementation
+expects system state change to occur at any time in a commandList. </p> </li>
+<li id="GUID-1EE3E9B5-5430-5548-BDD5-4C789BF77D95"><p>The handling of the
+retry_failure_recovery_method must be adapted. The SysStart decides on the
+recovery policy when a commandList fails to run. When a critical retry failure
+occurs (that is <codeph>ERestartOS</codeph>) this is returned to SysStart
+(with any indicated Start-up mode). If a non-critical retry failure occurs
+(that is <codeph>EIgnoreFailure</codeph>), this is also returned to SysStart. </p> </li>
+<li id="GUID-A4DC8B53-095B-599D-A582-60EBF7B46222"><p>The ability for SysState
+to query if any non-critical commands failed to run successfully in the commandList.
+This API also provides further information about the failed command and not
+just returns a Boolean value describing if a command failed or not. Allowing
+SysState to store or act on this information provides information as to what
+state the system is when debugging. </p> </li>
+</ul> </section>
+</conbody></concept>

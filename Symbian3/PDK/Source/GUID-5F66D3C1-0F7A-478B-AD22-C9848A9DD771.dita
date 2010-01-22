@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5F66D3C1-0F7A-478B-AD22-C9848A9DD771" xml:lang="en"><title>SMP
+Troubleshooting Guide</title><shortdesc>This document describes a few common error patterns to help you
+identify and correct some of the problems you may have in writing SMP-safe
+code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>There are two main classes of programming errors that can occur in code
+running on an SMP device:<ul>
+<li><p>unsafe assumptions about thread execution order</p></li>
+<li><p>unsafe assumptions about memory/data sharing.</p></li>
+</ul>These errors can cause deadlocks or panics on a SMP system, or may cause
+data corruption or unexpected results. </p>
+<section id="GUID-BC147BD0-8A99-44D7-AC73-B265C6C0E285"><title>Execution order
+assumptions</title><p>Most of the errors found in code so far are not unique
+to SMP, but are more likely to be found on an SMP system. Some existing code
+makes assumptions about how threads are scheduled and how thread priority
+affects the sequence of operations across multiple threads.</p><p>For example,
+one thread makes a request on a server. The developer assumes that the server
+will complete the request before the calling thread became active again. This
+is a dangerous assumption as the server might not be ready to run, or could
+pause while waiting for a resource. This would mean that the scheduler could
+continue executing the original calling thread before the server has completed
+the request. </p><p>The above example would be even more likely to be an unsafe
+assumption on an SMP system because the scheduler could run the server on
+one CPU core and the original calling thread on another at the same time.
+This is why it is important for the calling thread to be written in a thread-safe
+manner which waits for the server to complete the request before continuing
+into code that requires that request to be complete.</p><ul>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita">Common Error
+Patterns - Execution Order</xref> describes a number of common error patterns
+that have been found during SMP testing.</p></li>
+<li><p><xref href="GUID-314FAEB5-946C-4090-B6AA-1BEEC9BE8EFB.dita">Common Error
+Patterns - Case Studies</xref> provides specific examples of common error
+patterns.</p></li>
+</ul></section>
+<section id="GUID-9626880A-4D3A-4C16-8E4C-1256D2D33524"><title>Shared data/memory</title><p>Errors
+may occur if multiple threads try to update or delete the same memory areas
+at the same time.</p><p>Good programming practice, whether for single core
+or multiple core, is to lock objects while they are being updated to prevent
+them being read by another thread in the middle of an update. For kernel-side
+code use a lock to ensure that a particular thread has exclusive access to
+data and interrupts.</p>  </section>
+<section id="GUID-6EFA3D71-2254-4231-A375-3519F6A13FBF"><title>Flexible Memory
+Model Problems</title><p>One problem that has been found, though not specifically
+SMP related, is where the flexible memory model is being used. For global
+chunks, memory locations are accessed as an offset to a base address. However,
+each thread may have a different base address for the global chunk: if applications
+use absolute addresses, they will read the wrong data.</p></section>
+</conbody><related-links>
+<link href="GUID-16AED228-539F-4BF7-A7FD-9A01FF1A9A84.dita#GUID-16AED228-539F-4BF7-A7FD-9A01FF1A9A84/GUID-94FDD42D-9D26-4A41-BFB6-57648083EC41">
+<linktext>SMP - Locking</linktext></link>
+<link href="GUID-EFE8B65E-AEA6-4C55-B4BA-DE0BFEB1B016.dita"><linktext>Maintaining
+Data Integrity Using Memory Barriers</linktext></link>
+<link href="GUID-9781C95D-4606-57FB-9F62-B7CC45DDD968.dita"><linktext>Flexible
+Memory Model Guide</linktext></link>
+</related-links></concept>

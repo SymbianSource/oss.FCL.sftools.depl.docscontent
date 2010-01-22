@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-402C3EE7-8852-49B6-BE62-8588753FAC8F" xml:lang="en"><title>Constructing
+the toolbar</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><p>Construct the toolbar either for your entire application or for
+an application view. If a view has no toolbar specified, the application specific
+toolbar is used for the view.</p>        <p> The UI framework creates the
+toolbar automatically during application initialization when it is properly
+defined in the resource files. After the toolbar has been created, you can
+receive a pointer to it using <codeph>CAknAppUi</codeph>, <codeph>CEikAppUiFactory</codeph> or <codeph>CAknView</codeph> methods.
+The method to use depends on whether the application specific or view specific
+toolbar pointer should be received. For more information, see <xref href="GUID-BC3207BF-9E9F-4BA0-8F01-B72228110A61.dita">Accessing
+the toolbar from applications or application views</xref>.</p><p>The toolbar
+destruction is also handled by the framework when the application execution
+ends. </p><p>The <codeph>EIK_APP_INFO</codeph> structure’s <codeph>custom_app_info_extension</codeph> refers
+to the <codeph>EIK_APP_INFO_EXT</codeph> element. The element contains links
+to the resource structure of the toolbar. The contents of the application-specific
+toolbar can be defined in the <codeph>AVKON_TOOLBAR</codeph> resource definition.
+The toolbar can also be specified to be view-specific by linking to its resource
+structure from the <codeph>AVKON_VIEW</codeph> resource structure. If a view
+has no toolbar specified, the application-specific toolbar is used for the
+view.</p><p>Use the <codeph>AVKON_TOOLBAR</codeph> resource definition to
+define the toolbar contents. </p><p>If the toolbar is application specific,
+refer to the toolbar definition from the <codeph>EIK_APP_INFO_EXT</codeph> resource
+structure. In case of a view specific toolbar, refer to the toolbar definition
+from the <codeph>AVKON_VIEW</codeph> structure.</p>           <p>The <codeph>AVKON_TOOLBAR</codeph> resource
+definition contains a list of toolbar items. Each item is defined as <codeph>TBAR_CTRL</codeph> structure.</p> 
+         <p>The example below shows how to define an application toolbar in
+resources.</p>           <codeblock xml:space="preserve">RESOURCE EIK_APP_INFO
+    {
+    cba = r_softkeys_options_next;
+    menubar = r_myapp_menubar;
+    custom_app_info_extension = r_myapp_info_extension;
+    }
+
+RESOURCE EIK_APP_INFO_EXT r_myapp_info_extension
+    {
+    popup_toolbar = r_myapp_fixed_toolbar;
+    }</codeblock><p>The example below shows how to define a toolbar for an
+application view in resources.</p>           <codeblock xml:space="preserve">RESOURCE AVKON_VIEW r_myapp_fixed_view
+    {
+    menubar = r_myapp_menubar;
+    toolbar = r_myapp_fixed_toolbar;
+    cba = r_softkeys_options_next;
+    }</codeblock><p>Use the <codeph>TBAR_CTRL</codeph> resource definition
+to define toolbar controls. You can also <xref href="GUID-58318BAB-2EC4-4C9E-A7CA-580E701EE54F.dita">add
+controls later dynamically</xref> in your application code. </p> <p>The example
+below shows how to define a fixed toolbar with three buttons in resources.</p><codeblock xml:space="preserve">RESOURCE AVKON_TOOLBAR r_myapp_fixed_toolbar
+    {
+    flags = KAknToolbarFixed;
+    items =
+        {
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = ECmdFirst;
+            control = AVKON_BUTTON
+                {
+                flags = 0;
+                states =
+                    {
+                    AVKON_BUTTON_STATE
+                        {
+                        txt = "First";
+                        helptxt = "First help";
+                        }  
+                    };
+                };
+            },
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = ECmdSecond;
+            control = AVKON_BUTTON
+                {
+                flags = 0;
+                states =
+                    {
+                    AVKON_BUTTON_STATE
+                        {
+                        txt = "Second";
+                        helptxt = "Second help";
+                        }  
+                    };
+                };
+            },
+        TBAR_CTRL
+            {
+            type = EAknCtButton;
+            id = ECmdThird;
+            control = AVKON_BUTTON
+                {
+                flags = 0;
+                states =
+                    {
+                    AVKON_BUTTON_STATE
+                        {
+                        txt = "Third";
+                        helptxt = "Third help";
+                        }  
+                    };
+                };
+            }
+        };
+    }
+</codeblock><p>The example below shows how to define a floating toolbar with
+items to be added dynamically at runtime.</p><codeblock xml:space="preserve">RESOURCE AVKON_TOOLBAR r_myapp_floating_toolbar
+    {
+    flags = KAknToolbarWithoutCba;
+    items =
+        {
+        // Created dynamically
+        };
+    }
+</codeblock></section>
+</conbody></concept>

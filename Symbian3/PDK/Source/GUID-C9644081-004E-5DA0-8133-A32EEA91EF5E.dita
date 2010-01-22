@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C9644081-004E-5DA0-8133-A32EEA91EF5E" xml:lang="en"><title>IIC Kernel-side
+Implementation Guide: Slave Channel</title><shortdesc>This document explains how to implement an interface from Symbian
+platform to an IIC bus as a slave channel.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-48EF587B-8C61-47FA-B311-18594D3B54CD"><title>Purpose</title> <p>This document explains how to implement
+an interface from Symbian platform to an IIC bus as a slave channel. </p> <p><b>Intended
+Audience</b> </p> <p>Base porting engineers. </p> <p><b>Introduction</b> </p> <p>IIC
+buses (serial inter-chip buses) are a class of bus used to transmit non time-critical
+data between components of a hardware system. </p> </section>
+<section id="GUID-5AF2B3DD-0A5B-4E3E-AF8A-D1522E540D7A"><title>Implementing a slave channel</title> <p>To implement an IIC
+channel as slave you must write a class extending <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref>.
+You must implement certain pure virtual functions of the parent class in the
+subclass. Those functions and any other functions which you write in the subclass
+are called the Platform Specific Layer (PSL). The functions inherited from
+the parent class are called the Platform Independent Layer (PIL). </p> <p>The
+four functions you must implement are: </p> <ul>
+<li id="GUID-107E2432-19BB-55D8-9100-A0F27D0C7ED2"><p> <xref href="GUID-11C2715E-409F-3F24-AE8F-89CF5A893B80.dita"><apiname>DoCreate()</apiname></xref>  </p> </li>
+<li id="GUID-567D0C13-D99B-5901-8833-F0E7FE4EA24E"><p> <xref href="GUID-9D910016-5611-30DD-A139-EE46705A4912.dita"><apiname>DoRequest()</apiname></xref>  </p> </li>
+<li id="GUID-4B0653EC-AF4F-53C9-92F4-C9950D58C742"><p> <xref href="GUID-2958D2DF-696B-3493-985D-E6DE4BBCD74C.dita"><apiname>ProcessData()</apiname></xref>  </p> </li>
+<li id="GUID-028033AA-63D9-5AB0-9645-7F9397EEEEA7"><p> <xref href="GUID-A5E66E7E-E03B-3249-A5E5-F0E5DFC3B3EB.dita"><apiname>CheckHdr()</apiname></xref>  </p> </li>
+</ul> <p>You must also provide the following functionality: </p> <ul>
+<li id="GUID-546A43C9-03BC-54D9-B77A-B88D9D74F817"><p>call the constructor
+of the base class <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref> with arguments for
+bus type and duplex settings, </p> </li>
+<li id="GUID-B26256C0-3CC0-59DA-9A5E-99B6EEACBDA6"><p>assign the channel number
+and channel ID, and </p> </li>
+<li id="GUID-D9031D14-27DF-5A2D-B0FB-E79D28E4DECE"><p>report events signalled
+by the hardware by calling the <xref href="GUID-5111CCD6-E449-30B7-844F-8273FBCA97DE.dita"><apiname>NotifyClient()</apiname></xref> callback
+function with the appropriate trigger. </p> </li>
+</ul> <p>Your implementation of the PSL will need to call functions of the
+PIL. You are restricted to using a certain subset of these. </p> <p><b>Implementing
+the Platform Specific Layer</b> </p> <p> </p> <p><b>Implementing DoCreate()</b> </p> <p> <xref href="GUID-11C2715E-409F-3F24-AE8F-89CF5A893B80.dita"><apiname> DoCreate()</apiname></xref> is
+the second phase constructor of your class. Implement it with functionality
+including: </p> <ul>
+<li id="GUID-DE8D2820-B1DA-5F0A-B00B-78599CAC07B4"><p>call the constructor
+of <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref>, </p> </li>
+<li id="GUID-9A0A94C4-F195-5220-B981-9DAF01A1FB52"><p>call the constructor
+of your platform specific subclass of <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref>, </p> </li>
+<li id="GUID-CCCDD41C-03BD-52AD-BD4D-B3A06802396A"><p>set the timer, </p> </li>
+<li id="GUID-A06C90F8-F423-5FD0-BE3A-DC5072503F16"><p>set the channel number, </p> </li>
+<li id="GUID-5740E282-41F2-5128-A2AB-5429D959F270"><p>call the <xref href="GUID-741A0FD7-5A5A-31B0-BB5F-763B5795009C.dita"><apiname>Init()</apiname></xref> method
+of the base class, and </p> </li>
+<li id="GUID-202230E9-C634-5384-8ADF-3C8DD8AF9FFD"><p>set the <xref href="GUID-D389A526-3974-3EB5-95F5-50EAFE7B48E0.dita"><apiname>iChannelId</apiname></xref> member
+to an ID to be returned to the PSL, which will use it to create a channel
+ID which is unique with respect to other opened slave channels. </p> </li>
+</ul> <p><b>Implementing DoRequest()</b> </p> <p> <xref href="GUID-9D910016-5611-30DD-A139-EE46705A4912.dita"><apiname> DoRequest()</apiname></xref> is
+the gateway function to the PSL. Implement it with functionality including: </p> <ul>
+<li id="GUID-1671D196-1C71-58EF-892F-6F723133300B"><p>configure the interface, </p> </li>
+<li id="GUID-7085B7DE-B6DD-5964-952A-4F956C9836D5"><p>set triggers and initiate
+transfers, and </p> </li>
+<li id="GUID-8C59A6CE-4980-5F6F-90AD-551064EE8A92"><p>disable interrupts in
+the event of an abort. </p> </li>
+</ul> <p> <xref href="GUID-9D910016-5611-30DD-A139-EE46705A4912.dita"><apiname> DoRequest()</apiname></xref> shall be called with an argument
+representing one of various possible operations. </p> <ul>
+<li id="GUID-2D0A07D3-95E1-5AF0-B960-A9558DA2935C"><p>The argument is <xref href="GUID-C504873A-5B30-39C6-90A8-618B42C409D5.dita"><apiname>EAsyncConfigPwrUp</apiname></xref> when
+the client called <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-0078D2B4-07B7-3936-8CB2-6A967C9B1FCD"><apiname>IicBus::CaptureChannel()</apiname></xref> with instructions
+to complete asynchronously. The platform specific layer should power up and
+configure the hardware and then call <xref href="GUID-23D0DB11-0820-3C5A-B4E9-D10398E8FAC3.dita"><apiname>ChanCaptureCallback()</apiname></xref> with
+the result as argument. </p> </li>
+<li id="GUID-94087E4A-F192-56B6-A03C-22895E90F039"><p>The argument is ESyncConfigPwrUp
+when the client called <xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita#GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF/GUID-0078D2B4-07B7-3936-8CB2-6A967C9B1FCD"><apiname>IicBus::CaptureChannel()</apiname></xref> with instructions
+to complete synchronously. The platform specific layer should power up and
+configure the hardware and return the result. </p> </li>
+<li id="GUID-8747FA9D-E03C-545C-941E-38657E943339"><p>The argument is <xref href="GUID-59D9D3BE-400C-3B61-9208-535D55D59BF3.dita"><apiname>EPowerDown</apiname></xref> when
+the client called <xref href="GUID-74BA3796-65DE-39A1-A50F-78394AA0632E.dita#GUID-74BA3796-65DE-39A1-A50F-78394AA0632E/GUID-6DEE9C7F-1139-382E-A46A-E9FF4ADE4E60"><apiname>Iic::ReleaseChannel()</apiname></xref>. The platform specific
+layer should disable the interrupts, stop any ongoing or outstanding operations
+and stop or reset the hardware to its initial state. </p> </li>
+<li id="GUID-D5E42E03-5016-57E7-B816-3777B0207660"><p>The argument is <xref href="GUID-5CE38A1F-7AA1-3377-BFBB-4871730B1590.dita"><apiname>ETransmit</apiname></xref> when
+the client called <xref href="GUID-74BA3796-65DE-39A1-A50F-78394AA0632E.dita#GUID-74BA3796-65DE-39A1-A50F-78394AA0632E/GUID-CB8904EA-474D-3AFB-8519-248F104A10AB"><apiname>Iic::SetNotificationTrigger()</apiname></xref> with any
+of the transmit triggers as argument. The platform specific layer should initialise
+the hardware and set up transmission buffers. In a typical implementation,
+if the transmission has not yet started it should also fill up the transmit
+FIFO and enable interrupts to prepare for transmission, but this is not necessary
+if the transmission is ongoing and the argument <xref href="GUID-5CE38A1F-7AA1-3377-BFBB-4871730B1590.dita"><apiname>ETransmit</apiname></xref> was
+passed because of a transmit underrun. </p> </li>
+<li id="GUID-2F7EA8A0-423A-5296-AF96-2A63377F55DE"><p>The argument is <xref href="GUID-5BA7AA55-E78D-3807-A6E3-4596A106B94B.dita"><apiname>EReceive</apiname></xref> if
+the client called <xref href="GUID-74BA3796-65DE-39A1-A50F-78394AA0632E.dita#GUID-74BA3796-65DE-39A1-A50F-78394AA0632E/GUID-B88F5929-78F3-3CFD-B288-93B2EE883463"><apiname>Iic::SetNotificationTrigger</apiname></xref> with any
+of the receive triggers as argument. The platform specific layer should initialise
+the hardware and set up receive buffers. In a typical implementation, if the
+transmission has not yet started it should also flush or fill the receive
+FIFO and enable interrupts, but this is not necessary if the transmission
+is ongoing and the argument <xref href="GUID-5BA7AA55-E78D-3807-A6E3-4596A106B94B.dita"><apiname>EReceive</apiname></xref> was passed because
+of a receive overrun. </p> </li>
+<li id="GUID-9692F677-FD7E-589F-BF8B-9CAB97764202"><p>The argument is <xref href="GUID-966F7C7B-F8B1-334E-998B-BAC4C6BF86DA.dita"><apiname>EAbort</apiname></xref> if
+the timer of the master activity has expired. The platform specific layer
+should stop the transfer by disabling interrupts, stopping ongoing and outstanding
+operations and resetting the hardware and return failure. </p> </li>
+</ul> <p><b>Implementing ProcessData()</b> </p> <p> <xref href="GUID-2958D2DF-696B-3493-985D-E6DE4BBCD74C.dita"><apiname>ProcessData()</apiname></xref> is
+the function called by the platform independent layer in response to <xref href="GUID-5111CCD6-E449-30B7-844F-8273FBCA97DE.dita"><apiname>NotifyClient()</apiname></xref>.
+It has two arguments representing a trigger <codeph>aTrigger</codeph> and
+a callback <codeph>aCb</codeph>. You implement it to modify the callback </p> <ul>
+<li id="GUID-0BB2E7AA-4648-5006-81BF-78B83462C73F"><p> <xref href="GUID-334979E2-7CC0-3736-BFE2-8F92305CC47B.dita"><apiname>aTrigger</apiname></xref>,
+a trigger of class <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref>, and </p> </li>
+<li id="GUID-3EE01C52-1D50-5514-A95B-7ED30558BC8C"><p> <xref href="GUID-68BD6AE8-7FF5-310D-A8A0-D28FA3994B3A.dita"><apiname>aCb</apiname></xref>,
+a callback of class <xref href="GUID-7D3ABED1-42FE-3A89-8898-C3854D201BC9.dita"><apiname>TIicBusSlaveCallback</apiname></xref>. </p> </li>
+</ul> <p>You implement the function to update the callback according to the
+value of the trigger. </p> <ul>
+<li id="GUID-ADFFED1D-C9D1-5EFA-B846-4B6537E2F408"><p>If the trigger is a
+receive trigger, update the callback with the number of words already received
+to the buffer by calling </p> <codeblock id="GUID-2C227263-5A41-5FCD-9206-C8DEB775CB4F" xml:space="preserve">aCb-&gt;SetRxWords(numWordsReceived);</codeblock> </li>
+<li id="GUID-2A567339-C9BB-56D1-8E3B-71DA3CDAEC4C"><p>If the trigger is a
+transmit trigger, update the callback with the number of words already transmitted
+(moved to the hardware transmit FIFO) by calling </p> <codeblock id="GUID-D92F489C-9214-5D4A-BF29-AAEBCE3353AE" xml:space="preserve">aCb-&gt;SetTxWords(numWordsTransmitted);</codeblock> </li>
+<li id="GUID-B447C1B5-FEA0-5764-8507-55041088194E"><p>Whether the trigger
+is receive or transmit, update the trigger member of the callback containing
+the accumulated event history by calling </p> <codeblock id="GUID-377BA25F-3FE5-5A3A-B671-7F5CA007FB2D" xml:space="preserve">aCb-&gt;SetTrigger(trigger | aCb-&gt;GetTrigger());</codeblock> <p>where <codeph>trigger</codeph> is one of the receive or transmit triggers
+or <xref href="GUID-1D10124D-F27E-33C3-B803-FEBDEB2B7964.dita"><apiname>EGeneralBusError</apiname></xref>. </p> </li>
+</ul> <p><b>Implementing CheckHdr()</b> </p> <p>Implement <xref href="GUID-B44147A7-D880-3510-A3F1-D73E9B5F8230.dita"><apiname>CheckHdr().</apiname></xref> This
+is the function which is called if the client tries to capture the channel.
+Implement it with the following functionality: </p> <ul>
+<li id="GUID-53140F3D-A4B6-5AA8-955E-55DE3C69E063"><p>check if the header
+of the transaction is valid. </p> </li>
+</ul> <p><b>Using the Platform Independent Layer</b> </p> <p>You can only
+use certain functions of the PIL. They provide functionality which is generic
+to IIC buses. They are: </p> <ul>
+<li id="GUID-3195CC6D-84CF-5FD8-93F7-CC8E4F88FCFB"><p> <xref href="GUID-0A25EDF8-8DC6-33A0-8CD3-880898D2E61E.dita"><apiname>DIicBusChannelSlave()</apiname></xref>.
+The constructor of the superclass DIicBusChannelSlave. </p> </li>
+<li id="GUID-47BA511F-1430-5B13-ABEC-972238B8C4C7"><p> <xref href="GUID-741A0FD7-5A5A-31B0-BB5F-763B5795009C.dita"><apiname>Init()</apiname></xref>.
+Initialises <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref>. </p> </li>
+<li id="GUID-695E3D51-2E28-5AC6-B960-D911A8BB679C"><p> <xref href="GUID-23D0DB11-0820-3C5A-B4E9-D10398E8FAC3.dita"><apiname>ChanCaptureCallback()</apiname></xref>.
+Called with the error code when asynchronous channel capture has completed
+in response to <xref href="GUID-6612D537-67B8-30E1-AB97-4B75A866DB6F.dita"><apiname>DoRequest(EAsyncConfigPwrUp)</apiname></xref>. </p> </li>
+<li id="GUID-9979C465-5988-5710-BD4D-428417234185"><p> <xref href="GUID-5111CCD6-E449-30B7-844F-8273FBCA97DE.dita"><apiname>NotifyClient()</apiname></xref>.
+Called to notify the PIL (which then notifies the client) that a hardware
+event of the passed in type has occurred. </p> </li>
+<li id="GUID-9547DCEE-13C9-5045-8910-2A8BD0FECC58"><p> <xref href="GUID-1BC13C5C-A0A5-3D7C-953E-8499B14B2E93.dita"><apiname>SetMasterWaitTime()</apiname></xref>.
+Sets the timeout for the master to respond after the transmission has been
+started. </p> </li>
+<li id="GUID-CBF88624-1DFE-5B20-9220-0DE9176620F5"><p> <xref href="GUID-B8BAB30F-A1C7-3F33-B5B0-C2ADFB83D941.dita"><apiname>GetMasterWaitTime()</apiname></xref>.
+Gets the timeout for the master to respond after the transmission has been
+started. </p> </li>
+<li id="GUID-468FEE59-6570-5C9F-9774-09C540B6B8A3"><p> <xref href="GUID-04E9F6A6-B3A0-3216-B09E-25AAF79DC7DD.dita"><apiname>SetClientWaitTime()</apiname></xref>.
+Sets the client wait time within which it is expected to respond with the
+next operation. </p> </li>
+<li id="GUID-4EE6EAC2-66A8-5BFC-BD25-D376CA790120"><p> <xref href="GUID-C3046454-F0ED-3D7B-93BC-02211B2470C8.dita"><apiname>GetClientWaitTime()</apiname></xref>.
+Gets the client wait time within which it is expected to respond with the
+next operation. </p> </li>
+</ul> <p><b>Implementing event notification</b> </p> <p>A slave channel reports
+events on the hardware by calling the <xref href="GUID-5111CCD6-E449-30B7-844F-8273FBCA97DE.dita"><apiname>NotifyClient()</apiname></xref> callback
+function to pass the following notifications under the stated conditions. </p> <ul>
+<li id="GUID-F3CDDE98-9DEF-55A9-B1A5-8E84C26A3EE3"><p>Pass <xref href="GUID-6E213643-B02E-35F0-AF1F-BF79134DA8E1.dita"><apiname>ERxAllBytes</apiname></xref> if
+the transmission has stopped with all bytes received. </p> </li>
+<li id="GUID-9FFE9AE8-DF13-5A1E-BBCB-315AA8DA377D"><p>Pass <xref href="GUID-1FFA3657-452F-3BB2-88C7-663395757613.dita"><apiname>ETxAllBytes</apiname></xref> if
+the transmission has stopped with all bytes transmitted. </p> </li>
+<li id="GUID-66E08813-61B8-5300-BDD9-CBC3C779C290"><p>Pass <xref href="GUID-8CC48D05-A472-3A95-AEDC-1208F1522B5F.dita"><apiname>ERxUnderrun</apiname></xref> if
+the transmission has been stopped but the receive buffer provided by the client
+is not full, indicating that the master has sent less data than expected. </p> </li>
+<li id="GUID-1E7D1FD4-D97B-59B3-8C2B-AF17073F7166"><p>Pass <xref href="GUID-90F30E77-211E-333E-AF0B-DA2A62761A11.dita"><apiname>ERxOverrun</apiname></xref> if
+the transmission has not been stopped but the receive buffer provided by the
+client is full. The client should respond to a receive overrun by </p> <ul>
+<li id="GUID-B426810A-8137-5221-8965-4EDA901331D0"><p>providing new receive
+buffer, and </p> </li>
+<li id="GUID-7F452F0B-FC12-5FF2-AD9B-5A267F96692F"><p>resetting its receive
+notification triggers for instance by calling <codeph>SetNotificationTrigger(ERxAllBytes)</codeph>. </p> </li>
+</ul> <p>To make this possible the PSL should try to keep the receive hardware
+FIFO at the lowest possible level. </p> </li>
+<li id="GUID-1ED0E6C5-94D0-5AA1-9D3D-318391C167F4"><p>Pass <xref href="GUID-F51FDBA8-E904-3091-BFF1-43B968389C68.dita"><apiname>ETxUnderrun</apiname></xref> if
+the transmission has not been stopped but all the data in the transmit buffer
+provided by the client has been transferred. The client should respond to
+a transmit underrun by </p> <ul>
+<li id="GUID-C898DAD3-B7A6-5E35-B0D2-F7919FD402A1"><p>providing new transmit
+buffer, and </p> </li>
+<li id="GUID-0CC17326-1FFF-5B45-A4D9-6182B2A46C8E"><p>resetting its transmit
+notification triggers for instance by calling <codeph>SetNotificationTrigger(ETxAllBytes)</codeph>. </p> </li>
+</ul> <p>To make this possible the PSL should try to keep the transmit hardware
+FIFO at the highest possible level. </p> </li>
+<li id="GUID-3D823BF3-5AB5-565C-83B3-F7E7C4550EEA"><p>Pass <xref href="GUID-C29FA887-BBDA-35D2-9ED2-58083F85AD87.dita"><apiname>ETxOverrun</apiname></xref> if
+the transmission has been stopped but not all the data in the transmit buffer
+provided by the client has been transferred. This indicates that the client
+specified a bigger buffer for the transmission than the master needed to read
+from the slave. </p> </li>
+<li id="GUID-1CA68D76-14AF-5FF9-883A-60B6BC2A72F2"><p>Pass <xref href="GUID-1D10124D-F27E-33C3-B803-FEBDEB2B7964.dita"><apiname>EGeneralBusError</apiname></xref> if
+a bus error has occurred, that is if an interrupt signals a bus overrun or
+underrun indicating data corruption. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-052F58B7-117B-5EDD-A3D5-CB0DE6A4E239.dita"><linktext>IIC Kernel-side
+Implementation Guide:   Generic Considerations</linktext></link>
+<link href="GUID-0C8318B1-71D7-5384-97EB-85CBBC3E6B84.dita"><linktext>IIC Kernel-side
+Implementation Guide:   Master Channel</linktext></link>
+<link href="GUID-9986DCC6-EE73-59FB-BDAC-9B09DC64FBCE.dita"><linktext>Client of
+Master   Channel Implementation Tutorial</linktext></link>
+<link href="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1.dita"><linktext>Client of
+Slave   Channel Implementation Tutorial</linktext></link>
+<link href="GUID-B2F86F54-EF50-56DB-ADF7-15325AC9324D.dita"><linktext>IIC Guide</linktext>
+</link>
+<link href="GUID-99FC067C-0AED-5373-AF63-8DB7FF5C1F7E.dita"><linktext>SPI Technology
+Guide</linktext></link>
+<link href="GUID-3A30DA16-ECA8-5639-A9DC-6BE2AD55420B.dita"><linktext>I2C Technology
+Guide</linktext></link>
+</related-links></concept>

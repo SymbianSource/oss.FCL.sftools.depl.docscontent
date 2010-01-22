@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-242D9F27-401B-4230-B3A6-11E2D9D3DE17" xml:lang="en"><title>Threading
+Model</title><shortdesc>Describes the impacts of thread execution in SMP environment.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>In single core system, the active threads are executed in a time-sliced
+fashion and appear to run in parallel. In a multi-core environment, multiple
+threads can be executed in parallel and can also use time-sliced thread execution. </p>
+<section id="GUID-54670F76-522D-48FC-8D71-397E0E14D9DE"><title>Single-threaded
+code</title>The applications designed with single threads will not have any
+performance benefit by using multiple cores. The contention for CPU usage
+may be reduced on multi-core hardware. The single threaded code should run
+normally on multi-core hardware. Some code is more efficient
+having single threads and some code performs better with multiple threads.<note> It
+is not recommended to modify a single-threaded application into multi-threaded
+code until the existing code runs safely on multiple-core hardware. But new
+applications can be designed to be multi-threaded to take advantage of the
+SMP hardware.</note></section>
+<section id="GUID-80EF734A-69F4-4B21-B031-F22D23721629"><title>Servers</title><p>Most
+servers on Symbian platform are single threaded and are unlikely to need any
+modification to migrate to a multi-core hardware. Some servers may need to
+service multiple clients concurrently. One of the solutions to take advantage
+of SMP hardware is to modify the servers to have multiple threads to service
+the clients concurrently. The performance can also be improved by implementing
+caching in the server. </p></section>
+<section id="GUID-DA500B10-CE4F-4640-A203-A06E0DD63C10"><title>Active scheduler</title><p>Active
+schedulers are designed to be single threaded and the active objects never
+run concurrently because there is no need for a lock in the data shared between
+active objects. The active scheduler will only execute one active object at
+a time. The existing code should run safely on multi-core hardware. If the
+active objects need to use multiple cores then the code should be modified
+to be multi-threaded and use locks when there is shared data between the threads. </p></section>
+<section id="GUID-31F8B40D-507B-458A-847F-2982FA06989D"><title>User-side code</title><p>The
+user-side applications that use Symbian platform Inter Process Communication
+(IPC) functions like <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-83AADCC6-1AD8-32D8-A6E6-B86B47C97DC2"><apiname>RThread::Rendezvous()</apiname></xref>, <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-2F263A1B-BB71-396C-8C45-B0D062327FFA"><apiname>User::RequestComplete()</apiname></xref>, <xref href="GUID-9741288A-B0EE-3098-B891-43124FF056BB.dita#GUID-9741288A-B0EE-3098-B891-43124FF056BB/GUID-5ACB4970-55CA-3ECD-8388-C9CE9CFF103E"><apiname>RSession::SendReceive()</apiname></xref> or Publish-Subscribe should run safely on multi-core hardware. If the user-side
+code uses some proprietary IPC mechanism to communicate with other process,
+that code may need to be modified to use Symbian IPC functions. </p><table id="GUID-114D4D3D-C28E-43BE-85CA-01DCAD2B944B">
+<desc>The following table compares the advantages of single-threaded and multi-threaded
+applications on an SMP hardware:</desc>
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">Single-threaded applications</entry>
+<entry valign="top">Multi-threaded applications</entry>
+</row>
+</thead>
+<tbody>
+<row>
+
+<entry>Low CPU usage for schedulers</entry>
+<entry>Parallel execution provides faster execution</entry>
+</row>
+<row>
+<entry>Low memory overhead</entry>
+<entry>Added control on power consumption</entry>
+</row>
+<row>
+<entry>Low cache overhead</entry>
+<entry>Servers that have to service multiple clients can run on different
+CPUs</entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+</conbody><related-links>
+<link href="GUID-387E98B0-568D-4DBB-9A9E-616E41E96B58.dita"><linktext>SMP Overview</linktext>
+</link>
+</related-links></concept>

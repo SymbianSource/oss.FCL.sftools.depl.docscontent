@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D985119C-6B6A-4238-B1B6-7D815B24EB45" xml:lang="en"><title>Defining
+a Privacy Controller Observer Class</title><shortdesc>To write a Privacy Controller a licensee must define a Privacy
+Controller observer class derived from <apiname>MLbsPrivacyObserver</apiname> (or <apiname>MLbsPrivacyObserver2</apiname> for
+a Privacy Controller that must be automatically shutdown by the LBS subsystem
+when all privacy requests have completed. This is required when the LBS subsystem
+is configured and built in the Standalone Privacy Mode configuration).</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>On startup the Privacy Controller must register itself with the LBS subsystem
+by calling <xref href="GUID-DA9AD188-944E-36C0-98A6-4F9B6FB2A091.dita#GUID-DA9AD188-944E-36C0-98A6-4F9B6FB2A091/GUID-DB38D39A-780E-3F36-BD02-E770AC1C513B"><apiname>CLbsPrivacyController::NewL()</apiname></xref>, passing a reference
+to its observer class as a parameter. This is explained in more detail in
+the code examples later in this document. </p>
+<p>The code below shows an outline declaration of two Privacy Controller observer
+classes. </p>
+<ul>
+<li><p><codeph>CMyLbsPrivacyControllerObserver</codeph> implements <xref href="GUID-76C6B540-DCA5-33CB-9ABD-8951A2F1DD5D.dita"><apiname>MLbsPrivacyObserver</apiname></xref>. </p></li>
+<li><p><codeph>CMyLbsPrivacyControllerObserver2</codeph> implements <codeph>MLbsPrivacyObserver2</codeph> to
+receive a shutdown notification when the LBS subsystem is shutdown down in
+the Standalone Privacy Mode configuration. </p></li>
+</ul>
+<note>It is only necessary to create one observer class for the Privacy Controller
+and it is only necessary to derive from <xref href="GUID-BF88837F-1ADC-3DB2-98E5-CFBF75E2BE86.dita"><apiname>MLbsPrivacyObserver2</apiname></xref> if
+the licensee Privacy Controller process lifecycle must be controlled by the
+LBS subsystem. This is only supported when the LBS subsystem is built in the <xref href="GUID-3618ECE9-C22B-5AE2-837E-FEBC55D42330.dita">Standalone Privacy Mode</xref> configuration.</note>
+<codeblock xml:space="preserve">/*
+============================================================================
+ Name		: MyLBSPrivacyController.h
+ Description : Header file for example Privacy Controller
+============================================================================
+*/
+
+#ifndef __MYLBSPRIVACYCONTROLLER_H__
+#define __MYLBSPRIVACYCONTROLLER_H__
+
+
+//  Include Files
+#include &lt;e32base.h&gt;
+#include &lt;lbsloccommon.h&gt;
+#include &lt;lbsprivacycontroller.h&gt;
+
+// Simple Privacy Controller class
+class CMyLbsPrivacyControllerObserver : public CBase, MLbsPrivacyObserver
+	{
+	public:
+		static CMyLbsPrivacyControllerObserver* NewL();
+		~CMyLbsPrivacyControllerObserver();
+	
+	public:
+		// From MLbsPrivacyObserver
+		void ProcessNetworkLocationRequest(TUint aRequestId, const TLbsExternalRequestInfo&amp; aRequestInfo,
+                                     const TNotificationType&amp; aNotifyType);
+		void ProcessNetworkPositionUpdate(TUint aRequestId, const TPositionInfo&amp; aPosInfo);
+		void ProcessRequestComplete(TUint aRequestId, TInt aReason);
+		
+		// Functions to send privacy response or cancel a privacy request
+		void SendResponse(TUint aRequestId, CLbsPrivacyController::TRequestVerificationResult aResult);
+		void CancelRequest(TUint aRequestId);
+		
+	
+	protected:
+		CMyLbsPrivacyControllerObserver();
+		void ConstructL();
+		
+	private:
+		CLbsPrivacyController* iController;
+	};
+
+
+// Privacy Controller class that can receive shutdown notification from LBS Root
+class CMyLbsPrivacyControllerObserver2 : public CMyLbsPrivacyControllerObserver, MLbsPrivacyObserver2
+	{
+	public:
+		// From MLbsPrivacyObserver2
+		void ProcessCloseDownNotification();
+	};
+
+
+#endif  // __MYLBSPRIVACYCONTROLLER_H__</codeblock>
+<p>Note that the observer class contains a member variable of class <xref href="GUID-DA9AD188-944E-36C0-98A6-4F9B6FB2A091.dita"><apiname>CLbsPrivacyController</apiname></xref> which
+is used to register the Privacy Controller with the LBS subsystem and to return
+privacy responses.</p>
+<section><title>Registering the Privacy Controller with the LBS subsystem</title> 
+     <p>The code below shows how a Privacy Controller can register itself
+with LBS in order to receive privacy requests. The <codeph>ConstructL()</codeph> method
+calls <xref href="GUID-DA9AD188-944E-36C0-98A6-4F9B6FB2A091.dita#GUID-DA9AD188-944E-36C0-98A6-4F9B6FB2A091/GUID-DB38D39A-780E-3F36-BD02-E770AC1C513B"><apiname>CLbsPrivacyController::NewL()</apiname></xref>, which registers the
+Privacy Controller with the LBS subsystem. </p><codeblock xml:space="preserve">CMyLbsPrivacyControllerObserver* CMyLbsPrivacyControllerObserver::NewL()
+	{
+	CMyLbsPrivacyControllerObserver* self = new (ELeave) CMyLbsPrivacyControllerObserver();
+	CleanupStack::PushL(self);
+	self-&gt;ConstructL();
+	CleanupStack::Pop();
+	return self;
+	}
+
+// Register this observer class with the LBS subsystem
+void CMyLbsPrivacyControllerObserver::ConstructL()
+ {
+ // Store a pointer to the LBS subsystem Privacy Controller handler
+ // This is used by this observer to return privacy responses
+ iController = CLbsPrivacyController::NewL(*this);
+ }</codeblock>     </section>
+</conbody></concept>

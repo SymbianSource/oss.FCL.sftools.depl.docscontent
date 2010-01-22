@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-55C05441-33B5-5057-971D-4200345E941E" xml:lang="en"><title>Kernel
+Trace Tool Tutorial</title><shortdesc>Describes how to use the kernel trace tool component. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-FA780BFA-B9B5-4397-85E1-8D7EF19B6121"><title>Intended audience</title><p>This document is intended for
+application developers writing a trace tool using the kernel trace tool component. </p></section>
+<section id="GUID-7D4309D3-FF07-4F2F-A205-C88810F864F2"><title>Required background</title><p>A knowledge of the filters defined
+in <xref href="GUID-8919270A-B5CE-302D-B7CE-3A4680D5E8CF.dita"><apiname>EUser</apiname></xref>. </p></section>
+<section id="GUID-3E1BBC37-50AA-40FD-820D-C38CC2586684"><title>Introduction</title><p>The kernel trace tool is the user side
+part of the kernel trace tool component. It provides output to trace tools
+such as the command line kernel trace tool. </p></section>
+<section id="GUID-D425A6C2-CA94-46DB-BD59-9766F4764227"><title>Using Kernel Trace Tool </title> <p>The following tasks will
+be covered in this tutorial: </p><ul>
+<li id="GUID-60D55507-CFE4-5E88-BA28-DAB2DC6DFC77"><p>Reading trace data from
+chunks. </p> </li>
+<li id="GUID-F01A5987-72E9-5B98-85CF-2F97CF8F9C49"><p>Writing trace data to
+buffers. </p> </li>
+<li id="GUID-972D05F0-0D3E-5308-9501-C417F21DA07C"><p>Setting trace filters. </p> </li>
+<li id="GUID-ABFE81E7-A5A7-5032-BEF3-F799C4D3456A"><p>Requesting data notification. </p> </li>
+</ul><p>To perform each of these tasks you must include db32trace.h and declare
+an <xref href="GUID-9E859841-E8A3-37D5-9A19-BCAA3C700922.dita"><apiname>RBTrace</apiname></xref> object. </p></section>
+<section id="GUID-00692E7E-9C38-4E6C-8FBE-F68FABCC6CF9"><title>Basic procedure</title><p>The high level steps to using the
+kernel trace filter are shown here: </p><ol id="GUID-230AC9BB-530E-5053-991F-75B2C595AE99">
+<li id="GUID-73BB417B-46B1-5C97-93B5-4EECE7EDAB50"><p>Create and set a trace
+filter. </p> </li>
+<li id="GUID-93BD6995-4191-5BBF-B0BF-7D4637BDDB61"><p>Read trace data from
+kernel side chunks. </p> </li>
+<li id="GUID-7D1F9180-D4C8-5E56-894A-4E838D0D2E21"><p>Write trace data to
+the user side buffers. </p> </li>
+<li id="GUID-A0E93D6D-E7A8-55AD-9B80-FF0B78AC8721"><p>Request data notification. </p> </li>
+</ol></section>
+<section id="GUID-B92DE10B-AEA3-4A8B-AF88-227DC8BEB519"><title>Suggested structure</title> <p>The functions described must
+be called in sequence and some of them must be called more than once to read
+all the trace data from the buffer. You are recommended to proceed as follows. </p> <ul>
+<li id="GUID-6BBBC72D-13F3-5D74-87DB-D7270EE63389"><p>Create an <xref href="GUID-9E859841-E8A3-37D5-9A19-BCAA3C700922.dita"><apiname>RBTrace</apiname></xref> object
+and call its <xref href="GUID-20D0D10F-3401-3F72-8AF6-DC35F6025DC2.dita"><apiname>Open()</apiname></xref> function. </p> </li>
+<li id="GUID-81837837-E9AB-5B39-BB0C-748BDDBD37FD"><p>Create a loop which
+runs for as long as requests for notification of new data return successfully. </p> </li>
+<li id="GUID-99649087-30EF-549E-9BD7-795D4381C526"><p>Create an inner loop
+which runs for as long as read operations return data from the buffer. </p> </li>
+<li id="GUID-7F3DC415-394B-52CE-82DE-51404A3C4B8A"><p>Within the inner loop
+call a function to do something with the data such as write it to a file. </p> </li>
+<li id="GUID-DF305E63-02E7-5F10-808D-9B02613ED307"><p>Call the <xref href="GUID-01D2AF56-21E1-3FF3-BF86-0C356A1658EF.dita"><apiname>Close()</apiname></xref> function
+of the <xref href="GUID-9E859841-E8A3-37D5-9A19-BCAA3C700922.dita"><apiname>RBTrace</apiname></xref> object. </p> </li>
+</ul> <p>It can be useful though it is not necessary to disable trace capture
+while processing the data: you do this with calls to <xref href="GUID-8307FC8E-C450-3F02-B610-EAC5BBD2503B.dita"><apiname>Mode()</apiname></xref> and <xref href="GUID-3587C248-34F6-3C65-9220-31C7E97F0C85.dita"><apiname>SetMode()</apiname></xref>. </p> <codeblock id="GUID-9C9F8DD9-D1A4-56D6-8629-E9F4AF710049" xml:space="preserve">
+        RBTrace trace;
+        TInt error = trace.Open();
+        if(error!=KErrNone)
+            return error;
+        const TInt KTraceDataBlockSize = 65536; // size of data we ideally want to process in one go
+        TUint8* data;
+        TInt size;
+        do
+            {
+            while((size=trace.GetData(data))!=0)
+                {
+                ProcessTheTraceData(data,size);
+                trace.DataUsed();
+                }
+            TRequestStatus waitStatus;
+            trace.RequestData(waitStatus,KTraceDataBlockSize);
+            User::WaitForRequest(waitStatus);
+            error = waitStatus.Int();
+            }
+        while(error==KErrNone);
+        trace.Close();
+        return error;
+</codeblock> </section>
+<section id="GUID-F87246C8-2FD3-49C0-AF2A-5C933C53B272"><title>Command Line Kernel Trace Tool</title> <p>The command line
+kernel trace tool is supplied as a user interface to the kernel trace tool
+and also as a reference implementation. It implements the inner loop by writing
+trace data to file or to a debug port. Other possible implementations involve
+writing the data to a fast connection off the device or to a graphics tool.
+The command line kernel trace tool uses the filters defined in <xref href="GUID-8919270A-B5CE-302D-B7CE-3A4680D5E8CF.dita"><apiname>EUser</apiname></xref>:
+it would also be possible to specify user defined filters. </p> <codeblock id="GUID-AB980AA0-BB46-5BE0-92BC-B88E6A1BEBE0" xml:space="preserve">
+void Dump()
+    {
+    TUint oldMode = Trace.Mode();
+    Trace.SetMode(0); // turn off trace capture while we dump
+
+    TUint8* data;
+    TInt size;
+    while((size=Trace.GetData(data))!=0)
+        {
+        if(FileName)
+            {
+            TInt r=File.Write(TPtrC8(data,size));
+            if(r!=KErrNone)
+                {
+                printf("Error writing to file (1). (Code %d)",r);
+                Error();
+                }
+            }
+        if(DumpToDebugPort)
+            {
+            do
+                {
+                int s = size;
+                if(s&gt;256) s=256;
+                RDebug::RawPrint(TPtrC8(data,s));
+                data += s;
+                size -= s;
+                }
+            while(size);
+            }
+        Trace.DataUsed();
+        }
+    // Flush the file here so we can be sure to detect whether the btrace data 
+    // has been written successfully to the file.
+    TInt r = File.Flush();
+    if (r != KErrNone)
+        {
+        printf("Error writing to file (2). (Code %d)",r);
+        Error();
+        }
+    File.Close();
+
+    Trace.SetMode(oldMode);
+    RePrime();
+    }</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-7EA3FAD3-9A41-5B2D-8F46-8C8965CE8B97.dita"><linktext>BTraceX Overview</linktext>
+</link>
+<link href="GUID-7B477BA5-CC5B-56A2-82BC-E1BC0049FECB.dita"><linktext>BTraceC Overview</linktext>
+</link>
+<link href="GUID-F27F49B3-4AC1-5517-AF3A-1ADBA1E87A0B.dita"><linktext> Command
+Line Kernel Trace Tool                 Overview</linktext></link>
+<link href="GUID-9E0957A1-0691-5741-ABCA-3EA61B4AC0CD.dita"><linktext>Command Line
+Kernel Trace Tool                 Tutorial</linktext></link>
+<link href="GUID-5CEA46BA-5AA2-51B4-8BBA-5B6EF141D68A.dita"><linktext> Reading
+Kernel Trace Data                 From Chunks Tutorial</linktext></link>
+<link href="GUID-7195C3C2-6DF4-56DE-B3C7-00CC10A22AD2.dita"><linktext>Writing Trace
+Data to                 Buffers Tutorial</linktext></link>
+<link href="GUID-625A116D-185D-57A3-9FB7-B8257F4AB1B2.dita"><linktext> Setting
+Trace Filters                 Tutorial</linktext></link>
+<link href="GUID-2341CFE1-1CDF-537A-99FB-78C59FFA30CE.dita"><linktext> Requesting
+Data                 Notification Tutorial</linktext></link>
+</related-links></concept>

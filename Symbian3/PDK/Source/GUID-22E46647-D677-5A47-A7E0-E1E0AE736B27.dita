@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-22E46647-D677-5A47-A7E0-E1E0AE736B27" xml:lang="en"><title>DirectGDI
+Adaptation Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The DirectGDI Adaptation component, together with the DirectGDI Interface
+component, forms the DirectGDI adaptation layer. The DirectGDI Interface component
+defines the interfaces that the adaptations must implement and the DirectGDI
+Adaptation component consists of the two DirectGDI implementations that are
+provided in the Graphics package. </p>
+<p><b>Target audience</b>: Device creators. </p>
+<note type="note">DirectGDI is deprecated in Symbian^3.</note>
+<p>The <xref href="GUID-A2E07A3C-B3A8-50B9-BD60-F1F01795FA24.dita">DirectGDI component</xref> provides
+a framework that enables graphics hardware acceleration and interleaved rendering.
+This framework provides an API for client applications and a Hardware Adaptation
+Interface (HAI), which defines interfaces that must be implemented by device
+and hardware manufacturers in order to provide the API functionality. The
+framework has a dependency on the <xref href="GUID-82B0B4B9-6BC2-5BEF-B3B0-D57AC57F8D8A.dita">Graphics
+Resource Component</xref>. </p>
+<p>The Graphics package includes two DirectGDI adaptations: </p>
+<ul>
+<li id="GUID-B0C72AE2-2A06-59AD-98AA-BCE881ECD460"><p>A purely software adaptation
+that uses existing components to draw to the screen in a similar manner to
+BitGDI. This is suitable for use in phones that do not include graphics acceleration
+hardware. </p> </li>
+<li id="GUID-FB34D088-0046-5A1B-9C23-39D11C448ECD"><p>A hardware adaptation
+that uses OpenVG and EGL APIs on the H4 platform. This is provided for reference
+purposes and there is no requirement that the implementation use OpenVG. Hardware
+manufacturers can in fact use any third-party rendering system that is suitable
+for use with the target hardware. </p> </li>
+</ul>
+<p>The following diagram shows the generic DirectGDI API and implementation,
+with one software and two hardware implementations. Although shown on the
+same diagram, in fact only one implementation can exist on the same phone.
+A configuration at ROM build time decides which implementation is used. </p>
+<fig id="GUID-E4CD5B76-03E0-5F4C-8C65-C2F2B52969F5">
+<title>           DirectGDI architecture          </title>
+<image href="GUID-912643B5-0B8D-5836-B864-9A2DBAC86B00_d0e240364_href.png" placement="inline"/>
+</fig>
+<p>Notice that all three of the implementations implement the common <xref href="GUID-97E3E8DD-A2DA-3961-96E3-41AEAFFDD275.dita"><apiname>MDirectGdiEngine</apiname></xref> interface.
+Also notice that the hardware implementation uses asynchronous calls to the
+graphic acceleration hardware driver. This means that the CPU can continue
+with other processing while the GPU is busy processing the rendering request.
+This improves the parallelism between the CPU and the GPU. </p>
+<p>The software implementation does not use asynchronous calls, because the
+rendering is performed by the CPU. </p>
+<section id="GUID-134818CD-B113-4AE1-8C48-CDF9CB38C46E"><title>Generic layer</title> <p>The
+following figure shows the classes in the DirectGDI generic layer (which is
+shaded green). Classes that are provided by other components are shown in
+red. Classes that cross the generic layer boundary have some parts that cannot
+be modified (such as a fixed API), but have other parts that can be modified. </p> <fig id="GUID-1A830274-D596-586A-B469-0CB7619FB391">
+<title>              The DirectGDI generic layer classes            </title>
+<image href="GUID-26B3BB7B-53CC-518F-85DA-CBAAD52DCE1C_d0e240389_href.png" placement="inline"/>
+</fig> </section>
+</conbody><related-links>
+<link href="GUID-A2E07A3C-B3A8-50B9-BD60-F1F01795FA24.dita"><linktext>DirectGDI
+Component</linktext></link>
+<link href="GUID-7B511CC2-CE38-5888-AF12-3568BEB416A6.dita"><linktext>DirectGDI
+Interface Component</linktext></link>
+<link href="GUID-EBE2D1D3-3A99-54BF-B5C0-08E9267F5750.dita"><linktext>Creating
+a DirectGDI Adaptation</linktext></link>
+</related-links></concept>

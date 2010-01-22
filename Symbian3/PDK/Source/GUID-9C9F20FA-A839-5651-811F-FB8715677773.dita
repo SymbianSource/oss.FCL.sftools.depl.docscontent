@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-9C9F20FA-A839-5651-811F-FB8715677773"><title>How to Measure Network Startup Performance </title><shortdesc>Connection startup times are measured by analysing the logs of the Network Performance Testing tools. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>TestExecute creates a log file in HTML format for each test. There should be one HTML file for each test case executed. The HTML files contain messages of the test progress and measured values. </p> </context> <steps id="GUID-D6FDE753-F6D5-5725-93A5-D23D4F37EB5B"><step id="GUID-EB40BBD3-44F9-5B79-A53C-E4AC31B2A331"><cmd>Run the NetPerf Test Suite </cmd> </step> <step id="GUID-3B0879C2-CDA2-5BCA-B8A2-C572B6996B89"><cmd/><info>Locate the HTML test logs. </info> <info>For an automated test driven with TestDriver, the HTML files are stored in the results subdirectories, named by environment version, release, variant and other parameters. For example: <filepath>...\armv5\urel\151\xmlroot\root\TestSet\AllTests</filepath>  </info> </step> <step id="GUID-F0A035EF-35A9-568F-9EDE-3EC36AC1BC7E"><cmd/><info>Open the HTML for each test. A connection is started for the bearer being tested. The time taken for the connection to be started is recorded in each of these files. These timings can be found on the lines that contain the string "<codeph>Connection Startup took</codeph> ". For example: </info> <stepxmp><codeblock id="GUID-0AE1F7F3-9C48-56BD-A1B0-E2944F388C1A" xml:space="preserve">12:00:58:594 INFO -  97 netperfserver.cpp 612 Summary statistics begin
+12:00:58:595 INFO -  97 netperfserver.cpp 614 Connection Startup took 0.04589s
+12:00:58:595 INFO -  97 netperfserver.cpp 617 Total client packets transferred: 67
+12:00:58:596 INFO -  97 netperfserver.cpp 620 Summary statistics end
+</codeblock> </stepxmp> </step> </steps> <example><title>Sample Perl script for extracting startup timings</title> <p>A Perl script can be used to collect the connection startup times. The following codeblock illustrates one example Perl script. </p> <codeblock id="GUID-3A750553-C268-572B-99B8-3C272D273FB4" xml:space="preserve">#!/usr/bin/perl
+
+sub processPath($);
+sub processResultsFile($);
+
+# Get a path to read the results from
+my $resultsPath = shift;
+if ($resultsPath eq "")
+    {
+    $resultsPath = ".";
+    }
+
+processPath($resultsPath);
+
+sub processResultsFile($)
+    {
+    my $resultsFile = @_[0];
+
+    open (RESULTS, $resultsFile) || die "Failed to open file $resultsFile: $!";
+    my @results = &lt;RESULTS&gt;;
+    close RESULTS;
+
+    $resultsFile =~ m/\.?(.*)[\\\/]([^\\\/]+)$/;
+    my $path = $1;
+    my $filename = $2;
+
+    foreach $line (@results)
+        {
+        if ($line =~ m/Connection Startup took ([\d\.]+)s/i)
+            {
+            print "$path,$filename,$1\n";
+            }
+        }
+    }
+
+sub processPath($)
+    {
+    my @entries;
+    my $path = @_[0];
+    
+    opendir (DIR, $path) || die "Failed to open path: $!";
+    @entries = readdir DIR;
+    @entries = sort (@entries);
+    closedir DIR;
+    
+    foreach $entry (@entries)
+        {
+        if (-f "$path\\$entry")
+            {
+            if ($entry =~ m/\.htm$|\.html$/i)
+                {
+                processResultsFile("$path\\$entry");
+                }
+            }
+        }
+    }
+</codeblock> </example> </taskbody></task>

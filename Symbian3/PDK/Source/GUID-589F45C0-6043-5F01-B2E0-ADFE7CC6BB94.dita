@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-589F45C0-6043-5F01-B2E0-ADFE7CC6BB94"><title>DTMF Tones Tutorial</title><shortdesc>This tutorial describes how to send the Dual Tone Multi Frequency (DTMF) tones to the network. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>Dual Tone Multi-Frequency (DTMF) is a touch tone system used for choosing menu options in communication with an automated call handling service. </p> <p>Tones can only be sent over an active and connected voice calls. The caller does not need a handle to the specific call. The telephony system can send the tones over the voice calls that are connected. </p> </context> <steps id="GUID-184155B4-F939-59CC-90AC-A9B14D842BDD"> <step id="GUID-E9C9CCBC-0F47-5FFA-9918-B2F8371AA248"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetDTMFCaps()</apiname></xref> to check that the tones can be sent to the network. </cmd> <info>Capabilities are described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneDTMFCaps</apiname></xref>. </info> </step> <step id="GUID-7E0808A4-9CF6-5836-8DDD-C6E75FC405ED"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyDTMFCapsChange()</apiname></xref> to get the notification of any changes to the capabilities. </cmd> </step> <step id="GUID-76F41C1B-BB94-5E72-8CA5-3A50025446D3"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SendDTMFTones()</apiname></xref> to send a sequence of fixed length DTMF tones. </cmd> </step> <step id="GUID-16F5F556-6C53-5C9C-B9ED-2EFE50DA728C"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::StartDTMFTone()</apiname></xref> and <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::StopDTMFTone()</apiname></xref> to control a DTMF tone length. . </cmd> </step> <step id="GUID-9201271C-30D4-507E-BC53-E4F8695132DE"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyStopInDTMFString()</apiname></xref> to get the notification when the phone has encountered a 'w' char in the transmission of the DTMF string. </cmd> </step> <step id="GUID-304FF5E3-03B2-598D-9F31-EFC77706BD71"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::ContinueDTMFStringSending()</apiname></xref> to resume the transmission. </cmd> </step> </steps> <example><title>DTMF example</title> <p>The following code checks that if a string of DTMF tones can be sent, and if so, sends the tone sequence specified in <codeph>KTones</codeph>. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-67328900-CAE0-5462-AA55-4D404567B484" xml:space="preserve">TUint32 dtmfCaps;
+User::LeaveIfError(iMobilePhone.GetDTMFCaps(dtmfCaps));
+
+if (dtmfCaps &amp; RMobilePhone::KCapsSendDTMFString)
+    {
+    _LIT(KTones, "#1234");
+    TRequestStatus status;
+
+    iMobilePhone.SendDTMFTones(status, KTones);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    }
+</codeblock> </example> </taskbody></task>

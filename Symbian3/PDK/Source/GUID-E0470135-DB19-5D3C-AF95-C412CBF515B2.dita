@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2"><title>Multimode Messaging</title><shortdesc>The Multimode telephony API provides a number of specialised messaging classes that are derived from <apiname>RTelSubSessionBase</apiname>. One of the classes is responsible for SMS, another for Broadcast and another for USSD messaging. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>The following table describes the three messaging types. </p> <table id="GUID-E54D8AA1-BC1F-5706-B1BA-9193BB33FE0E"><tgroup cols="5"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><colspec colname="col4"/><thead><row><entry>Type</entry> <entry>Required</entry> <entry>GSM</entry> <entry>WCDMA</entry> <entry>CDMA</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2.dita#GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2/GUID-DF523227-DADA-578A-8816-3144C7125663">SMS messaging</xref>  </p> </entry> <entry><p>No </p> </entry> <entry><p>Yes </p> </entry> <entry><p>Yes </p> </entry> <entry><p>Yes </p> </entry> </row> <row><entry><p> <xref href="GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2.dita#GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2/GUID-DA0E39B0-0051-50AA-9A62-C9BC9E25A7F0">Broadcast messaging</xref>  </p> </entry> <entry><p>No </p> </entry> <entry><p>Yes </p> </entry> <entry><p>Yes </p> </entry> <entry><p>Yes </p> </entry> </row> <row><entry><p> <xref href="GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2.dita#GUID-E0470135-DB19-5D3C-AF95-C412CBF515B2/GUID-35CCDB86-E5B2-5CB8-B662-50144F376221">USSD messaging</xref>  </p> </entry> <entry><p>No </p> </entry> <entry><p>Yes </p> </entry> <entry><p>Yes </p> </entry> <entry><p>No </p> </entry> </row> </tbody> </tgroup> </table> <section id="GUID-DF523227-DADA-578A-8816-3144C7125663"><title>SMS messaging</title> <p> <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging</apiname></xref> provides access to the Short Message Service provided by GSM, WCDMA and CDMA networks. </p> <p>In CDMA mode, SMS has three protocol layers: Relay lowest level, Transport and Teleservice. Relay is the lowest level while Transport and Teleservice are application level. <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging</apiname></xref> provides an interface to the Transport layer. Usually, the Teleservice layer is implemented in a sockets protocol module. The Teleservice layer, rather than <codeph>RMobileSmsMessaging</codeph>, would be the interface used by applications to send SMS messages. SMS messages are passed across the API as Packet Data Units (PDUs). </p> <p>Segmentation and reassembly of long SMS messages over 255 bytes is not provided by the API, and must be provided by a higher-level module such as the <filepath>smsprot.prt</filepath> protocol module. </p> <p> <codeph>RMobileSmsMessaging</codeph> allows clients to: </p> <ul><li id="GUID-D1645129-9195-5CB4-9DC5-39952782B309"><p>open an SMS sub-session using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::Open()</apiname></xref>  </p> </li> <li id="GUID-C5FACABA-62EA-5E54-9B89-60BFEFFC8D22"><p>retrieve capabilities using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::GetCaps()</apiname></xref>. Capabilities are encapsulated in a packaged <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::TMobileSmsCapsV1</apiname></xref> object. </p> </li> <li id="GUID-67D3CF37-546D-596C-8A8E-72D3D4DE6F8F"><p>retrieve the mode the phone uses to handle incoming SMS messages before passing them on to TSY using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::GetReceiveMode()</apiname></xref>. </p> </li> <li id="GUID-A1687E1D-6105-58CD-A308-213C39682007"><p>set the mode the phone uses to handle incoming SMS messages before passing them on to TSY using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::SetReceiveMode()</apiname></xref>  </p> </li> <li id="GUID-9F6EADDA-BEA0-57D0-8F3E-0330C3841217"><p>wait for the next incoming SMS message using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::ReceiveMessage()</apiname></xref>  </p> </li> <li id="GUID-DDF357F7-F520-5365-B943-4A548B888864"><p>send a positive acknowledgement for an SMS after successful decoding and storage using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::AckSmsStored()</apiname></xref>  </p> </li> <li id="GUID-2BDABC27-1EA1-5022-8A2B-2C94B3287136"><p>send a negative acknowledgement for an SMS after failure in decoding and storage using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::NackSmsStored()</apiname></xref>  </p> </li> <li id="GUID-7C0F5FE5-AAC3-50D5-9457-87C70DD7EFD5"><p>tell the network to resume transferring SMS to the phone, after reception has been suspended because SMS storage is full using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::ResumeSmsReception()</apiname></xref>  </p> </li> <li id="GUID-DBC2E3D5-E2B6-5137-A34C-C5B5822F824C"><p>get the bearer type which is CSD or packet-switched for sending SMS messages using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::SetMoSmsBearer()</apiname></xref>  </p> </li> <li id="GUID-56C1FD58-8DF7-5DE2-A0E2-5A9123F77384"><p>set the bearer type using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::SetMoSmsBearer()</apiname></xref>  </p> </li> <li id="GUID-ADE3F254-0E6D-5AE9-A3A9-6F70BA5B0CD4"><p>be notified if the bearer type changes using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::NotifyMoSmsBearerChange()</apiname></xref>  </p> </li> <li id="GUID-D1968BB6-CFBB-58C3-A935-BAE5C8B37F4D"><p>send an SMS message to the network using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::SendMessage()</apiname></xref>  </p> </li> <li id="GUID-C2DF7C65-DCBF-53DA-BDFC-70BE0F98EAE2"><p>get the number of phone-side SMS message stores using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::EnumerateMessageStores()</apiname></xref>  </p> </li> <li id="GUID-55AAC64A-826F-5055-8E48-40F2DE17FC68"><p>get information about a specified SMS message store indicated using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::GetMessageStoreInfo()</apiname></xref>. Such information is encapsulated in a packaged <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobilePhoneStore::TMobilePhoneStoreInfoV1</apiname></xref> object. </p> </li> <li id="GUID-D1108DBA-BCD7-5D83-955A-7AB53C96C5EE"><p>get a list of GSM-specific SMS parameters stored in SIM . Examples of these parameters are Service Centre Address. Clients use <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>CRetrieveMobilePhoneSmspList</apiname></xref> to get the list and returns a <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>CMobilePhoneSmspList</apiname></xref> object. Each parameter is encapsulated in an <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileSmsMessaging::TMobileSmspEntryV1</apiname></xref> object. </p> </li> </ul> <p><b>Example </b> </p> <p>The following code sends the message <codeph>aPdu</codeph> to the destination <codeph>aDest</codeph> over GSM. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-D70DC6E9-0205-5AB7-B397-E63D29DCE790" xml:space="preserve">void CClientApp::SendSMSL(
+        const RMobileSmsMessaging::TMobileSmsGsmTpdu&amp; aPdu, 
+        const TDesC&amp; aDest)
+    {
+    // Open SMS session
+    RMobileSmsMessaging smsSession;
+    User::LeaveIfError(smsSession.Open(iMobilePhone));
+    CleanupClosePushL(smsSession);
+
+    // Get SMS capabilities
+    RMobileSmsMessaging::TMobileSmsCapsV1 smsCaps;
+    RMobileSmsMessaging::TMobileSmsCapsV1Pckg smsCapsPckg(smsCaps);
+    User::LeaveIfError(smsSession.GetCaps(smsCapsPckg));
+
+    // Test if SMS can be sent over GSM
+    if ( smsCaps.iSmsMode &amp; RMobileSmsMessaging::KCapsGsmSms
+        &amp; ( (smsCaps.iSmsControl &amp; RMobileSmsMessaging::KCapsSendWithAck ) || 
+            (smsCaps.iSmsControl &amp; RMobileSmsMessaging::KCapsSendNoAck )))
+        {
+        // Set the required bearer
+        TRequestStatus status;
+        smsSession.SetMoSmsBearer(status, RMobileSmsMessaging::ESmsBearerCircuitPreferred);
+        User::WaitForRequest(status);
+        User::LeaveIfError(status.Int());
+
+        // Set destination address and data format attributes
+        RMobileSmsMessaging::TMobileSmsSendAttributesV1 sendAtts;
+        sendAtts.iDestination.iTelNumber = aDest;
+        sendAtts.iDataFormat = RMobileSmsMessaging::EFormatGsmTpdu;
+        RMobileSmsMessaging::TMobileSmsSendAttributesV1Pckg sendAttsPckg(sendAtts);
+
+        // Send the message
+        smsSession.SendMessage(status, aPdu, sendAttsPckg);
+        User::WaitForRequest(status);
+        User::LeaveIfError(status.Int());
+        }
+     
+    // Clean up
+    CleanupStack::PopAndDestroy(); // calls smsSession.Close()
+    }
+</codeblock> </section> <section id="GUID-DA0E39B0-0051-50AA-9A62-C9BC9E25A7F0"><title>Broadcast messaging</title> <p> <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging</apiname></xref> provides access to the broadcast messaging services provided by GSM, WCDMA and CDMA networks. </p> <p>Clients open an <codeph>RMobileBroadcastMessaging</codeph> sub-session and then wait for incoming broadcast messages. The broadcast messages received can depend on a message filter that defines the languages and identifiers of acceptable and unacceptable messages. </p> <p> <codeph>RMobileBroadcastMessaging</codeph> allows clients to: </p> <ul><li id="GUID-434C178E-B910-5BF5-8DBD-6BCA5F6B43F5"><p>open a broadcast messaging sub-session using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::Open()</apiname></xref>  </p> </li> <li id="GUID-20104F53-6D01-5331-9A12-1E180170C920"><p>get capabilities using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::GetCaps()</apiname></xref>. Capabilities are encapsulated in a packaged <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::TMobileBroadcastCapsV1</apiname></xref> object. </p> </li> <li id="GUID-AC7EBDE6-9A98-5339-8750-E92468B54FBF"><p>wait for the next incoming broadcast message using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::ReceiveMessage()</apiname></xref>  </p> </li> <li id="GUID-1082EACA-75A7-53DB-866B-F6033F955EA5"><p>get filter on and off settings using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::GetFilterSetting()</apiname></xref>  </p> </li> <li id="GUID-D15B6A4F-8F25-5A69-A072-9C83137AE9E6"><p>set filter on and off settings using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::SetFilterSetting()</apiname></xref>  </p> </li> <li id="GUID-4998DA72-5B42-56D3-AA3E-34C421071AA6"><p>be notified when the filter on and off settings change using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::NotifyFilterSettingChange()</apiname></xref>  </p> </li> <li id="GUID-014ADE4E-57B7-53D1-87AC-9E1462AB4A2D"><p>get the broadcast message language filter using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::GetLanguageFilter()</apiname></xref>  </p> </li> <li id="GUID-FACF1599-7D0F-5CC1-8064-B3040721349A"><p>set the broadcast message language filter using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::SetLanguageFilter()</apiname></xref>  </p> </li> <li id="GUID-553BBB69-99AF-5396-9240-24192F7EC399"><p>be notified when the message language filter changes using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::NotifyLanguageFilterChange()</apiname></xref>  </p> </li> <li id="GUID-4DD55A70-A8BE-5131-B4AB-C1E56650EA45"><p>retrieve a list of identifiers by which to filter messages. Clients use <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>CRetrieveMobilePhoneBroadcastIdList</apiname></xref> to get the list, a <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>CMobilePhoneBroadcastIdList</apiname></xref> object. Each identifier is encapsulated in an <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::TMobileBroadcastIdEntryV1</apiname></xref> object. </p> </li> <li id="GUID-B3815D23-A48D-5833-BA99-9BE45DEB447C"><p>store a new version of the entire list of filter identifiers using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::StoreBroadcastIdListL()</apiname></xref>  </p> </li> <li id="GUID-16B29B8E-58B7-5B17-AE2B-2F894B0606D2"><p>be notified if the filter identifier list changes using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileBroadcastMessaging::NotifyBroadcastIdListChange()</apiname></xref>  </p> </li> </ul> <p><b>Example </b> </p> <p>The following code gets the contents of the next GSM broadcast message received in <codeph>aMessageData</codeph>. </p> <codeblock id="GUID-239DABF4-BBEF-543F-8177-4478BA62DF9B" xml:space="preserve">void CClientApp::ReceiveBroadcastMessageL(RMobileBroadcastMessaging::TGsmBroadcastMessageData&amp; aMessageData)
+    {
+    // Open session
+    RMobileBroadcastMessaging bmSession;
+    User::LeaveIfError(bmSession.Open(iMobilePhone));
+    CleanupClosePushL(bmSession);
+
+    // Get BM capabilities
+    RMobileBroadcastMessaging::TMobileBroadcastCapsV1 bmCaps;
+    RMobileBroadcastMessaging::TMobileBroadcastCapsV1Pckg bmCapsPckg(bmCaps);
+    User::LeaveIfError(bmSession.GetCaps(bmCapsPckg));
+
+    // Test if GSM 03.41 cell broadcast messages are supported
+    if (bmCaps.iModeCaps &amp; RMobileBroadcastMessaging::KCapsGsmTpduFormat)
+        {
+        // Get the next received broadcast message
+        RMobileBroadcastMessaging::TMobileBroadcastAttributesV1 bmAtts;
+        RMobileBroadcastMessaging::TMobileBroadcastAttributesV1Pckg bmAttsPckg(bmAtts);
+        TRequestStatus status;
+        bmSession.ReceiveMessage(status, aMessageData, bmAttsPckg);
+        User::WaitForRequest(status);
+        User::LeaveIfError(status.Int());
+        }
+     
+    // Clean up
+    CleanupStack::PopAndDestroy(); // calls bmSession.Close()
+    }</codeblock> </section> <section id="GUID-35CCDB86-E5B2-5CB8-B662-50144F376221"><title>USSD messaging</title> <p>The Unstructured Supplementary Service Data (USSD) service provided by GSM/ WCDMA networks transmits information over the network signalling channels. </p> <p>USSD is incorporated in the messaging functionality because of its potential use as a bearer for WAP or other overlying protocol. The USSD protocol is therefore suitable for implementation within a Sockets protocol (.PRT) module. </p> <p> <codeph>RMobileUssdMessaging</codeph> allows clients to: </p> <ul><li id="GUID-FC45DB15-C427-53C8-84CA-835C669ED9BB"><p>open a USSD messaging sub-session using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileUssdMessaging::Open()</apiname></xref>  </p> </li> <li id="GUID-0E276A2D-C581-51A7-BAF7-07E9BB8EFC9D"><p>get capabilities using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileUssdMessaging::GetCaps()</apiname></xref>. Capabilities are encapsulated in a packaged <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileUssdMessaging::TMobileUssdCapsV1</apiname></xref> object. </p> </li> <li id="GUID-9A001189-6CEC-54BA-86CA-0C5094E9374E"><p>wait for the next incoming USSD message using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileUssdMessaging::ReceiveMessage()</apiname></xref>  </p> </li> <li id="GUID-60174DD0-738C-533D-86DA-159D1E86671C"><p>send a UUSD message using <xref href="GUID-D8BBA972-82CB-3561-8913-4659103C263C.dita"><apiname>RMobileUssdMessaging::SendMessage()</apiname></xref>  </p> </li> </ul> <p><b>Example </b> </p> <p>The following code gets in <codeph>aMessageData</codeph> the contents, and in <codeph>aUssdAtts</codeph> the attributes, of the next USSD message received. </p> <codeblock id="GUID-E82E8B54-2E8A-5D0F-A7EA-5DFEB0EA06E1" xml:space="preserve">void CClientApp::ReceiveUssdMessageL(
+    RMobileUssdMessaging::TGsmUssdMessageData&amp; aMessageData,
+    RMobileUssdMessaging::TMobileUssdAttributesV1&amp; aUssdAtts)
+    {
+    // Open session
+    RMobileUssdMessaging ussdSession;
+    User::LeaveIfError(ussdSession.Open(iMobilePhone));
+    CleanupClosePushL(ussdSession);
+
+    // Get ussd capabilities
+    RMobileUssdMessaging::TMobileUssdCapsV1 ussdCaps;
+    RMobileUssdMessaging::TMobileUssdCapsV1Pckg ussdCapsPckg(ussdCaps);
+    User::LeaveIfError(ussdSession.GetCaps(ussdCapsPckg));
+
+    // Test if USSD messages can be received
+    if (ussdCaps.iUssdTypes &amp; RMobileUssdMessaging::KCapsMTUssd)
+        {
+        // Get the next received Ussd message
+        RMobileUssdMessaging::TMobileUssdAttributesV1Pckg ussdAttsPckg(aUssdAtts);
+        TRequestStatus status;
+        ussdSession.ReceiveMessage(status, aMessageData, ussdAttsPckg);
+        User::WaitForRequest(status);
+        User::LeaveIfError(status.Int());
+        }
+     
+    // Clean up
+    CleanupStack::PopAndDestroy(); // calls ussdSession.Close()
+    }</codeblock> </section> </conbody><related-links><link href="GUID-B8F07736-F598-59F0-A004-02A8CBE40554.dita#GUID-B8F07736-F598-59F0-A004-02A8CBE40554/GUID-E6D28D2B-5201-569E-881D-1D5A0BDC41B0"><linktext>SMS message store</linktext> </link> </related-links></concept>

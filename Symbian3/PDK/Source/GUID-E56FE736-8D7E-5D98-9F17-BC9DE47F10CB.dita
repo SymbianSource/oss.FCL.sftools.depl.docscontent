@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-E56FE736-8D7E-5D98-9F17-BC9DE47F10CB"><title>Retrieve Call Charge Tutorial</title><shortdesc>This tutorial describes how to retrieve a call charge information from the network using the GSM Advice of Charge supplementary service. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps-unordered> <step id="GUID-864FCDC0-A8C8-54DC-9CEF-28539707C66F"><cmd>Get the phone charge monitoring capabilities using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetCostCaps()</apiname></xref>. </cmd> <info>Capabilities are described in <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCostCaps</apiname></xref>. </info> </step> <step id="GUID-2F21F6D5-EECF-5DA1-80A5-65BEF0B4D9CD"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCostCapsChange()</apiname></xref> to get the notification of any changes in the phone call cost capabilities. </cmd> </step> <step id="GUID-82DE3EA9-1B17-52FA-B17A-202A849251AA"><cmd>Get a snapshot of the information associated with the call cost services using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetCostInfo()</apiname></xref>. </cmd> <info>Cost information is described by <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCostInfoV1</apiname></xref>. </info> </step> <step id="GUID-0168FFA0-29FA-595B-8E28-E3924E2F05BC"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCostInfoChange()</apiname></xref> to get the notification of any changes in the phone call cost information. </cmd> </step> <step id="GUID-A92F56C6-D1D7-55B7-8600-A1ECC68F6653"><cmd>Clear the meter for the current call or the accumulated charges using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::ClearCostMeter()</apiname></xref>  </cmd> </step> <step id="GUID-7348685E-E941-5229-811C-FFCDD26F4C16"><cmd>Set the maximum value that the call cost meter is allowed to rise using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetMaxCostMeter()</apiname></xref>  </cmd> </step> <step id="GUID-9E8C6943-63D0-5045-B104-AFD62157E0DF"><cmd>Set a conversion rate between network units and real monetary values and the currency display string using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetPuct()</apiname></xref>. </cmd> <info>These settings are described in <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhonePuctV1</apiname></xref>. </info> </step> </steps-unordered> <example><title>Call cost retrieval example</title> <p>The following code declares a class that has functions to get the charging information, and to return the value in real monetary units of the current call, accumulated charge, and maximum charge. </p> <codeblock id="GUID-319B2B13-056F-56A2-9A73-BC36853EBC3D" xml:space="preserve">class TCostCalculator
+    {
+public:
+    // Initialise cost info
+    void InitialiseL(RMobilePhone&amp; aMobilePhone);
+
+    // Gets current call cost
+    TReal CurrentCallCost() {
+        return iCostInfo.iPuct.iPricePerUnit * iCostInfo.iCCM; }
+
+    // Gets accumulated call cost
+    TReal AccumulatedCallCost() {
+        return iCostInfo.iPuct.iPricePerUnit * iCostInfo.iACM; }
+
+    // Gets maximum current call cost
+    TReal MaximumCurrentCallCost() {
+        return iCostInfo.iPuct.iPricePerUnit * iCostInfo.iACMmax; }
+
+private:
+    RMobilePhone::TMobilePhoneCostInfoV1 iCostInfo;
+    };
+
+// Initialise cost info
+void TCostCalculator::InitialiseL(RMobilePhone&amp; aMobilePhone)
+    {
+    RMobilePhone::TMobilePhoneCostInfoV1Pckg costInfoPckg(iCostInfo);
+    TRequestStatus status;
+    aMobilePhone.GetCostInfo(status,costInfoPckg);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    }</codeblock> </example> </taskbody></task>

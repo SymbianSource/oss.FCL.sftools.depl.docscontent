@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CF6ED944-6BC6-51FA-9B05-6F799F06B44B" xml:lang="en"><title>Accepting
+a Newly-Available Bearer</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial explains how to set the mobility policy handler component
+to accept a newly-available bearer. </p>
+<section><title>Procedure</title> <ol id="GUID-85E5C308-A6FB-5CFF-BB8A-4C1AEDB56B02">
+<li id="GUID-99921C20-C4EC-569D-834A-930DD64FB62B"><p>Derive a class from
+the <xref href="GUID-D3ED20A6-A16E-368E-98AD-820A469613EE.dita"><apiname>CImMobilityPolicyPlugin</apiname></xref> class. </p> </li>
+<li id="GUID-4D78F3E8-67CF-5B60-A359-2DCEDE038CFB"><p>Implement the <xref href="GUID-65871401-3D98-3B2B-9AA2-C7DB43F9AF57.dita"><apiname>PreferredCarrierAvailable</apiname></xref> and <xref href="GUID-B145C26A-4765-31DA-8514-C4F0659FA71B.dita"><apiname>MigrationComplete</apiname></xref> functions in the derived <xref href="GUID-D3ED20A6-A16E-368E-98AD-820A469613EE.dita"><apiname>CImMobilityPolicyPlugin</apiname></xref> class
+to get the required behaviour when a new bearer is available. </p> <p>When
+a new bearer is available, the Network bearer mobility framework calls the <xref href="GUID-9A3979A9-F882-3053-B5B1-E0E125774271.dita#GUID-9A3979A9-F882-3053-B5B1-E0E125774271/GUID-E4D234C3-AEEA-3FE9-8E5D-6914BB60B174"><apiname>MMobilityProtocolResp::PreferredCarrierAvailable</apiname></xref> function
+to notify the bearer mobility policy manager. This happens only if the bearer
+mobility policy manager is registered with the <xref href="GUID-65871401-3D98-3B2B-9AA2-C7DB43F9AF57.dita"><apiname>PreferredCarrierAvailable</apiname></xref> (Network
+bearer mobility framework) for bearer mobility notification. </p> </li>
+<li id="GUID-B4476AE6-43CA-5242-B537-E101F3C94F78"><p>Call the <xref href="GUID-93466135-4C80-30B2-85C4-A045A7D34C6E.dita#GUID-93466135-4C80-30B2-85C4-A045A7D34C6E/GUID-511960C1-F9FC-3A25-9E89-977C43510C58"><apiname>CImMobilityManager::AcceptNewCarrier()</apiname></xref> function
+on the instance of <xref href="GUID-93466135-4C80-30B2-85C4-A045A7D34C6E.dita"><apiname>CImMobilityManager</apiname></xref> identified in the <xref href="GUID-4D26288F-A8F8-355E-B49C-B313EEC04584.dita"><apiname>PreferredCarrierAvailable()</apiname></xref> function. </p> </li>
+<li id="GUID-8645692F-7BFC-559D-8C60-B10FDF88417D"><p>Set the <xref href="GUID-93466135-4C80-30B2-85C4-A045A7D34C6E.dita#GUID-93466135-4C80-30B2-85C4-A045A7D34C6E/GUID-511960C1-F9FC-3A25-9E89-977C43510C58"><apiname>CImMobilityManager::AcceptNewCarrier()</apiname></xref> function
+value to any of the following: </p><ul>
+<li id="GUID-4894DA93-17E7-5C7B-8A00-82595DD43874"><p> <xref href="GUID-A3F52E3F-BC7F-3586-8529-290F679C1C59.dita"><apiname>KAcceptCompleteCurrent</apiname></xref> to
+specify that any operations in progress should be allowed to continue before
+migrating. </p><note><xref href="GUID-A3F52E3F-BC7F-3586-8529-290F679C1C59.dita"><apiname>KAcceptCompleteCurrent</apiname></xref> will not cancel
+the server communication that is currently in progress. After the operation
+is completed, the server MTM completes the user requested operation, logs
+out from the remote server, and closes the session allowing the migration
+to occur. </note> </li>
+<li id="GUID-CD61D419-8D15-578F-B8DF-546F991B91F8"><p> <xref href="GUID-33265245-E8DA-39CF-B627-75BDF59FD644.dita"><apiname>KAcceptStopCurrent</apiname></xref> to
+specify that any operations in progress should be stopped before migrating. </p> <note><xref href="GUID-33265245-E8DA-39CF-B627-75BDF59FD644.dita"><apiname>KAcceptStopCurrent</apiname></xref> will
+not cancel server communication that is currently in progress. After the operation
+is stopped, the server MTM logs out from the remote server, and closes the
+session allowing the migration to occur.</note> </li>
+<li id="GUID-7F1EBB9C-EFA7-5341-82EB-7B5D3342D5EE"><p> <xref href="GUID-11E0E18B-5656-349B-8F05-8C3E961B7AAF.dita"><apiname>KAcceptImmediately</apiname></xref> to
+specify that the migration should be performed immediately. </p><note><xref href="GUID-11E0E18B-5656-349B-8F05-8C3E961B7AAF.dita"><apiname>KAcceptImmediately</apiname></xref> causes
+the outstanding server communications to be cancelled, the session with the
+remote server is dropped without logging out, and allows the migration to
+occur.</note> </li>
+</ul> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-24860917-0FE2-5C8F-B436-96928350996E.dita"><linktext>Bearer Mobility
+ Overview</linktext></link>
+<link href="GUID-93221B70-EB36-5E8E-AE23-700988D5DACB.dita"><linktext>Bearer Mobility
+Policy Plug-in  Overview</linktext></link>
+</related-links></concept>

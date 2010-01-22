@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-834F5FC8-EBE4-4076-B1E3-38DDFF89D700" xml:lang="en"><title>Modifying
+the Data and Delimiter</title><shortdesc>This tutorial describes the steps to modify the data and delimiter.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq>       <p>HTTP Utilities Library provides <codeph>CDelimitedXxxx8</codeph> classes
+to modify the data and the delimiter. </p>     </prereq>
+<context>       <p>Use <codeph>CDelimitedXxxx8</codeph> classes to parse,
+add or remove the delimiter and segment within the URI.<note> <codeph>TDelimitedXxxxParser8</codeph> classes
+provide the functionality only for parsing.</note></p><p><xref href="GUID-51DFAA06-EC5E-32E6-9819-39938C46B2C0.dita"><apiname>CDelimitedPath8</apiname></xref>, <xref href="GUID-CF89AECB-5085-32CA-85B4-3573CDB1D595.dita"><apiname>CDelimitedPathSegment8</apiname></xref> and <xref href="GUID-9A640379-04BC-3A8E-9452-54833B2419AE.dita"><apiname>CDelimitedQuery8</apiname></xref> classes are derived from <xref href="GUID-347440D2-D58D-3505-88EB-5BA4B89F2FC2.dita"><apiname>CDelimitedDataBase</apiname></xref> to
+add and remove data and delimiters from the respective component.   <codeph>CDelimitedXxxx8</codeph> classes
+provide the following functionality:</p><ul>
+<li><p><codeph>SetDelimiter()</codeph>, <codeph>Parse()</codeph> and <codeph>ParseReverse()</codeph> functions
+are used to set the delimiter and parse the data. </p><p/></li>
+<li><p><codeph>ParseReverse()</codeph> is used, for example, when you want
+to extract the file name. For more details on parsing the delimited data,
+refer to <xref href="GUID-42F0F282-58D6-4878-B53D-EAEEF86A3D7D.dita">Parsing the
+delimited data</xref>.</p></li>
+</ul><note> Delimiter must be set before the data is parsed. </note><p>The
+following are some of the URI data and delimiter modifications that can be
+performed on a URI: <codeblock xml:space="preserve">_LIT8(KPath,"c:/myfolder");
+_LIT8(KLogs,"logs");
+//Create CDelimitedPath8 object
+CDelimitedPath8* dpath = CDelimitedPath8::NewL(KPath); </codeblock></p>  
+  </context>
+<steps-unordered>
+<step id="GUID-3CDC248D-ABF4-46C6-9841-E79C7DE80C50"><cmd/>
+<info><b>Removing a segment:</b> The following code removes the first segment
+from the data. <p/></info>
+<stepxmp><codeblock xml:space="preserve">dpath-&gt;PopFrontL();
+// remove first segment containing "c:"
+const TDesC8&amp; des = dpath-&gt;Parser().Des();</codeblock></stepxmp>
+<stepresult><p>Here, <codeph>des</codeph> holds "<filepath>/myfolder/logs</filepath>"
+after removing "<filepath>c:</filepath>". To remove the last segment from
+the data, use <codeph>PopBackL()</codeph>. </p></stepresult>
+</step>
+<step id="GUID-4DAA1D56-D5FF-476C-A58A-2401605B8872"><cmd/>
+<info><p><b>Adding a segment:</b> The following code adds a new segment at
+the end of the data. </p></info>
+<stepxmp><codeblock xml:space="preserve">dpath-&gt;PushBackL(KLogs);
+// add "logs" at the end
+const TDesC8&amp; des = dpath-&gt;Parser().Des();</codeblock></stepxmp>
+<stepresult><p>Here, <codeph>des</codeph> holds "<filepath>c:/myfolder/logs</filepath>"
+after adding "logs". To add a new segment at the beginning of the data, use <codeph>PushFrontL()</codeph>. </p></stepresult>
+</step>
+<step id="GUID-ACE640AB-3C04-417F-A8FC-9688ED80D81B"><cmd/>
+<info><p><b>Removing a delimiter:</b> The following code removes the delimiter
+from the beginning of the data. </p></info>
+<stepxmp><codeblock xml:space="preserve">dpath-&gt;TrimFrontDelimiterL();
+// remove delimiter "/" at the beginning
+const TDesC8&amp; des = dpath-&gt;Parser().Des();</codeblock></stepxmp>
+<stepresult><p>Here, <codeph>des</codeph> holds "<filepath>myfolder/logs</filepath>"
+after removing "/". To add the delimiter at the beginning or at the end of
+the data, use <codeph>AddFrontDelimiterL()</codeph> and <codeph>AddBackDelimiterL()</codeph> respectively. </p></stepresult>
+</step>
+<step id="GUID-65DA38D0-6CCE-4443-86F0-0B55F716FB19"><cmd/>
+<info><p><b>Parsing data and removing the current segment of data:</b> The
+following code parses the data and removes the current segment of data. </p></info>
+<stepxmp><codeblock xml:space="preserve">//Parse before removing the segment
+dpath-&gt;Parse();
+//remove the current segment
+dpath-&gt;RemoveCurrentL();
+// parse the data after removing "myfolder"
+const TDesC8&amp; des = dpath-&gt;Parser().Des();</codeblock></stepxmp>
+<stepresult><p>Here, <codeph>des</codeph> holds "<filepath>/logs</filepath>"
+after removing "<filepath>myfolder</filepath>". </p><note> The data must be
+parsed after removing the segment. </note></stepresult>
+</step>
+<step id="GUID-B4A6C14F-D971-456D-9F9E-1AD6AEC9E2F5"><cmd/>
+<info><p><b>Adding a delimiter:</b> The following code inserts a new segment
+before the current parsed segment. </p></info>
+<stepxmp><codeblock xml:space="preserve">// data to insert
+_LIT8(KHolyfolder,"Holyfolder");
+//insert a new segment before the current segment
+dpath-&gt;InsertCurrentL(KHolyfolder);
+// parse the data after inserting "Holyfolder"
+const TDesC8&amp; des = dpath-&gt;Parser().Des();</codeblock></stepxmp>
+<stepresult><p>Here, des holds "<filepath>/Holyfolder/logs</filepath>" after
+inserting "<filepath>Holyfolder</filepath>". </p></stepresult>
+</step>
+</steps-unordered>
+</taskbody><related-links>
+<link href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita"><linktext>HTTP Utilities
+Library Overview</linktext></link>
+<link href="GUID-42F0F282-58D6-4878-B53D-EAEEF86A3D7D.dita"><linktext>Parsing Delimited
+Data</linktext></link>
+<link href="GUID-38B65AAC-3CFA-5C9B-AD6F-36823B6C2C0E.dita"><linktext>Escape and
+insert concept</linktext></link>
+</related-links></task>

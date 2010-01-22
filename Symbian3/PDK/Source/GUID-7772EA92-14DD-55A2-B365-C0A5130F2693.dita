@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-7772EA92-14DD-55A2-B365-C0A5130F2693"><title>Call Forward Settings Tutorial</title><shortdesc>This tutorial describes how to get and set the call forward settings in a Symbian OS device. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps-unordered> <step id="GUID-83C98B37-60FE-5BBD-9DBF-83148517271A"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CRetrieveMobilePhoneCFList</apiname></xref> to get the list in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>CMobilePhoneCFList</apiname></xref> object. </cmd> <info>The list contains the details of call forward information for one or more call forwarding conditions. For example the condition can be call forwarding when there is no reply. Conditions are enumerated in <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCFCondition</apiname></xref>. </info> <info>A list is required as there can be different forwarded numbers for different service groups such as voice, fax, data and auxiliary voice. Each entry in the list is a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCFInfoEntryV1</apiname></xref> object, recording the condition, service group, status, number, and timeout values. </info> </step> <step id="GUID-0A2E50EB-2A9B-51CF-92C2-2081C5F748C4"><cmd>Set the status and registered information of the various call forwarding services using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetCallForwardingStatus()</apiname></xref>. </cmd> <info>The change is described in a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneCFChangeV1</apiname></xref> object. </info> <info>This is possible in a CDMA mode if the feature code strings are programmed for the call forwarding service, See <xref href="GUID-EE8660B7-DAC2-5A57-BDEA-418900BAE421.dita">Call Supplementary Services Tutorials</xref> for more information. </info> </step> <step id="GUID-0CF0AC4E-861D-5E83-8C8B-83E58A242614"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCallForwardingStatusChange()</apiname></xref> to get the notification of any changes to the status of a call forwarding service. </cmd> </step> <step id="GUID-CF27DDE9-12C5-51AE-BBC5-125345848E81"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyCallForwardingActive()</apiname></xref> to get the notification of any call made on a line that has active call forwarding. </cmd> </step> </steps-unordered> <example><title>Call forward settings example</title> <p>The following code gets the list of call forwarding numbers that are used when the call is forwarded because the number is busy. It checks the list and prints each number. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-0C6BC8BC-08A1-556C-8010-4FE2949D26C2" xml:space="preserve">void CClientApp::CallForwardingL()
+    {
+
+    // Create and start CF number retriever for forward-when-busy numbers
+    CRetrieveMobilePhoneCFList* retrieveCFList = CRetrieveMobilePhoneCFList::NewL(iMobilePhone);
+
+    CleanupStack::PushL(retrieveCFList);
+    TRequestStatus status;
+
+    retrieveCFList-&gt;Start(status, RMobilePhone::ECallForwardingBusy);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    // Get the list of numbers
+    CMobilePhoneCFList* cfList = retrieveCFList-&gt;RetrieveListL();
+    CleanupStack::PushL(cfList);
+
+    // Print each number
+    TInt nEntries = cfList-&gt;Enumerate();
+    RMobilePhone::TMobilePhoneCFInfoEntryV1 cfEntry;
+
+    for (TInt i=0; i&lt;=nEntries; i++)
+        {
+         cfEntry = cfList-&gt;GetEntryL(i);
+         console-&gt;Printf(_L("%S\n"),cfEntry.iNumber);
+        }
+
+    // Clean up
+    CleanupStack::PopAndDestroy(2); // cfList, retrieveCFList    
+
+    }</codeblock> </example> </taskbody></task>

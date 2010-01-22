@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8552E66E-73D6-51DA-8F53-DDF437186CD6" xml:lang="en"><title>Validation</title><shortdesc>Describes the DMA test code to validate the port of DMA framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The same set of source code is used to build two different DMA test harnesses: </p>
+<ol id="GUID-57C2BE90-6771-5C69-804F-CC08AEB43E88">
+<li id="GUID-778D3856-4605-5156-826F-9B4FCEC296CE"><p>It builds: <filepath>T_DMASIM.EXE</filepath>, <filepath>D_DMASIM.LDD</filepath>,
+and <filepath>DMASIM.DLL</filepath>. This is a software-simulated implementation
+of DMA. This harness is used mainly for debugging and validating the PIL (platform-independent
+layer) as it simulates every kind of DMA controller. The DMA simulator and
+associated PSL (platform-specific layer) is in <filepath>...\e32test\dma\dmasim.cpp</filepath>. </p> </li>
+<li id="GUID-69027EF2-66D9-56C3-B63C-269D729382D5"><p>It builds: <filepath>T_DMA.EXE</filepath>, <filepath>D_DMA.LDD</filepath>.
+The source code for building these executables is in <filepath>...\e32test\dma\t_dma.cpp</filepath> and <filepath>...\e32test\dma\d_dma.cpp</filepath> respectively </p> </li>
+</ol>
+<p> <filepath>T_DMA.EXE</filepath> is a user-side harness, and is an automatic
+test included in the E32TEST suite. It assumes that the underlying DMA controller
+supports memory to memory transfers. This executable delegates most of the
+work to D_DMA.LDD (built from base\e32test\dma\d_dma.cpp), a logical device
+driver that acts as a client for the DMA Framework. D_DMA.LDD links statically
+against DMA.DLL, the DMA Framework kernel extension and as such must be built
+from the variant. </p>
+<p> <filepath>T_DMA.EXE</filepath> delegates most of the work to <filepath>D_DMA.LDD</filepath>,
+which is a logical device driver that acts as a client for the DMA Framework. <filepath>D_DMA.LDD</filepath> links
+statically against <filepath>DMA.DLL</filepath>, the DMA Framework kernel
+extension, and as such must be built from the variant. In practice, this means
+that <filepath>D_DMA.LDD</filepath> must be specified in the test <filepath>bld.inf</filepath> for
+the variant being ported. See <filepath>...\template_variant\test\bld.inf</filepath> for
+an example. </p>
+<p> <filepath>D_DMA.LDD</filepath> calls the <codeph>DmaTestInfo()</codeph> function
+in the PSL to discover the capacities of the PSL: number of channels, maximum
+transfer size, etc. This is the template implementation: </p>
+<codeblock id="GUID-AB52EDB6-B76A-5362-B8F6-64DBF7E39460" xml:space="preserve">TDmaTestInfo TestInfo =
+    {
+    0,
+    0,
+    0,
+    0,
+    NULL,
+    0,
+    NULL,
+    0,
+    NULL
+    };
+
+</codeblock>
+<codeblock id="GUID-8A365AA3-9D88-5A62-9DE8-F5D7DFDEBAC4" xml:space="preserve">EXPORT_C const TDmaTestInfo&amp; DmaTestInfo()
+//
+//
+//
+    {
+    return TestInfo;
+    }
+
+</codeblock>
+</conbody></concept>

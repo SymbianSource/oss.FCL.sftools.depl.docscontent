@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F14A2C1F-7803-5D93-B871-6AAC30F50115" xml:lang="en"><title>Calling
+a Custom Command</title><shortdesc>This section describes the how to call the custom command with
+the parameters. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p> <codeph>STRUCT SSM_START_CUSTOM_COMMAND</codeph> is an API to
+start synchronous or asynchronous custom command. Custom commands are implemented
+using the <xref href="GUID-DEDD8780-C422-3239-ACDC-A66D209992E6.dita"><apiname>MSsmCustomCommand</apiname></xref> interface. It can be called
+with parameters. This functionality is provided by the <codeph>dll_info</codeph> part
+of the custom command struct. </p> <p><b>Required background</b></p><p>Before
+you start, you must know:</p><ul>
+<li><p>File name for the DLL containing this custom command.</p></li>
+<li><p>Ordinal of the position of the custom command creation function in
+the specified DLL.</p></li>
+<li><p>A link to a resource containing data to be passed as a parameter to
+the custom command (optional).</p></li>
+</ul><p><b>Procedure</b></p><p>Follow the steps given below to call a custom
+command:</p></context>
+<steps id="GUID-38AF9DBD-A973-5319-8D0C-309CBD56A672">
+<step id="GUID-8FB256A0-F9A8-5EAA-A6B1-D4BB5326B86F"><cmd/>
+<info>Create a custom command as shown in the code snippet. </info>
+<stepxmp><codeblock id="GUID-9AF71EED-DE52-5459-8EF7-50179547F2CC" xml:space="preserve">CreateCustomCommand::CreateCustomCommand()</codeblock> </stepxmp>
+</step>
+<step id="GUID-122D2B5C-15DA-5AAD-BE30-E16C917C0EB0"><cmd/>
+<info>Initialize the custom command as shown in the code snippet. </info>
+<stepxmp><codeblock id="GUID-CB9868B4-1EDC-5C21-B429-E3E2B201CF40" xml:space="preserve">TInt CreateCustomCommand::Initialize( CSsmCustomCommandEnv* aCmdEnv )</codeblock> </stepxmp>
+</step>
+<step id="GUID-E52563F4-D40D-5F57-8F4E-E9461CEF1E2C"><cmd/>
+<info>Call the custom command using <codeph>SSM_START_CUSTOM_COMMAND</codeph> as
+shown in the code snippet. </info>
+<stepxmp><codeblock id="GUID-0D3E1107-2EAC-5F8A-A01A-B53BDE25B596" xml:space="preserve">
+// Valid ESsmWaitForStart struct with data
+RESOURCE SSM_START_CUSTOM_COMMAND r_command_custom_cmd1
+{
+    severity = ECmdCriticalSeverity;
+    execution_behaviour = ESsmWaitForStart;
+    dllname = "tcust_cmd.dll";
+    ordinal = 1;
+    unload_on_finish = EUnloadImmediately;
+    retries = 3;
+    dll_data = r_command_custom_cmd_good_data;
+}
+
+// Custom command data
+RESOURCE SSM_COMMAND_CUSTOM_CMD_DATA r_command_custom_cmd_good_data
+{
+    val1 = '1';
+    val2 = '2';
+    val3 = '3';
+    val4 = '4';
+    val5 = '5';
+}
+</codeblock> </stepxmp>
+</step>
+</steps>
+<result><p>The custom command is called. </p> </result>
+</taskbody><related-links>
+<link href="GUID-EFBBB53F-8402-5010-8B8D-96D0FC46F784.dita"><linktext>Creating
+a Custom Command</linktext></link>
+<link href="GUID-63F2124B-9B41-58D8-9439-CE4D8C3503D8.dita"><linktext>Running a
+Custom Command</linktext></link>
+</related-links></task>

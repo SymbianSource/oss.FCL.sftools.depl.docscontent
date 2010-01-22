@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-4AEF53DF-2F98-5052-8493-53DABDF9B17F"><title> MTP Central Repository</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The MTP framework is configured by a number of parameters. The values are stored in the Central Repository. The initial values are loaded into the Central Repository using a compiled (binary) initialisation file. Read only access to the MTP framework configuration parameters is available to any application using the <codeph>Repository</codeph> API. Write access is restricted to the MTP framework itself. </p> <section><title>Configuration parameters</title> <p>The set of MTP framework configurability parameters are: </p> <p> <b>Device Friendly Name</b>  </p> <p>This parameter defines the Device Friendly Name MTP device property value. It is implemented as a string and has a maximum length of 254 characters. </p> <p> <b>Synchronization Partner</b>  </p> <p>This parameter defines the Synchronization Partner MTP device property value. It is implemented as a string and has a maximum length of 254 characters. </p> <p> <b> Logical Storage IDs Allocation Enable Flag</b>  </p> <p>This parameter indicates if the framework allocates MTP logical storage IDs. If set the framework allocates a single logical storage ID on each of the available Symbian file system drives. If not set then the framework does not allocate any MTP logical storage IDs. The active data providers are responsible for allocating MTP logical storage IDs using <codeph>MMTPStorageMgr</codeph> interface. </p> <p> <b>Default Storage Drive</b>  </p> <p>This parameter specifies the Symbian file system drive that acts as the default MTP storage ID (0x00000004). It is implemented as an integer value which represents the default drive using a zero based numbering scheme (that is 0 represents the A drive, 25 represents the Z drive and so on.), or with a MTP Framework assigned storage ID. For example the storage number assigned to the interoperability test Music data provider is 66305. </p> <p> <b>Excluded Storage Drives</b>  </p> <p>This parameter specifies the Symbian file system drives that are excluded from the set of MTP stores. Any drive that is identified in this set is not assigned a store ID value by the MTP framework. This parameter is implemented as an array of integer values each of which represent an excluded drive using a zero based numbering scheme (for example, 0 represents the A drive and 25 represents the Z drive.) </p> </section> <section><title>Central Repository File Example</title> <p>The MTP framework configuration central repository initialisation source file (<filepath>10282FCC_ARMV5.txt</filepath> and <filepath>10282FCC_WINSCW.txt</filepath>) is located at /mw/remoteconn/mtpfws/mtpfw/group/. The following example shows its syntax: </p> <codeblock id="GUID-E8BC8B19-43DF-55BA-A82B-B9BF98EFAAC9" xml:space="preserve"># MTP framework configurability central repository initialisation file 
+#
+
+# Header
+cenrep
+version 1
+
+[platsec]
+# Any client can read values, only the MTP server can write values. 
+# 0x102827A2 is the UID of the MTP server - this value must be specified in decimal: 271067042. cap_rd = AlwaysPass sid_wr = 271067042
+
+[main]
+# Settings 
+# KEY        - Description
+#
+# 0x00000000 - Device friendly name (string).
+# 0x00000001 - Synchronization partner name (String). 
+# 0x00000002 - RAM drive metadata storage enable flag (boolean). 
+# 0x00000003 – Logical storage IDs allocation enable flag (boolean).
+# 0x00000004 - Default storage drive (integer), Can be set to either a 
+#              Symbian drive number (i.e. A = 0, Z = 25) or a MTP storage 
+#              ID (assigned by the MTP framework). 
+# 0x00000006 - Transport switching enable flag(boolean) (0=disable, 1=enable)
+# 0x00000007 - Implimentation UID of the HighPriority Transport PlugIn. 
+# 0x0001nnnn - Excluded storage drives (integer array). The most significant 
+#              16-bits of the key identify the excluded storage drives array
+#              and are fixed (0x0001). The least significant 16-bits identify 
+#              the array offset and MUST increment from zero. Note that although
+#              these key values bear a striking resemblance to MTP storage ID
+#              values, this resemblance is entirely coincidental. These key 
+#              values are entirely independent of the MTP storage ID values which
+#              will be assigned to the available drives. Drive identifiers are 
+#              numbered from zero (i.e. A = 0, Z = 25).
+#
+0x00000000     string     "Symbian MTP Device"                                    0
+0x00000001  string     "Symbian MTP Sync Partner"      0
+0x00000002  int                     0                                                                                                      0
+0x00000003  int                     1                                                                                                      0
+0x00000004  int                     2                                                                                                      0
+0x00000006  int                     0                                                                                                      0
+0x00000007  string         "102827B2"                                                                  0
+0x00010000  int                     2                                                                                                      0
+0x00010001  int                     4                                                                                                      0
+0x00010002  int                     10                                                                                                  0
+
+
+</codeblock> <p>In the preceding example: </p> <ul><li id="GUID-62394CD8-E1CE-5CF8-8E53-ECB55B0A67C3"><p>&lt;key&gt; is the 32 bit unsigned key used to identify the setting. </p> </li> <li id="GUID-60128928-3915-5EC9-90DB-452FBFC9441E"><p>&lt;type&gt; is int, real, string, string8 or binary. </p> </li> <li id="GUID-E0FC29BA-4D14-59BC-974D-C260DE1407CD"><p>&lt;value&gt; is the initial value of the setting. </p> </li> <li id="GUID-370E69FE-CF91-500B-81CF-42017C7EE3D0"><p>&lt;metadata&gt; is the value permanently associated with the key position. Metadata can be specified in either decimal or hexadecimal. Hexadecimal values are indicated by prefixing the number with the characters ‘0x’. </p> </li> </ul> </section> </conbody></concept>

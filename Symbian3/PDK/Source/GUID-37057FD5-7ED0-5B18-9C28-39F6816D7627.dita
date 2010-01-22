@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-37057FD5-7ED0-5B18-9C28-39F6816D7627" xml:lang="en"><title>Arrays
+within structs</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A declaration of a struct member may either be a simple <varname>type-name</varname>  <varname>member-name</varname>,
+or it may be an array of values of identical type.</p>
+<p>Arrays are always indicated by square brackets:</p>
+<codeblock id="GUID-4F6A2882-FDF8-5DBA-A01D-6772D5BDF70F" xml:space="preserve">STRUCT HAS_ARRAY
+ {
+ STRUCT elements[];
+ }</codeblock>
+<p>In the example above, the <codeph>HAS_ARRAY</codeph> struct has one array
+member, <codeph>elements</codeph>. Each member of <codeph>elements</codeph> is
+of <codeph>STRUCT</codeph> type.</p>
+<p><b>Array size</b> </p>
+<p>If you specify the array size, inside the square brackets, then the generated
+resource will contain no count of the number of elements. So this resource:</p>
+<codeblock id="GUID-F50D2117-7554-5D80-ABF1-2393E65B54CB" xml:space="preserve">STRUCT FIXED_ARRAY
+ {
+ WORD elements[3];
+ }
+
+RESOURCE FIXED_ARRAY example1
+ {
+ elements={9,8,7};
+ }</codeblock>
+<p>will generate the output</p>
+<codeblock id="GUID-880DF2CB-D042-59CD-AF28-89D971CC6466" xml:space="preserve">0x09 0x00 0x08 0x00 0x07 0x00</codeblock>
+<p>For variable length arrays, a count of the number of elements precedes
+the resource. The default for this is a word, but by prefixing the struct
+definition with <codeph>LEN BYTE</codeph> it will be a byte count. So the
+following resource:</p>
+<codeblock id="GUID-FEAD195C-8C3F-529F-AE2A-AC42F2ACA66F" xml:space="preserve">STRUCT VAR_ARRAY
+ {
+ WORD elements [];
+ }
+
+RESOURCE VAR_ARRAY example2
+ {
+ elements={9,8,7};
+ }</codeblock>
+<p>will generate the output</p>
+<codeblock id="GUID-D21EA8C8-876D-5DD8-9F0C-256288A2B6B1" xml:space="preserve">0x03 0x00 0x09 0x00 0x08 0x00 0x07 0x00 </codeblock>
+<p>whereas this resource:</p>
+<codeblock id="GUID-14A52C15-5D28-5716-AED4-22F02AF23AAE" xml:space="preserve">STRUCT VAR_ARRAY2
+ {
+ LEN BYTE WORD elements[];
+ }
+
+RESOURCE VAR_ARRAY2 example3
+ {
+ elements={9,8,7};
+ }</codeblock>
+<p>will generate this output</p>
+<codeblock id="GUID-3909C1FE-84B3-50D1-9519-417B84DD93B0" xml:space="preserve">0x03 0x09 0x00 0x08 0x00 0x07 0x00</codeblock>
+<p>The compiler allows you to prefix <codeph>LEN BYTE</codeph> or <codeph>LEN
+WORD</codeph> even for fixed length arrays, but it has no effect. Fixed length
+arrays do not generate an element count.</p>
+</conbody><related-links>
+<link href="GUID-0142B290-DA6C-5574-83D7-7555D804D9B5.dita"><linktext>How to initialise
+array RESOURCE members</linktext></link>
+</related-links></concept>

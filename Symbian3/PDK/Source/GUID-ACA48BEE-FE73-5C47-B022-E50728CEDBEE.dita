@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-ACA48BEE-FE73-5C47-B022-E50728CEDBEE" xml:lang="en"><title>Architecture</title><shortdesc>Describes the architecture of the Sound Driver.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>There are three main parts: </p>
+<ul>
+<li id="GUID-6EEE9FF2-FA3A-5B50-9CD9-D098C66D5331"><p>the user side interface
+to the <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">Driver
+channel</xref>. This is an instance of a class derived from <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita"><apiname>RSoundSc</apiname></xref>. </p> <p>The
+class <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita"><apiname>RSoundSc</apiname></xref> provides the user side interface to the
+driver. This class is defined in <filepath>\e32\include\d32soundsc.h</filepath>.
+An instance of <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita"><apiname>RSoundSc</apiname></xref> is required for each <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver channel</xref> opened by the client. When opening a <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver channel</xref>, the client specifies a channel number for the <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-74B14664-8D9D-57D2-B090-709136FEB5E3">audio
+channel</xref>. Channel numbers 0 to 3 are allocated for output/playback channels
+and channels 4 to 7 are allocated for input/record channels. </p> </li>
+<li id="GUID-FA62DA0C-F56E-51B4-84B2-EF8316CACC1B"><p>the <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver channel</xref>, also known as the logical channel or LDD. </p> <p>The
+class <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita"><apiname>DSoundScLdd</apiname></xref> is the <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita">logical
+channel</xref> object for either audio playback or record. This class is defined
+in <filepath>\e32\include\drivers\soundsc.h</filepath>. An instance of <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita"><apiname>DSoundScLdd</apiname></xref> is
+created for each <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver
+channel</xref> opened. The driver implements play and record operation over
+a single audio hardware device as two separate <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-7C8FF32F-2E84-57B1-8962-9EDB4D51FEE6">units</xref>. Therefore, a client that needs to issue both record and playback requests
+has to open two separate <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver
+channels</xref>. </p> <p> <codeph>DSOundScLdd</codeph> is derived from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>. <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> is
+the base class for a logical channel and provides the framework in which user
+side client requests are normally executed in the context of a kernel side
+thread. However, for this particular driver, not every request is executed
+in the context of a kernel thread. Requests that do not require access to
+hardware are handled in the context of the calling thread. </p> </li>
+<li id="GUID-861F1E3E-9087-530A-938D-DDD934D4EB67"><p>the <xref href="GUID-461A9DAD-1C1D-537D-A7A7-9E1AF33ABBA2.dita">physical
+channel</xref>, also known as the PDD, manages access to the audio hardware
+device for all instances of the <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver
+channel</xref>. </p> <p>The class <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita"><apiname>DSoundScPdd</apiname></xref> is the base
+class for the Sound Driver PDD object. This class is used for either playback
+or record, it implements the platform specific layer of the driver and an
+instance of this class is created for each <xref href="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6.dita#GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6/GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B">driver
+channel</xref> opened. This is created by the Sound Driver physical device
+class <xref href="GUID-AA9C0AAC-C718-3DE7-BF4B-D10C277AED6D.dita"><apiname>DSoundScPddFactory</apiname></xref> when a channel is opened. The
+class <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita"><apiname>DSoundScPdd</apiname></xref> is defined in <filepath>\e32\include\drivers\soundsc.h</filepath>. </p> <p>The
+following diagram illustrates the Sound Driver architecture. The interactions
+between the user side and kernel side classes are shown. </p> </li>
+</ul>
+<fig id="GUID-257F5F90-AC86-5029-81EB-5CBB16B8A1F9">
+<title>           The main classes involved in Sound Driver implementation.
+         </title>
+<image href="GUID-8C9F26BC-2579-545C-9A86-9C45E06679F0_d0e398281_href.png" placement="inline"/>
+</fig>
+</conbody></concept>

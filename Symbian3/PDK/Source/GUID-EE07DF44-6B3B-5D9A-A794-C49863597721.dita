@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-EE07DF44-6B3B-5D9A-A794-C49863597721"><title>SUPL Push API Tutorial</title><shortdesc>This topic describes how the Symbian SUPL WAP Push plug-in uses the SUPL Push API (deprecated). Device creators can use this information if they want to implement their own SUPL INIT push plug-in. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><prereq><p>Read <xref href="GUID-CC3454B1-21DA-542E-8949-52C30755AC77.dita">SUPL Protocol Module Overview</xref> and <xref href="GUID-E7DD9CFD-F477-5D25-BC10-BEBFB1022F7E.dita">SUPL Push API</xref> before reading this document. </p> </prereq> <context><p>This document describes how the SUPL WAP Push plug-in uses the SUPL Push API. </p> <p>Device creators only need to use the SUPL Push API to write their own <codeph>SUPL INIT</codeph> message handlers. </p> <p>The Symbian WAP Push plug-in derives from <xref href="GUID-56BCBAED-03E5-35D6-A828-9B48ACEBF085.dita"><apiname>CContentHandlerBase</apiname></xref>, the base class of push message handlers. It also implements <xref href="GUID-7A1E29E6-CF2C-3B19-BADE-2DDD67F6DC36.dita"><apiname>MLbsSuplPushObserver</apiname></xref> to receive notification of <codeph>SUPL INIT</codeph> message delivery to the SUPL Protocol Module. </p> <p>See <filepath>&lt;LBS_SOURCE_ROOT&gt;/LbsSuplProtocolModule/SuplWapPush</filepath> for the code for the WAP Push plug-in. </p> </context> <steps id="GUID-992D4417-2485-546D-BF2D-698A76D732CA"><step id="GUID-8CC996F5-4CC2-51BE-926A-9011F38FFE26"><cmd>Define a SUPL INIT handler class </cmd> <info>The Symbian WAP Push plug-in derives from <xref href="GUID-56BCBAED-03E5-35D6-A828-9B48ACEBF085.dita"><apiname>CContentHandlerBase</apiname></xref> to receive SUPL WAP Push messages. It implements <xref href="GUID-7A1E29E6-CF2C-3B19-BADE-2DDD67F6DC36.dita"><apiname>MLbsSuplPushObserver</apiname></xref> to receive notification of successful message delivery to the SUPL Protocol Module. </info> <stepxmp><codeblock id="GUID-D538A5F1-5BB8-5C66-8AD6-C754E8E15F83" xml:space="preserve">
+NONSHARABLE_CLASS(CLbsSuplWapPush) : public CContentHandlerBase, public MLbsSuplPushObserver
+    {
+public:
+    static CLbsSuplWapPush* NewL();
+    virtual ~CLbsSuplWapPush();
+    
+    virtual void OnSuplInitComplete(TLbsSuplPushChannel aChannel, TLbsSuplPushRequestId aReqId, 
+            TInt aError, TInt aReserved);
+
+    // From CPushHandlerBase
+    virtual void HandleMessageL(CPushMessage* aPushMsg);
+    
+    // Other methods of CContentHandlerBase omitted here...
+
+};
+</codeblock> </stepxmp> <info>The plug-in's <codeph>ConstructL()</codeph> creates a new instance of <xref href="GUID-A55B3609-097F-3D14-80FF-76ADA5462621.dita"><apiname>CLbsSuplPush</apiname></xref>. </info> <stepxmp><codeblock id="GUID-C960E9CF-0B66-5E45-8716-82C2E542ADE2" xml:space="preserve">
+// This handler uses the WAP channel
+iSuplPush = CLbsSuplPush::NewL(ELbsSuplPushChannelWAP, *this);
+</codeblock> </stepxmp> </step> <step id="GUID-A2B119BE-7342-5C4A-8304-5CF4BA7A8FBF"><cmd>Implement HandleMessageL() </cmd> <info>When the WAP Push plug-in receives a WAP Push message, it extracts the message body and calls <xref href="GUID-A55B3609-097F-3D14-80FF-76ADA5462621.dita#GUID-A55B3609-097F-3D14-80FF-76ADA5462621/GUID-5AD5A31B-0DE0-36DF-A19F-E0E57EBCCEA9"><apiname>CLbsSuplPush::SuplInit()</apiname></xref>. </info> <stepxmp><codeblock id="GUID-5FF6A0B6-F14D-5103-9D80-87A6560633B7" xml:space="preserve">
+void CLbsSuplWapPush::HandleMessageL(CPushMessage* aPushMsg)
+    {
+    LBSLOG(ELogP3, "SUPL WAP Push : CLbsSuplWapPush::HandleMessageL");
+    if(aPushMsg)
+        {
+        TPtrC8 body;
+        TBool hasBody=aPushMsg-&gt;GetMessageBody(body);
+        if(hasBody)
+            {
+            TLbsSuplPushRequestId reqId;
+            TInt err=iSuplPush-&gt;SuplInit(reqId, body, 0);
+            if(KErrNone==err)
+                {
+                LBSLOG2(ELogP3,"SUPL WAP Push : Started to deliver the message, reqId=%d", reqId);
+                delete aPushMsg;
+                return;
+                }
+            else
+                {
+                LBSLOG2(ELogP3,"SUPL WAP Push : CLbsSuplPush::SuplInit failed, err=%d", err);
+                }
+            }
+        else
+            {
+            LBSLOG(ELogP3, "SUPL WAP Push : Empty message body, the message is skipped");
+            }
+        delete aPushMsg;
+        }
+    else
+        {
+        LBSLOG(ELogP3, "SUPL WAP Push : Null message pointer, the message is skipped");
+        }
+ iPluginKiller-&gt;KillPushPlugin();
+    }
+</codeblock> </stepxmp> </step> <step id="GUID-2A529784-B7FA-5BC4-B5EE-C8A6C1BFC9B7"><cmd>Implement <codeph>MLbsSuplPushObserver::OnSuplInitComplete()</codeph>  </cmd> <info>When the SUPL Protocol Module processes the SUPL INIT message, the plug-in's <xref href="GUID-7A1E29E6-CF2C-3B19-BADE-2DDD67F6DC36.dita#GUID-7A1E29E6-CF2C-3B19-BADE-2DDD67F6DC36/GUID-4FC083C9-640B-3CC1-8D8B-3A9AE8E57D17"><apiname>MLbsSuplPushObserver::OnSuplInitComplete()</apiname></xref> method is called. The parameter <codeph>aError</codeph> may indicate a timeout or another error condition. </info> <info>The WAP Push plug-in is destroyed by the WAP Push Framework. Another instance of <xref href="GUID-1DC6BEED-1EAA-3CFE-BBFD-DD2E578775E4.dita"><apiname>CLbsSuplWapPush</apiname></xref> is created by the framework to handle the next <codeph>SUPL INIT</codeph> received by WAP Push. </info> <stepxmp><codeblock id="GUID-DA87FBF9-57FC-55F2-8730-10BD6FEBB939" xml:space="preserve">
+void CLbsSuplWapPush::OnSuplInitComplete(TLbsSuplPushChannel /*aChannel*/, TLbsSuplPushRequestId aReqId, 
+            TInt aError, TInt /*aReserved*/)
+    {
+    if(aError==KErrNone)
+        {
+        LBSLOG2(ELogP3,"SUPL WAP Push : Message delivered successfully, reqId=%d", aReqId);
+        }
+    else
+        {
+        LBSLOG3(ELogP3,"SUPL WAP Push : Message delivery failed, reqId=%d, err=%d", aReqId, aError);
+        }
+     iPluginKiller-&gt;KillPushPlugin();
+    }
+</codeblock> </stepxmp> </step> </steps> </taskbody><related-links><link href="GUID-E7DD9CFD-F477-5D25-BC10-BEBFB1022F7E.dita"><linktext>SUPL Push
+                API</linktext> </link> </related-links></task>

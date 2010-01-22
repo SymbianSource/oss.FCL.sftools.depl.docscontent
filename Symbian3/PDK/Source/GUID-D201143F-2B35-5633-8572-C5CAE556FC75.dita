@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-D201143F-2B35-5633-8572-C5CAE556FC75" xml:lang="en"><title>Condition-Block
+Syntax</title><abstract><p>Condition-Blocks are control blocks that decide which part of
+the SIS files are skipped during installation. </p> <p>Condition-Blocks can
+include the following: </p> <ul>
+<li id="GUID-E5C9589C-39E4-58C3-9C66-390ABC903E94"><p><xref href="GUID-71909C6D-297C-50A9-99BB-FEBC67389954.dita">Conditions</xref> </p> </li>
+<li id="GUID-52B5CD8A-ABA7-527D-8A46-CE58ED9B5B15"><p><xref href="GUID-C5F9AAD3-5183-57E5-A33B-032DE3C063AE.dita">Functions</xref> </p> </li>
+</ul> <p>Conditional-Blocks (including language dependent file blocks) are
+evaluated at the end of the installation. </p></abstract><prolog><metadata><keywords/></metadata></prolog><refbody>
+<refsyn><title>Syntax</title><codeblock id="GUID-0AB8A0B0-C43A-5882-8A45-B859434931D4" xml:space="preserve">IF (condition)
+    package-body 
+[ ELSEIF (condition) 
+    package-body 
+] 
+[ ELSE 
+    package-body 
+] ENDIF
+</codeblock> <p>The square brackets enclose conditions within the Condition-Block
+statement that are optional. </p> <p> <b>Note:</b> It is advisable to put
+conditions within the square brackets. </p> <p>The Condition-Blocks can be
+used to ensure that the SIS file installs appropriate binaries for the target
+platform. For example: </p> <codeblock id="GUID-62C6E29A-E17A-5C66-ACB2-ECBAB31F504B" xml:space="preserve">IF FPHARDWARE=0
+"\epoc32\release\gcce\urel\myapp.exe"-"!:\sys\bin\myapp.exe.exe";
+ELSE
+"\epoc32\release\gcce\urel\myappVFP.exe"-"!:\sys\bin\myappVFP.exe";
+ENDIF
+</codeblock></refsyn>
+<section id="GUID-C9DADEE3-AB97-59DF-9138-EC4F8153A937"><title>Example</title> <p>The
+following example illustrates the usage of Conditional-Blocks within a PKG
+file: </p> <codeblock id="GUID-9027EC5D-7975-57A3-84B8-89504FD6AF0D" xml:space="preserve">; PKG file to illustrate conditional blocks
+
+&amp;EN
+
+%{"Nokia Corporation"}
+
+:"Nokia Corporation"
+
+#{"ConditionalInstall"}, (0x10000041), 1, 2, 3
+
+!({"Option1"},{"Option2"},{"Option3"})
+
+if exists("c:\private\10000041\import\InstTest\romeo.txt")
+    "text\romeo.txt"-"!:\private\10000042\import\InstTest\romeo1.txt"
+else
+    "text\romeo.txt"-"!:\private\10000042\import\InstTest\romeo.txt"
+endif
+
+if (option1 = 1) AND (option2 = 1)
+    "files\tbit.gif"-"!:\private\10000042\import\InstTest\tbit.gif"
+endif
+
+if version(0x10000042, &lt;, 2, 0, 0)
+  "text\prev2.txt"-"!:\private\10000042\import\InstTest\prev2.txt"
+elseif version(0x10000042,&gt;=,2,0,0) AND version(0x10000042, &lt;, 3, 0, 0)
+  "text\v2.txt"-"!:\private\10000042\import\InstTest\v2.txt"
+elseif version(0x10000042,&gt;=,3,0,0) AND version(0x10000042, &lt;, 4, 0, 0)
+  "text\v3.txt"-"!:\private\10000042\import\InstTest\v3.txt"
+else
+  "text\postv3.txt"-"!:\private\10000042\import\InstTest\postv3.txt"
+endif</codeblock> </section>
+</refbody></reference>

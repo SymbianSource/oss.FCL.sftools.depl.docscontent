@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D2ECF215-B53C-5659-BA86-5B658C0C2D2F" xml:lang="en"><title>Global
+Surface Updates</title><shortdesc>Global surface updates are surface composition update commands
+that are submitted to all displays rather than to a single one. This causes
+the Surface Update Server to broadcast the update to all of the registered
+composition engine instances. Each of these then determines whether the surface
+is displayed on its associated screen and if so, forces an update. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<p>To specify a global surface update, pass the <codeph>KAllScreens</codeph> constant
+as the first argument to the <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref> function. </p>
+<p>The use of global surface updates means that the client does not need to
+track which screen the surface is visible on and call <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref> for
+each one. The use of global surface updates is therefore recommended.</p>
+<p> <i>Note</i>: You must not mix global surface updates with
+updates for specific screens in the same session. </p>
+<p>The global surface update feature uses the concept of a surface's <b>master
+display</b>. When a surface is displayed on more than one screen, its master
+display is the one that has the highest priority number. The Surface Update
+Server keeps a list of the priorities of all of the displays. </p>
+<p>The list of priorities is set up at startup based on the priority assigned
+to the composition engine instances. (The priority of a display is defined
+as the priority of its associated composition engine instance.) </p>
+<section><title>Client notifications</title> <p>When global surface updates
+are in use, the Surface Update Server makes copies of all of the notification
+requests from the client and sends them on to each of the registered composition
+engine instances. The Surface Update Server collects the completed requests
+from the composition engine instance and forwards the completion status to
+the client as follows: </p> <ul>
+<li id="GUID-16591C0C-BB58-5D10-984F-32ED5E35F10A"><p>For all of the <codeph>NotifyWhen...()</codeph> notification
+types, each composition engine instance determines whether the surface is
+visible on its associated screen. If the surface is not visible, it returns <codeph>KErrNotVisible</codeph> to
+the Surface Update Server. If all of the composition engine instances return <codeph>KErrNotVisible</codeph>,
+the Surface Update Server returns <codeph>KErrNotVisible</codeph> to the client. </p> </li>
+<li id="GUID-4E6C7843-0C0E-568A-B1D5-0DD10D052FBC"><p> <codeph>NotifyWhenAvailable()</codeph>.
+For multi-buffered surfaces, the Surface Update Server sends the notification
+to the client when the buffer has been released by all of the displays on
+which it is visible. For single-buffered surfaces, the Surface Update Server
+sends the notification to the client when the composition engine instances
+that correspond to the displays on which it is visible have read the buffer
+once. </p> </li>
+<li id="GUID-043DE46C-130A-582C-9626-C123552A3400"><p> <codeph>NotifyWhenDisplayed()</codeph>.
+The Surface Update Server sends notification to the client when the master
+display has displayed the buffer. </p> </li>
+<li id="GUID-114CC0D5-2955-55AC-8D7A-427D2D1B3215"><p> <codeph>NotifyWhenDisplayedXTimes()</codeph>.
+The Surface Update Server sends notification to the client when the master
+display has displayed the buffer the specified number of times. If the master
+display becomes unavailable while the request is in progress, the Surface
+Update Server reassigns it to the visible display with the next highest priority. </p> </li>
+</ul> </section>
+<section><title>Sequence diagrams</title> <p>The following diagrams illustrate
+the sequence for global updates in a device that has two composition engine
+instances registered with the Surface Update Server. These diagrams make the
+following assumptions: </p> <ul>
+<li id="GUID-030B0A51-35F8-57AA-93B1-0226FE46C039"><p> <i>Composition Engine
+1</i> is associated with <i>Screen1</i> and <i>Composition Engine 2</i> is
+associated with <i>Screen2</i>. </p> </li>
+<li id="GUID-F6EDF2CF-DE85-55A2-907D-ECFA26576E7E"><p> <i>Composition Engine
+1</i>'s priority is higher than <i>Composition Engine 2</i>'s. </p> </li>
+</ul> <p>The first diagram shows the typical sequence when the surface is
+visible on <i>Screen2</i> only. <i>Composition Engine 1</i> responds first
+with <codeph>KErrNotVisible</codeph>. The Surface Update Server then considers <i>Screen2</i> to
+be the surface's master display and waits for it to complete before sending
+the notification to the client. </p> <fig id="GUID-14C89A10-7762-5836-AF7F-B187704510E5">
+<title>              The surface is visible on Screen2 only,             
+Composition Engine 1 replies before Composition Engine              2    
+       </title>
+<image href="GUID-5F9BEEF7-19BC-550F-BD97-60F70B55E906_d0e251994_href.png" placement="inline"/>
+</fig> <p>In the next diagram, the surface is still visible on <i>Screen2</i> only.
+This time, however, <i>Composition Engine 2</i> replies before <i>Composition
+Engine 1</i>. The Surface Update Server considers <i>Composition Engine 1</i> to
+be the master until it receives an error (<codeph>KErrNotVisible</codeph> in
+this example) from <i>Composition Engine 1</i>. It then considers <i>Backend2</i> to
+be the master. </p> <p>Notice that although <i>Screen2</i> has become the
+master, <codeph>RequestComplete()</codeph> goes to the client at the point
+that <i>Composition Engine 1</i> returns the error. This is because <i>Backend2</i> replied
+before <i>Backend1.</i>  </p> <fig id="GUID-0708D124-F89D-5BCA-85B0-E28E4CCD26C7">
+<title>              The surface is visible on Screen2 only,             
+Composition Engine 2 replies before Composition Engine              1    
+       </title>
+<image href="GUID-B4653180-46EB-58A8-B2A8-0DD2C3D30FE7_d0e252044_href.png" placement="inline"/>
+</fig> <p>In this final diagram, the surface is visible on both screens. <i>Screen1</i> is
+considered the surface's master display and the client is notified when <i>Composition
+Engine 1</i> completes. When <i>Composition Engine 2</i> completes, the Surface
+Update Server discards its notification. </p> <fig id="GUID-FA4BE8A3-33A2-53E7-9124-53D404B0305A">
+<title>              The surface is visible on both screens.            </title>
+<image href="GUID-467EF3F5-754B-550A-A9C7-246D68C91F0A_d0e252064_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Example</title> <p>The following code snippet shows using
+the global surface update feature to request composition to all of the screens
+that are registered with the Surface Update Server. </p> <codeblock id="GUID-45C71218-12FC-58A9-877E-27D642F5E949" xml:space="preserve">TRequestStatus  status;
+RRegion *region;
+    
+// Signifies all screens.
+TInt screen = KAllScreens;
+    
+// The current buffer for composition.
+TInt theBuffer = 0; 
+    
+TSurfaceId surfaceId;
+     
+// Set surface ID.
+...
+    
+// Render to the surface.
+...
+    
+// Broadcast the request to all registered screens.
+surfaceUpdateSession.SubmitUpdate(screen, surfaceId, theBuffer, NULL);
+</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-8E8FE99A-5F4D-5B0F-87AB-A58EB4BEB6E9.dita"><linktext>Surface Update
+Component Overview</linktext></link>
+<link href="GUID-63CB6C7E-44EC-5D0B-A37D-FE78F7D76592.dita"><linktext>Graphics
+Composition Collection</linktext></link>
+<link href="GUID-ADA8CECB-0E70-5B9C-8F36-0714AAF0CD13.dita"><linktext>Graphics
+Composition Surfaces</linktext></link>
+</related-links></concept>

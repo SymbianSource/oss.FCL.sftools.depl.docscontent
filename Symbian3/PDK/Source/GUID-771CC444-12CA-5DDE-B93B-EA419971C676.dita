@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-771CC444-12CA-5DDE-B93B-EA419971C676"><title>Call Information Tutorial</title><shortdesc>This tutorial describes how to get the call information. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>The <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::GetMobileCallInfo()</apiname></xref> must be used to retrieve the call information. The retrieved information contains : </p> <ul><li id="GUID-F2ED31FC-F2D2-5D91-AE73-1B8491FF8287"><p>a bitmask that specifies which of the optional fields are set in the retrieved information </p> </li> <li id="GUID-B7B032E8-FF46-542B-8BD0-37C84CA0980B"><p>call origination information, such as call name, ID, start time, service </p> </li> <li id="GUID-580592D3-2C4A-5841-B595-48D96F361150"><p>remote party information </p> </li> <li id="GUID-A1A37F74-6FF2-593B-BB60-8E28B3F83F22"><p>call status information and flags </p> </li> </ul> </context> <steps id="GUID-659CF3D3-41FC-54FB-B025-64554B325966"> <step id="GUID-962961F0-F00D-5EF4-8B87-017C2602E2CB"><cmd>Use <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::GetMobileCallInfo()</apiname></xref> to retrieve the call inormation. </cmd> </step> <step id="GUID-B4E87319-E7A0-5A1D-AF59-8A025149445D"><cmd>The above function should return a <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::TMobileCallInfoV1</apiname></xref>. </cmd> </step> <step id="GUID-0D54CA54-9DBD-5211-AB90-4C4233F3AF4A"><cmd>The bit mask of the optional field is returned in <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::TMobileCallInfoFlags</apiname></xref>. </cmd> </step> <step id="GUID-CCE03D34-797C-5AA5-9548-53341A18DB1D"><cmd>The remote party information is returned in <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::TMobileCallRemotePartyInfoV1</apiname></xref>. </cmd> </step> <step id="GUID-F9EDC21F-F22F-5CC6-899C-1F2F78F83ECF"><cmd>Notify the client applications using <xref href="GUID-370708D3-7A34-3F78-BC6F-9243B50ECF09.dita"><apiname>RMobileCall::NotifyRemotePartyInfoChange()</apiname></xref>. </cmd> </step> </steps> <example><title>Call information example</title> <p>The following code gets the identity of a remote party, if it is available: </p> <codeblock id="GUID-CA46D5BB-0BFF-57D4-9EEA-1522B7460EF2" xml:space="preserve">void CClientApp::RemoteInfoL(const RMobileCall&amp; aCall, TBuf&lt;RMobileCall::KCallingNameSize&gt;&amp; aName)
+    {
+     RMobileCall::TMobileCallRemotePartyInfoV1 remoteInfo;
+     RMobileCall::TMobileCallInfoV1 callInfo;
+     RMobileCall::TMobileCallInfoV1Pckg callInfoPckg(callInfo);     
+  User::LeaveIfError(aCall.GetMobileCallInfo(callInfoPckg));
+     if (callInfo.iRemoteParty.iRemoteIdStatus == RMobileCall::ERemoteIdentityAvailable)
+        {
+        aName = callInfo.iRemoteParty.iCallingName;
+        }
+    }</codeblock> </example> </taskbody></task>

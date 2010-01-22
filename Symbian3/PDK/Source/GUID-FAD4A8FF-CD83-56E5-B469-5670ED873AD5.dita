@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-FAD4A8FF-CD83-56E5-B469-5670ED873AD5"><title>Including the Network PSY in ROM </title><shortdesc>This topic shows you how to include the Network PSY in a device ROM. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Introduction</title> <p>The Network PSY can be used to obtain position fixes from the network by using a Network Protocol Module. The PSY is packaged in the library <filepath>lbsnetpsy.dll</filepath>. To use the Network PSY in a device it must be installed in the device ROM. The <codeph>buildrom</codeph> macros described in this document copy the Network PSY to ROM. </p> </section> <section><title>Procedure</title> <ul><li id="GUID-733F70FD-AE14-55EB-A686-0296E956F4C4"><p>To install the Network PSY in ROM </p> <p>Use the macro <codeph>SYMBIAN_INCLUDE_LOCATION_NETWORK_PM</codeph> when you build the LBS ROM. </p> <p>The example below shows how to include the Network PSY in ROM. You may need to specify additional macros depending on which other optional LBS components you also want to install. </p> <p><codeblock id="GUID-C3C4E03F-AA97-5D8F-A31B-767AA3BFE875" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_LOCATION_NETWORK_PM
+</codeblock> </p> <p>The file <codeph>lbs.oby</codeph> includes the .iby files necessary to build the LBS ROM (see <xref href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita">LBS ROM macros</xref> for more information about the LBS .iby files). The LBS .iby file <codeph>lbsnetpsy.iby</codeph> contains the commands to copy the Network PSY DLL and all supporting files to the target build location: </p> <p><codeblock id="GUID-8FCB0ABA-EC98-5782-9A04-DEA341E23497" xml:space="preserve">
+#ifndef __LBS_NETPSY_IBY__
+#define __LBS_NETPSY_IBY__
+
+#if !defined(SYMBIAN_EXCLUDE_LOCATION)
+#if defined(SYMBIAN_INCLUDE_LOCATION_API_VARIANT2)
+
+#if defined(SYMBIAN_INCLUDE_LOCATION_NETWORK_PM)
+ECOM_PLUGIN(lbsnetpsy.dll, lbsnetpsy.rsc)
+data=ZRESOURCE\lbsnetpsy_name.rsc                            resource\lbsnetpsy_name.rsc
+data=EPOCROOT##epoc32\data\z\private\10202BE9\10285abe.cre    private\10202be9\10285abe.cre
+#endif // SYMBIAN_INCLUDE_LOCATION_NETWORK_PM
+
+#endif // SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+#endif // SYMBIAN_EXCLUDE_LOCATION
+#endif // __LBS_NETPSY_IBY__
+
+</codeblock> </p> <p>The file <codeph>10285abe.cre</codeph> is the central repository initialisation file that defines the values specified by the <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref> to register the Network PSY with the LBS subsystem. </p> </li> </ul> </section> <section><title> To use the Network PSY in an emulator </title> <p>The LBS code build process uses the project file <codeph>lbsnetpsy.mmp</codeph> to build the Network PSY DLL and copy the ECom resource file to the winscw directory. The Network PSY is therefore available for use in an emulator. </p> </section> </conbody><related-links><link href="GUID-178F91C8-32F4-5CD3-B81D-F0A6C45097E5.dita"><linktext>Network PSY
+                Overview</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita"><linktext>LBS ROM
+                macros</linktext> </link> <link href="GUID-D18B4715-3942-52EA-9D2F-E145037FA47A.dita"><linktext>LBS
+                Integration and Configuration guide</linktext> </link> </related-links></concept>

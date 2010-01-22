@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C244D421-8BD0-4212-A5C5-47A8B1E0C1E2" xml:lang="en"><title>Kernel
+Extension</title><shortdesc>This document describes how to implement a device driver as a kernel
+extension.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D3EEB917-368E-45A3-866E-C63490994C59">             <p>Device
+drivers can also be kernel extensions, which means that they are loaded by
+the Kernel when it boots. They are used for extending the Kernel, as the name
+suggests. Generally, kernel extensions provide early initialisation of devices
+that must be permanently available, such as LCD, DMA, and I2C and other peripheral
+bus controllers. Because kernel extensions are loaded by the Kernel, they
+are never unloaded and so their destructors are never called. </p> <p>The <codeph>DECLARE_STANDARD_EXTENSION</codeph> macro
+is used to provide an entry point for a kernel extension (see <xref href="GUID-B94FFCA4-1EB3-46A7-9FF9-54C55D67FFE8.dita">Entry
+Points</xref>). </p> <p>Extensions are built into the ROM image, by specifying
+the <codeph>extension</codeph> keyword in the <filepath>.iby</filepath> file.
+This enables the ROM build tool to build the ROM header. The extensions are
+loaded in the order specified in the <filepath>kernel.iby</filepath> file. </p> <codeblock id="GUID-1AABD1B3-BF5A-50FC-9B1F-86E657F9890D" xml:space="preserve">extension[VARID]=\Epoc32\Release\&lt;assp&gt;\urel\KDEBUG.DLL \System\Bin\kdebug.dll</codeblock> <p>A
+kernel extension's interface to other Kernel side components is usually exported
+using a static interface. Clients can access this interface by using the global
+instance of the object created and initialised in the <codeph>DECLARE_STANDARD_EXTENSION</codeph> entry
+point. They then use this object to call the exported API. </p> <p>Kernel
+extensions can also be implemented that let user code open channels on them
+to use the interface. This model is used for devices where initialisation
+has to be done at system boot up, but which can then be used by the clients,
+for example, the media driver <filepath>elocd.ldd</filepath>. </p> <p>To do
+this, drivers have to declare <xref href="GUID-38771B51-195D-3148-A462-277DA3696117.dita"><apiname>DECLARE_EXTENSION_LDD</apiname></xref> in
+addition to the <xref href="GUID-8B6DF6D7-4995-3564-9303-272500D7E747.dita"><apiname>DECLARE_STANDARD_EXTENSION</apiname></xref> macro. In this
+model, extensions generally call <xref href="GUID-671F731F-428F-379D-8260-D9F18CAC25CF.dita#GUID-671F731F-428F-379D-8260-D9F18CAC25CF/GUID-ADB60188-13D4-3245-96D0-4D44CB983551"><apiname>Kernel::InstallLogicalDevice()</apiname></xref> /<xref href="GUID-671F731F-428F-379D-8260-D9F18CAC25CF.dita#GUID-671F731F-428F-379D-8260-D9F18CAC25CF/GUID-703E2FAD-A71C-377B-86F0-D19643D4CDA9"><apiname>Kernel::InstallPhysicalDevice()</apiname></xref> to
+install the logical device. Later clients can open channels on this driver
+and use the interface in the same way as a standard driver. </p> <codeblock id="GUID-29B10898-2CCA-5D03-B14A-CAD3C56EB73F" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+    {
+    ...
+    // Create factory object
+    DExDriverLogicalDevice* device = new DExDriverLogicalDevice;
+    if (device==NULL)
+        r=KErrNoMemory;
+    else
+        {
+        // Installs the logical device by calling the second
+        // phase constructor
+        r=Kern::InstallLogicalDevice(device);
+        }
+    return r;
+    }
+
+DECLARE_EXTENSION_LDD()
+    {
+    return new DExDriverLogicalDevice;
+    }</codeblock>     </section>
+</conbody></concept>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3B9AC7E9-3133-505F-9C1E-EB4BB4969838" xml:lang="en"><title>OpenWF
+Composition Interface Overview</title><shortdesc>The OpenWF Composition Interface Component provides the Symbian
+platform with a consistent interface to the open-source, cross-platform OpenWF
+Composition (OpenWF-C) APIs defined by the Khronos Group. The OpenWF-C Interface
+component includes the Khronos-released header files and some Symbian-specific
+files. It does not provide any implementations of the APIs. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<section><title>Introduction to OpenWF-C on Symbian</title> <p>OpenWF-C provides
+a hardware abstraction layer that allows power-efficient hardware-accelerated
+composition on a wide variety of hardware platforms including blitter (memory-memory)
+and overlay (memory-less) hardware. OpenWF-C is particularly aimed at systems
+with limited memory bandwidth, such as mobile devices. OpenWF-C enables the
+UI and the window system stack to be independent of the hardware used to achieve
+the composition. </p> <p>OpenWF-C uses a number of opaque handle types (<codeph>WFCHandle</codeph>)
+to represent the following key concepts: </p> <ul>
+<li id="GUID-4535322F-317D-5612-9B43-41CADD240F2C"><p> <b>Device</b>. An abstract
+device that is capable of performing composition operations. Typically this
+corresponds to a unit of graphics hardware. All composition operations and
+resources are associated with a device. The <codeph>WFCDevice</codeph> subtype
+represents an opaque handle to a device. </p> </li>
+<li id="GUID-F64F713D-E759-52EE-B8BF-FCACC21C5664"><p> <b>Context</b>. A visual
+description of a scene that is applied to a specific target. The context represents
+the state required for the composition of the scene. A context can be on-screen
+or off-screen but only one on-screen context per screen can render. The <codeph>WFCContext</codeph> subtype
+represents an opaque handle to a composition context. </p> </li>
+<li id="GUID-B5944275-D933-574F-AC47-17BBAF24AE02"><p> <b>Element</b>. Represents
+the positioning and other attributes of content within the composition context.
+An element is sometimes referred to as a <b>layer</b>. The <codeph>WFCElement</codeph> subtype
+represents an opaque handle to an element. </p> </li>
+<li id="GUID-88BA0350-A584-5C2D-BC0D-D406E06772E3"><p> <b>Source</b>. Supplies
+the image data that an element can reference as the primary source of its
+color data. A source is created from a stream. The <codeph>WFCSource</codeph> subtype
+represents an opaque handle to a source. </p> </li>
+<li id="GUID-379BCC9D-1471-5CEE-9C90-484A680BF8E5"><p> <b>Stream</b>. A container
+for multiple image buffers that share the same properties. Streams encapsulate
+the queuing state of the internal buffers. Streams are used for both input
+and output pixel data and can be connected to multiple contexts simultaneously.
+Ultimately renderers use streams to pass image data to the composition engine.
+The stream format is defined as platform-specific. Streams are therefore sometimes
+referred to as <b>native streams</b>. The <codeph>WFCNativeStreamType</codeph> subtype
+represents the opaque handle to a stream. </p> </li>
+</ul> <p> <i>Note</i>: The OpenWF-C APIs are system-level APIs and are not
+intended for use by application developers. </p> </section>
+<section><title>Architectural relationships</title> <p>The following diagram
+shows the key OpenWF-C architectural component relationships within the Symbian
+platform. </p> <fig id="GUID-84049713-A7F7-5909-8D26-EC93F53EBFDD">
+<title>              OpenWF-C and related Symbian platform components    
+       </title>
+<image href="GUID-86A6FAC5-FF3C-5C35-A521-5C4BD3823629_d0e250728_href.png" placement="inline"/>
+</fig> <ul>
+<li id="GUID-03E19B9B-3CE8-5781-B94B-F68CC4D0F207"><p><xref href="GUID-0C4B86B5-530A-5839-86C1-46E7ABE281E0.dita">Window
+Server</xref>. The Symbian window management and rendering component. </p> </li>
+<li id="GUID-95C24C7C-3FC7-5478-8F90-E3FC668BE0EA"><p><xref href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita">Render
+Stages</xref>. An abstraction layer below the Window Server. </p> </li>
+<li id="GUID-9859E947-820A-5085-964B-7C803C5CBFD7"><p><xref href="GUID-8BEE0411-C6E9-5840-BE22-EC271A4D97DD.dita">OpenWF-C
+Engine</xref>. The implementation of the OpenWF-C interface. </p> </li>
+<li id="GUID-D205AFD5-F1CD-558A-9C1B-DA189B8B52EF"><p><xref href="GUID-83510B5B-9725-5272-BF51-23A089178DAC.dita"> OpenWF-C
+Support</xref>. Abstracts communication between the OpenWF-C engine and the
+Surface Manager, Surface Update Server and the render stage framework and
+provides a reference implementation of native stream in terms of Symbian <xref href="GUID-ADA8CECB-0E70-5B9C-8F36-0714AAF0CD13.dita">composition surfaces</xref>. </p> </li>
+<li id="GUID-834FF701-708C-5AB0-9DC4-C993CF13444D"><p><xref href="GUID-C7B420DE-CEDA-5D3F-8095-71136E862CDF.dita">Surface
+Manager</xref>. Allocates and manages the lifetime and use of composition
+surfaces in system memory. Composition surfaces are identified by a 128-bit
+identifier (<xref href="GUID-11F60AEB-003B-3E8D-BDB9-D97F698627DF.dita"><apiname>TSurfaceId</apiname></xref>). </p> </li>
+<li id="GUID-9883ECD8-4739-5461-8425-1B0FAF964F1F"><p><xref href="GUID-81A0A2E9-4BB9-58BF-B2D3-08098E7E9C7C.dita"> Surface
+Update Server</xref>. Provides a communication mechanism between the composition
+engine and its clients. </p> </li>
+<li id="GUID-CDE09188-A96F-5323-982E-D4FBC50C46D7"><p><xref href="GUID-4C166A49-31F7-5315-B797-F97DB52600BC.dita">Display
+Driver</xref>. Low-level abstraction of display hardware. </p> </li>
+<li id="GUID-5A97D934-DFDC-5398-8C72-049729DFBB62"><p><xref href="GUID-8C6D4350-A38D-57A1-8C8D-C777EA7E8A3E.dita">EGL</xref> (not
+shown on diagram). The OpenWF-C engine and support components use EGL sync
+objects for synchronization. In addition OpenWF-C clients obtain any extension
+functions that the engine implements by using the EGL function, <codeph>eglGetProcAddress()</codeph>. </p> </li>
+</ul> </section>
+<section><title>Description</title> <p>OpenWF-C is a standard defined by the
+Khronos Group (<xref href="http://www.khronos.org/" scope="external">www.khronos.org</xref>)
+which defines a C API. The following table provides a link to the relevant
+specification.</p> <table id="GUID-A97C8B2F-458A-5A45-88C7-7C997483845D">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Specification</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>OpenWF-C 1.0  </entry>
+<entry> <xref href="http://www.khronos.org/registry/wf/specs/OpenWF_Composition_1_0_Specification.pdf" scope="external">http://www.khronos.org/registry/wf/specs/OpenWF_Composition_1_0_Specification.pdf</xref></entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Header files</title> <p>The OpenWF-C Interface component includes
+the Khronos-released header files shown in the following table. Use of these
+standard header files helps to ensure binary compatibility for applications
+across different Symbian platforms. It also provides source compatibility
+between different operating systems. </p> <table id="GUID-9515BFDD-3815-561B-9587-30BB9BBEA802">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Filename</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><filepath>wfc.h</filepath>  </entry>
+<entry>Type definitions and function prototypes. </entry>
+</row>
+<row>
+<entry><filepath>wfcext.h</filepath> </entry>
+<entry>Defines additional values, functions and data types that may be available
+on a platform.  </entry>
+</row>
+<row>
+<entry><filepath>wfcplatform.h</filepath> </entry>
+<entry>Platform-specific elements of the specification.  </entry>
+</row>
+<row>
+<entry><filepath>openwfcuids.hrh</filepath> </entry>
+<entry>Symbian-defined constants for representing UIDs in MMP files and elsewhere.
+ </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Library file</title> <p>The OpenWF-C Interface component generates
+a LIB file called <filepath>libWFC.lib</filepath>. </p></section>
+<section> <title>DEF files</title> <p>The following definition (DEF) files
+are delivered by the OpenWF-C Interface component in order to ensure binary
+compatibility. </p> <table id="GUID-D0B2F40E-FEB3-50EF-81E1-222B80EF9436">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Platform</entry>
+<entry>DEF file </entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>ARM </entry>
+<entry><filepath> /epoc32/include/platform/def/eabi/libWFCu.def</filepath>  </entry>
+</row>
+<row>
+<entry>WINSCW </entry>
+<entry><filepath> /epoc32/include/platform/def/win32/libWFCu.def</filepath> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody><related-links>
+<link href="GUID-8FE41C9A-8171-58A2-A808-17B81E79B11F.dita"><linktext>OpenWF Composition</linktext>
+</link>
+<link href="http://www.khronos.org/openwf/" scope="external"><linktext>Khronos
+OpenWF Website</linktext></link>
+<link href="http://www.khronos.org/developers/library/overview/openwf_overview.pdf" scope="external"><linktext>Khronos OpenWF White Paper</linktext></link>
+</related-links></concept>

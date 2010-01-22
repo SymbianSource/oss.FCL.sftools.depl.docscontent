@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-425A208C-5D2D-55FD-8623-9E00006E2781" xml:lang="en"><title>Creating
+Cryptographic Context</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>SRTP library generates SRTP packets from the RTP or RTCP stream and forwards
+the packets to the receiver. SRTP transforms incoming SRTP packets to RTP/RTCP
+packets and passes them up the stack. The cryptographic state information
+associated with each SRTP stream is termed the cryptographic context. The
+state information is maintained by both the sender and receiver of SRTP streams. </p>
+<p>A cryptographic context includes a session key used in encryption and message
+authentication. A cryptographic context also includes a securely exchanged
+random bit string used to derive session keys called the master key. In addition
+to the session and master key the cryptographic context includes other working
+session parameters. </p>
+
+<section><title>Required background</title> <p>Prior to cryptographic context
+creation: </p> <ul>
+<li id="GUID-2958EA10-E760-59DE-AC4B-BE8B99CCA660"><p>The master key,master
+salt and parameters (ie. TSrtpCryptoParams) required to create the cryptographic
+context must be created and initalised. </p> </li>
+</ul> </section>
+<section><title>Procedure</title><p>The following steps describe the steps
+involved in creating a cryptographic context: </p><ul>
+<li id="GUID-C6379A93-A005-51B2-8CDA-49A7110C2717"><p>Create a cryptographic
+context by invoking the API <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>NewL()</apiname></xref> or <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>NewLC()</apiname></xref> of the class <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>CSRTPCryptoContext</apiname></xref>. </p> <ol id="GUID-13319A29-DE4C-50D3-A0F4-02C0E71986ED">
+<li id="GUID-195D2061-6DF7-58CC-BEB8-F321134B0325"><p><codeblock id="GUID-13CEC739-A557-520B-8AD6-6523BCFCF1B7" xml:space="preserve">
+                     IMPORT_C static CSRTPCryptoContext* NewL( const CSRTPMasterKey* aKey,
+                                            const CSRTPMasterSalt* aSalt, 
+                                            const TSrtpCryptoParams&amp; aCryptoParams);</codeblock> </p> <p>aKey
+is the input parameter that contains the master key. </p> <p>aSalt is the
+input parameter that contains the master salt key. </p> <p>aCryptoParams is
+the input parameter that contains the Crypto Context parameters. </p> <p>The
+API leaves with KErrNone if successfully executed, else returns a valid system-wide
+error code. </p> </li>
+<li id="GUID-2F0536E7-0074-52FC-BB9E-0A9A3F03B395"><p><codeblock id="GUID-3F31AFE2-9E0C-5D62-8217-861D7CE59964" xml:space="preserve">
+                     IMPORT_C static CSRTPCryptoContext* NewLC( const CSRTPMasterKey* aKey,
+                                            const CSRTPMasterSalt* aSalt, 
+                                            const TSrtpCryptoParams&amp; aCryptoParams );</codeblock> </p> <p>aKey
+is the input parameter that contains the master key. </p> <p>aSalt is the
+input parameter that contains the master salt key. </p> <p>aCryptoParams is
+the input parameter that contains the Crypto Context parameters. </p> <p>The
+API leaves with KErrNone if successfully executed, else returns a valid system-wide
+error code. </p> </li>
+</ol> </li>
+</ul><p><b>Creating Master Key</b></p><p> The master key can be created using
+the following API's:</p><ul>
+<li><codeblock xml:space="preserve">IMPORT_C static CSRTPMasterKey* NewL( const TDesC8&amp; aKey,const TDesC8&amp; aMKI,TUint aN_E = KSRTPDefSessionEncryptionKeyLength,Uint aN_A = KSRTPDefSessionAuthenticationKeyLength );</codeblock></li>
+<li><codeblock xml:space="preserve">IMPORT_C static CSRTPMasterKey* NewLC( const TDesC8&amp; aKey,const TDesC8&amp; aMKI,TUint aN_E = KSRTPDefSessionEncryptionKeyLength,TUint aN_A = KSRTPDefSessionAuthenticationKeyLength);</codeblock></li>
+<li><codeblock xml:space="preserve">IMPORT_C static CSRTPMasterSalt* NewLC( const TDesC8&amp; aKey, TUint aN_S = KSRTPDefSessionSaltingKeyLength );</codeblock></li>
+</ul><p><b>Creating Master Salt Key</b></p><p>The master salt key can be created
+using the following API's:</p><ul>
+<li><codeblock xml:space="preserve">IMPORT_C static CSRTPMasterSalt* NewL( const TDesC8&amp; aKey,TUint aN_S = KSRTPDefSessionSaltingKeyLength )</codeblock></li>
+</ul> </section>
+
+<section><title>Results</title> <p>On successful execution of the API, a cryptographic
+context is created. </p> <p>The cryptographic context can be used by a SRTP
+session or Stream. In other words, the cryptographic context is owned by the
+session or stream. </p> <p>The master keys and the master salt are always
+owned by the cryptographic context. </p> </section>
+
+<section> <p>For more information on cryptographic context management also
+refer: </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>MasterKey()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>SetMasterKey()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname> MasterSalt()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>SetMasterSalt()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>SetRCCm3Sync()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>CryptoParams()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname> AddCryptoChangeObserver()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>RemoveCryptoChangeObserver()</apiname></xref>  </p> <p> <xref href="GUID-E9F66C90-C0BF-3713-8BA0-810A362A1774.dita"><apiname>UpdateCryptoParams()</apiname></xref>  </p> </section>
+</conbody><related-links>
+<link href="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352.dita"><linktext>Creating
+an SRTP                 Session</linktext></link>
+<link href="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7.dita"><linktext>Creating
+an SRTP                 Stream</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-922F292E-9420-593B-B226-2764C5F29DF9.dita"><linktext>Encrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Decrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Managing
+                Master Key</linktext></link>
+</related-links></concept>

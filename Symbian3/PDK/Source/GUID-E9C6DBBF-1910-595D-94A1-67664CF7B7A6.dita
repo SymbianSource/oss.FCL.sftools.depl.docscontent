@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E9C6DBBF-1910-595D-94A1-67664CF7B7A6" xml:lang="en"><title>DirectGDI
+Interface Overview</title><shortdesc>The DirectGDI Interface component provides a Hardware Adaptation
+Interface (HAI), which separates the generic and adaptation parts of the DirectGDI
+functionality. This HAI defines a set of interfaces that are implemented by
+device creators in order to provide the API functionality. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<note type="note">DirectGDI is deprecated in Symbian^3.</note>
+<p>The following diagram provides an overview of the classes in the DirectGDI
+Interface component and related classes in other components. </p>
+<fig id="GUID-B4E6A02D-69E7-5716-8169-9CA011A183D8">
+<title>          DirectGDI Interface component classes and related classes
+         </title>
+<image href="GUID-4F5DCA9A-E535-54B4-B8B2-30549AC12A51_d0e239825_href.png" placement="inline"/>
+</fig>
+<p>The following table provides a summary of the key classes that make up
+the DirectGDI Interface component. </p>
+<table id="GUID-3EA14E91-1B98-5EE2-A840-B1685A338B6D">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Class</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27.dita"><apiname>CDirectGdiDriverInternal</apiname></xref>  </p> </entry>
+<entry><p>This class represents the body part of the DirectGDI driver, which
+is implemented using the handle/body idiom. The handle part is encapsulated
+by the <xref href="GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61.dita"><apiname>CDirectGdiDriver</apiname></xref> class, which is part of the DirectGDI
+component. <xref href="GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27.dita"><apiname>CDirectGdiDriverInternal</apiname></xref> defines the HAI. The
+DirectGDI adaptation must derive a concrete class from this class and implement
+of its pure virtual functions. This concrete class must provide the initialisation,
+termination and construction of the concrete drawing engine and the creation
+of source and target rendering. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-97E3E8DD-A2DA-3961-96E3-41AEAFFDD275.dita"><apiname>MDirectGdiEngine</apiname></xref>  </p> </entry>
+<entry><p>This interface defines the main part of DirectGDI HAI. The DirectGDI
+adaptation must provide a concrete engine class that implements this interface.
+This performs the actual drawing and blitting routines that enable rendering
+to a <xref href="GUID-8F7C2E3C-3DF6-3C76-85C0-04922A99E9D0.dita"><apiname>RDirectGdiImageTarget</apiname></xref> instance. The implementation
+can take advantage of hardware acceleration if it is available. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-8F7C2E3C-3DF6-3C76-85C0-04922A99E9D0.dita"><apiname>RDirectGdiImageTarget</apiname></xref>  </p> </entry>
+<entry><p>This class is a handle to a DirectGDI adaptation-specific resource
+which abstracts the image-based rendering target. This class allows a global
+sharable image resource (<xref href="GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C.dita"><apiname>RSgImage</apiname></xref>) to be used as a target
+of DirectGDI rendering. This handle class and its DirectGDI adaptation-specific
+resource are non-sharable and local within the creating thread. This class
+is part of the generic layer and forwards any request to the <xref href="GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61.dita"><apiname>CDirectGdiDriver</apiname></xref> singleton
+for the calling thread. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-66A0A534-7BB6-304F-9A5E-17A125DA916F.dita"><apiname>RDirectGdiDrawableSource</apiname></xref>  </p> </entry>
+<entry><p>This class is a handle to a DirectGDI adaptation-specific resource
+that is bound to an image or non-image resource (<xref href="GUID-6F23F34A-A0BE-349C-ADE7-61A5AEF48018.dita"><apiname>RSgDrawable</apiname></xref>).
+This class allows non-image resources (global and sharable between processes)
+to be used as a source from the DirectGDI rendering API. This class and its
+DirectGDI adaptation-specific resource are non-sharable and are local to the
+calling thread. This class is part of the generic code and forwards the creation
+and deletion request to the <xref href="GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61.dita"><apiname>CDirectGdiDriver</apiname></xref> singleton
+object for the calling thread. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<section id="GUID-883FAED9-386B-4CDC-A9FA-C937884F0093"><title>Sequence diagrams</title> <p>The following sequence diagrams
+illustrate the behaviour of key DirectGDI classes in two separate scenarios. </p> <p><b>Context
+usage </b> </p> <fig id="GUID-DC1716DF-1F1F-5935-A129-A2F81382196B">
+<title>              DirectGDI context usage sequence diagram            </title>
+<image href="GUID-795DA381-A997-55E6-98D0-436DC250B07E_d0e239967_href.png" placement="inline"/>
+</fig> <p><b>Driver creation and deletion </b> </p> <fig id="GUID-473A67D6-56B0-593A-9F93-E47743FB6EC6">
+<title>             DirectGDI driver creation and deletion sequence diagram
+           </title>
+<image href="GUID-4689CD4A-3835-5013-90F9-100C66F18E84_d0e239980_href.png" placement="inline"/>
+</fig> </section>
+</conbody><related-links>
+<link href="GUID-A2E07A3C-B3A8-50B9-BD60-F1F01795FA24.dita"><linktext>DirectGDI
+Component</linktext></link>
+<link href="GUID-BB4F5388-32EA-5A2E-845D-E5339D2040E9.dita"><linktext>DirectGDI
+Adaptation Component</linktext></link>
+</related-links></concept>

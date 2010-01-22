@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-723F8716-1FDD-57B4-B685-672D3A755592" xml:lang="en"><title>Requesting
+and Cancelling Monitoring for a Process</title><shortdesc>This tutorial describes how to request and cancel monitoring for
+a process. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>Before monitoring a process, SHMA
+reads the following information from SSM: </p> <ul>
+<li id="GUID-5396E46B-9AB1-526A-9AAA-FBC5A40A1094"><p>file name of the process
+to be launched </p> </li>
+<li id="GUID-E18CEB76-319C-5DBA-8DEA-9254EF9CC0CE"><p>arguments required for
+the process </p> </li>
+<li id="GUID-DC166941-30B5-5918-839A-6700C5932B90"><p>execution behaviour
+(See <xref href="GUID-12EE2A10-149F-36C8-8699-65BE8DDFCC6C.dita"><apiname>TSsmExecutionBehaviour</apiname></xref> for more information) </p> </li>
+<li id="GUID-A78E13B0-C9AD-5E6E-9BD9-5A103033CEAC"><p>time-out to wait for
+process to start before considering it as a failure </p> </li>
+<li id="GUID-463017DC-3DC7-54A6-B39B-96324642A52C"><p>number of retries if
+an application or a process fails to start. </p> </li>
+</ul> <p> <xref href="GUID-19467402-8575-33F0-817D-339D39982D39.dita"><apiname>RSysMonSession</apiname></xref> is the client interface for SHMA. </p> </section>
+<section><title>Procedure</title><p>The following methods can be used to request
+monitoring a process or an application:</p><codeblock xml:space="preserve">EXPORT_C void RSysMonSession::MonitorL( const CSsmStartupProperties&amp; aSsmStartupProperties,
+                                        const RProcess&amp; aProcess,
+                                        TBool aExecuteRecoveryMethodOnFailure )</codeblock><codeblock xml:space="preserve">EXPORT_C void RSysMonSession::MonitorSelfL( const CSsmStartupProperties&amp; aSsmStartupProperties )</codeblock><p>When the SysMon server receives monitoring request, it checks that the
+client has appropriate PlatSec capabilities, and that the process is not currently
+being monitored. A client which is monitoring itself can use the following
+method to cancel monitoring:</p><codeblock xml:space="preserve">EXPORT_C void RSysMonSession::CancelMonitorSelfL()</codeblock><p>It
+is not possible for a client to cancel monitoring of another process, even
+if it was responsible for requesting monitoring.</p></section>
+<section id="GUID-91438FCA-D06F-5779-98E9-D353692BE59F"><title>Example</title> <p>The
+following code fragment illustrates how a client can request monitoring using
+SHMA, specifying that the monitored process must be restarted in the event
+of failure and that, if it cannot be restarted, the device must be rebooted. </p> <codeblock id="GUID-226291A8-CF61-5A8D-BA0C-6FBCA5F5E160" xml:space="preserve">...
+// Monitoring a process using SysMon.
+
+LIT( KMonitoredProcess, "monitoredprocess.exe" );
+
+// Properties for the application
+CSsmStartupProperties *ssmProp = CSsmStartupProperties::NewLC( KMonitoredProcess, KNullDesC );
+
+//ESsmWaitForSignal is the execution behaviour for starting the process.
+ssmProp-&gt;SetExecutionBehaviour( ESsmWaitForSignal );    
+TSsmMonitorInfo monitorInfo;
+monitorInfo.iRestartPolicy = ESsmRestartOS;
+
+//Startup mode to restart the OS
+monitorInfo.iRestartMode = 0;
+
+//Infinite time-out
+monitorInfo.iTimeout = 0;  
+
+//No of retries if an application or a process fails to start.
+monitorInfo.iRetries = 1;
+
+ssmProp-&gt;SetMonitorInfoL( monitorInfo ); 
+
+RProcess process;
+
+TInt err = process.Create( KMonitoredProcess, KNullDesC );
+User::LeaveIfError( err );
+CleanupClosePushL( &amp;process );
+process.Resume();
+
+// instantiate a session
+RSysMonSession sess;   
+
+//Open a session
+sess.OpenL();         
+
+//Create a monitor for the session
+TRAP( err, sess.MonitorL( *ssmProp, process ) );
+sess.Close();
+CleanupStack::PopAndDestroy( 2, ssmProp );          </codeblock> <p>The following
+code fragments illustrate the structs in a resource file used for process
+monitoring: </p> <codeblock id="GUID-921B742E-6566-51CF-92A7-1AC653379647" xml:space="preserve">STRUCT SSM_START_APP_INFO
+    {
+    // Must be the first entry in this struct - Zero means command is unconditional
+    LLINK conditional_information = 0;                 
+    // Must be the second entry in this struct and must not be changed
+    WORD type = ESsmCmdStartApp;     
+   #ifndef SYMBIAN_SSM_FLEXIBLE_MERGE
+    // Must be the third entry in this struct
+    WORD version = ECmdStartAppInitialVersion; 
+   #else
+    // This version supports priority of the command
+    WORD version = ECmdStartAppVersionWithPriority;    
+   #endif
+    // Can have a higher severity defined in TCmdErrorSeverity
+    WORD severity = ECmdIgnoreFailure;        
+    // VALUE REQUIRED - full path to the application
+    LTEXT name = "";
+    // Passed to the "Tail End" at the command line
+    // see CApaCommandLine. Maximum argument length allowed is 256 chars.
+    LTEXT args = "";
+    // Can also be ESsmWaitForSignal or ESsmDeferredWaitForSignal
+    BYTE execution_behaviour = ESsmFireAndForget;
+    // Time in milliseconds for every retry on failure
+    LONG timeout = 0;        
+    // Number of times to retry on failure
+    WORD retries = 0;
+    // Set to 1 if app is viewless
+    BYTE viewless = 0;            
+    // Set to 1 if app should be launched in the background
+    BYTE background = 0;
+    // zero means no monitoring is required, SSM_MONITOR_INFO
+    // should be used if monitoring is required
+    LLINK monitor_info = 0;
+   #ifdef SYMBIAN_SSM_FLEXIBLE_MERGE
+    // The order of the command in the list - range can be from 0x00 to 0xffffu
+    WORD priority = KDefaultCommandPriority;
+   #endif
+   }
+</codeblock> <codeblock id="GUID-D8529CF5-87ED-503E-87CB-7599263AF403" xml:space="preserve">
+/**
+Struct for starting processes.
+
+STRUCT SSM_START_PROCESS_INFO
+    {
+    // Must be the first entry in this struct - Zero means
+    // command is unconditional
+    LLINK conditional_information = 0;
+    // Must be the second entry in this struct and must not be changed
+    WORD type = ESsmCmdStartProcess;
+   #ifndef SYMBIAN_SSM_FLEXIBLE_MERGE
+    // Must be the third entry in this struct
+    WORD version = ECmdStartProcessInitialVersion;
+   #else
+    // This version supports priority of the command
+    WORD version = ECmdStartProcessVersionWithPriority;
+   #endif
+    // Can have a higher severity defined in TCmdErrorSeverity
+    WORD severity = ECmdIgnoreFailure;
+    // VALUE REQUIRED - full path to the process
+    LTEXT name = "";
+    // Passed to the "Tail End" at the command line
+    // see CApaCommandLine. Maximum argument length allowed is 256 chars.
+    LTEXT args = "";
+    // Can also be ESsmWaitForSignal or ESsmDeferredWaitForSignal
+    BYTE execution_behaviour = ESsmFireAndForget;
+    // Time in milliseconds for every retry on failure
+    LONG timeout = 0;
+    // Number of times to retry on failure
+    WORD retries = 0;
+    // zero means no monitoring is required,
+    // SSM_MONITOR_INFO should be used if monitoring is required
+    LLINK monitor_info = 0;
+   #ifdef SYMBIAN_SSM_FLEXIBLE_MERGE
+    // The order of the command in the list - range can be from 0x00 to 0xffffu
+    WORD priority = KDefaultCommandPriority;
+    #endif
+    }</codeblock> <codeblock id="GUID-06E40D32-AF80-58D8-B445-75D317F7D748" xml:space="preserve">/**
+Struct for monitoring information.
+
+STRUCT SSM_MONITOR_INFO
+    {
+    // Must be the first entry in this struct and must not be changed
+    WORD type = ESsmMonitorInfo;
+    // Must be the second entry in this struct
+    WORD version = ESsmMonitorInfoInitialVersion;
+    // OS Restart policy to be used if component restarting has failed
+    BYTE restart_policy = ESsmIgnoreOnFailure;
+    // Restart mode when restart_policy=ESsmRestartOSWithMode
+    BYTE restart_mode;
+    // Delay in milliseconds between retries
+    LONG timeout = 0;
+    // Number of times to attempt to restart a failed component
+    WORD retries = 0;
+    }</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-8BC13552-7C7D-52AC-AF91-1BB7476912AF.dita"><linktext>System Health
+Manager Overview</linktext></link>
+<link href="GUID-484B27EF-3FA1-5193-97EC-B9699AE49026.dita"><linktext>System Health
+Manager Concepts</linktext></link>
+</related-links></concept>

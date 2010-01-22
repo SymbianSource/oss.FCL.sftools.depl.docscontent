@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FB185094-9868-5CBB-9CDE-51D7AB029450" xml:lang="en"><title>Creating
+Email Messages in Plain Text Format </title><shortdesc>This tutorial explain the steps to create email messages in plain
+text format.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Procedure</title> <ol id="GUID-0FD28B0A-8F8F-5CFC-862D-A152F8608F80">
+<li id="GUID-0762A353-D7CB-5657-881B-6729883117C3"><p>Create an email entry
+in the message store using the <xref href="GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498.dita#GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498/GUID-FCDC47D2-0446-3CD7-A246-4DCED7C8A063"><apiname>CImEmailOperation::CreateNewL()</apiname></xref> function,
+which takes all the following nine parameters: </p> <p><codeblock id="GUID-50D3FB68-EB6C-551D-B075-B24B84A71094" xml:space="preserve">static IMPORT_C CImEmailOperation *CreateNewL(TRequestStatus &amp;aObserverRequestStatus,
+CMsvSession &amp;aMsvSession, TMsvId aDestination, TMsvId aSmtpServiceId,
+TMsvPartList aPartList, const TMsvEmailTypeList &amp;aMsvEmailTypeList,
+TUid aMsgType, TInt aPriority, TBool aUsePlainTextStorage);</codeblock> </p> </li>
+<li id="GUID-76F4DD60-16AB-52A4-9B62-C4B9EC8163EB"><p>Set the <xref href="GUID-4B942C06-1BAC-3A21-B3B1-89FB5C51ADA0.dita"><apiname>TBool</apiname></xref> parameter
+to <codeph>ETrue</codeph>. </p> </li>
+<li id="GUID-8415BB5F-548F-50DD-A0D8-1AFDE6F143FB"><p>Use the <xref href="GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498.dita#GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498/GUID-38E7EABD-1300-3DF2-B9DF-B65EEABD8A31"><apiname>CImEmailOperation::ProgressL()</apiname></xref> method
+to obtain the <xref href="GUID-A4B1F874-27C0-3BB6-9D29-C35C75A5DB98.dita"><apiname>TMsvId</apiname></xref> parameter of the newly created email.
+This is returned through a <xref href="GUID-36B29964-420D-38D0-AF08-4DA70BED8B6E.dita"><apiname>TPckgC</apiname></xref> &lt;<xref href="GUID-A4B1F874-27C0-3BB6-9D29-C35C75A5DB98.dita"><apiname>TMsvId</apiname></xref> &gt;
+descriptor. </p> </li>
+<li id="GUID-9AC68E88-CC88-57F7-A12B-736A6899B2E8"><p>Create a <xref href="GUID-85BBE389-81F7-3E2F-A789-446D9BE2CC49.dita"><apiname>CMsvEntry</apiname></xref> object
+using the <xref href="GUID-A4B1F874-27C0-3BB6-9D29-C35C75A5DB98.dita"><apiname>TMsvId</apiname></xref>  <codeph>aMessageId</codeph> parameter
+of the newly created email. </p> </li>
+<li id="GUID-6307128A-46A4-51F6-A62D-210746612D28"><p>Use the <xref href="GUID-85BBE389-81F7-3E2F-A789-446D9BE2CC49.dita"><apiname>CMsvEntry</apiname></xref> object
+to create a <xref href="GUID-323E701E-EA22-3CC8-AE84-C16880608D44.dita"><apiname>CImEmailMessage</apiname></xref> object. </p> </li>
+<li id="GUID-6DD75AFF-D0C5-5C81-BC2C-0B7534695155"><p>Call the <xref href="GUID-323E701E-EA22-3CC8-AE84-C16880608D44.dita#GUID-323E701E-EA22-3CC8-AE84-C16880608D44/GUID-B99E759E-E0D6-3A10-B81C-5BFCAF631B7D"><apiname>CImEmailMessage::OpenPlainBodyTextForWriteL()</apiname></xref> function
+to get a new instance of <xref href="GUID-14EA98A8-06E7-33FF-B2B1-4BC3D044518D.dita"><apiname>CImPlainBodyText</apiname></xref>. </p> </li>
+<li id="GUID-F9A64E3C-67D9-56B0-9BC6-E2A108D214BC"><p>If there are more than
+one chunk, use the <xref href="GUID-815658E6-192D-364E-8D5D-D4492B57EC5E.dita"><apiname>StoreChunkL()</apiname></xref> function repeatedly to
+store the body text in chunks. </p> </li>
+<li id="GUID-794562BA-D887-5C68-AE8A-625DF45F21C2"><p>When the message body
+text is completely stored, call the <xref href="GUID-14EA98A8-06E7-33FF-B2B1-4BC3D044518D.dita#GUID-14EA98A8-06E7-33FF-B2B1-4BC3D044518D/GUID-022C7A37-91EF-3363-A760-865A1F980917"><apiname>CImPlainBodyText::CommitL()</apiname></xref> function
+to complete the email creation operation. </p> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-2C8653F9-8873-59E8-9FD2-4215F6877ABC.dita"><linktext>Chunk Method
+to Process Emails</linktext></link>
+<link href="GUID-D73AD200-BE4D-50BF-BCF9-14627DE530B7.dita"><linktext>Imap4Example:
+An Email manager using IMAP4 and SMTP</linktext></link>
+<link href="GUID-BB35DBCC-FE56-547F-BADA-9EF854691ADC.dita"><linktext>Pop3Example:
+An Email manager using POP3 and SMTP</linktext></link>
+</related-links></concept>

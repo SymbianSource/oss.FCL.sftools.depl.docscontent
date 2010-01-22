@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352" xml:lang="en"><title>Creating
+an SRTP Session</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The SRTP library generates SRTP packets from the RTP or RTCP stream and
+forwards the packets to the receiver. SRTP transforms incoming SRTP packets
+to RTP/RTCP packets and passes them up the stack. The cryptographic state
+information associated with each SRTP stream is termed the cryptographic context.
+The state information is maintained by both the sender and receiver of SRTP
+streams. If multiple SRTP streams exist within a given RTP session, then separate
+cryptographic contexts must be maintained for each stream. Each stream is
+identified by a Synchronisation Source (SSRC). </p>
+<p>All actions on the RTP and RTCP streams require a valid SRTP session. Creation
+and initialization of a SRTP session is a pre-requirement for all consequent
+actions. </p>
+
+<section><title>Required background</title> <p>Prior to initiation of a create
+session request, an application or a RTP stack must ensure: </p> <ul>
+<li id="GUID-6685BCD7-11F5-5F12-BB3B-231CE02B7308"><p>Values to populate the
+cryptographic context for the session to be created must be available </p> </li>
+<li id="GUID-B608FAB9-D6C6-5159-9B32-1E27C30D54EB"><p>Destination Address
+must be identified. </p> </li>
+</ul> </section>
+<section><title>Procedure</title> <ol id="GUID-42D807CB-BBB7-5888-B846-AD8566BED767">
+<li id="GUID-014FF741-66C5-5355-B850-1FFCA7C4652E"><p>Create a SRTP session
+by invoking the <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>NewL()</apiname></xref> or <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>NewLC()</apiname></xref> API's of the class <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>CSRTPSession</apiname></xref>. </p> <p>The
+functions <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>NewL()</apiname></xref> and <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>NewLC()</apiname></xref> both
+have two variants each. Each of the variants are explained below. </p> <ol id="GUID-84253AE6-113C-521C-944B-42249C51FBB5">
+<li id="GUID-7AE58F2F-F38A-5341-B504-8C8D09914650"><p><codeblock id="GUID-DE488D11-1385-5244-A52B-810EE58709B6" xml:space="preserve">
+                     IMPORT_C static CSRTPSession* NewL(const TInetAddr&amp;
+                     aDestination )</codeblock> </p> <p>This API is appropriate
+when each stream will have its own cryptographic context. </p> <p>aDestination
+is the input parameter that contains the destination address, including the
+port. </p> <p>The API leaves with KErrNone if successfully executed, else
+returns a valid system-wide error code. </p> </li>
+<li id="GUID-33644663-620B-534C-B1EE-C16342433D86"><p><codeblock id="GUID-F7D0E244-63CD-5F4D-B7A1-D59362E2CA70" xml:space="preserve">IMPORT_C static CSRTPSession* NewL( const TInetAddr&amp;
+                     aDestination, CSRTPCryptoContext* aCon,
+                     MSRTPReKeyingObserver&amp; aObs );</codeblock> </p> <p>This
+API is appropraite when all streams will use the same cryptographic context
+configured in the SRTP session. </p> <p>aDestination is the input parameter
+that contains the destination address, including the port. </p> <p>aCon is
+the input parameter that contains the default cryptographic context for the
+session. </p> <p>aObs is the input parameter that contains the callback object. </p> <p>The
+API leaves with KErrNone if successfully executed, else returns a valid system-wide
+error code. </p> </li>
+<li id="GUID-9945CA9C-16FC-54DE-B397-74312EB58EA7"><p><codeblock id="GUID-4610B6C5-CF6C-5E8E-8783-41B0DD6261F4" xml:space="preserve">IMPORT_C static CSRTPSession* NewLC(const TInetAddr&amp;
+                     aDestination ); 
+                  </codeblock> </p> <p>This function creates a new SRTP session
+and pushes it to CleanupStack. </p> <p>aDestination is the input parameter
+that contains the destination address, including the port. </p> <p>The API
+leaves with KErrNone if successfully executed, else returns a valid system-wide
+error code. </p> </li>
+<li id="GUID-2F9CBF5C-104B-54C9-8A0D-F71A9B26D61A"><p><codeblock id="GUID-BB46A90E-5DE0-5427-A030-439C7E9CC113" xml:space="preserve">IMPORT_C static CSRTPSession* NewLC(const TInetAddr&amp;
+                     aDestination, CSRTPCryptoContext* aCon,
+                     MSRTPReKeyingObserver&amp; aObs); 
+                  </codeblock> </p> <p>This function creates a new SRTP session
+and pushes it to CleanupStack. </p> <p>This API is invoked if all streams
+will use the same cryptographic context. </p> <p>aDestination is the input
+parameter that contains the destination address, including the port. </p> <p>aCon
+is the input parameter that contains the default cryptographic context for
+the session. </p> <p>aObs is the input parameter that contains the callback
+object. </p> <p>The API leaves with KErrNone if successfully executed, else
+returns a valid system-wide error code. </p> </li>
+</ol> </li>
+</ol> </section>
+
+<section><title>Results</title> <p>On successful execution of the API, a SRTP
+session is created and initialized. </p> </section>
+
+<section><p>On creation of a valid SRTP session, the application can request
+for encrypting and decrypting of RTP and RTCP streams, Updating SRTP Master
+Key or Notification of Key Expiry. </p> <p>The stream(s) associated with the
+session are always owned by the session. </p> <p>The cryptographic context
+of the session may be owned by the stream or the session. </p> <p>The master
+keys and the master salt are owned by the cryptographic context. </p> <p>When
+an SRTP session is deleted, the Cryptographic context, the stream, the master
+key and the mastersalt key associated with the session are deleted. </p><p>The
+steps below describe the stream management techniques of a SRTP session:</p><ol>
+<li id="GUID-3C994E9A-FB93-4753-B88D-008CE14FE391"><p>Attach a stream to session
+of by invoking the API AddStreamToList()of the class CSRTPSession.</p><codeblock xml:space="preserve">void AddStreamToList(CSRTPStream *aStream);</codeblock><p>This
+API attaches the given stream to the session. </p><p>aStream is the input
+parameter that contains the stream to be added to session. </p></li>
+<li id="GUID-CA1F4338-CA92-4E33-B50F-0B2A89AC5283"><p>Remove a stream to the
+session by invoking the API RemoveStreamFromList()of the class CSRTPSession.</p><codeblock xml:space="preserve">void RemoveStreamFromList(CSRTPStream *aStream);</codeblock><p>This API removes the given stream from the session.</p><p>aStream is the
+input parameter that contains the stream to be removed from the session.</p></li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-425A208C-5D2D-55FD-8623-9E00006E2781.dita"><linktext>Creating
+a                 Cryptographic Context</linktext></link>
+<link href="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7.dita"><linktext>Creating
+an SRTP                 Stream</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-922F292E-9420-593B-B226-2764C5F29DF9.dita"><linktext>Encrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Decrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Managing
+                Master Key</linktext></link>
+</related-links></concept>

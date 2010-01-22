@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-55629D12-06C9-412C-86FE-442577156A3B" xml:lang="en"><title>Implementing
+the CPosPrivacyNotifier Subclass</title><shortdesc>To use the Privacy Query and Notification API to create a notifier
+a licensee must first implement a single notifier class that derives from
+the Privacy Query and Notification API base class <apiname>CPosPrivacyNotifier</apiname>.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita"><apiname>CPosPrivacyNotifier</apiname></xref> subclass must implement the
+virtual functions of the base class:     </p>
+<ul>
+<li><p><xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-33E317F9-A8C0-34AF-B17A-72D46B2E4DBD"><apiname>CPosPrivacyNotifier::HandleNewRequestL()</apiname></xref></p></li>
+<li><p><xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-3417B07B-DE69-3719-8634-B979CBA77AFE"><apiname>CPosPrivacyNotifier::HandleRequestCancelled()</apiname></xref></p></li>
+<li><p><xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-6D3C8687-6FEC-34FF-9846-1508C9DF4E72"><apiname>CPosPrivacyNotifier::HandleAllRequestsCancelled()</apiname></xref></p></li>
+</ul>
+<section>       <title>Implementing HandleNewRequestL()</title>       <p>New
+privacy verification query and notification requests are received by the notifier
+through <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-33E317F9-A8C0-34AF-B17A-72D46B2E4DBD"><apiname>CPosPrivacyNotifier::HandleNewRequestL()</apiname></xref>. The example
+code below shows how the notifier handles requests sequentially by simply
+calling a helper function <xref href="GUID-BEB6299A-9BA4-36BB-8E43-52855B753A04.dita"><apiname>HandleNextRequestL()</apiname></xref> to get the
+next request.</p>     <codeblock xml:space="preserve">void CMyPrivacyNotifier::HandleNewRequestL(TPosQNRequestId /*aRequestId*/)
+    {
+    if (iIsBusy) // TBool flag which specifies if the notifier is already
+        {        // handling a request. If it is, do nothing for now.
+        return;
+        }
+
+    // Handle the request
+    HandleNextRequestL();
+    }</codeblock></section>
+<section><title>HandleNextRequestL() </title><p>The example code below shows
+how the notifier gets the next request to be processed. The code shows how
+the notifier: </p><ul>
+<li><p>Gets an array of all waiting requests by calling <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-4E117090-89E5-33DA-AC4B-494906B4BAF9"><apiname>CPosPrivacyNotifier::GetRequestsL()</apiname></xref>. </p></li>
+<li><p>Gets the first request in the array and sets it as the current request
+by calling <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-A041F06C-8A22-37D3-B634-894AFE9B7FF0"><apiname>CPosPrivacyNotifier::SetCurrentRequestL()</apiname></xref>. </p></li>
+<li><p>Checks if the request is a notification, and if so, checks if the request
+type is supported by calling <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-22FFC3B2-A6B9-3501-AD89-1DB31027F53C"><apiname>CPosPrivacyNotifier::NotificationReason()</apiname></xref>.
+If the request type is not supported the request is completed by calling <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-57739A9E-F6CD-3079-8B6F-9B80AAFE4D8B"><apiname>CPosPrivacyNotifier::CompleteRequest()</apiname></xref>. </p></li>
+<li><p>Checks if the type of request is a privacy verification (<codeph>EQuery</codeph>)
+or a notification (<codeph>ENotification</codeph>) and launches the appropriate
+dialog for each case. </p><note><codeph>LauchQueryDialog()</codeph> and <codeph>LaunchNotificationDialog()</codeph> show
+the dialogs. Dialog code varies between licensee platforms but it is important
+that these methods do not launch modal dialogs. The methods must return quickly
+and not wait for the dialogs to be dismissed. </note></li>
+</ul><codeblock xml:space="preserve">void CMyPrivacyNotifier::HandleNextRequestL()
+    {
+    // Read the next request
+    RArray&lt;TPosQNRequestId&gt; requests;
+    CleanupClosePushL(requests);
+    GetRequestsL(requests);
+
+    // Choose next request to handle
+    TBool requestFound = EFalse;
+    while (!requestFound)
+        {
+        if (requests.Count() == 0)
+            { // There are no requests to handle. Do nothing.
+            CleanupStack::PopAndDestroy(); // requests
+            return;
+            }
+        // Read information about the active request
+        iActiveRequest = requests[0];
+        SetCurrentRequestL(iActiveRequest);
+
+        // In case of notification request, check that notification reason is
+        // supported, otherwise complete the request with KErrNotSupported.
+        if (RequestTypeL(iActiveRequest) == ENotification &amp;&amp;
+            !(NotificationReason() == EPosDecisionByRequestSource ||
+            NotificationReason() == EPosVerificationTimeout))
+            { // The notification reason is not supported by the UI.
+            CompleteRequest(iActiveRequest, KErrNotSupported);
+            requests.Remove(0);
+            }
+        else
+            {
+            requestFound = ETrue;
+            }
+        }
+    CleanupStack::PopAndDestroy(); // requests
+
+    iIsBusy = ETrue;
+
+    CDesCArrayFlat* requestors = new (ELeave) CDesCArrayFlat
+        (KRequestorGranularity);
+    CleanupStack::PushL(requestors);
+    
+    TInt nofRequestors = RequestorCountL();
+    for (TInt I = 0; I &lt; nofRequestors; I++)
+        {
+        CPosRequestor* requestor = RequestorLC(I);
+        requestors-&gt;AppendL(requestor-&gt;RequestorIdString());
+        CleanupStack::PopAndDestroy(requestor);
+        }
+
+    // Check whether the request is a query or a notification
+    if (RequestTypeL(iActiveRequest) == EQuery)
+        {
+        LaunchQueryDialogL(requestors); // takes array ownership
+        }
+    else // RequestTypeL(iActiveRequest) == ENotification
+        {
+        LaunchNotificationDialogL(requestors); // takes array ownership
+        }
+    CleanupStack::Pop(requestors);
+    }</codeblock></section>
+<section><title>Implementing a method to handle dialog closure</title><p>When
+the mobile device user has responded to the dialog, the notifier must send
+a response back to the LBS subsystem. In the example code below, the method <codeph>DialogDismissed()</codeph> is
+called when the dialog is closed. The type of request (<codeph>EQuery</codeph> or <codeph>ENotification</codeph>)
+and the reason why the dialog was closed is passed as an input parameter to
+the method. </p><note>It is important to note that <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-57739A9E-F6CD-3079-8B6F-9B80AAFE4D8B"><apiname>CPosPrivacyNotifier::CompleteRequest()</apiname></xref> must
+be called for both privacy verification (query) requests and privacy notification
+requests.</note><p>Note also how requests are handled sequentially in the
+code: CPosPrivacyNotifier::HandleNextRequest() is called to process the next
+request only when the current request is completed.</p><codeblock xml:space="preserve">void CMyPrivacyNotifier::DialogDismissed(TRequestType aRequestType, TInt aDismissReason)
+    {
+
+    iIsBusy = EFalse;
+
+    // Complete the request with correct completion code.
+    TInt completionCode = KErrNone;
+    if (aRequestType == EQuery)
+        {
+        switch (aDismissReason)
+            {
+            case EUserChooseAccept : completionCode = KErrNone; break;
+            case EUserChooseReject : completionCode = KErrAccessDenied; break;
+            case EDialogTimedOut : completionCode = KErrTimedOut; break;
+            default : completionCode = KErrGeneral;
+            }
+        }
+    else // aRequestType == ENotification
+        {
+        switch (aDismissReason)
+            {
+            case EUserPressedOk : completionCode = KErrNone; break;
+            case EDialogTimedOut : completionCode = KErrTimedOut; break;
+            default : completionCode = KErrGeneral;
+            }
+        }
+    CompleteRequest(iActiveRequest, completionCode);
+
+    // Handle the next request
+    HandleNextRequest();
+    }
+
+// Non leaving method for handling the next request
+void CMyPrivacyNotifier::HandleNextRequest()
+    {
+    TRAPD(err, HandleNextRequestL());
+    if (err)
+        {
+        CompleteAllRequests(err);
+        }
+    }</codeblock></section>
+<section><title>Implementing HandleRequestCancelled() </title><p>A privacy
+request can be cancelled by the network. The LBS subsystem calls <xref href="GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C.dita#GUID-56C8D5AB-7D9A-3B20-B699-07F17A87A61C/GUID-3417B07B-DE69-3719-8634-B979CBA77AFE"><apiname>CPosPrivacyNotifier::HandleRequestCancelled()</apiname></xref> on
+the notifier to cancel the request. The code example below shows an implementation. </p><codeblock xml:space="preserve">void CMyPrivacyNotifier::HandleRequestCancelled(TPosQNRequestId aRequestId)
+    {
+    switch (CancelReason())
+        {
+        case EPosCancelReasonTimeout:
+            // Notify the user that the query timed out.
+            break;
+        default: // Do nothing
+            break;
+        }
+
+    // We only need to do anything if the request is the one which is currently
+    // handled.
+    if (iActiveRequest == aRequestId)
+        {
+        // Close the active dialog
+        DismissDialog();
+        HandleNextRequest();
+        }
+    }</codeblock></section>
+<section><title>Implementing HandleAllRequestsCancelled()</title><p>The notifier
+must implement this method to allow all outstanding requests to be cancelled. </p><codeblock xml:space="preserve">void CMyPrivacyNotifier::HandleAllRequestCancelled()
+    {
+    // Close the active dialog
+    DismissDialog();
+    }</codeblock></section>
+</conbody></concept>

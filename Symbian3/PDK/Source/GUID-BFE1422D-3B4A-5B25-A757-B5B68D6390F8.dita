@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BFE1422D-3B4A-5B25-A757-B5B68D6390F8" xml:lang="en"><title>Port
+Implementation Tutorial</title><shortdesc>This topic describes how to customize the Base Starter. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-9F925D19-DFAB-5C2A-8A04-E82963F2D221"><title>Creating local
+drive mapping files</title> <ol id="GUID-B20B8E9B-2FA5-57F2-9F06-88ED21D24E87">
+<li id="GUID-BD13EA0C-81E2-5174-BFB0-1857B17BE85B"><p>Create an ASCII text
+file containing your local drive mapping records; see <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-2B95B775-1BD1-5256-86D3-CD3FA12447B9">create local drive mapping files</xref> for information about the syntax
+of the file. </p> </li>
+<li id="GUID-03BE3694-C78E-5A46-B4FF-FCAF55CED8D4"><p>Put this text file into
+your variant source tree. The source tree is typically of the form <filepath>sf/os/boardsupport/.../&lt;your
+                variant&gt;/estart/</filepath> . Depending on your port, you
+might need more than one local drive mapping file. </p> </li>
+<li id="GUID-1850EBF2-71EB-53D6-A2AC-2FE33AEC8AE8"><p>In the <filepath>kernel.iby</filepath> file
+for your variant, you need to add lines to make sure that your local drive
+mapping files are copied into the ROM's <filepath>\sys\data\</filepath> directory
+when the ROM is built. For example include a lines in the form </p> <codeblock id="GUID-B7C15498-DB7E-51CF-83D9-25013ABEC3B8" xml:space="preserve">data=\epoc32\rom\youvariant\ESTARTCOMP.TXT              \Sys\Data\ESTARTCOMP.TXT</codeblock> </li>
+<li id="GUID-2808A5CB-D270-56D7-BE0E-BA476A31AFC6"><p>If you need more than
+one mapping file, or your single mapping file has a name other than <filepath>ESTART.TXT</filepath>,
+then you need to customise the function <xref href="GUID-9A65BCC6-FC1B-349E-BF8C-AEDE8F2549B7.dita#GUID-9A65BCC6-FC1B-349E-BF8C-AEDE8F2549B7/GUID-F46A932C-8CC0-3F39-8C68-38C2660F86E7"><apiname>TFSStartUp::LocalDriveMappingFileName()</apiname></xref> so
+that you can return the appropriate file name at run time. </p> </li>
+</ol> </section>
+<section id="GUID-51FBCDD1-7DB4-556D-9599-5F8B54837852"><title>Making use
+of auto detection</title> <p>To make use of auto-detection, you need to ensure
+that your variant cannot find local drive mapping files in your ROM's <filepath>\sys\data\</filepath> directory.
+If you are using the default version of <xref href="GUID-9A65BCC6-FC1B-349E-BF8C-AEDE8F2549B7.dita#GUID-9A65BCC6-FC1B-349E-BF8C-AEDE8F2549B7/GUID-F46A932C-8CC0-3F39-8C68-38C2660F86E7"><apiname>TFSStartUp::LocalDriveMappingFileName()</apiname></xref>,
+then make sure that no file exists with the full path name <filepath>Z:\sys\data\estart.txt</filepath>. </p> </section>
+<section id="GUID-AA916F3A-E8DF-522D-BDD6-18C2FD82AC16"><title>Customising
+code</title> <p>The most common customisation is to provide your own implementation
+of the <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup</apiname></xref> virtual functions. To do this: </p> <ol id="GUID-7C709736-88C7-5770-8799-44C5DE9B78A2">
+<li id="GUID-A5CB09C7-C008-5ADA-BC1C-BFDC268570B9"><p>Take a copy of <filepath>ESTARTMAIN.CPP</filepath> from <filepath>sf/os/kernelhwsrv/userlibandfileserver/fileserver/estart/</filepath>, and insert your code into this copy. Typically this will include, but is
+not limited to, your implementation of the <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup</apiname></xref> virtual
+functions. </p> </li>
+<li id="GUID-A67D8EB7-A4A7-54DE-A46C-BF44FC6F173C"><p>Place the copy into
+your variant's source tree. This is typically of the form <filepath>sf/os/boardsupport/.../&lt;your
+variant&gt;/estart/</filepath>. This is the general pattern for the other ports
+supplied with Symbian platform. </p> </li>
+<li id="GUID-24536FD8-EABF-5E4D-A691-F36FEEBB604C"><p>Create a <filepath>.mmp</filepath> file
+to build your variant's version of the Base Starter. This is usually placed
+in the <filepath>\&lt;youvariant&gt;\</filepath> directory. The general pattern
+looks like this: <filepath>sf/os/boardsupport/.../&lt;your               
+ variant&gt;/estart/estart.mmp</filepath>. Ports to other hardware variants and
+the emulator (WINS) variant follow the same general pattern. </p> </li>
+<li id="GUID-41111731-D21E-53E8-9728-1F2E8B2977B9"><p>Your <filepath>.mmp</filepath> file
+should pick up the Symbian platform generic code from <filepath>sf/os/kernelhwsrv/userlibandfileserver/fileserver/estart/estart.cpp</filepath>,
+but should pick up your variant's customised source code from <filepath>sf/os/boardsupport/.../&lt;your
+variant&gt;/estart/estartmain.cpp</filepath>. The general pattern is to give
+the resulting executable the name <filepath>e32strt.exe</filepath>. </p> </li>
+<li id="GUID-FBBE887B-69D6-5904-8BD6-7E67F1B049B7"><p>In the <filepath>kernel.iby</filepath> file
+for your variant, you need to add a line that copies your executable into
+the ROM's <filepath>\sys\bin\</filepath> directory when the ROM is built.
+For example, include a line of the form: </p> <codeblock id="GUID-DF458ADA-69B8-5AC3-92D1-F57B9C14C326" xml:space="preserve">file=\Epoc32\Release\##MAIN##\##BUILD##\_##VARIANT##_e32strt.exe        sys\bin\estart.exe HEAPMAX(0x2000)</codeblock> </li>
+</ol> </section>
+<section id="GUID-92EE546A-2945-55EC-A0C3-4CE2ED7926CF"><title>Removing auto
+detect from the Base Starter</title> <p>You do this only if you need to save
+code space, and you do not need the autodetect functionality. </p> <p>See
+also <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-A195BD51-80C7-5D87-ABA2-8878CC509B84">Use
+automatic local drive mapping</xref>. </p> <ol id="GUID-6B18F11A-5271-5E04-A246-3143A856722B">
+<li id="GUID-D86AD2FB-EDF7-5A95-949E-3C7BE9B609F0"><p>Create a <filepath>.mmp</filepath> file
+to build your variant's version of the Base Starter. This is usually placed
+in the <filepath>sf/os/boardsupport/.../&lt;your variant&gt;/estart/</filepath> directory.
+This shows the general pattern. Ports to other hardware variants and the emulator
+(WINS) variant follow the same general pattern. </p> </li>
+<li id="GUID-CFA6F952-2637-5999-8C06-191B8C9B81EB"><p>In your <filepath>.mmp</filepath> file,
+define the macro: </p> <codeblock id="GUID-7DCF288E-CF86-550F-95BB-33CDAF342C66" xml:space="preserve">MACRO AUTODETECT_DISABLE</codeblock> </li>
+<li id="GUID-3CD0D0C9-5CA5-5CCA-A918-5076DD38C576"><p>The location of all
+source files in the <filepath>.mmp</filepath> file will be <filepath>sf/os/kernelhwsrv/userlibandfileserver/fileserver/estart/</filepath>. </p> </li>
+<li id="GUID-9D679A09-134A-5E09-9A29-79D52B6BE975"><p>In the <filepath>kernel.iby</filepath> file
+for your variant, you need to add a line to make sure that your executable
+is copied into the ROM's <filepath>\sys\bin\</filepath> directory when the
+ROM is built. For example, include a line of the form </p> <codeblock id="GUID-F893D88D-212A-5396-AB64-918CB48A37A1" xml:space="preserve">file=\Epoc32\Release\##MAIN##\##BUILD##\_##VARIANT##_e32strt.exe        sys\bin\estart.exe HEAPMAX(0x2000)</codeblock> <p>This is the general pattern for the other ports supplied with Symbian
+platform. </p> </li>
+</ol> </section>
+<section id="GUID-251E3B54-AB58-4FE4-8E81-0ED48484C1FD"><title>See also</title> <p><xref href="GUID-E5459A54-14BC-55C1-B911-63415E4C61A6.dita">Concepts</xref>  </p> </section>
+</conbody></concept>

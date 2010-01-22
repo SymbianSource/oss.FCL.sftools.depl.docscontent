@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2247D2A7-5A68-558C-9919-F62C9BCA5B24" xml:lang="en"><title>Enabling
+MTP over Bluetooth Tutorial</title><shortdesc>This section describes different modes of enabling MTP over Bluetooth
+on a Symbian device, the initiator-driven mode and the responder-driven mode. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Prerequisites</title> <p>This tutorial assumes that you have
+an understanding of the following: </p> <ul>
+<li id="GUID-C3C75367-52A4-54D1-831F-F755CFB177A5"><p>The <xref href="http://www.bluetooth.com/Bluetooth/Technology/Building/Specifications/" scope="external">Bluetooth Specification</xref>, which defines the process
+of pairing two MTP Bluetooth-enabled devices. It also defines the Protocol/Service
+Multiplexor (PSM) port which Bluetooth listens on. </p> </li>
+<li id="GUID-3E4DEC69-4A0C-518D-ACB2-96640DDA2301"><p>The <xref href="http://www.microsoft.com/whdc/device/wpd/wpd_enable.mspx" scope="external">Windows Portable Device Enabling Kit</xref>, which contains
+the Specification for the MTP over Bluetooth Profile. The specification describes
+the initiator-driven and responder-driven modes, the Service Discovery Protocol
+(SDP) query and the MTP Initiator Service Definition Record. The record can
+be queried to get the attributes values, for example the PSM port of registered
+MTP services. </p> </li>
+<li id="GUID-529A6425-3580-5D26-9A49-C921CB149889"><p>The <xref href="GUID-9668ADA2-7170-57AC-A5D7-1350894413FF.dita">Bluetooth
+GUI</xref>, which can be used to get the remote device address. </p> </li>
+<li id="GUID-AA858DC2-94A4-51DD-9641-723C994F07E5"><p>The <xref href="GUID-8D5E17DA-8EF1-52B4-9706-9836B8D6CE43.dita">Bluetooth
+Service Discovery Agent</xref>, which can be used to query a remote device
+for the MTP Initiator Service Definition Record and its attributes, such as
+the PSM port. </p> </li>
+</ul> </section>
+<section><title>Steps</title> <p>There are two modes of enabling MTP over
+Bluetooth on a Symbian device:</p><ul>
+<li><p><xref href="GUID-9E3452F2-1DCB-4DEC-A8F1-CCE7A62CBD61.dita">Enabling MTP
+over Bluetooth in the initiator driven mode</xref></p></li>
+<li><p><xref href="GUID-42200C56-54B4-43C0-9319-C479433300DF.dita">Enabling MTP
+over Bluetooth in the responder driven mode</xref></p></li>
+</ul> </section>
+<section id="GUID-38A7E4C2-64F6-557B-9772-4C21E61890AA"><title>Example Client
+Application: Getting the remote Bluetooth device address and PSM port</title> <p>This
+example application shows how to get the Bluetooth device address and PSM
+port of a remote device. It also includes the MTP Client API function calls
+for the initiator-driven and responder-driven modes. </p> <p>The Bluetooth
+device address is a fixed address that is unique to each device. You can obtain
+the address of the host PC using the <xref href="GUID-9668ADA2-7170-57AC-A5D7-1350894413FF.dita">Bluetooth
+GUI</xref>. </p> <p>The PSM ports reflect the Bluetooth services that are
+available on a particular remote device. You can obtain the MTP Initiator
+Service record (<codeph>SYMBIAN_MTPBT_INITIATOR_SERVICE</codeph>) of the host
+PC using the <xref href="GUID-8D5E17DA-8EF1-52B4-9706-9836B8D6CE43.dita">Bluetooth
+Service Discovery Agent</xref>. You can then parse the record to get the PSM
+port. </p> <p>The following UML diagram shows the application design. Two
+custom classes are required to implement Bluetooth Service Discovery. Each
+derives from an SDP interface. The example code includes only the key functions
+and data members. </p> <fig id="GUID-320F0107-3627-5B56-95D2-5E9941B88B9E">
+<image href="GUID-6043DC17-1A05-5EDD-94B9-3A0DB16F3761_d0e602551_href.jpg" placement="inline"/>
+</fig> <codeblock id="GUID-04EE30CF-ACFE-5D07-83A1-1A05D7E865AB" xml:space="preserve">// TMyParser is used to parse information returned from the PC 
+// and to extract the PSM port number.
+Class TMyParser: public MSdpAttributeValueVistor
+    {
+ private:
+    //virtual functions from MSdpAttributeValueVisitor
+    virtual void VisitAttributeValueL( CSdpAttrValue &amp;aValue, TSdpElementType aType ) ;
+    ...
+public:
+    //data members
+    TUint iPort ;  // the PSM port 
+    ...    
+    }
+
+// The client application implements MSdpAgentNotifier so that it receives
+// information from the PC (from which the PSM port can be extracted)
+Class CMyClientApp: public CActive, public MSdpAgentNotifier
+    {
+public:
+    void ConstructL() ;
+    ...
+public:
+    //Virtual functions from MSdpAgentNotifier
+    virtual void NextRecordRequestComplete(
+                                   TInt aError,
+                                   TSdpServRecordHandle aHandle,
+                                   TInt aTotalRecordsCount ) ;
+    virtual void AttributeRequestResult(
+                                   TSdpServRecordHandle aHandle,
+                                   TSdpAttributeID aAttrID,
+                                   CSdpAttrValue* aAttrValue ) ;
+    virtual void AttributeRequestComplete(
+                                   TSdpServRecordHandle aHandle, 
+                                   TInt aError ) ;
+
+private:
+    // Local functions to illustrate use of MTP client
+    TInt StartMtpInitiatorDriven() ;
+    TInt StartMtpResponderDriven() ;
+    TInt StopMTP() ;
+    
+    // Local functions to acquire information about host PC for
+    // responder-driven mode
+    void GetHostAddressL() ;
+    void GetHostPSML() ;
+    
+    RMTPClient iMtp ;
+
+    RSocketServ iSocketServer ;
+    CSdpAgent* iSdpAgent ;
+    TInt64 iDevAddr ;  // the Bluetooth address of the host PC
+    TMyParser iParser ;
+    CSdpAttrIdMatchList* iMatchList ;    
+
+    } ;
+
+void CMyClientApp::ConstructL()
+    {
+    CActiveScheduler::Add( this ) ;
+    User::LeaveIfError( iSocketServer.Connect() ) ;
+
+    iMatchList = CSdpAttrIdMatchList::NewL() ;
+    CleanupStack::PushL( iMatchList ) ;
+    iMatchList-&gt;AddL( TAttrRange( KSdpAttrIdServiceClassIDList ) ) ;
+    iMatchList-&gt;AddL( TAttrRange( KSdpAttrIdProtocolDescriptorList ) ) ;
+    iMatchList-&gt;AddL( TAttrRange( KSdpAttrIdBluetoothProfileDescriptorList ) ) ;
+    CleanupStack::Pop( iMatchList ) ;
+    }
+
+TInt CMyClientApp::StartMtpInitiatorDriven() // returns KErrNone or error code
+    {
+    // connect to MTP server
+    TInt error = iMtp.Connect();
+    if ( KErrNone == error )
+        {
+        // Start the bluetooth transport.
+        error = iMtp.StartTransport( KBTMTPClientUID );
+        }
+    return error ;
+    }
+    
+TInt CMyClientApp::StartMtpResponderDrivenL()
+    {
+    // Get the host address (requires user selection)
+    User::LeaveIfError( GetHostAddressL() ) ; // Host address set in iDevAddr
+    // Get the PSM Port    
+    GetHostPSML() ; // Port set in iParser.iPort
+
+    TInt error = KErrNone ;
+    error = iMtp.Connect() ;
+    if ( KErrNone == error )
+        {
+        TMTPBTRemoteDevice data ;
+        data.iDeviceAddr = iDevAddr ;
+        data.iDeviceServicePort = static_cast&lt;TUint16&gt;( iParser.iPort ) ;
+        TMTPBTRemoteDeviceBuf initAddress( data ) ;
+
+        // Load the bluetooth transport and connect to the host PC
+        error = iMtp.StartTransport( KBTMTPClientUID, initAddress );    
+        }
+     return error ;
+     }
+
+TInt CMyClientApp::StopMtp() // returns KErrNone or error code
+    {
+    TInt error( KErrNotFound ) ;
+    if( iMtp )
+        {
+        TInt error = iMtp.StopTransport( KBTMTPClientUID ); 
+        if( error == KErrNone )
+           {
+           iMtp.Close();
+           }
+        }
+        return error ;
+    }
+
+TInt CMyClientApp::GetHostAddressL() // asks user to select a connected device
+    {
+    // Select a Bluetooth device and find its address.
+    TBTDeviceSelectionParamsPckg params ;
+    TBTDeviceResponseParamsPckg result ;
+
+    // Use the notifier server to select a device.
+    RNotifier notif ;         
+    User::LeaveIfError( notif.Connect() ) ;
+
+    TRequestStatus stat ;
+    notif.StartNotifierAndGetResponse( stat, KDeviceSelectionNotifierUid, params, result ) ;
+    User::WaitForRequest( stat ) ;
+    notif.CancelNotifier( KDeviceSelectionNotifierUid ) ;
+    notif.Close() ;
+    User::LeaveIfError( stat.Int() ) ; // leave if the notifier failed.
+    
+    // extract the Bluetooth address of the selected device
+    TBTDevAddr devAddr = result().BDAddr() ; 
+    // Convert to TUInt64 by extracting TUint8 values from devAdd[] array
+    TUint ii  = 0 ;
+    iDevAddr += devAddr[ii++] ;
+    for ( ; ii&lt;KBTDevAddrSize ; ++ii )
+        {
+        iDevAddr &lt;&lt;= 8 ;
+        iDevAddr += devAddr[ii] ;
+        }
+    }
+    
+// This function initiates a process for acquiring information from the host PC.
+// It uses CSdpAgent which makes a series of callbacks using 
+// the MSdpAgentNotifier interface  
+void CMyClientApp::GetHostPSML()
+    {
+    // The UUID represents the MTP Initiator service class defined in the 
+    // MTP over Bluetooth Profile Specification. 
+    #define SYMBIAN_MTPBT_INITIATOR_SERVICE TUUID (
+                                         0x9518e5ca, 
+                                         0xf6af464b,
+                                         0x9907a974,
+                                         0x33641968 )
+
+    iSdpAgent = CSdpAgent::NewL( *this, iDevAddr ) ;
+    
+    // Create a search pattern to get the  MTP Initiator Service record  
+    CSdpSearchPattern* pattern = CSdpSearchPattern::NewL() ;
+    CleanupStack::PushL( pattern ) ;
+
+    pattern-&gt;AddL( SYMBIAN_MTPBT_INITIATOR_SERVICE ) ;  
+    iSdpAgent-&gt;SetRecordFilterL( *pattern ) ;
+    CleanupStack::PopAndDestroy( pattern ) ;
+
+    // Start to search for the record matching the pattern.
+    iSdpAgent-&gt;NextRecordRequestL() ; // This call results in a callback (below)
+    ...
+
+    }
+    
+    
+// This is the call back function with the information from NextRecordRequestL()    
+void CMyClientApp::NextRecordRequestComplete( TInt aError,
+                                              TSdpServRecordHandle aHandle,
+                                              TInt aTotalRecordsCount ) ;
+    {
+    if ( aError == KErrNone )
+        {
+        // Next, use the SdpAgent to extract the attributes from the record
+        TRAP( aError, iSdpAgent-&gt;AttributeRequestL( aHandle, *iMatchList ) ); // results in callback (below)
+        ...
+        }
+    }
+
+// This is the call back function from AttributeRequestL()
+void CMyClientApp::AttributeRequestResult( TSdpServRecordHandle /*aHandle*/,
+                                           TSdpAttributeID aAttrID, 
+                                           CSdpAttrValue* aAttrValue )
+    {
+    TInt err = KErrNone ;
+    switch ( aAttrID )
+        {
+        case KSdpAttrIdProtocolDescriptorList:
+            // configure the parser
+            iParser.iState = TBTMtpSdpRecordParser::EParsingMTPBTProtocol ;
+            break;
+        ...
+        }
+    // pass iParser as MSdpAttributeValueVistior&amp; to CSdpAttriValue
+    TRAPD( err, aAttrValue-&gt;AcceptVisitorL( iParser ) ) ; // results in callback (below)
+    ...
+    delete aAttrValue ; // ownership was passed through function API!
+    }
+
+
+// This is a (parser) callback function from MSdpAttributeValueVisitor
+void TMyParser::VisitAttributeValueL( CSdpAttrValue &amp;aValue,
+                                      TSdpElementType aType )
+    {
+    switch ( aType )
+        {
+        case ETypeUint:
+            if ( !aValue.DoesIntFit() )
+                {
+                User::Leave( KErrNotSupported ) ;
+                }
+            if ( EParsingMTPBTProtocol == iState ) // check parser configuration
+                {
+                if ( iProtocol == TUUID(KL2CAP) )
+                    {
+                    iPort = aValue.Uint() ; // store the PSM port
+                    ...
+                 
+</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-157063EE-4FCB-55A2-B126-E73CC642611E.dita"><linktext>MTP Bluetooth
+Transport Overview</linktext></link>
+</related-links></concept>

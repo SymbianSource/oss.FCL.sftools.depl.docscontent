@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-48AEF60B-D2B6-55B5-96FD-55C1F1868A3F" xml:lang="en"><title>GPIO
+Implementation Guide</title><shortdesc>This document tells you things you need to know to produce a platform
+specific implementation of the Symbian platform generic GPIO interface. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+<section id="GUID-DF9D655C-161E-5EC0-815C-4AD3483ED290"><title>Required background</title> <p>Before
+you start, you must: </p> <ul>
+<li id="GUID-210FC785-9589-5E8B-9A10-115359521C3D"><p>understand platform
+implementation, </p> </li>
+<li id="GUID-9DFA66B1-316A-5D23-8DEB-CC82EFA4E1A9"><p>understand GPIO concepts
+and terminology, </p> </li>
+<li id="GUID-5B26CDEE-B6F4-5A19-A675-7614159F7786"><p>know the architecture
+of the platform on which you are implementing, and </p> </li>
+<li id="GUID-680844F2-25CC-5E95-B1E0-943D5E119555"><p>understand the C++ signature
+of the functions you are implementing. </p> </li>
+</ul> </section>
+<section id="GUID-3657983A-8801-4F51-B996-70D942DBD17B"><title>Introduction</title> <p>You can provide support for GPIO hardware
+in a board support package by implementing the interface that Symbian platform
+defines in the GPIO class. To provide a consistent interface to clients of
+the GPIO class, your implementation must return certain error codes in certain
+specified conditions. The details of the functions, conditions and associated
+required return values are described below. How your implementation of the
+functions communicates with your GPIO hardware will be specific to the hardware
+you are using. </p> </section>
+<section id="GUID-37F49486-8821-4CED-BC19-5818D890CD85"><title>Procedure</title><p>Implement each function of class <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>GPIO</apiname></xref> with
+a return value of </p> <ul id="GUID-B39F7C57-765D-54AF-8296-4A9C6EF8D75E">
+<li id="GUID-9E22A75B-E0E0-54D8-B4BB-DCF0E52C8DAD"><p> <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>KErrArgument</apiname></xref>, </p> </li>
+<li id="GUID-735EE673-F24B-5ACC-AF9D-DD3437D763D9"><p> <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>KErrNone</apiname></xref>, </p> </li>
+<li id="GUID-EA824100-5317-599D-9270-A93EDF1A6275"><p> <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>KErrNotSupported</apiname></xref>  </p> </li>
+</ul><p>and other return values as specified for particular functions.</p></section>
+<section id="GUID-3D5B6289-7C6D-48BC-9A56-500DD10CD64C"><title>Returning KErrArgument</title> <p>     Implement each function
+of class <xref href="GUID-C93C53D3-2BE8-36AE-83B8-4CDB4195649B.dita"><apiname>GPIO</apiname></xref> with a return value of <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>.
+  </p> <p>     The first argument of every function is <codeph>aId</codeph> and
+represents the ID of a pin. If the passed-in ID is invalid, the function should
+return <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref> without further activity.   </p>  </section>
+<section id="GUID-C8665E28-9AA5-4363-9BF1-5AA1ABA5B598"><title>Pin mode functions</title> <p>Implement the pin mode functions.
+ </p> <ul>
+<li><p>  Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> for each value of the 
+        enumeration <xref href="GUID-BA2AE083-DB8D-327F-85FE-EAB765DAF360.dita"><apiname>TGpioMode</apiname></xref>.  </p> <ul>
+<li><p>Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with <codeph>aMode</codeph> == <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> and
+return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.</p> <p> Enable the pin for GPIO.
+Make any functionality other than  GPIO unavailable. Enable the module if
+it is not already enabled. This  typically requires power and clocks to be
+supplied to the module. </p> </li>
+<li><p> Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with  <codeph>aMode</codeph> == <xref href="GUID-4EC4F5AE-557D-3249-A3D3-31653DECD706.dita"><apiname>EDisabled</apiname></xref> and
+return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>. </p> <p> Disable the pin for GPIO.
+Disable the module for GPIO. Only a  all to <xref href="GUID-AF952FD7-0B2F-3985-9B1E-02E87734AC6E.dita"><apiname>SetPinMode</apiname></xref> with <xref href="GUID-1D258A78-63B0-3AAF-8359-CB1C62883F38.dita"><apiname>aMode</apiname></xref> ==
+ <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> should return the pin to the enabled state. If
+ the pin is enabled for another function, that fact is irrelevant.   </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with    
+           <codeph>aMode</codeph> == <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> and return value
+               <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>        
+       Only implement this if the platform supports the idle state.      
+       </p> <p>                When the pin is set to the idle state, the
+implementation                should also attempt to move the module to the
+idle state.              </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with return
+value                <xref href="GUID-51298FCE-7857-39F8-BFAB-49AF5556D0CC.dita"><apiname>KErrNotReady</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-51298FCE-7857-39F8-BFAB-49AF5556D0CC.dita"><apiname>KErrNotReady</apiname></xref> when a pin which has
+               requested a return to the idle state is not ready to do so.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin is   
+            not available for GPIO because it has been assigned an alternative
+function and                also where <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> is passed
+and the platform does not                support an idle state.          
+   </p> </li>
+</ul> </li>
+<li><p>          Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-BA2AE083-DB8D-327F-85FE-EAB765DAF360.dita"><apiname>TGpioMode</apiname></xref>.         </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Verify that the pin is already enabled for GPIO and able to          
+  work according to its configuration. Set <xref href="GUID-1D258A78-63B0-3AAF-8359-CB1C62883F38.dita"><apiname>aMode</apiname></xref> to   
+         <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref>.           </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-4EC4F5AE-557D-3249-A3D3-31653DECD706.dita"><apiname>EDisabled</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Verify that the module is already disabled and the pin cannot        
+    be used for GPIO. If the pin is enabled for another function, that fact
+is             irrelevant.           </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Only implement this if the platform supports the idle state.         
+ </p> <p>             Verify that the module is already in an idle state.
+          </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with return
+value             <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the platform    
+        does not support reading the pin mode.           </p> </li>
+</ul></section>
+<section id="GUID-3DA1E4AC-BAE0-469E-8A5D-72E292A533C1"><title>Pin direction functions</title><p>Implement the pin direction
+functions.</p> <ul>
+<li><p>          Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> for each value
+         of the enumeration <xref href="GUID-2F6DB4C0-D198-39A8-B990-EF1D5B9B5901.dita"><apiname>TGpioDirection</apiname></xref>.</p><ul>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref> and return
+value             <codeph>KErrNone.</codeph>           </p> <p>          
+  Set the pin to behave as an input binary signal.           </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-8E81439B-6FB5-3EEC-BC36-F3B70217FA8D.dita"><apiname>EOutput</apiname></xref> and return
+value             <codeph>KErrNone.</codeph>           </p> <p>          
+  Set the pin to behave as an output binary signal.           </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> and
+return value             <codeph>KErrNone.</codeph>           </p> <p>   
+         Set the pin to be in a quiescent state (also called floating or 
+           deactivated).           </p> <p>             Only implement this
+if the platform supports the quiescent             state. The physical state
+of the pin will be determined by the drive on the             line.      
+    </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with return
+            value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin cannot  
+          operate in the direction specified, for instance if             <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> has
+been passed and the platform does not             support the quiescent state.
+          </p> </li>
+</ul></li>
+<li><p>          Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> for each value
+         of the enumeration <xref href="GUID-2F6DB4C0-D198-39A8-B990-EF1D5B9B5901.dita"><apiname>TGpioDirection</apiname></xref>.         </p> <ul>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref> and
+return value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is behaving as a binary input signal. Set 
+           <xref href="GUID-221FF753-F089-399C-BD67-A693E68AB727.dita"><apiname>aDirection</apiname></xref> to <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref>    
+      </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-8E81439B-6FB5-3EEC-BC36-F3B70217FA8D.dita"><apiname>EOutput</apiname></xref> and
+return             value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is behaving as a binary output signal. Set
+            <codeph>aDirection</codeph> to <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref>     
+     </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> and
+return             value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is in the quiescent state. Set             <codeph>aDirection</codeph> to <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> 
+         </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with return
+            value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading the pin 
+           direction is not supported.           </p> </li>
+</ul></li>
+</ul> </section>
+<section id="GUID-35D80FC2-4DBF-4FF2-ACB4-409020651F86"><title>Pin bias functions</title> <p>     Implement the pin bias
+functions.  </p> <ul>
+<li><p>          Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-58D2511D-99F1-361B-875C-0A0C32775A3F.dita"><apiname>TGpioBias</apiname></xref>.        </p>  <p> 
+        Only implement this function to return          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> if
+the pin has a programmable device to stabilise          its electric state.
+Otherwise just implement it with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.
+        </p><ul>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>. </p><p>         
+                  Disable any resistor or weak drive forcing the pin to a
+               default electrical state.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> == <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref> and return
+value                .<xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Cause the pin to default to its low electrical state by    
+           pull-down resistor, weak drive or other means.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> == <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref> and return
+value                .<xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Cause the pin to default to its high electrical state by   
+            pull-down resistor, weak drive or other means.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does 
+              not support setting the drive.              </p> </li>
+</ul> </li>
+<li><p>          Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-58D2511D-99F1-361B-875C-0A0C32775A3F.dita"><apiname>TGpioBias</apiname></xref>.         </p> <p> 
+        Only implement this function to return          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> if
+the pin has a programmable device to stabilise          its electric state.
+Otherwise just implement it with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.
+        </p> <ul>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that any stabilising device on the pin has been     
+          disabled. Set <codeph>aBias</codeph> to <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref>.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin has been set to default to its low     
+          electric state. Set <xref href="GUID-F9031EA4-2C8A-32CB-BB2B-26A20569866F.dita"><apiname>aBias</apiname></xref> to                <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref>.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin has been set to default to its high    
+           electric state. Set <xref href="GUID-F9031EA4-2C8A-32CB-BB2B-26A20569866F.dita"><apiname>aBias</apiname></xref> to <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref>.
+                            </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does 
+              not support reading the pin bias.              </p> </li>
+</ul> </li>
+</ul> </section>
+<section id="GUID-7ECD4CDD-1320-4AEA-AC9D-B2A473536C21"><title>Pin idle functions</title> <p>     Implement the pin idle
+functions.   </p>  <ul>
+<li><p>          Implement <xref href="GUID-0C5314C5-EE55-3974-8ED5-5AE26C0638F0.dita"><apiname>SetPinIdleConfigurationAndState()</apiname></xref> 
+         with return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p> 
+        Return <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>         </p> </li>
+<li><p>             Implement             <xref href="GUID-0C5314C5-EE55-3974-8ED5-5AE26C0638F0.dita"><apiname>SetPinIdleConfigurationAndState()</apiname></xref> with
+return value             <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does    
+        not support the idle state.           </p> </li>
+<li><p>             Implement             <xref href="GUID-4BF99D43-8F53-36B0-803D-FE86A1EF943A.dita"><apiname>GetPinIdleConfigurationAndState()</apiname></xref> with
+return value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>           </p> </li>
+<li><p>                Implement                <xref href="GUID-4BF99D43-8F53-36B0-803D-FE86A1EF943A.dita"><apiname>GetPinIdleConfigurationAndState()</apiname></xref> with
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does 
+              not support the idle state.              </p> </li>
+</ul> </section>
+<section id="GUID-1ECB1516-C554-4168-AE8C-FA4BDC7BF48F"><title>Interrupt functions</title> <p>     Implement the interrupt
+functions.   </p> <ul>
+<li><p>          Implement <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Associate
+the specified interrupt service routine with the          specified pin ID.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref> with return
+value          <xref href="GUID-0BB03881-8862-35FC-8102-48A2932AB738.dita"><apiname>KErrInUse</apiname></xref>.         </p> <p>          Return <xref href="GUID-0BB03881-8862-35FC-8102-48A2932AB738.dita"><apiname>KErrInUse</apiname></xref> if
+an interrupt service          routine is already bound to this interrupt.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Unbind
+the specified interrupt service routine with the specified          pin ID.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Enable the interrupt.         </p> </li>
+<li><p>          Implement <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Disable the interrupt.         </p> </li>
+<li><p>          Implement <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Determine the status of the interrupt. If it is   
+      enabled set <codeph>aEnable</codeph> to True and if it is disabled set
+         <xref href="GUID-28B9AB57-B1B6-3D84-A118-FAEA5AD2C23F.dita"><apiname>aEnable</apiname></xref> to False.         </p> </li>
+<li><p>          Implement <xref href="GUID-1F8A4B69-BF3D-31C6-934D-93BF47E3E407.dita"><apiname>ClearInterrupt()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Clear
+the interrupt.         </p> <p>          Only implement this if the hardware
+does not automatically clear          the interrupt after reading the interrupt
+status.         </p> </li>
+<li><p>          Implement <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref> with
+         return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>      
+   Read the interrupt state from the GPIO interrupt controller,          probably
+by using a bit mask on a register. Set aActive to True if the          interrupt
+state is active and to False if it is inactive.         </p> </li>
+<li><p>          Implement <xref href="GUID-F5D98B1C-5397-3E2E-AEBC-E492FA0CBF91.dita"><apiname>GetRawInterruptState()</apiname></xref> with
+return          value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>      
+   Read the interrupt state directly from the pin. Set          <codeph>aActive</codeph> to
+True if the interrupt state is active and to False if          it is inactive.
+        </p> <p>          If the hardware does not allow the raw interrupt
+state to be          read, implement the function to return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> or
+         to return the same value as <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref>.
+        </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>:
+        </p> <ul>
+<li><p>                <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref>           
+  </p> </li>
+</ul> <p>          Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> for these functions
+         if the pin does not support interrupts.         </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-A94AC24A-EADF-3913-8345-708ED637968E.dita"><apiname>KErrGeneral</apiname></xref>:
+        </p> <ul>
+<li><p>                <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref>           
+  </p> </li>
+</ul> <p>          Return <xref href="GUID-A94AC24A-EADF-3913-8345-708ED637968E.dita"><apiname>KErrGeneral</apiname></xref> for these functions
+if          there is no Interrupt Service Routine bound to the pin.      
+  </p> </li>
+<li><p>          Implement <xref href="GUID-1F8A4B69-BF3D-31C6-934D-93BF47E3E407.dita"><apiname>ClearInterrupt()</apiname></xref> with return
+value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p>     
+    Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does not       
+  support clearing the interrupt signal.         </p> </li>
+<li><p>          Implement <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref> with
+         return value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p> 
+        Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading the        
+ interrupt state is not supported.         </p> </li>
+<li><p>          Implement <xref href="GUID-F5D98B1C-5397-3E2E-AEBC-E492FA0CBF91.dita"><apiname>GetRawInterruptState()</apiname></xref> with
+return          value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p> 
+        Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading raw        
+ interrupt states is not supported.         </p> </li>
+</ul> </section>
+<section id="GUID-19811A8B-5A8F-4769-8686-1BB49C56532F"><title>Wakeup functions</title> <p>     Implement the wakeup functions.
+  </p> <ul>
+<li><p>                Implement <xref href="GUID-1C41DDCD-7BE3-3BDA-A832-C2C9821AEB09.dita"><apiname>EnableWakeup()</apiname></xref> with return
+               value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>  
+             Enable wakeup on the pin.              </p> </li>
+<li><p>                Implement <xref href="GUID-21432D3C-90DA-35AA-AFB5-C7FF37ED0806.dita"><apiname>DisableWakeup()</apiname></xref> with return
+               value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>  
+             Disable wakeup on the pin.              </p> </li>
+<li><p>                Implement <xref href="GUID-D58B6C13-F3B0-3E18-A7ED-DE177BC2CCEB.dita"><apiname>IsWakeupEnabled()</apiname></xref> with
+return                value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin supports wakeup and determine the wakeup
+               state. If is enabled set <xref href="GUID-28B9AB57-B1B6-3D84-A118-FAEA5AD2C23F.dita"><apiname>aEnable</apiname></xref> to True
+and if it is                disabled set <xref href="GUID-28B9AB57-B1B6-3D84-A118-FAEA5AD2C23F.dita"><apiname>aEnable</apiname></xref> to False.
+             </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>:
+        </p> <ul>
+<li><p>                <xref href="GUID-1C41DDCD-7BE3-3BDA-A832-C2C9821AEB09.dita"><apiname>EnableWakeup()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-21432D3C-90DA-35AA-AFB5-C7FF37ED0806.dita"><apiname>DisableWakeup()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-D58B6C13-F3B0-3E18-A7ED-DE177BC2CCEB.dita"><apiname>IsWakeupEnabled()</apiname></xref>              </p> </li>
+</ul> <p>          Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does
+not          support wakeups.         </p> </li>
+</ul>  </section>
+<section id="GUID-505B2E66-80A7-423D-8BE9-D5325D02F006"><title>Trigger functions</title> <p>     Implement the trigger functions.
+  </p> <ul>
+<li><p>          Implement <xref href="GUID-29000C80-F7B6-3B7C-8944-F6BCAE2B6618.dita"><apiname>SetInterruptTrigger()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Set the interrupt trigger on the specified pin.   
+     </p> </li>
+<li><p>          Implement <xref href="GUID-29000C80-F7B6-3B7C-8944-F6BCAE2B6618.dita"><apiname>SetInterruptTrigger()</apiname></xref> with return
+         value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p>     
+    Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does not       
+  support interrupts.         </p> </li>
+<li><p>          Implement <xref href="GUID-28F2D8DB-5D57-3199-9066-1B0252EE632E.dita"><apiname>SetWakeupTrigger()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Set the interrupt trigger on the specified pin.   
+      The trigger should probably be edge detected.         </p> </li>
+<li><p>          Implement <xref href="GUID-28F2D8DB-5D57-3199-9066-1B0252EE632E.dita"><apiname>SetWakeupTrigger()</apiname></xref> with return
+         value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p>     
+    Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does not       
+  support wakeups.         </p> </li>
+</ul>  </section>
+<section id="GUID-718F1593-206E-4738-A34A-C9D3F52063EE"><title>Debounce functions</title> <p>     Implement the debounce
+functions.   </p> <ul>
+<li><p>          Implement <xref href="GUID-837F3EC5-5379-3B88-B27B-A092E9F2E422.dita"><apiname>SetDebounceTime()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the platform supports debouncing either by hardware          or software.
+Use the passed in value as the sampling interval in milliseconds.         </p> <p> 
+        Only implement this if the platform supports debouncing.         </p> </li>
+<li><p>          Implement <xref href="GUID-72F9F470-4815-3674-A90F-1038C565F2E0.dita"><apiname>GetDebounceTime()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Determine
+value in milliseconds of the sampling interval used in          debouncing
+and set aTime to that value.         </p> <p>          Only implement this
+if the platform supports debouncing.         </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.
+        </p> <ul>
+<li><p>                <xref href="GUID-837F3EC5-5379-3B88-B27B-A092E9F2E422.dita"><apiname>SetDebounceTime() </apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-72F9F470-4815-3674-A90F-1038C565F2E0.dita"><apiname>GetDebounceTime()</apiname></xref>              </p> </li>
+</ul> <p>          Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does
+not          support debouncing.         </p> </li>
+</ul> </section>
+<section id="GUID-84ACB7AB-F6DE-42F5-8C89-C7598FBC7AC1"><title>Input/output</title> <p>     Implement the input and output
+state functions.   </p> <ul>
+<li><p>          Implement <xref href="GUID-EB28CB99-7191-345B-90FC-7708E9D190C7.dita"><apiname>SetOutputState()</apiname></xref> for each value
+of          <xref href="GUID-7C1D78B4-9897-3C38-8EE7-7C311B885B0B.dita"><apiname>TGpioState</apiname></xref>.         </p> <ul>
+<li><p>                Implement <xref href="GUID-EB28CB99-7191-345B-90FC-7708E9D190C7.dita"><apiname>SetOutputState()</apiname></xref> with
+               <codeph>aState</codeph> == <xref href="GUID-ABF52F3A-CDC3-3AC6-89ED-FB7F5B781A25.dita"><apiname>ELow</apiname></xref> and return
+value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>  
+             Verify that the pin is being used as a binary output. Set it
+               to its low electric state.              </p> </li>
+<li><p>                Implement <xref href="GUID-EB28CB99-7191-345B-90FC-7708E9D190C7.dita"><apiname>SetOutputState()</apiname></xref> with
+               <codeph>aState</codeph> == <xref href="GUID-28B7F356-760B-38EA-90B1-AD3594375CBC.dita"><apiname>EHigh</apiname></xref> and return
+value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>  
+             Verify that the pin is being used as a binary output. Set it
+               to its high electric state.              </p> </li>
+<li><p>                Implement <xref href="GUID-EB28CB99-7191-345B-90FC-7708E9D190C7.dita"><apiname>SetOutputState()</apiname></xref> with
+               <codeph>aState</codeph> == <xref href="GUID-A538A8AF-DA50-3641-A794-19CAFF5B28F2.dita"><apiname>EDefaultIdleState</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin is being used as a binary output. Set its
+               electric state to its default idle state.              </p> </li>
+<li><p>                Implement <xref href="GUID-EB28CB99-7191-345B-90FC-7708E9D190C7.dita"><apiname>SetOutputState()</apiname></xref> with
+return                value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         
+    </p> <p>                If the specified electric state is not supported
+return                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> </li>
+</ul> </li>
+<li><p>          Implement <xref href="GUID-E88C05CA-8882-3C6A-9B64-8048DB7DA622.dita"><apiname>GetOutputState()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as a binary output. Determine          its electric
+state and set <codeph>aState</codeph> to the appropriate value of        
+ <xref href="GUID-7C1D78B4-9897-3C38-8EE7-7C311B885B0B.dita"><apiname>TGpioState</apiname></xref>.         </p> </li>
+<li><p>          Implement <xref href="GUID-9BFB4B87-1400-33C0-B116-AC6FA349BE1E.dita"><apiname>GetInputState()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as a binary input. Determine          its electric
+state and set <codeph>aState</codeph> to the appropriate value of        
+ <xref href="GUID-7C1D78B4-9897-3C38-8EE7-7C311B885B0B.dita"><apiname>TGpioState</apiname></xref>.         </p> </li>
+</ul></section>
+<section id="GUID-DF48097B-9247-4817-9651-71C715FF5E09"><title>Static extension</title> <ul>
+<li><p>          Implement <xref href="GUID-821EF2E4-8DC9-3058-8CFD-53F3268264ED.dita"><apiname>StaticExtension()</apiname></xref> if necessary.
+        </p> </li>
+</ul></section>
+</conbody><related-links>
+<link href="GUID-0E15C8C4-E511-569F-8AB4-895CA00331AB.dita"><linktext>GPIO Features</linktext>
+</link>
+<link href="GUID-745273E3-BB3A-59BF-9C33-6C8BB3D850A9.dita"><linktext>GPIO Design
+Considerations</linktext></link>
+</related-links></concept>

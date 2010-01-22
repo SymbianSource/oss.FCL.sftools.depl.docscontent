@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5B24741C-7CE0-58E8-98C9-1D1CACCD476F" xml:lang="en"><title>Fair
+Scheduling and File Caching</title><shortdesc>This document describes the fair scheduling and file caching features
+of the File Server.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-CBF527A2-EF30-5D4D-9BF4-631748315BE9"><title>Fair scheduling</title><p>The
+current design of the file server supports the processing of client requests
+concurrently, as long as those requests are made to different drives in the
+system. For example, a read operation may take place on the NAND user area
+partition while a write operation to the MMC card takes place concurrently. </p><p>However,
+requests to the same drive are serialized on a first-come first-served basis,
+which under some circumstances leads to bad user experience. For example:</p><ol>
+<li id="GUID-6550B420-5545-42C9-B304-9A8FA7D9DA01"><p>An incoming call arrives
+while a large video file is being written to the NAND user area by an application
+that writes the file in very large chunks.</p></li>
+<li id="GUID-7B08B626-E610-448B-917C-CB6CC127F2B9"><p>In order to display
+the caller’s details, the phone needs to read from the contacts database which
+is also stored on the NAND user area.</p></li>
+<li id="GUID-3A42569B-66CF-420F-A09D-F02A6BA4E4F9"><p>The write operation
+takes a very long time to complete, so the call is lost.</p></li>
+</ol><p> This is one of many scenarios where the single threaded nature of
+the file server may lead to unresponsive behavior. In order to improve the
+responsiveness of the system, the Symbian platform implements a fair scheduling
+policy that splits up large requests into more manageable chunks, thus providing
+clients of the file server with a more responsive system when the file server
+is under heavy load.</p><p>See <xref href="GUID-89BCF9A5-ABBD-5523-BA76-FDB00B806A30.dita#GUID-89BCF9A5-ABBD-5523-BA76-FDB00B806A30/GUID-450D57A3-928B-5389-B941-595DB20A7CEA">Enabling
+fair scheduling</xref>.</p></section>
+<section id="GUID-84C18F69-D193-4010-A9B2-B533FC6ACF51"><title>Read caching</title><p>Read caching aims to improve file server
+performance by addressing the following use case: <ul>
+<li><p>A client (or multiple clients) issues repeated requests to read data
+from the same locality within a file. Data that was previously read (and is
+still in the cache) can be returned to the client without continuously re-reading
+the data from the media. </p></li>
+</ul></p><note>Read caching is of little benefit for clients/files that are
+typically accessed sequentially in large blocks and never re-read.</note><p>There
+may be a small degradation in performance on some media due to the overhead
+of copying the data from the media into the file cache. To some extent this
+may be mitigated by the affects of read-ahead, but this clearly does not affect
+large (&gt;= 4K) reads and/or non-sequential reads. It should also be noted that
+any degradation may be more significant for media where the read is entirely
+synchronous (for example, NAND on the H4 HRP), because there is no scope for
+a read-ahead to be running in the file server drive thread at the same time
+as reads are being satisfied in the context of the file server’s main thread.</p></section>
+<section id="GUID-7C6E6FDB-1419-4A8E-82F8-74EE6E62D468"><title>Demand paging effects</title><p>When ROM paging is enabled,
+the kernel maintains a <i>live list</i> of pages that are currently being
+used to store demand paged content. It is important to realize that this list
+also contains non-dirty pages belonging to the file cache. The implication
+of this is that reading some data into the file cache, or reading data already
+stored in the file cache, may result in code pages being evicted from the
+live list. </p><p>Having a large number of clients reading through
+or from the file cache can have an adverse effect on performance. For this
+reason it is probably not a good idea to set the <xref href="GUID-3B777E89-8E4C-3540-958F-C621741895C8.dita"><apiname>FileCacheSize</apiname></xref> property
+to too large a value – otherwise a single application reading a single large
+file through the cache is more likely to cause code page evictions if the
+amount of available RAM is restricted. See <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita">Migration
+Tutorial: Demand Paging and Media Drivers</xref>.</p></section>
+<section id="GUID-9BCF8F2A-F919-4AC7-BA05-02CC763429C1"><title>Read-ahead caching</title><p>Clients that read data sequentially
+(particularly using small block lengths) impact system performance due to
+the overhead in requesting data from the media. Read-ahead caching addresses
+this issue by ensuring that subsequent small read operations may be satisfied
+from the cache after issuing a large request to read ahead data from the media.</p><p>Read-ahead
+caching builds on read caching by detecting clients that are performing streaming
+operations and speculatively reading ahead on the assumption that once the
+data is in the cache it is likely to be accessed in the near future, thus
+improving performance.</p><p>The number of bytes requested by the read-ahead
+mechanism is initially equal to double the client’s last read length or a
+page, for example, 4K (whichever is greater) and doubles each time the file
+server detects that the client is due to read outside of the extents of the
+read-ahead cache, up to a pre-defined maximum (128K). </p></section>
+<section id="GUID-976EE014-E3C3-42FD-8467-1D008DEC27FD"><title>Write caching</title><p>Write caching is implemented to perform
+a small level of write-back caching. This overcomes inefficiencies of clients
+that perform small write operations, thus taking advantage of media that is
+written on a block basis by consolidating multiple file updates into a single
+larger write as well as minimizing the overhead of metadata updates that the
+file system performs. </p><p>By implementing write back at the file level,
+rather than at the level of the block device, the possibility of file system
+corruption is removed as the robustness features provided by rugged FAT and
+LFFS are still applicable.</p><p>Furthermore, by disabling write back by default,
+allowing the licensee to specify the policy on a per drive basis, providing
+APIs on a per session basis and respecting Flush and Close operations, the
+risk of data corruption is minimized.</p><note>The possibility of data loss
+increases, but the LFFS file system already implements a simple write back
+cache of 4K in size so the impact of this should be minimal.</note><note>Write
+caching must be handled with care, as this could potentially result in loss
+of user data.</note><p>Database access needs special consideration as corruption
+may occur if the database is written to expect write operations to be committed
+to disk immediately or in a certain order (write caching may re-order write
+requests).</p><p>For these reasons, it is probably safer to leave write caching
+off by default and to consider enabling it on a per-application basis. See <xref href="GUID-89BCF9A5-ABBD-5523-BA76-FDB00B806A30.dita#GUID-89BCF9A5-ABBD-5523-BA76-FDB00B806A30/GUID-719C7E0C-790B-5C61-9EA8-E2687397340F">Enabling
+read and write caching</xref>.</p></section>
+</conbody></concept>

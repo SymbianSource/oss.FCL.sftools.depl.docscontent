@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067" xml:lang="en"><title>Common
+Error Patterns - Execution Order</title><shortdesc>Describes a few common error patterns based on thread priority
+and multiple active threads in an SMP environment.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The majority of errors found while testing SMP code are not actually caused
+by SMP but are multi-threaded code errors that become more likely to occur
+on an SMP system.</p>
+<p>Many of these errors are caused by the developer making assumptions about
+how the scheduler will prioritise some threads, and suspend execution of other
+threads while the higher priority thread completes. Even on a single core
+system these assumptions can fail if the higher priority thread is not ready
+to run or has to wait for a resource, and the scheduler continues execution
+of the original thread. </p>
+<p>Because many of the common error patterns are caused by the same thread
+execution assumptions and errors, the solution to many of them is the same:
+write good code that doesn't make assumptions but explicitly enforces execution
+order or waits until asynchronous events are complete.</p>
+<p>Examples of common errors that are caused by thread execution order are:</p>
+<ul>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-D4EBB98F-3B2E-496D-BFDC-2C67B973D7B2">Relying
+on linear execution</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-5A105681-CB00-411A-B668-D40AE38AC670">Deleting/re-creating
+kernel objects</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-23075EA6-3B4F-4643-AF48-543650D821D8">Passing
+stack variables or temporary variables to an asynchronous service</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-E21B5F86-F54C-44A2-A470-4655A37C6DA3">Making
+asynchronous calls that pass a TRequestStatus without calling WaitForRequest()
+afterwards</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-903D3074-254D-4639-9EBB-196A06736301">Relying
+on thread priority for execution order</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-925A024E-06E4-439B-B324-E16BDF5C06BD">Relying
+on thread priority for publish and subscribe execution order</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-FD625F77-F517-45ED-B21E-421354CB4197">Cancelling
+a subscription while a thread is still waiting for notifications</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-C1A9B0A2-9423-468F-8B29-45001717B9C2">Other
+race conditions due to unexpected thread ordering</xref></p></li>
+<li><p><xref href="GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067.dita#GUID-93C75E31-6155-48F1-B99C-92ECD0B2C067/GUID-ED30D34F-6976-493E-A869-9A906A5CBDA5">Using
+non-Symbian synchronisation APIs</xref></p></li>
+</ul>
+<section id="GUID-D4EBB98F-3B2E-496D-BFDC-2C67B973D7B2"><title>Relying on
+linear execution</title><p>On a single-processor system, the scheduler usually
+grants execution to another thread when the active thread returns from a function
+or calls a waiting primitive. This can lead to two kinds of assumptions: assuming
+that the other thread will not execute until a later stage, or assuming that
+the active thread will block on an asynchronous function call. You must not
+rely on either of these, especially on an SMP system.</p></section>
+<section id="GUID-5A105681-CB00-411A-B668-D40AE38AC670"><title>Deleting/re-creating
+kernel objects</title><p>Kernel objects are objects derived from <codeph>RHandleBase</codeph>,
+such as threads, semaphores, mutexes. processes and timers. They each have
+a name that must be unique within the system and are managed by the supervisor
+thread. </p><p>If you ask for such a kernel object to be deleted, there may
+be a delay before the asynchronous deletion completes. If you try to create
+an object with the same name before the kernel has deleted the original object,
+the creation will fail. In general it is not possible to determine whether
+the kernel has completed the deletion: although there are some APIs that can
+be used during development, they are not available for use on a live system. </p><p>For
+that reason it is important to not reuse names, but to always create kernel
+objects with a new unique name for each object. There are APIs available for
+many kernel objects to provide new unique names. It is also possible for you
+to write your own unique name generator.</p></section>
+<section id="GUID-23075EA6-3B4F-4643-AF48-543650D821D8"><title>Passing stack
+variables or temporary variables to an asynchronous service</title><fig id="GUID-693794EA-6FB9-489D-823C-C2EA7AA6ACC2">
+<title>Passing data on the stack</title>
+<image href="GUID-0CDD535C-9F46-43F3-A1CC-1A4A0E74629A_d0e639675_href.png" placement="inline"/>
+</fig><p>When execution leaves a function, the variables that are local to
+the function are deallocated from the stack. If you pass local variables as
+parameters to an asynchronous function, you must make sure that the other
+thread's execution happens before the data is removed from the stack. It is
+much better to use objects that persist over the lifetime of an asynchronous
+call: for example, a class member variable..</p><p>Likewise, deleting an object
+after it has been passed to an asynchronous function but before the service
+is provided will cause application errors and possibly device panics</p></section>
+<section id="GUID-E21B5F86-F54C-44A2-A470-4655A37C6DA3"><title>Making asynchronous
+calls that pass a TRequestStatus without calling WaitForRequest() afterwards</title><p>On
+a single-processor system, calling a waiting primitive always relinquishes
+execution control to the scheduler. With adequate thread priorities, the scheduler
+may then run the thread in charge of the request. However, this assumption
+is not true on an SMP system, where both threads might execute at the same
+time. </p><p>Therefore,  you must use a synchronisation primitive to ensure
+that the asynchronous request is complete before continuing on to any code
+that relies on the completion of that request.</p><p>As for any other asynchronous
+request, it is important to wait for the request to complete. Use <xref href="GUID-FF234B6F-8AFA-3CE7-A911-16BC4443702B.dita"><apiname>WaitForRequest()</apiname></xref> to
+ensure that the other thread has finished processing the asynchronous call
+before the calling thread can safely progress.</p></section>
+<section id="GUID-903D3074-254D-4639-9EBB-196A06736301"><title>Relying on
+thread priority for execution order</title><p>On an SMP system, you cannot
+assume execution order from thread priority. Use semaphores and mutexes to
+ensure that the execution order is safe.</p></section>
+<section id="GUID-925A024E-06E4-439B-B324-E16BDF5C06BD"><title>Relying on
+thread priority for publish and subscribe execution order</title><p>As the
+notification thread and the subscription thread might execute at the same
+time, use synchronisation primitives to ensure that your listener is ready
+before publishing, and that it is notified before the publication channel
+is deleted.</p><p>See <xref href="GUID-314FAEB5-946C-4090-B6AA-1BEEC9BE8EFB.dita">Common
+Error Patterns - Case Studies</xref> for an example of a Publish and Subscribe
+error pattern.</p></section>
+<section id="GUID-C1A9B0A2-9423-468F-8B29-45001717B9C2"><title>Other race
+conditions due to unexpected thread ordering </title><p>It is expected that
+there may be other race conditions between threads and as these are identified
+this document will be updated to describe them.</p></section>
+<section id="GUID-ED30D34F-6976-493E-A869-9A906A5CBDA5"><title>Using non-Symbian
+synchronisation APIs</title><p>The Symbian synchronisation and IPC primitives
+protect data and control thread execution on an SMP system. There is no guarantee
+that non-Symbian APIs will give the same protection. For SMP-safe code, only
+use the Symbian synchronisation APIs .</p><p>See <xref href="GUID-9D93F895-B975-4F2D-A2A3-817033EA5C12.dita">Data
+Integrity and memory barriers</xref> , <xref href="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68.dita">Atomic
+Operations</xref> and <xref href="GUID-16AED228-539F-4BF7-A7FD-9A01FF1A9A84.dita">Locking</xref> for
+useful synchronisation and atomic operation APIs.</p></section>
+</conbody><related-links>
+<link href="GUID-314FAEB5-946C-4090-B6AA-1BEEC9BE8EFB.dita"><linktext>SMP - Common
+Error Patterns - Case Studies</linktext></link>
+</related-links></concept>

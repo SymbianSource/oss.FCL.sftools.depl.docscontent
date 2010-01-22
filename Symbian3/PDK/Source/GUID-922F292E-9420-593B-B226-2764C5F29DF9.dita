@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-922F292E-9420-593B-B226-2764C5F29DF9" xml:lang="en"><title>Encrypting
+RTP Packet Data</title><abstract><p/>SRTP generates SRTP packets from the RTP stream and forwards
+the packets to the receiver. SRTP transforms incoming SRTP packets to RTP
+packets and passes them up the stack. To ensure the confidentiality of the
+packet content, data encryption is used.  <p/> The data packet consists
+of payload and header. The payload is encrypted. An authentication is performed
+collectively on the header and the encrypted payload. <p/>  Encrypted RTP
+packet data is encapsulated for transmission in a single lower-layer packet
+as a unit. The encrypted SRTP packet consists of the encrypted RTP payload
+and RTP header. The encrypted packet may be the exact size of the plain packet
+or larger. <p/>  The presence of encryption and the correct usage of key
+are confirmed by the receiver through header and payload validity checks. </abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq><p>An SRTP session must be created and initialized before an application
+requests for a RTP payload encryption. </p> </prereq>
+<steps id="GUID-7A30F5A3-7CDF-5ED2-92E8-9254446B17FD">
+<step id="GUID-6F92FF92-7551-5AB0-B7DD-F8DD0866D35D"><cmd>An application requests
+for encryption of RTP packet. </cmd>
+</step>
+<step id="GUID-C38877C6-EEE0-5E63-80A2-5826F8BF826B"><cmd>The SRTP DLL checks
+for the cryptographic context of the input stream. If a match is not found,
+SRTP DLL checks for the cryptographic context of the session. </cmd>
+</step>
+<step id="GUID-BA67E90F-86E4-579F-8CC5-A6A765F73F92"><cmd/>
+<info>The packet is encrypted using <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>ProtectRTPL()</apiname></xref> API
+of the class <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>CSRTPSession</apiname></xref>.The session
+keys in the cryptographic context of the current SRTP session are used for
+encryption. </info>
+<substeps id="GUID-AF904AE9-50C8-56DF-8F58-B8642036B060">
+<substep id="GUID-5DE97C1A-88FB-5982-A675-AA9BC2ACF08B"><cmd/>
+<info>The prototype for the API <xref href="GUID-8B875E75-DD09-3E4D-9FC6-152091869BA2.dita"><apiname>ProtectRTPL()</apiname></xref> is
+as described below. </info>
+<stepxmp><codeblock id="GUID-171C1A63-8839-55D6-863A-5149EA60BB4C" xml:space="preserve">
+                     IMPORT_C HBufC8* ProtectRTPL(TUint aSSRC, const TDesC8&amp; aPacket); 
+                  </codeblock> </stepxmp>
+
+<info>This API is invoked if the session finds a match stream and protect
+stream. </info>
+<info>aSSRC is the input parameter that contains the Synchronisation Source
+(SSRC). Synchronisation Source is the source for stream of RTP packets identified
+by a 32 bit numeric. SSRC identifier is a part of the RTP packet header. </info>
+<stepxmp>aPacket is the input parameter that contains the packet to be protected(encrypted).
+The packet includes RTP header and the paleout. The length of descriptor should
+match the actual data length. A mismatch in the length descriptor and actual
+length may lead to incorrect encryption. </stepxmp>
+<info>HBufC8 is the output parameter that contains the encrypted packet. </info>
+<stepresult>The API leaves, if a matching stream is not found. </stepresult>
+</substep>
+</substeps>
+</step>
+<step id="GUID-80D0973B-232D-5EAC-A9F3-11C039E3401A"><cmd>The SRTP DLL updates
+the count of packets encrypted. </cmd>
+</step>
+</steps>
+<result><p>On successful execution of the API, encrypted data is returned. </p> </result>
+</taskbody><related-links>
+<link href="GUID-06370120-7738-5694-9A8C-3B5B1E3A4352.dita"><linktext>Creating
+an SRTP                 Session</linktext></link>
+<link href="GUID-425A208C-5D2D-55FD-8623-9E00006E2781.dita"><linktext>Creating
+a                 Cryptographic Context</linktext></link>
+<link href="GUID-372B7A9F-261E-5F3F-B114-4BE2FE2EF7C7.dita"><linktext>Creating
+an SRTP                 Stream</linktext></link>
+<link href="GUID-79846EA2-33CD-5D01-8E96-6092C15BD839.dita"><linktext>Encrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-6E1AC4C9-7CA3-503A-AFC0-BAF29CCA8290.dita"><linktext>Decrypting
+RTP                 Packet Data</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Decrypting
+                RTCP Packet Data</linktext></link>
+<link href="GUID-B9BD2E0A-F214-5344-91A6-E4E99F0D74C8.dita"><linktext>Updating
+Master                 Key</linktext></link>
+<link href="GUID-F9A24A47-7A0B-5F6E-8B0A-B7A7BCC4EAFC.dita"><linktext>Managing
+                Master Key</linktext></link>
+</related-links></task>

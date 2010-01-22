@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-1D0301C5-52D8-4E4F-BEC3-52037BA2A003" xml:lang="en"><title>Enabling
+MTP over USB using a user application</title><shortdesc>This section describes the steps to enable MTP over USB using a
+user application.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>You can write your own application to enable MTP over USB.
+The application must call the MTP Client API to start the MTP server (in the
+MTP framework). The MTP Framework then loads the USB MTP Transport plug-in.</p> 
+   </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-23-1-1-7-1-5-1-5-1-4-1-6-1-3-2">
+<step id="GUID-E9ED382D-211C-4485-8A75-4147E453A8E1"><cmd>The user application
+must instantiate a service provider, <codeph>RMTPClient</codeph>, and connect
+to the MTP Server. </cmd>
+</step>
+<step id="GUID-4A47A2FE-51A4-4276-8B8E-DF1162E440F4"><cmd>Once the session
+is connected start communication with the PC by calling <codeph>StartTransport()</codeph>.
+Pass the UID for the USB transport plug-in, <codeph>0x102827B2</codeph>, to
+this method.  </cmd>
+</step>
+</steps>
+<example><codeblock xml:space="preserve">RMTPClient mtp; 
+const TUid KUSBStillImage = { 0x102827B2 }; 
+
+TInt err =  mtp.Connect();
+if( err != KErrNone )
+   {
+   // Error in starting the MTP Framework
+   }
+else( err = mtp.StartTransport( KUSBStillImage ) )
+   {
+   if( err != KErrNone )
+       {
+       // Error in starting the USB transport.
+       }
+   }
+...
+err = mtp.StopTransport( KUSBstillImage ); 
+if( err != KErrNone )
+   {
+   // Error in stopping the USB transport 
+   }
+
+mtp.Close();
+</codeblock></example>
+</taskbody><related-links>
+<link href="GUID-9EC375CD-A021-5DD0-93A9-748AC80356EE.dita"><linktext>Enabling
+MTP over USB</linktext></link>
+<link href="GUID-DE2E64A5-417A-538C-904B-6D498BB55273.dita"><linktext>Symbian USB
+Manager</linktext></link>
+<link href="GUID-92976123-FA75-5B55-B86E-F7B404E762CF.dita"><linktext>USB Personalities</linktext>
+</link>
+</related-links></task>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413" xml:lang="en"><title>User-Side
+Hardware Abstraction Technology</title><shortdesc>Description of HAL types and interfaces.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The User-Side Hardware Abstraction (HAL) component provides a platform-independent
+way to access and control many device specific features, and to hide hardware-specific
+functionality. For example, HAL can be used to find out if a screen backlight
+is present or not, or to set the display contrast. This topic </p>
+<section id="GUID-174A663C-3943-5D36-B507-D97A687C168C"><title>Attributes</title> <p>Specific
+items of hardware related information are referred to as <i>attributes</i>.
+Symbian platform defines two types of attribute: </p> <ul>
+<li id="GUID-3A220CC5-7D56-5FB8-A69A-EFAAC0159561"><p>Non-derived attribute.
+This is an attribute where the information it represent is simply a value
+that is stored in, and retrieved from, the HAL. </p> </li>
+<li id="GUID-934EFFE7-4768-5919-8900-6DE6915E3195"><p>Derived attribute. This
+is an attribute that requires a software call to obtain and set its value.
+The software component is, ultimately provided by a driver, kernel extension
+or by the kernel itself. The drivers or kernel extensions normally need porting. </p> </li>
+</ul> <p>Attributes are identified by the enumeration values of the enumerator <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> defined
+in <filepath>...\hal\inc\hal_data.h</filepath> and is exported to <filepath>...\epoc32\include\</filepath>. </p> <p>To
+maintain backwards compatibility, the numbers identifying HAL attributes are
+allocated strictly increasing consecutive values, and that a given HAL attribute
+always has the same enumeration number on all implementations of Symbian platform.
+This means that new HAL attributes can only be added by Symbian. This also
+means that the addition of custom HAL attributes is not possible. </p> </section>
+<section id="GUID-F1F21DDA-DEA0-502E-83DB-84DDCFA5CBF8"><title>User-side interface</title> <p>Symbian
+platform provides the following static functions to get and set information
+about specific hardware features: </p> <ul>
+<li id="GUID-75ADEAE6-3BA5-55AA-9F6D-B91491CD1B7B"><p> <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref>  </p> </li>
+<li id="GUID-A11EFEFE-D480-5557-965E-FEC524B7C5A9"><p> <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref>  </p> </li>
+<li id="GUID-CD26D10D-84EB-56D4-AC70-86C2E65734E6"><p> <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-EF03B832-E9AA-32CF-903F-DFFA63A3E9AB"><apiname>HAL::GetAll()</apiname></xref>  </p> </li>
+</ul> <p>The <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita"><apiname>HAL</apiname></xref> class is defined in the source tree header
+file <filepath>...\hal\inc\hal.h</filepath>, and is exported to <filepath>...\epoc32\include\</filepath>.
+The functions are exported from the HAL DLL, which is built as part of the
+Variant. </p> <p> <codeph>Get()</codeph> and <codeph>Set()</codeph> take an <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attribute</xref> to
+identify specific hardware functionality. </p> <p> <codeph>GetAll()</codeph>,
+as its name implies gets all available hardware information, but is rarely
+used. See <xref href="GUID-124AC7EE-E227-5358-A755-628FFE257250.dita#GUID-124AC7EE-E227-5358-A755-628FFE257250/GUID-D75D3A65-590D-5716-84A7-0195DFCD1656">Dealing
+with the HAL::GetAll() function</xref> for more information. </p> <p> <codeph>Get()</codeph> and <codeph>Set()</codeph> each
+have a variation that allows a device number to be specified. The device number
+allows more than one set of attributes to be used. Each set is associated
+with a different device number. This is motivated by the need to support multiple
+display screens where each screen is identified as a separate device of the
+same 'type'. The idea of a device can be extended other hardware, and indeed
+the underlying implementation assumes a device number. If a device number
+is not specified and has no meaning, then a default device number of 0 is
+assumed for compatibility with the underlying implementation. </p> <p>For
+example, on return from code such as: </p> <codeblock id="GUID-D512D36F-C94A-50C2-9245-569C6386E559" xml:space="preserve">...
+TInt xpixels;
+HAL::Get(EDisplayXPixels, xpixels);
+...</codeblock> <p> <codeph> xpixels</codeph> contains the horizontal size
+of the display screen in terms of the number of pixels. If you have more than
+one screen, i.e. more than one device, then you would use the API variant
+that takes a device number. </p> </section>
+<section id="GUID-79BE4534-B9C6-5D64-8CB0-E3EEDE8AD293"><title>HAL handler
+interface</title> <p>A request for fetching and setting information about
+hardware is dealt with by an entity called a HAL handler on the kernel side.
+This section describes the types and concepts used to implement a HAL handler. </p> </section>
+<section id="GUID-FBA183CB-E9D5-4E70-B65F-A496853D614B"><title>HAL groups and function-ids</title><p>It is useful to group
+together requests for information about related hardware features so that
+they can be dealt with by a single HAL handler. As an example, all the HAL
+screen attributes are in the display group and are handled by the screen (i.e.
+video or LCD) driver. This means that a HAL group has a one-to-one association
+with a HAL handler. </p> <p>A HAL group has an associated set of function-ids,
+which identify requests for different pieces of information to the HAL handler. </p> <p>Symbian
+platform identifies HAL groups by a number defined by the <xref href="GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7.dita"><apiname>THalFunctionGroup</apiname></xref> enum
+in <filepath>u32hal.h</filepath>, which is exported to <filepath>...\epoc32\include</filepath>.
+For example, the <xref href="GUID-7F299BFC-D8A5-3A5A-B8DA-39BF42C99DC6.dita"><apiname>EHalGroupDisplay</apiname></xref> enum value identifies
+the group associated with the HAL screen attributes. </p> <p>The function-ids
+associated with each HAL group are also defined in <filepath>u32hal.h</filepath>.
+Each set of function-ids is defined by an enum; for example the enum <xref href="GUID-BB011D9B-105F-345C-9FC0-39B0BA509394.dita"><apiname>TDisplayHalFunction</apiname></xref> defines
+the function-ids associated with the HAL group <xref href="GUID-7F299BFC-D8A5-3A5A-B8DA-39BF42C99DC6.dita"><apiname>EHalGroupDisplay</apiname></xref>. </p> <p>The
+idea of the HAL group is what allows HAL handling functionality to be implemented
+in the Variant, rather than in the kernel. </p> <p>Up to 32 groups can be
+defined. Often, a HAL group is concerned with mode settings for a particular
+piece of hardware; for example there are standard HAL groups for keyboard,
+digitiser and display. However, some groups are concerned with some overall
+aspect of the platform which extends across all devices; for example, there
+is a group to handle emulation parameters on emulator platforms. </p> <p>An <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attribute</xref> maps
+to a HAL group/function-id pair, although the mapping is not necessarily a
+one-to-one relationship. For example, the calls: </p> <codeblock id="GUID-FB9CB26C-3DEF-5E8B-A564-40ECC68AD2FD" xml:space="preserve">TInt xPixels, yPixels;
+...
+HAL::Get(HALData::EDisplayXPixels,xPixels);
+HAL::Get(HALData::EDisplayYPixels,yPixels);
+...</codeblock> <p>both result in calls to the screen (i.e. video or LCD)
+HAL handler, as represented by the HAL group number <xref href="GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7.dita#GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7/GUID-950EA0D3-747F-305E-92EA-1579023A111E"><apiname>THalFunctionGroup::EHalGroupDisplay</apiname></xref>,
+using the same function-id <xref href="GUID-BB011D9B-105F-345C-9FC0-39B0BA509394.dita#GUID-BB011D9B-105F-345C-9FC0-39B0BA509394/GUID-FD814550-9B59-3196-827C-5C1A87E09D77"><apiname>TDisplayHalFunction::EDisplayHalScreenInfo</apiname></xref>. </p> <p>However,
+there are HAL group/function-id pairs for which there are no corresponding
+generic attributes. In these cases, the hardware attributes represented by
+the HAL group/function-id pair are used internally, and can only be accessed
+using the kernel side function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DA115709-A225-3E2A-BCCD-6E2BB15979B9"><apiname>Kern::HalFunction()</apiname></xref> **. </p> <p>The
+following picture shows the general idea: </p> <fig id="GUID-95743ED4-8CEC-5BAD-A5C2-9FD16D0485FA">
+<image href="GUID-F50E1C81-E80F-5692-996B-3AC2BE995425_d0e401143_href.png" placement="inline"/>
+</fig> <p>**Technically, the user side function <codeph>UserSvr::HalFunction()</codeph> will
+achieve the same thing, but this is <i>internal to Symbian</i> and is <i>not
+intended for general use</i>. </p></section>
+<section id="GUID-F28BA77B-D7AA-4D27-8ADF-029F42F800E4"><title>HAL handler implementation</title><p>Most HAL handlers are
+implemented as part of a driver, a kernel extension, the Variant or the kernel
+itself. Some will need porting. See <xref href="GUID-857F981E-711B-5CA8-AB37-5C700A6140FA.dita">Groups
+and the location of their HAL handlers</xref>. </p> <p>An extension or a device
+driver <i>must register</i> a handler for HAL group. It does so by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8C8DCE9D-0094-3909-8FDA-2F3134D0BC88"><apiname>Kern::AddHalEntry()</apiname></xref>,
+specifying the group number. It is important to note that it is the extension
+or driver's responsibility to do this; in other words, the kernel cannot know
+what entity within a final ported Symbian platform is going to be the HAL
+handler until it is explicitly told by registration. One point to note is
+that the HAL handlers for the groups: <xref href="GUID-F10DCE1F-756C-318D-B0D1-8C8F5255959E.dita"><apiname>EHalGroupKernel</apiname></xref>, <xref href="GUID-D60C5503-A176-354A-A655-22BE371178AE.dita"><apiname>EHalGroupVariant</apiname></xref> and <xref href="GUID-FB85CE22-DDFF-37E6-A6CE-7F70A994D371.dita"><apiname>EHalGroupPower</apiname></xref> are not explicitly registered - they are registered internally by the kernel
+itself. </p> <p>Internally, pointers to the HAL handler are stored in the
+array <codeph>K::HalFunction[]</codeph>, and this is indexed by the group
+number. </p> <p>On the template board, for example, the HAL handler for the
+display group is part of the screen driver. The screen driver source can be
+found in <filepath>...\template_variant\specific\lcd.cpp</filepath>. The HAL
+handler itself is the function: </p> <codeblock id="GUID-C7272D10-F603-5DF6-8C0B-EE18EDDAF32E" xml:space="preserve">LOCAL_C TInt halFunction(TAny* aPtr, TInt aFunction, TAny* a1, TAny* a2)
+    {
+    DLcdPowerHandler* pH=(DLcdPowerHandler*)aPtr;
+    return pH-&gt;HalFunction(aFunction,a1,a2);
+    }</codeblock> <p>The following code, implemented in the Create() function
+of the main class, does the registration. </p> <codeblock id="GUID-2B8BFFC5-8FC5-5220-BE9D-F02003C41275" xml:space="preserve">TInt DLcdPowerHandler::Create()
+    {
+    ...
+    // install the HAL function
+    r=Kern::AddHalEntry(EHalGroupDisplay,halFunction,this);
+    if (r!=KErrNone)
+        return r;
+    ...
+    }</codeblock> <p>Security is the responsibility of the HAL handler. If
+necessary, it needs to check the capability of the caller's process. Each
+information item, as identified by the function-id, can have an associated
+capability. </p> <p>Each function-id defined in <filepath>u32hal.h</filepath> is
+documented with the required capability. If no capability is listed, then
+no specific capability is required. </p> <p>See <xref href="GUID-124AC7EE-E227-5358-A755-628FFE257250.dita">Implementing
+HAL handlers</xref> for details. </p> </section>
+<section id="GUID-042A8840-2260-5951-8951-E6E2A83F378E"><title>Kernel-side
+interface</title> <p>Code such as device drivers that runs on the kernel side
+need not use the generic interface provided by the HAL class functions. The <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DA115709-A225-3E2A-BCCD-6E2BB15979B9"><apiname>Kern::HalFunction()</apiname></xref> API
+is provided to access HAL information. </p> <p>Unlike the HAL class functions, <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DA115709-A225-3E2A-BCCD-6E2BB15979B9"><apiname>Kern::HalFunction()</apiname></xref> uses
+the group number and function-ids to identify hardware related information.
+This means that kernel side code does not use attributes to identify hardware
+related information. The implication here is that you <i>may</i> have to make
+changes to your kernel side code when porting to another platform. In practice,
+no changes may be needed, but at the very least you need to check. </p> </section>
+<section id="GUID-43324161-56E6-40A7-A4C4-D3D8435D3568"><title>Config and Values files define attributes</title><p>Although
+an <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attribute</xref> is
+generic, some attributes may not have meaning on some platforms. In addition,
+each platform needs to define whether an attribute is either: </p> <ul>
+<li id="GUID-5D6B46DF-FAE7-5097-832D-F8FD33A3DB53"><p> <i>non-derived</i>,
+i.e. has a value that is simply stored in the HAL, </p> </li>
+</ul> <p>or: </p> <ul>
+<li id="GUID-B40D5AE3-13E7-50B0-8926-5B3461496DD2"><p> <i>derived</i>, i.e.
+requires a call to a software entity to get and set the value. </p> </li>
+</ul> <p>This is the role of the <i>Config file</i>. </p> <p>The Config file
+contains a list of all the attributes that have meaning on a platform, and
+uses the symbols defined in the enum <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> to
+identify them. Using a simple syntax, an attribute can be defined as being
+derived by associating the attribute symbol with the name of a function. This
+function is known as the <i>accessor function</i>. </p> <p>There is also a
+file known as the <i>Values file</i> that defines the initial values for all
+of the non-derived attributes, i.e. those attributes that are simply stored
+in, and retrieved from, the HAL. </p> <p>The Config and Values files are text
+files that, for a specific implementation of the HAL, reside in the <filepath>...\variant\hal</filepath> directory.
+The MMP file also resides there, and the HAL is built as part of the Variant.
+As part of the build process, the Config and Values files are passed to a
+Perl script, <filepath>halcfg.pl</filepath>, which translates the contents
+into C++ source files. The resulting binaries are linked in as part of the
+resulting HAL DLL. </p> <p>In effect, these C++ source files implement the
+static data arrays defined by the <codeph>HalInternal</codeph> class. As its
+name suggests, <b>this class is internal to Symbian platform</b>, and is only
+discussed here to help with understanding. </p> <codeblock id="GUID-35660653-5519-59B9-A8D1-1BC18EA5E46D" xml:space="preserve">class HalInternal
+    {
+    ...
+    static const TUint8 Properties[HAL::ENumHalAttributes];
+       ...
+    static const TInt InitialValue[HAL::ENumHalAttributes];
+    static const THalImplementation Implementation[HAL::ENumHalAttributes];
+    ...
+    }</codeblock> <p>The data member <codeph>Implementation[]</codeph> is
+an array of pointers to the accessor functions </p> <p>See <xref href="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F.dita">Creating
+the Config &amp; Values files</xref> for detailed syntax. </p></section>
+<section id="GUID-35FF9B50-7503-4F8E-B7A7-91287FDB57AB"><title>Derived attributes require accessor functions</title><p>Each
+derived attribute has a corresponding accessor function. For example, <codeph>ProcessDisplayContrast()</codeph>. </p> <p>All
+accessor functions are implemented in <filepath>...\hal\src\userhal.cpp</filepath>,
+and are provided by Symbian platform because of the 'connection' to attributes
+which are themselves defined as part of the generic platform. </p> <p>Generally
+there is one accessor function per derived attribute, although there is nothing
+to prevent an accessor function dealing with more than one attribute. The
+attribute number is used to route calls made to <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> and <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> forward
+to the correct accessor function. Internally, Symbian platform routes calls
+to Get() and Set() for an attribute to the same accessor function, distinguishing
+between the two by a boolean value. </p> <p>A new implementation of an accessor
+function should rarely, if ever, be needed as all likely accessor functions
+are already defined and implemented by Symbian platform in <filepath>...\hal\src\userhal.cpp</filepath>. </p> <p>See <xref href="GUID-A7ECF51F-F96A-5251-A71F-2F269C8C0664.dita">Writing accessor functions
+for derived attributes</xref>. </p></section>
+<section id="GUID-0561268F-C0D0-4E33-85A7-D90F3099E5D1"><title>Accessor functions call UserSvr::HalFunction()</title><p>Typically,
+an accessor function implementation calls <xref href="GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9.dita#GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9/GUID-7F07C14C-E69A-3277-8BFF-0CE2A820166D"><apiname>UserSvr::HalFunction()</apiname></xref>,
+specifying a group number, as defined in <xref href="GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7.dita"><apiname>THalFunctionGroup</apiname></xref>,
+and a function-id that is related to the attribute, but is <i>not</i> the
+attribute number as defined in <xref href="GUID-72B0351E-E8D1-3990-9673-A6713F923BC9.dita"><apiname>TAttribute</apiname></xref>. Function numbers
+are published in <filepath>u32hal.h</filepath>, and exported into <filepath>...\epoc32\include</filepath>;
+for example, the enumerators of the enum <codeph>TDigitiserHalFunction</codeph>. </p> <p>This
+means that it is the accessor function, which is part of Symbian platform
+generic code, that decides which HAL handler is to deal with a request (as
+identified by the attribute). </p> <p>The kernel uses the HAL group number
+as an index to dispatch the call to the correct HAL handler. </p> <p>Note
+that there may be cases where access to a HAL attribute may be handled through
+a device driver or server. </p></section>
+<section id="GUID-14E8EB8B-35FD-4780-8096-249742595207"><title>UserSvr::HalFunction() calls ExecHandler::HalFunction()</title><p>The
+static function <codeph>UserSvr::HalFunction()</codeph>, which is <i>internal</i> to
+Symbian platform, is the user side point of access. It takes a <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-366CC4B8-C6BD-5DCC-B55D-6D87CD5C8E64">HAL group</xref> to identify a set of related hardware features. In addition,
+it takes a function-id to identify specific hardware functionality within
+the HAL group, for example, one of the <codeph>TDisplayHalFunction</codeph> enumerators. </p> <p>A
+call to this function results in a call to the kernel side function <codeph>exechandler::HalFunction()</codeph>,
+passing the group number and the function-id. This, in turn, finds the appropriate <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-1B59A40C-D023-5555-8E5E-DF18D653D321">HAL
+handler</xref> function in the internal array <codeph>K::HalFunction[]</codeph>,
+using the group number as the index. </p> <p> <codeph>UserSvr::HalFunction()</codeph> is
+exported from <filepath>euser.dll</filepath>, and is therefore accessible
+from the user side. However, it is <i>not intended for general third party
+use</i>. </p> <p>For information purposes, the <codeph>UserSvr</codeph> class
+is defined in the source tree header file <filepath>...\e32\include\e32svr.h</filepath>,
+which is exported to <filepath>...\epoc32\include\</filepath>. </p></section>
+</conbody></concept>

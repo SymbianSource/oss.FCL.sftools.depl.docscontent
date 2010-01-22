@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-5885167D-4755-54CC-B366-6DA89A608F8E"><title>Installing Features with Feature Manager</title><shortdesc>Provides instructions for adding features when installing a new software component. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context id="GUID-40496782-F0E4-5F4D-B6E9-DA4474CDA671"><p>A phone is typically built with many features either disabled or not included. When you install a new software component which requires disabled or excluded features you need to enable or add them for the first time. You do this using the feature installer, a C++ program which calls the Feature Manager API. To install the required features you customise and install the source code. </p> </context> <steps id="GUID-2CA20C7B-26A2-5E4B-BBE2-95E7674421DC"><step id="GUID-A6C4B135-B93B-5C68-85F3-026E9BB02BC2"><cmd/><info>customise the source code in <filepath>featureinstaller.cpp</filepath>, </info> <substeps id="GUID-D8A88FAD-0987-50AA-A986-1BB629106DC1"><substep id="GUID-F3505836-5E4D-52CB-9540-423E036A92D2"><cmd/><info>Set the TUid <codeph>featureUid</codeph> to the UId of the required feature as defined in <filepath>featureUIDs.h</filepath>, </info> <stepxmp><codeblock id="GUID-22B3B46E-99A7-5D21-8E9D-B5A762510A3C" xml:space="preserve">    // TODO: Replace UID 0x00000000 with real value
+    TUid featureUid( TUid::Uid( 0x00000000 ) ); 
+</codeblock> </stepxmp> </substep> <substep id="GUID-7538FC56-74C7-52B4-8B4C-B860D59F0E12"><cmd/><info>set the TBitFlags32 <codeph>featureFlags</codeph> to the status flags which should be set for the required feature, and </info> <stepxmp><codeblock id="GUID-325D9F6F-F8A1-55A7-9171-212D441E9C40" xml:space="preserve">    // If set, feature is supported and available for use; 
+    // if not, feature is not supported.
+    // TODO: Comment when needed!
+    featureFlags.Set( EFeatureSupported );
+    ...
+</codeblock> </stepxmp> </substep> <substep id="GUID-A7FACC1E-4B45-5479-9992-2DD321082751"><cmd>set the TUint32 <codeph> featureData</codeph> to the user-defined data. </cmd> <stepxmp><codeblock id="GUID-C28942F8-CD93-5A0D-A62D-42A54E69BFAF" xml:space="preserve">    // TODO: Set feature data. Replace &lt;featureData&gt; with real value!
+    // TODO: Comment when needed!
+    TUint32 featureData( 0x00000000 );
+</codeblock> </stepxmp> </substep> </substeps> <info>This is the source code to be modified. </info> <stepxmp><codeblock id="GUID-4A29F159-AC08-598D-80CE-389E16BFFDF4" xml:space="preserve">
+
+// INCLUDE FILES
+#include &lt;featurecontrol.h&gt;
+
+// LOCAL CONSTANTS AND MACROS
+_LIT(KTxt,"featureinstaller: mainL failed");
+
+
+// ============================= LOCAL FUNCTIONS ===============================
+
+// -----------------------------------------------------------------------------
+// mainL
+// -----------------------------------------------------------------------------
+//  
+LOCAL_C void mainL()
+    {
+    // Open Feature Control.
+    RFeatureControl featureControl;
+    User::LeaveIfError( featureControl.Open() );
+    
+    // Example code adds a new persisted feature to the device.
+    // TODO: Comment or uncomment code when needed. 
+    
+    // TODO: Specify in your .pkg file:
+    // @"featureinstaller.sisx", (0x10283303)
+
+    
+    // TODO: Replace UID 0x00000000 with real value
+    TUid featureUid( TUid::Uid( 0x00000000 ) ); 
+    
+    // TODO: Set feature flags of the feature!
+   
+    // Set all flags to zero.
+    // TODO: Comment when needed!
+    TBitFlags32 featureFlags( 0 );
+
+    // If set, feature is supported and available for use; 
+    // if not, feature is not supported.
+    // TODO: Comment when needed!
+    featureFlags.Set( EFeatureSupported );
+    
+    // If set, feature is upgradeable. The feature is known to the device
+    // but it must be upgraded to enable it. If a feature s blacklisted, 
+    // its upgradeable flag is unset. 
+    // TODO: Uncomment when needed!
+    // featureFlags.Set( EFeatureUpgradeable );
+    
+    // If set, the feature is modifiable and may be enabled/disabled 
+    // at run-time. The initial flag values for such a feature flag are
+    // defined in a ROM image obey file.
+    // TODO: Comment when needed!
+    featureFlags.Set( EFeatureModifiable );
+    
+    // If set, the feature has been blacklisted, and may not be changed at 
+    // run-time. This also prevents a feature from being upgraded.
+    // TODO: Uncomment when needed!
+    // featureFlags.Set( EFeatureBlackListed );
+
+    // If set, only clients with WriteDeviceData capability can modify it.
+    // This ensures only trusted software can set the feature Supported flag.
+    // TODO: Uncomment when needed!
+    // featureFlags.Set( EFeatureProtected );
+    
+    // If set, this flag is saved to the system drive when modified 
+    // preserving its value across reboots/power downs.
+    // TODO: Comment when needed!
+    featureFlags.Set( EFeaturePersisted );
+    
+    // If set, this flag Supported state is unknown at build-time and is
+    // initialised at run-time by system software. The Feature Manager will
+    // ignore the Supported flag in the file. A run-time call to RFeatureControl
+    // will be needed to set the feature's supported flag. Look ups of 
+    // uninitialised features result in a KErrNotReady error code
+    // TODO: Uncomment when needed!
+    // featureFlags.Set( EFeatureUninitialized );
+
+    // Feature data is 32-bit quantity for client read and write. Feature data is
+    // defined by owner of the feature and can contain for example flags, 
+    // enumeratons and/or integers.
+    // TODO: Set feature data. Replace &lt;featureData&gt; with real value!
+    // TODO: Comment when needed!
+    TUint32 featureData( 0x00000000 );
+    
+    // TODO: Comment when needed!
+    TFeatureEntry entry( featureUid, featureFlags, featureData );
+    
+    TInt err( KErrNone );
+    
+    // Add a new feature to the device.
+    // TODO: Comment when needed!
+    err = featureControl.AddFeature( entry );
+    
+    if ( err == KErrAlreadyExists ) // Existing feature cannot be added as a new feature.
+        {
+        // Enable an existing feature.
+        User::LeaveIfError( featureControl.EnableFeature( featureUid ) );
+        
+        // OR enable an exsiting feature and set feature data.
+        // TODO: Uncomment when needed!
+        //User::LeaveIfError( featureControl.SetFeature( featureUid, ETrue, featureData ) );
+        }
+  
+    featureControl.Close();
+    }
+</codeblock> </stepxmp> </step> <step id="GUID-780D9456-0023-5D1A-BA9D-814429D87BCD"><cmd/><info>compile the code to <filepath>featureinstaller.exe</filepath>, </info> </step> <step id="GUID-EE257E8E-12A5-5BBF-B87E-201D4D707CE9"><cmd>customise the package file <filepath>featureinstaller.pkg</filepath> with the filepath of featureinstaller.exe, and </cmd> <stepxmp><codeblock id="GUID-231869B5-8D76-595C-9F7B-7189437E594A" xml:space="preserve">; This file installs an exe that is run asynchronously on installation, 
+
+;Languages
+&amp;EN
+
+;Header
+#{"featureinstaller"}, (0x10283303), 1, 2, 3,TYPE=SA
+
+%{"Vendor"}
+:"Unique Vendor Name"
+
+"\epoc32\release\winscw\udeb\featureinstaller.exe"-"!:\sys\bin\featureinstaller.exe", FR, RI</codeblock> </stepxmp> </step> <step id="GUID-7DED0C7A-C820-58AF-9780-AFBD4F44E1A5"><cmd>convert <filepath>featureinstaller.pkg</filepath> into a .sis file to be placed on the phone in accordance with the normal installation process. </cmd> <stepresult>The .sis file will cause the .exe to run when the .sis file is installed on the device. </stepresult> </step> </steps> <result id="GUID-06AAB92C-BB6A-583F-A432-E837AA7EF1FF"><p>The features you have installed will now be enabled on the device. </p> </result> </taskbody><related-links><link href="GUID-AB99E33E-322A-5C65-AAA0-6F3DE038ED71.dita"><linktext>Uninstalling Features with Feature
+                Manager Tutorial </linktext> </link> <link href="GUID-B71AC5E3-8AA8-55AD-916F-9E873926011B.dita"><linktext> Feature Manager Overview</linktext> </link> </related-links></task>

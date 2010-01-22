@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F5FE22F3-B7C4-50B3-9B36-5CB8BC1BA18A" xml:lang="en"><title>Receiving
+Broadcast Data</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic gives information about how to receive the broadcast data. </p>
+<section><title>Purpose</title> <p>This tutorial is about creating IP filters,
+removing the IP filters and updating the network time. </p> <p><b>Required
+Background</b> </p> <p>IP platform contains many services, so each service
+is an IP data stream identified by the IP address. </p> </section>
+<section><title>Introduction</title><p>For a DVB-H application, you have to
+receive a small number of services. So you need to filter out from a large
+number of IP data packets for a small number of services. This is done by
+asking the receiver to only send IP packets matching a specific IP address,
+or a small number of IP addresses. This is called filtering. </p> <p>The receiver
+has the ability to filter network time from a DVB-H broadcast, for you to
+get network updated time. </p></section>
+<section><title>Setup and Configuration Requirements</title><p>The initial
+step to create a filter is to obtain the IP address of desired services. Further
+setup is beyond the scope of this document, but some typical steps are: </p> <ul>
+<li id="GUID-BE351C29-0BE5-5B37-A87C-945603B13A10"><p>You can setup a well-known
+IP address of bootstrap ESG service for an IP platform. </p> </li>
+<li id="GUID-2C054EA0-911E-5764-8804-9BF020297317"><p>You can obtain from
+the bootstrap, the ESG IP address of a particular ESG service for an IP platform </p> </li>
+<li id="GUID-24AFC3F8-C6AF-5857-915A-1CE942532D76"><p>You can obtain an ESG
+service from the IP address of a TV programme. </p> </li>
+</ul></section>
+<section><title>Using Receiving Broadcast Data Tutorial </title> <p>The Following
+tasks will be covered in this tutorial: </p> <ul>
+<li id="GUID-8038AAAC-85FD-52E3-B2FF-0C3F118222DD"><p><xref href="GUID-5808DC87-C55B-4488-9099-B0F9BB167BDA.dita">Creating
+IP Filters</xref></p> </li>
+<li id="GUID-C20A0F85-75A8-5A78-ABFE-BFE0183C8756"><p><xref href="GUID-7D83F734-4298-44C9-BBA1-DC2F9E1E32E2.dita">Updating
+Network Time</xref> </p> </li>
+</ul> </section>
+<section><title>Example</title><codeblock id="GUID-710BFB6A-19CA-524C-8DFE-610D430ED284" xml:space="preserve">
+
+//Context: The following takes place in some method of an active object
+//that implements MDvbhDataObserver (e.g. CExampleClient : public
+//CActive, public MDvbhDataObserver).  Its member iReceiver is a 
+//RDvbhReceiver that has previously been initialised.  Its member iAddress
+//contains the IP address to filter.
+//Assume that CExampleClient previously registered itself as a
+//MDvbhDataObserver as in Figure 8.
+
+TInt filterId = 0;
+User::LeaveIfError(iReceiver.CreateFilter(iAddress, 
+                                          filterId, 
+                                          iStatus));
+
+StoreFilterIdL(filterId , iAddress);
+SetActive();
+
+//Filter now active. For as long as it remains active, any IP data the
+//receiver gets that matches the IP address will be sent to the client.
+
+//....At some later stage, perhaps within another function:
+
+User::LeaveIfError(iReceiver.CancelFilter(filterId));
+
+//Filter removal initiated.  When complete, CExampleFilter::RunL will be
+//called and related IP data will no longer be filtered.
+
+//Example CExampleFilter::RunL()
+void CExampleFilter::RunL()
+    {
+    //CreateFilter() operation has completed, which means the filter no
+      //longer exists.  Check iStatus for completion code (KErrCancelled,
+      //KErrNotReady, etc.) and act accordingly.  For example:
+    RemoveFilterIdFromStorage(iAddress);
+    }
+
+</codeblock></section>
+<section><title> Removing IP Filters</title> <p>In order to remove an active
+IP filter on the receiver, call <xref href="GUID-617CD367-CF68-3932-8E77-669820A7B9AF.dita#GUID-617CD367-CF68-3932-8E77-669820A7B9AF/GUID-42D70FDD-9206-33B3-B5ED-3A04B5F03036"><apiname>RDvbhReceiver::CancelFilter()</apiname></xref>.
+The instance is passed through filter ID. If it represents an active filter,
+then the filter is removed and its corresponding asynchronous request is completed
+with error reason as KErrCancelled. According to it, IP packets for that filter
+will no longer be sent to the client. </p> <p>If the filterId does not represent
+an active filter, an error will be returned. As long as there exists at least
+one active filter on the receiver, it will be in a receiving state. When the
+last active filter has been removed, the receiver will move to ready state. </p> </section>
+</conbody><related-links>
+<link href="GUID-3C9BE2FF-8D5C-51D0-8BC1-BED7BC1288BA.dita"><linktext>Turn On Broadcast
+Receiver</linktext></link>
+<link href="GUID-2C8BE998-BCCE-5A06-AFC1-4B611D9233AB.dita"><linktext>Turn Off
+Broadcast Receiver</linktext></link>
+<link href="GUID-0297CAF5-4EB7-5E84-8A8C-8758D6F3B75F.dita"><linktext>Setting Data
+Reception</linktext></link>
+<link href="GUID-567585CC-26EC-553D-99D5-D3C178C455F6.dita"><linktext>DVB-H Signal
+Scanning</linktext></link>
+<link href="GUID-743D3117-095B-58D5-947D-A8713475C9A5.dita"><linktext>Tuning IP
+Platform</linktext></link>
+</related-links></concept>

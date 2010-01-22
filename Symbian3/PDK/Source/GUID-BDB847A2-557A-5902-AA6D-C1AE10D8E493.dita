@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BDB847A2-557A-5902-AA6D-C1AE10D8E493" xml:lang="en"><title>Code
+Paging Guide</title><shortdesc>Code paging is the application of demand paging to executable code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-CD6AC3BC-AF81-4342-9B66-34ACDD573093"><title>Purpose</title> <p>This document explains the principles of
+code paging in Symbian platform. </p> <p><b>Intended
+Audience:</b> </p> <p>This document is intended to be read by those interested
+in the Symbian platform kernel. </p> </section>
+<section id="GUID-FC1B1DC9-133A-43BA-BAEC-711718817B82"><title>Basics of code paging</title> <p>Code paging means the use
+of demand paging to executable code. Demand paging increases the apparent
+size of available RAM on a device by loading data into RAM when needed. Since
+the memory locations used by the code cannot be determined before it is loaded,
+the code needs to be modified when it is paged into RAM. </p> <p>Classes explained
+here. </p> <p>Executable code is paged in and out of memory in accordance
+with the demand paging algorithm which is discussed in the document. The algorithm
+involves four basic operations: </p> <ul>
+<li id="GUID-AE260EC1-A9F4-53B9-A0B7-1681FAFA42A5"><p>paging in, </p> </li>
+<li id="GUID-F870B9A6-6B57-5988-93D7-C87A58B8F94D"><p>aging, </p> </li>
+<li id="GUID-4C9897F4-8A64-556E-939A-0687E775E4EC"><p>rejuvenating, and </p> </li>
+<li id="GUID-E9CF60A1-162C-540A-839A-475D99802B85"><p>freeing. </p> </li>
+</ul> <p>The remainder of this document discusses the kernel side implementation
+of each of these operations in turn. Most of the work is done by the <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> class. </p> </section>
+<section id="GUID-FC5D5EE4-EEE2-4630-8321-0BB3855CB300"><title>Paging in paged code</title> <p>When a program accesses an
+item of paged code for the first time the code needs to be paged into RAM.
+The initial call generates a data abort: this is caught by the exception handler
+which calls the <xref href="GUID-1AA89F20-7D14-35DB-92FE-06670B2BA484.dita"><apiname>HandleFault()</apiname></xref> function of the <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> class.
+The function call performs the paging in as follows. </p> <ul>
+<li id="GUID-B944B6DF-3DC9-5FF4-92B1-2F6A5298767A"><p>Checks the MMU page
+table entry for the address which caused the data abort. If the entry is not <xref href="GUID-4C8E5466-82E2-3B45-81C5-980FC521DD3A.dita"><apiname>KPteNotPresentEntry</apiname></xref> then
+there is no memory mapped at that address and it may need paging in. </p> </li>
+<li id="GUID-DB0C8B0C-A38D-555C-98F7-08040771AD65"><p>Verifies that the exception
+was caused by an access to the code chunk memory region. </p> </li>
+<li id="GUID-F00DF257-8807-5F31-9FED-4626746ED421"><p>Finds the code segment
+which is at the current address. </p> </li>
+<li id="GUID-7A5442AF-A66D-56CA-8921-B7BA3907B624"><p>Verifies that the code
+segment is the one being demand paged. </p> </li>
+</ul> <p>The <xref href="GUID-1AA89F20-7D14-35DB-92FE-06670B2BA484.dita"><apiname>HandleFault()</apiname></xref> function of <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> then
+calls the <xref href="GUID-A7C5F674-CF18-308B-A07F-6C057AB29180.dita"><apiname>PageIn()</apiname></xref> function of <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref>,
+which performs the following steps. </p> <ul>
+<li id="GUID-EAE80357-A36C-5DF6-BCA5-C1F704388DCF"><p>Obtains a <xref href="GUID-535DF46C-C681-3167-9AE1-E927D3B3B928.dita#GUID-535DF46C-C681-3167-9AE1-E927D3B3B928/GUID-E9132C24-94CE-35FE-8E32-943C2134BD1C"><apiname>DemandPaging::DPagingRequest</apiname></xref> object
+by calling <xref href="GUID-535DF46C-C681-3167-9AE1-E927D3B3B928.dita#GUID-535DF46C-C681-3167-9AE1-E927D3B3B928/GUID-D70D74D4-EEDD-3F58-AF6D-160E9DF707DC"><apiname>DemandPaging::AcquireRequestObject()</apiname></xref>. </p> </li>
+<li id="GUID-08CE4C36-B2BD-5DB8-BBB5-D3259D63C496"><p>Obtains a physical page
+of RAM by calling <xref href="GUID-535DF46C-C681-3167-9AE1-E927D3B3B928.dita#GUID-535DF46C-C681-3167-9AE1-E927D3B3B928/GUID-BF59E426-A1C8-3491-9AC8-929A1DF8EE42"><apiname>DemandPaging::AllocateNewPage()</apiname></xref>. </p> </li>
+<li id="GUID-33BA3BF8-999B-5691-B8A6-8905ED3E7B61"><p>Maps the RAM at the
+temporary location <xref href="GUID-E9132C24-94CE-35FE-8E32-943C2134BD1C.dita#GUID-E9132C24-94CE-35FE-8E32-943C2134BD1C/GUID-53AF13F7-94B7-3EDE-B0FF-6F33FF16D208"><apiname>DemandPaging::DPagingRequest::iLoadAddr</apiname></xref>. </p> </li>
+<li id="GUID-5AA0C439-42E3-5E70-BC65-B2E7D7C38909"><p>Reads the correct contents
+into the RAM page by calling <xref href="GUID-535DF46C-C681-3167-9AE1-E927D3B3B928.dita#GUID-535DF46C-C681-3167-9AE1-E927D3B3B928/GUID-4CBDC66C-B779-3894-9B32-726911E3D9E2"><apiname>DemandPaging::ReadCodePage()</apiname></xref>. </p> </li>
+<li id="GUID-4217C1A9-5930-505E-9E8C-864691C68B35"><p>Initialises the <xref href="GUID-C5F2C8BC-9C8E-3BC1-AB24-99E23A38152B.dita"><apiname>SPageInfo</apiname></xref> structure
+for the physical page of RAM and marks it as type <xref href="GUID-BB093184-8193-3157-883B-9264CD6389C7.dita"><apiname>EPagedCode</apiname></xref>. </p> </li>
+<li id="GUID-13948D5A-1C02-5A0D-A1F7-0C13E8B700F2"><p>Maps the page at the
+correct address in the current process. </p> </li>
+<li id="GUID-903E5F84-C4C2-509A-BB31-073780C895A7"><p>Adds the <xref href="GUID-C5F2C8BC-9C8E-3BC1-AB24-99E23A38152B.dita"><apiname>SPageInfo</apiname></xref> to
+the beginning of the live page list. </p> </li>
+</ul> <p>When these calls have completed they return control to the program
+which caused the data abort. </p> </section>
+<section id="GUID-C6956FFF-0138-45B9-87AA-66B7609B2B3E"><title>Aging paged code</title> <p>The demand paging algorithm defines
+pages in the live list to be either young or old. When a page changes status
+from young to old, the kernel changes the MMU mappings for the page to make
+it inaccessible. It does so by calling the <xref href="GUID-2625AEBC-E316-3CC4-B840-DF2148BCAD65.dita"><apiname>SetOld()</apiname></xref> function
+of the <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> class. The implementation of
+this procedure is different in the Moving Memory Model and the Multiple Memory
+Model. </p> <p>In the Moving Memory Model, the call to <xref href="GUID-2625AEBC-E316-3CC4-B840-DF2148BCAD65.dita"><apiname>SetOld()</apiname></xref> acts
+as follows: </p> <ul>
+<li id="GUID-B01591FD-2D3F-5752-B38B-5BC69B9FAE49"><p>Finds the MMU page table
+entry for the page and clears the bits <xref href="GUID-37E290ED-FFF8-3A6B-9CA9-07863E340F0D.dita"><apiname>KPtePresentMask</apiname></xref>. </p> </li>
+</ul> <p>In the Multiple Memory Model, <xref href="GUID-2625AEBC-E316-3CC4-B840-DF2148BCAD65.dita"><apiname>SetOld()</apiname></xref> calls the
+kernel function <xref href="GUID-EAF2FEE1-BA70-32E5-8D6A-E55F0A814E4B.dita"><apiname>DoSetCodeOld()</apiname></xref> which acts as follows: </p> <ul>
+<li id="GUID-7573F92E-441B-55AD-AB0D-D4341AF22E3A"><p>Examines the bit array <xref href="GUID-DD3F8638-685C-3246-A493-34C8BBA51566.dita#GUID-DD3F8638-685C-3246-A493-34C8BBA51566/GUID-241CBE5A-0A84-3F26-BAFD-7FCC33F788E7"><apiname>DMemModelCodeSegMemory::iOsAsid</apiname></xref> s
+to determine the processes into which the code segment is loaded. </p> </li>
+<li id="GUID-3AFE85EA-6967-5E89-B277-CDBD17315B06"><p>Updates each mapping
+in turn. </p> </li>
+</ul> <p>The status of a page may change during a call to <xref href="GUID-EAF2FEE1-BA70-32E5-8D6A-E55F0A814E4B.dita"><apiname>DoSetCodeOld()</apiname></xref>,
+either because it has been rejuvenated or paged out. In these cases <xref href="GUID-EAF2FEE1-BA70-32E5-8D6A-E55F0A814E4B.dita"><apiname>DoSetCodeOld()</apiname></xref> simply
+ends, as the aging operation is no longer appropriate. </p> </section>
+<section id="GUID-1B0F49F2-4B9C-4B60-AFA6-521C33951576"><title>Rejuvenating paged code</title> <p>When a program accesses
+a program held in an old page, it generates a data abort because the kernel
+made the page inaccessible when it was set to old. The data abort is caught
+by the exception handler which calls the <xref href="GUID-1AA89F20-7D14-35DB-92FE-06670B2BA484.dita"><apiname>HandleFault()</apiname></xref> function
+of the <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> class. It is this call which
+performs the rejuvenation as follows. </p> <ul>
+<li id="GUID-4494FF5B-8F24-5973-9178-F1134A3B7313"><p>Gets the MMU page table
+entry for the address which caused the abort. If the bits <xref href="GUID-37E290ED-FFF8-3A6B-9CA9-07863E340F0D.dita"><apiname>KPtePresentMask</apiname></xref> are
+clear then the page needs rejuvenating. If all the bits are clear then the
+page needs to be paged in, not rejuvenated. </p> </li>
+<li id="GUID-4708382F-4E31-5448-B958-A919C1E2C31A"><p>Finds the <xref href="GUID-C5F2C8BC-9C8E-3BC1-AB24-99E23A38152B.dita"><apiname>SPageInfo</apiname></xref> for
+the page, using the physical address stored in the page table entry. </p> </li>
+<li id="GUID-E235D0FB-7A9B-5A1C-BC84-782A9F8A29FD"><p>If it finds that the
+state of the page is <xref href="GUID-9C190095-2B44-31A5-A898-E362FCC19EDC.dita"><apiname>EStatePagedDead</apiname></xref> then the page is dead
+rather than old and needs to be paged in, not rejuvenated. </p> </li>
+<li id="GUID-B1AE6505-05B7-5ACA-B284-C95AF360AADE"><p>Updates the page table
+entry to make the page accessible. </p> </li>
+<li id="GUID-D39CCEFF-087C-5F07-B935-B52877D35817"><p>Moves the <xref href="GUID-C5F2C8BC-9C8E-3BC1-AB24-99E23A38152B.dita"><apiname>SPageInfo</apiname></xref> for
+the page to the beginning of the live list, making it the youngest page in
+the list. </p> </li>
+</ul> <p>These steps are performed with the system lock held. </p> </section>
+<section id="GUID-C53B418C-46BC-43C5-940D-94667DD00872"><title>Freeing paged code</title> <p>When a physical page of RAM
+holding demand-paged code is needed for other purposes, it must be freed up.
+The kernel does this by calling the <xref href="GUID-9C1DEEB8-2C7E-3AD1-97B1-58E64AAAF1B1.dita"><apiname>SetFree()</apiname></xref> function
+of the <xref href="GUID-B718F920-45E2-3DD6-927F-0465B156993D.dita"><apiname>MemModelDemandPaging</apiname></xref> class. The implementation of
+this procedure is different in the Moving Memory Model and the Multiple Memory
+Model. </p> <p>In the Moving Memory Model, the call to <xref href="GUID-9C1DEEB8-2C7E-3AD1-97B1-58E64AAAF1B1.dita"><apiname>SetFree()</apiname></xref> acts
+as follows: </p> <ul>
+<li id="GUID-57E4C0C5-0D5D-5C0F-B324-46F4E7AD6739"><p>Finds the MMU page table
+entry for the page and sets it to <xref href="GUID-4C8E5466-82E2-3B45-81C5-980FC521DD3A.dita"><apiname>KPteNotPresentEntry</apiname></xref>. </p> </li>
+</ul> <p>In the Multiple Memory Model, the call to <xref href="GUID-9C1DEEB8-2C7E-3AD1-97B1-58E64AAAF1B1.dita"><apiname>SetFree()</apiname></xref> calls
+the kernel function <xref href="GUID-D16A900C-A40C-3D6A-A77E-4008376DBAAE.dita"><apiname>DoSetCodeFree()</apiname></xref> which acts as follows: </p> <ul>
+<li id="GUID-F1CDC949-F1FC-5E87-A4B2-A5F12F099B9A"><p>Examines the bit array <xref href="GUID-DD3F8638-685C-3246-A493-34C8BBA51566.dita#GUID-DD3F8638-685C-3246-A493-34C8BBA51566/GUID-30F9613A-C06F-3185-94B5-4CAE20B7A052"><apiname>DMemModelCodeSegMemory::iOsAsids</apiname></xref> to
+determine the processes into which the code segment is loaded. </p> </li>
+<li id="GUID-4D104936-767C-514C-9253-1F8CC80B92A9"><p>Makes each page inaccessible
+in turn. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-E21E7992-607A-5A49-B022-189ECA9E76D1.dita"><linktext>Code Paging
+Overview</linktext></link>
+<link href="GUID-B35A70D2-1BC8-51DE-95BF-F315DB394582.dita"><linktext>Demand Paging
+Overview</linktext></link>
+</related-links></concept>

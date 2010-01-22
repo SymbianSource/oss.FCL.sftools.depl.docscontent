@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-50E6EEB5-45D2-5B95-BDEA-5615F586DA9C" xml:lang="en"><title>Using
+Extended Interfaces</title><shortdesc>Framework developers define and publish extension interfaces to
+the existing interfaces used in the framework. Once an interface extension
+is published by the framework developer, plug-in developers implement the
+extension if required. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-D3DD03B6-79C0-5C7A-B263-A4AC2E50266E">
+<step id="GUID-BA6F73F2-BA5C-5A2B-A405-D2FD99C06954"><cmd/>
+<info>Identify the published instantiation and extended interface UIDs and
+header files of the framework. </info>
+</step>
+<step id="GUID-27966E9C-33EF-5BC3-9E5E-FA3C68A60AFD"><cmd/>
+<info>Create a <xref href="GUID-641A276D-F618-50CE-BA5A-658DCC26BAB5.dita">new
+project file</xref> (<filepath>.mmp</filepath>) with <codeph>targettype</codeph> variable
+set as PLUGIN3. Allocate UIDs for the the plug-in implementations and plug-in
+DLL (UID3) as shown in the code snippet below. </info>
+<stepxmp><codeblock id="GUID-080E8FC5-5114-5CBE-BF83-C7E4164CC0CC" xml:space="preserve">TARGET         cimplementationclass.dll
+TARGETTYPE     PLUGIN3
+CAPABILITY    All -TCB
+
+// PLUGIN3 recognition UID followed by the UID for this dll
+UID 0x10009D93 0x10009E37
+VENDORID 0x70000001
+
+SOURCEPATH    ../src
+SOURCE        cimplementationclass.cpp 
+
+USERINCLUDE    ../src
+SYSTEMINCLUDE     /epoc32/include
+
+START RESOURCE    cimplementationclass.rss
+TARGET cimplementationclass.rsc
+END
+
+LIBRARY     euser.lib
+LIBRARY     ecom.lib
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-E9B72208-C9EB-50C3-A5FE-849D34371314"><cmd/>
+<info>Create a new resource file (<filepath>.rss</filepath>) of <xref href="GUID-9A9103E4-27B0-5CF3-855A-DCD44795A5C0.dita">format
+version 3</xref>. </info>
+<stepxmp><codeblock id="GUID-33EB82EB-1CD7-5213-9B74-3F760290795E" xml:space="preserve">CImplementationClass.rss
+#include &lt;ecom/registryinfov3.rh&gt;
+
+RESOURCE REGISTRY_INFO theInfo
+    {
+    resource_format_version = RESOURCE_FORMAT_VERSION_3;
+    dll_uid = 0x10009E37;
+    interfaces = 
+    {
+    INTERFACE_INFO
+        {
+        instantiation_interface_uid = 0x10009DBB;
+        implementations = 
+        {
+        IMPLEMENTATION_INFO
+            {
+            info_format = IMPLEMENTATION_INFO_RECORD_TYPE1; 
+            implementation_uid = 0x10009E38;
+            version_no = 1;
+            display_name = "Extended Interface Example";
+            default_data = {"Extended Interface Example||up to 255 chars", "Max. two strings allowed"};
+            opaque_data = {"up to 255 chars", “max. 2 strings allowed”};
+            extended_interfaces = {0x10009E44, 0x10009E45};
+            flags = FLAG_ROM_ONLY;                    
+            }    
+        };
+        }
+    };
+    }
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-5D92F8AC-6440-5426-A79A-8D5CBE6D2E60"><cmd/>
+<info>Implement the interfaces in the plug-in implementation source files. </info>
+<info>Implementing an interface extension in a plug-in implementation can
+be done in either of the two ways: </info>
+<substeps id="GUID-3FCA938B-5515-5707-B583-08A398B138C3">
+<substep id="GUID-34A3E29D-0195-5B41-AAA9-F8A9EDF6BCA0"><cmd/>
+<info> Inheritance: The instantiation interface object is also of the type
+of the extended interface object. When a user wants to instantiate the extended
+interface object, the implementation simply returns a re-cast of the instantiation
+interface object. </info>
+<info>The example below shows implementing an interface extension using inheritance. </info>
+<stepxmp><codeblock id="GUID-CE4895D9-14DB-55A5-8D61-36C4613DF453" xml:space="preserve">//Implementing an interface extension using multiple inheritance
+class CImplementationClass : public CExampleInterface, public MExampleInterfaceExtended
+{
+
+public:
+    static CImplementationClass* NewL();
+    static TAny* GetExtendedInterfaceL(TAny* aInstantiationInterface,const TUid&amp; aExtendedInterfaceUid,TUint32&amp; aBitFlags,TAny*&amp; aReleaseObject);
+    static void ReleaseExtendedInterface(TAny* aExtendedInterface, const TUid&amp; aExtendedInterfaceUid);
+
+    ~ CImplementationClass() {}
+    virtual void DoMethodL(); // from original interface
+    virtual void DoMethodExtended();  //from MExampleInterfaceExtended
+private:
+    CImplementationClass() {}
+};
+
+</codeblock> </stepxmp>
+</substep>
+<substep id="GUID-C9A0347A-1EC9-5D30-A6DF-57E0C121387E"><cmd/>
+<info>  Realizing the extended interface as separate class and objects. When
+users fetch the extended interface object, the implementation allocates a
+new object. </info>
+<info>The example below shows implementing an interface extension using realisation. </info>
+<stepxmp><codeblock id="GUID-99C45102-442C-56F5-8054-3C88C64FE1DE" xml:space="preserve">// Implementing an interface extension using realization
+
+class CImplementationClassExtended : public CBase, public MExampleInterfaceExtended2
+{
+public:
+    static CImplementationClassExtended* NewL();
+    ~ CImplementationClassExtended() {}
+    virtual void DoMethodExtended2();  //from MExampleInterfaceExtended2
+private:
+    CImplementationClassExtended() {}
+};
+</codeblock> </stepxmp>
+</substep>
+</substeps>
+</step>
+<step id="GUID-2E92FD5E-03E0-5587-B6D1-0CA7EEDBFA44"><cmd/>
+<info>Implement <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref>,<xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-760E4CCE-8E33-3B72-B143-380503F6ACC5"><apiname>REComSession::GetExtendedInterfaceL()</apiname></xref>,<xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-8F83D14E-F340-32B4-969C-5DC9E6EA1DB0"><apiname>REComSession::ManuallyReleaseExtendedInterfaceL()</apiname></xref> functions of the instantiation interface. </info>
+<stepxmp><codeblock id="GUID-FC783C9A-1990-5DDB-9266-6469B9558EE0" xml:space="preserve">TAny* CImplementationClass::GetExtendedInterfaceL(TAny* aInstantiationInterface,
+const TUid&amp; aExtendedInterfaceUid,
+TUint32&amp; aBitFlags,
+TAny*&amp; aReleaseObject)
+    {
+    TAny* ret = NULL;
+    aBitFlags &amp;= ~KReleaseRequiredMask; // clear release flag
+    switch (aExtendedInterfaceUid.iUid)
+    {
+    case 0x10009E44: 
+        {
+            // release not required, so do not modify aBitFlags.
+         // re-cast Instantiation object as Extended Interface object
+        ret = static_cast&lt;MExampleInterfaceExtended *&gt; (static_cast&lt;CImplementationClass *&gt;(aObject));
+        break;
+        }    
+    case 0x10009E45: 
+        {
+          CImplementationClassExtended *classExt = CImplementationClassExtended::NewL();
+        aReleaseObject = classExt;
+        aBitFlags |= KReleaseRequiredMask; // Indicate release is required
+        // Multiple inheritance involved – Cbase and the M class. Must use
+            // either dynamic_cast or static_cast to add offset to the base pointer       
+        ret = static_cast&lt;MExampleInterfaceExtended2*&gt;(classExt);
+        break;
+           }                
+    }
+    return ret;
+    }
+</codeblock> </stepxmp>
+<info>The plug-in framework releases the extended interface object when the
+user destroys the instantiation interface object. Alternatively, if the framework
+wants to release the extended interface earlier, they can call the <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-8F83D14E-F340-32B4-969C-5DC9E6EA1DB0"><apiname>REComSession::ManuallyReleaseExtendedInterfaceL()</apiname></xref>  </info>
+<stepxmp><codeblock id="GUID-A058A010-9875-52F6-ABF2-8B329F50B750" xml:space="preserve">void CImplementationClass::ReleaseExtendedInterface(TAny* aExtendedInterface, const TUid&amp; aExtendedInterfaceUid)
+    {
+    switch (aExtendedInterfaceUid.iUid)
+    {
+    case 0x10009E45:
+        {
+            // this Extended Interface object require release.
+        CImplementationClassExtended* classExt = static_cast&lt;CImplementationClassExtended*&gt;(aReleaseObject);
+        delete classExt;
+        break;
+        }                
+    }
+    }    
+</codeblock> </stepxmp>
+<info>The aInstanceKey parameter is returned by <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref>.
+It identifies the instantiation interface object instance. The aExtendedInterfaceUid
+parameter identifies the extended interface required. </info>
+</step>
+<step id="GUID-6E73075E-E907-5984-9571-D7A77FC2D05A"><cmd/>
+<info>Export the instantiation functions into a TImplementationProxy3 table. </info>
+<stepxmp><codeblock id="GUID-7CFF8E49-3B6F-5DAB-883F-1347B907F77E" xml:space="preserve">const TImplementationProxy3 KImplementationTable[] =
+    {
+    IMPLEMENTATION_PROXY_ENTRY3(0x10009E38, CImplementationClass::NewL, CImplementationClass::GetExtendedInterfaceL,CImplementationClass::ReleaseExtenedInterface)
+    };
+
+EXPORT_C const TImplementationProxy3* ImplementationGroupProxy(TInt&amp; aTableCount)
+    {
+    aTableCount = sizeof(KImplementationTable) / sizeof(TImplementationProxy3);
+    return KImplementationTable;
+    }
+
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-5790D794-A201-5E9F-AE2E-DC698878CCF5"><cmd/>
+<info>Export the release functions into a TImplementationProxy3 table. </info>
+<stepxmp><codeblock id="GUID-22DB44AF-EDE6-52C0-ADBE-216F95E3FB5C" xml:space="preserve">void CImplementationClass::ReleaseExtendedInterface(TAny* aExtendedInterface, const TUid&amp; aExtendedInterfaceUid)
+    {
+    switch (aExtendedInterfaceUid.iUid)
+    {
+    case 0x10009E45:
+        {
+            // this Extended Interface object require release.
+        CImplementationClassExtended* classExt = static_cast&lt;CImplementationClassExtended*&gt;(aReleaseObject);
+        delete classExt;
+        break;
+        }                
+    }
+    }    
+
+</codeblock> </stepxmp>
+</step>
+</steps>
+<postreq><p>To instantiate and use an extended interface, the plug-in user
+must: </p> <ul>
+<li id="GUID-A8A28B3D-D94E-5AC9-8C3F-275A4C8F89DE"><p>Identify plug-ins that
+support the desired interface extensions using <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-AE9D4F24-8554-3151-AAF3-D63F400821C4"><apiname>REComSession::ListImplementationsL()</apiname></xref>. </p> <codeblock id="GUID-987C54C2-F1AF-57C6-95DA-37F1572AD1B4" xml:space="preserve">IMPORT_C static void ListImplementationsL(TUid aInterfaceUid, 
+RExtendedInterfacesArray&amp; aExtendedInterfaces,
+    const TEComResolverParams&amp; aResolutionParameters,
+    RImplInfoPtrArray&amp; aImplInfoArray);
+</codeblock> <p>The “aInterfaceUid” parameter specifies the instantiation
+interface. All of the implementations returned in “aImplInfoArray” support
+all the extensions listed in the “aExtendedInterfaces” parameter. </p> </li>
+<li id="GUID-ED513B5A-9F51-5B5C-AB58-E961CAFEFD92"><p>Select one from the
+array and create an instantiation interface object. </p> </li>
+<li id="GUID-C4A2263B-08D1-5D44-99B2-840EE4849B35"><p>Call <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-760E4CCE-8E33-3B72-B143-380503F6ACC5"><apiname>REComSession::GetExtendedInterfaceL()</apiname></xref> API
+to get an extended interface object. </p> <codeblock id="GUID-B9EE4751-EA4B-5BB6-A6DA-3083FE0CCE36" xml:space="preserve">IMPORT_C static TAny* GetExtenedInterfaceL(const TUid&amp; aInstanceKey, 
+const TUid&amp; aExtendedInterfaceUid);
+</codeblock> <p>The aInstanceKey parameter identifies the instantiation interface
+object returned by <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref>. </p> </li>
+</ul> <p>The example code depicts the above steps: </p> <codeblock id="GUID-5D0D622D-3CA6-5CDB-B035-F68A580949AA" xml:space="preserve">
+const TUid KExampleInterfaceUid = {0x10009DBB}; // the Instantiation Interface
+const TUid KExtendedInterfaceUid1 = {0x10009E44};
+const TUid KExtendedInterfaceUid2 = {0x10009E45};
+
+// Set up extended interfaces UID list which form part of the resolution criteria.
+RArray&lt;TUid&gt; extendedInterfaces;
+CleanupClosePushL(extendedInterfaces);
+extendedInterfaces.AppendL(KExtendedInterfaceUid1);
+extendedInterfaces.AppendL(KExtendedInterfaceUid2);
+
+// set up resolve parameter
+_LIT8(KExampleImplementationData,"Extended Interface Example");
+TEComResolverParams ResolverParams;
+ResolverParams.SetDataType(KExampleImplementationData());
+ResolverParams.SetGenericMatch(ETrue);
+
+TUid instanceKey;
+CExampleInterface* instantiateIf = static_cast&lt;CExampleInterface*&gt;(
+    REComSession::CreateImplementationL(KExampleInterfaceUid,
+                                       extendedInterfaces,
+                                       instanceKey,
+                                       ResolverParams) );
+CleanupStack::PopAndDestroy(&amp;extendedInterfaces);
+
+CleanupStack::PushL(instantiateIf);
+// May want to TRAP here if KErrNotSupported is handled, i.e. extension optional
+MExampleInterfaceExtended2* ext2 = static_cast&lt;MExampleInterfaceExtended2*&gt;(
+  REComSession::GetExtendedInterfaceL(instanceKey, KExtendedInterfaceUid2));
+
+instantiateIf-&gt;DoMethodL();  // access old interface function
+ext2-&gt;DoMethodExtended2();   // access extension function
+
+// Calling ManuallyReleaseExtendedInterface is optional. Do this
+// if want to release extended object early.
+REComSession::ManuallyReleaseExtendedInterface(instanceKey,KExtendedInterfaceUid2);
+
+REComSession::DestroyedImplementation(instanceKey);
+CleanupStack::PopAndDestroy(instantiateIf);
+</codeblock> </postreq>
+</taskbody></task>

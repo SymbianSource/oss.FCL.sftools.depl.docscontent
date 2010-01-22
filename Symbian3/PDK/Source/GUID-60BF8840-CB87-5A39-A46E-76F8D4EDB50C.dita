@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-60BF8840-CB87-5A39-A46E-76F8D4EDB50C"><title>How to implement two-phase construction</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The example code shown below illustrates the provision of cleanup stack support for <codeph>CBase</codeph> -derived classes, and specifically details the motivation behind using a two-phase construction strategy for creating compound objects. It presents two implementations of a <codeph>CCompound</codeph> class, one which uses the usual C++ construction strategy, and a second which uses two-phase construction. </p> <section><title>Example classes</title> <p>This section will use the following classes as examples.</p> <p><codeph>CSimple</codeph> is a simple class whose members do not refer to external resources:</p> <codeblock id="GUID-ED0CC311-9A9D-5325-81F9-D9D75EF6A69A" xml:space="preserve">class CSimple : public CBase
+    {
+public: 
+    CSimple(TInt); 
+    void Display();
+private:
+    TInt iVal;
+    };</codeblock> <p><codeph>CCompound</codeph> owns other objects:</p> <codeblock id="GUID-2621235F-B455-5909-8622-D4562506A51A" xml:space="preserve">class CCompound : public CBase
+    {
+public:
+    void Display();
+    ~CCompound();
+    static CCompound* NewL(TInt aVal);
+    static CCompound* NewLC(TInt aVal); 
+protected:
+    CCompound(TInt aVal);
+    void ConstructL();
+private:
+    TInt iVal;
+    CSimple* iChild;
+    };</codeblock> <p>Note that the constructor is <codeph>protected</codeph>, so that <codeph>CCompound</codeph> objects can only be created through the public static <codeph>NewL()</codeph> and <codeph>NewLC()</codeph> functions.</p> </section> <section><title>Incorrect construction allowing a memory leak</title> <p>First consider what would happen if the <codeph>CSimple</codeph> object owned by the <codeph>CCompound</codeph> were allocated and constructed by the <codeph>CCompound</codeph>'s constructor, for example:</p> <codeblock id="GUID-1A336A31-5C82-5712-8038-D14F70AB03E7" xml:space="preserve">CCompound::CCompound(TInt aVal)
+    {
+    iVal=aVal;
+    iChild = new (ELeave) CSimple(aVal);  
+    }</codeblock> <p>The problem with this approach is that, if the <codeph>new</codeph> in the <codeph>CCompound</codeph>'s constructor leaves, then:</p> <ul><li id="GUID-FC0C62D4-207D-5A1E-9FE6-967358FF4832"><p>memory has already been allocated for the <codeph>CCompound</codeph> object</p> </li> <li id="GUID-F51CD3ED-2968-500F-89B5-ADD103CF8981"><p>because of the leave, there is no valid pointer for the partially-constructed <codeph>CCompound</codeph> object</p> </li> <li id="GUID-7464BB53-FA84-5D6D-BF43-EB527EDA98DB"><p>without a valid pointer, there is no way to clean up the <codeph>CCompound</codeph> object</p> </li> </ul> </section> <section><title>Two-phase construction</title> <p>The solution is to allocate the <codeph>CCompound</codeph> object first, push a pointer to the clean-up stack, and then complete its construction. Any construction which might leave must be performed after the partially-constructed <codeph>CCompound</codeph> object's address has been pushed to the clean-up stack.</p> <ol id="GUID-02F5717B-1797-5C0F-B4DF-131DA5509226"><li id="GUID-C83A43D7-48D7-553D-9EF2-B2E7783D0D74"><p>Push the object to the clean-up stack after it has been allocated.</p> </li> <li id="GUID-5D99B96E-405D-533A-98FE-885AA60C0862"><p>Call the <codeph>ConstructL()</codeph> function to complete construction. </p> </li> </ol> <p><b>NewLC() example</b> </p> <codeblock id="GUID-46969146-4CE4-52F9-BF2D-9569CDAFF737" xml:space="preserve">// NewLC with two stage construction
+CCompound* CCompound::NewLC(TInt aVal) 
+    { 
+    // get new, leave if can't
+    CCompound* self=new (ELeave) CCompound(aVal);
+    
+    // push onto cleanup stack in case self-&gt;ConstructL leaves
+    CleanupStack::PushL(self);
+ 
+    // complete construction with second phase constructor
+    self-&gt;ConstructL();
+    return self;
+    }</codeblock> <p>Now the <codeph>ConstructL()</codeph> function is defined instead of the C++ constructor. It performs essentially the same functions as the C++ constructor in the single-phase case:</p> <p><b>ConstructL() example</b> </p> <codeblock id="GUID-CA730E71-CE47-54E0-A4CF-A3CAC2FC560B" xml:space="preserve">void CCompound::ConstructL() 
+    { 
+    // NB. function may leave, as creating a new CSimple object
+    // may leave.
+    iChild = new (ELeave) CSimple (iVal);  
+    }</codeblock> <p><b>NewL() example</b> </p> <p>Implement <codeph>NewL()</codeph> by doing a <codeph>NewLC()</codeph>, followed by popping the pushed pointer from the cleanup stack:</p> <codeblock id="GUID-883DDCC5-8234-5319-B39E-A57C95A27882" xml:space="preserve">CCompound* CCompound::NewL(TInt aVal) 
+    {
+    CCompound* self=NewLC(aVal);
+    CleanupStack::Pop();
+    return self;
+    }</codeblock> <p><b>Note</b> </p> <ul><li id="GUID-E12FC4FE-9ED0-560A-9282-F8BE4238CE7D"><p>Two-stage construction for a class could be avoided by including a <codeph>CleanupStack::PushL(this)</codeph> at the start of the class's C++ constructor. This would achieve the same effect as using <codeph>ConstructL()</codeph>. However if the class is to be used as a base class, the constructor of any classes derived from it will incur the overhead of one push and pop in the constructor called at each level in the inheritance hierarchy, rather than one pop and push in its own <codeph>NewLC()</codeph>.</p> </li> </ul> </section> </conbody></concept>

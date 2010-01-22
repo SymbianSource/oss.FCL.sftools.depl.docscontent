@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-11F00FB3-7353-5545-9A39-BEB3B489A15C" xml:lang="en"><title>Creating
+a Graphics Resource Adaptation</title><shortdesc>This topic provides information about creating a graphics resource
+adaptation. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators.</p>
+<note type="note">The Graphics Resource and Graphics Resource Adaptation components
+are deprecated in Symbian^3 and will be removed in Symbian^4 (S^4). However,
+new Graphics Resource Interface and Implementation components are planned
+for S^4. The new interface component will provide a similar but reduced API
+that is optimized for sharing images across processes.  </note>
+<section id="GUID-1169B355-204B-4E32-A4E3-B083FE3A8456"><title>Required background</title> <p>This
+topic assumes an understanding of the material contained in the following: </p> <ul>
+<li id="GUID-36766311-AE66-5835-88BA-A196A02E6118"><p><xref href="GUID-59C9EF92-8207-5FA5-AA20-0DB00C211BF1.dita">Graphics
+Resource Services Collection Overview</xref>  </p> </li>
+<li id="GUID-DBB1E138-C862-555B-8CC3-089DA0933950"><p><xref href="GUID-82B0B4B9-6BC2-5BEF-B3B0-D57AC57F8D8A.dita">Graphics
+Resource Component Overview</xref>  </p> </li>
+<li id="GUID-73947232-DE71-590F-A553-44E601936CD7"><p><xref href="GUID-29C7FBFB-2F33-58CA-86BE-978E3187E4D6.dita">Image
+Compatibility Guarantees</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-254498CD-E4C3-4D4B-B3A2-F6AFB78B7F14"><title>Packaging the
+DLL</title> <p>When packaging the adaptation, the following rules apply: </p> <ul>
+<li id="GUID-07F0C6AB-39FB-56EA-B760-70756EB63687"><p>The graphics resource
+adaptation must be packaged as a DLL with the name <b>graphicsresourceadapter.dll</b>. </p> </li>
+<li id="GUID-5DB1D47F-269C-5756-B61E-6435CD3D0066"><p>The second and third
+UIDs must be <codeph>0x1000008D</codeph> and <codeph>0x10285A71</codeph>,
+respectively. </p> </li>
+<li id="GUID-7EE8AE66-E8C2-5A06-B07D-23032EBE3C51"><p>All capabilities except
+TCB (Trusted Computing Base) are required. </p> </li>
+<li id="GUID-164F71FE-3BC8-5433-AC9B-2A3876073980"><p>The <codeph>NOEXPORTLIBRARY</codeph> keyword
+must be used in the MMP file to prevent the generation of LIB/DSO files during
+the build process. </p> </li>
+</ul> <p>Here is a snippet of an example MMP file: </p> <codeblock id="GUID-98AD4AEC-60CC-56ED-9099-B83E8261CE75" xml:space="preserve">TARGET graphicsresourceadapter.dll
+TARGETTYPE DLL
+CAPABILITY All -Tcb
+UID 0x1000008D 0x10285A71
+VENDORID &lt;Your vendor ID in hex&gt;
+NOEXPORTLIBRARY</codeblock> <p>The reference adaptation component has one
+implementation for the emulator and several implementations for different
+hardware configurations. These latter ones have different names and the one
+that is to be used in the device is renamed to <filepath>graphicsresourceadapter.dll</filepath> during
+the ROM building process. You may want to use a similar approach. See <xref href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita">Selection of Adaptations</xref> for
+more information. </p> <p>Because the Graphics Resource Adaptation component
+is optional, the <xref href="GUID-82B0B4B9-6BC2-5BEF-B3B0-D57AC57F8D8A.dita">Graphics
+Resource component</xref> provides a <b>stub implementation</b> for platform
+security reasons. When a functional adaptation is not present, the stub implementation
+is compiled into a DLL called <filepath>graphicsresourceadapter.dll</filepath> and
+is installed in the ROM in order to prevent a SIS file installing a rogue
+DLL with this name. </p> </section>
+<section id="GUID-DA7CA4DC-0830-4962-A648-7CE7520069FC"><title>The exported
+function</title> <p>The graphics resource adaptation DLL is a polymorphic
+interface DLL that must export a single function at ordinal position one.
+The function that must be exported is <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-695826EA-AD3A-31B5-BC6F-0D29066AE3B3"><apiname>MSgDriverAdapter::New()</apiname></xref>.
+Here is its definition from the stub implementation: </p> <codeblock id="GUID-52F4C7DE-0F65-54F0-ACB1-878145BA29CA" xml:space="preserve">
+EXPORT_C TInt MSgDriverAdapter::New(MSgDriverAdapter*&amp; /*aPtr*/)
+    {
+    return KErrNotSupported;
+    }</codeblock> <p>This simply returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> to
+indicate that the graphics resource functionality is not supported. This is
+because, as mentioned above, the stub implementation is used for platform
+security reasons when no functional Graphics Resource adaptation is present. </p> <p>In
+a functional implementation, the function must create a multi-threaded heap,
+allocate from it and initialize a new instance of the singleton class that
+implements the <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita"><apiname>MSgDriverAdapter</apiname></xref> interface and return it
+in the pointer argument. </p> </section>
+<section id="GUID-2792BB88-8B70-4B6D-AD3D-FBACE870B3A7"><title>Implementing
+the interfaces</title> <p>The <xref href="GUID-82B0B4B9-6BC2-5BEF-B3B0-D57AC57F8D8A.dita">Graphics
+Resource Component</xref> provides a Hardware Adaptation Interface (HAI),
+which separates the generic and adaptation parts. This defines a set of interfaces
+for which the adaptation must provide an implementation. As long as the implementation
+conforms to the interface specifications and contracts, you are free to write
+the adaptation as you see fit. </p> <p>The following is a class diagram of
+the interfaces. </p> <fig id="GUID-D23E912B-C752-5F20-A595-3F779B4E7C5D">
+<title>              Figure 1: The graphics resource adapter interfaces  
+         </title>
+<image href="GUID-BFA254D4-5104-5B15-8035-2491B57D136D_d0e247694_href.png" placement="inline"/>
+</fig> <p> <b>Driver adapter</b>. You must provide a concrete driver adapter
+class that implements the <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita"><apiname>MSgDriverAdapter</apiname></xref> interface. This
+is a singleton class. A single instance of it is created for each process
+that uses the Graphics Resource API. The singleton is responsible for creating
+image adapter and image collection adapter objects. </p> <p> <b>Image adapter</b>.
+You must provide at least one concrete image adapter class that implements
+the <xref href="GUID-B339AA1C-5E2B-314D-A220-07893AA1B10A.dita"><apiname>MSgImageAdapter</apiname></xref> interface. You can provide as many
+concrete image adapter classes as needed. The driver adapter singleton creates
+an instance of the appropriate image adapter class for each image that is
+created or opened by the process. </p> <p>There are three different ways in
+which an image adapter object can be created: </p> <ul>
+<li id="GUID-C02BEF84-57D6-52FB-B631-02AFCF6AE387"><p>A call to <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-EE8F0719-E923-3B79-8D8D-068625B8BE09"><apiname>MSgDriverAdapter::CreateImage()</apiname></xref>,
+which creates an image and its image adapter object. </p> </li>
+<li id="GUID-64159685-6CC5-5ED7-9B69-2ACF97576492"><p>A call to <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-21D8361F-5F19-3F5F-8BAB-A8EA2171ADAD"><apiname>MSgDriverAdapter::OpenDrawable()</apiname></xref>,
+which opens an existing image for which the ID is known. This also creates
+an image adapter object for the image if one does not already exist within
+the process. This function enables images to be shared between processes.
+Note that the driver adapter singleton does not create image adapter objects
+in a process (A) for images that are created by another process (B) if they
+are not opened in process A. </p> </li>
+<li id="GUID-CAF50D78-4656-5831-BBF9-44F25A5F0A7E"><p>A call to <xref href="GUID-95174AD4-74FB-37E2-8D71-E182467581B4.dita#GUID-95174AD4-74FB-37E2-8D71-E182467581B4/GUID-C9C6153B-1D71-3790-BE3D-56C2CC6DF14F"><apiname>MSgImageCollectionAdapter::OpenImage()</apiname></xref>,
+which creates an image adapter object to encapsulate a surface buffer belonging
+to an existing image collection. </p> </li>
+</ul> <p>The implementation of these functions must use the shared multi-threaded
+heap owned by the driver adapter singleton for all allocations and perform
+any initialization that is required. </p> <p> <b>Image collection adapter</b>.
+You must provide a concrete image collection adapter class that implements
+the <xref href="GUID-95174AD4-74FB-37E2-8D71-E182467581B4.dita"><apiname>MSgImageCollectionAdapter</apiname></xref> interface. The driver adapter
+singleton creates an instance of this class for each image collection that
+is created by the process. </p> <p>The purpose of the image collection class
+is to provide interoperability with the <xref href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita">composition
+engine</xref> and <xref href="GUID-8E8FE99A-5F4D-5B0F-87AB-A58EB4BEB6E9.dita">Surface
+Update Server</xref>. Therefore, unlike image adapters and platform-specific
+resource adapters, which you are free to implement as you see fit, you must
+implement the image collection adapter in terms of surfaces that are compatible
+with the Surface Manager. The implementation of the <xref href="GUID-95174AD4-74FB-37E2-8D71-E182467581B4.dita#GUID-95174AD4-74FB-37E2-8D71-E182467581B4/GUID-3E96077B-FB6D-33D4-B10D-299350496DEF"><apiname>MSgImageCollectionAdapter::SurfaceId()</apiname></xref> function
+must return the surface ID of the image collection's surface. </p> <p>There
+are two different methods that create image collections: </p> <ul>
+<li id="GUID-4F3335D5-0D6A-57F5-88BF-0493F36E5A6B"><p> <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-4BA00DC9-85BD-36D5-9B3F-A1B27BA78D84"><apiname>MSgDriverAdapter::CreateImageCollection()</apiname></xref>.
+This creates a single image collection and its associated image collection
+adapter object. </p> </li>
+<li id="GUID-73E36A71-4981-5A3F-BF17-43068705427C"><p> <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-DD16AD64-4459-3067-9165-6B1BB574DDBD"><apiname>MSgDriverAdapter::CreateImageCollections()</apiname></xref>.
+This creates a number of image collections that share a single memory chunk
+(in order to save memory if only one of the image collections will be in use
+at a time). Although they share a memory chunk, each of these image collections
+has its own surface ID and image collection adapter object. This function
+also creates the associated image collection adapter objects. </p> </li>
+</ul> <p>The implementation of these functions must use the shared multi-threaded
+heap owned by the driver adapter singleton for all allocations and perform
+any initialization that is required. </p> <p>For interoperability with applications
+that expect images, you must provide an implementation of <xref href="GUID-95174AD4-74FB-37E2-8D71-E182467581B4.dita#GUID-95174AD4-74FB-37E2-8D71-E182467581B4/GUID-C9C6153B-1D71-3790-BE3D-56C2CC6DF14F"><apiname>MSgImageCollectionAdapter::OpenImage()</apiname></xref>.
+This wraps up a surface buffer as an image by creating a suitable image adapter
+object for it. </p> </section>
+<section id="GUID-4AEFB09D-0E75-476E-BFEF-03A5E97B3925"><title>Resource types</title> <p>The
+Symbian reference adaptation provides only one type of resource—the image
+(2D pixel buffer). However, you can define additional types of resources—for
+example, for handling vector data. A UID is used to identify the <b>resource
+type</b>. The <xref href="GUID-1129AC1A-3A70-3B2E-9E23-E6491B50EFB2.dita"><apiname>KSgImageTypeUid</apiname></xref> constant represents the UID
+for images. This is defined as follows: </p> <codeblock id="GUID-B93AB2AB-AA24-5664-93BD-09D395C623BE" xml:space="preserve">const TUid KSgImageTypeUid = {0x10285A73};</codeblock> <p>If you create a new resource type, you must obtain a UID from Symbian
+Signed to represent its runtime type. The implementation of the <xref href="GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB.dita#GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB/GUID-E557C57C-0808-3DD9-83C3-45181AAE56A7"><apiname>MSgDrawableAdapter::DrawableType()</apiname></xref> function
+must return the UID of the resource type. </p> <p>Related to the resource
+type is the <b>handle type</b>. This constrains the type of resource that
+can be opened by calls to the <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-21D8361F-5F19-3F5F-8BAB-A8EA2171ADAD"><apiname>MSgDriverAdapter::OpenDrawable()</apiname></xref> function.
+The implementation of this function must check that the actual runtime type
+of the resource to be opened is compatible with the handle that will contain
+a reference to it. The function must return an error if the runtime resource
+type is not compatible with the specified handle type. </p> <p>Two handle
+types are defined by Symbian: </p> <ul>
+<li id="GUID-DF05975C-0C71-5BA3-84CA-CCEA4289E481"><p>The image handle type,
+which can contain a reference to an image resource only. This has the same
+UID as the image resource type (mentioned above). </p> </li>
+<li id="GUID-685E7C70-A10D-56E2-9F0A-D4A742ECD3F8"><p>The drawable handle
+type, which can contain a reference to an image or any platform-specific resource
+type. This is defined as follows: </p> <codeblock id="GUID-83427673-6CE0-511B-BB15-BACFD87AAE03" xml:space="preserve">const TUid KSgDrawableTypeUid = {0x102858EB};</codeblock> </li>
+</ul> </section>
+<section id="GUID-D435C12A-782C-5CC7-9E19-8FBD35C9D652"><title>Reference counting</title> <p>All
+of the adapter objects apart from the driver adapter singleton must be reference
+counted as follows: </p> <ul>
+<li id="GUID-6004AAE4-CEF4-565C-A073-3095DCA27A3E"><p>Each time that an adapter
+object is created, its reference count must be set to one. </p> </li>
+<li id="GUID-5DAC9C2E-9700-59A7-8B26-16E29D93F65F"><p>For resources that can
+be shared between processes, the implementation of <xref href="GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127.dita#GUID-62D3F49B-E048-3C07-ABDC-2DB6CC268127/GUID-21D8361F-5F19-3F5F-8BAB-A8EA2171ADAD"><apiname>MSgDriverAdapter::OpenDrawable()</apiname></xref> checks
+for the existence of the resource adapter object in the process in which the
+resource is to be opened. If the adapter object exists in that process, the
+implementation increments its reference count. If the adapter object does
+not exist in that process, the implementation creates one and sets its reference
+count to one. </p> </li>
+<li id="GUID-5E2A9601-AE6B-5ED4-AB1F-B84BDF3C56C8"><p>All reference-counted
+adapter objects are destroyed in the same way—the implementation of the <codeph>Close()</codeph> function
+decrements the reference count and destroys the adapter object when the reference
+count reaches zero. When the adapter object is destroyed, the reference count
+on the underlying resource must also be decremented and the underlying resource
+must be destroyed when its reference count reaches zero. </p> <p>The <codeph>Close()</codeph> function
+is part of the <xref href="GUID-47124FC9-A94D-3687-8CAA-61DEE3C1805E.dita"><apiname>MSgResourceAdapter</apiname></xref> interface, from which <xref href="GUID-95174AD4-74FB-37E2-8D71-E182467581B4.dita"><apiname>MSgImageCollectionAdapter</apiname></xref> and <xref href="GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB.dita"><apiname>MSgDrawableAdapter</apiname></xref> (and ultimately <xref href="GUID-B339AA1C-5E2B-314D-A220-07893AA1B10A.dita"><apiname>MSgImageAdapter</apiname></xref>) inherit. </p> <p> </p> </li>
+</ul> <p>The following diagram shows an image that is shared between two processes—one
+of which has two handles to the image and the other a single handle. When
+all of the handles to the image are closed, the image itself is destroyed. </p> <fig id="GUID-189A3A15-947A-5C39-9B84-630679944C30">
+<title>              Figure 2: Reference counting resources and adapter objects
+           </title>
+<image href="GUID-582B36BD-88B3-5B5B-8A20-058318E80D0B_d0e247930_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-A254D2A4-AAF4-43CA-9C4F-DB41F5F2F13B"><title>Thread safety</title> <p>All
+of the adapter objects can potentially be shared between all of the threads
+in the process. This means that they must all be thread safe. Normally you
+implement thread safety by using mutexes. The reference implementation handles
+this by using a single mutex per process to synchronize access to all of the
+adapter objects in the process. </p> <p>When running on multiple processors,
+such as symmetric multiprocessing (SMP), using a separate mutex for each adapter
+object might provide a more efficient solution. This approach can improve
+performance by avoiding unnecessary serialization but it has drawbacks. For
+example, each additional mutex increases the memory usage. In addition multiple
+mutexes are more complex to program and require very careful program design
+in order to prevent the occurrence of deadlocks and other synchronization
+problems. </p> <p>All of the adapter objects, including the driver adapter
+singleton, can potentially be created in the context of one thread and destroyed
+in the context of a different thread. Therefore they must be allocated from
+a multi-threaded heap shared between all the threads in the process and owned
+by the driver adapter singleton. </p> </section>
+<section id="GUID-D0F63C01-8CAE-436C-9058-4E570A858D58"><title>Extension interfaces</title> <p>The <xref href="GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB.dita#GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB/GUID-D1BFFF76-37B5-3DD5-A4E3-51B98264CB91"><apiname>MSgDrawableAdapter::GetInterface()</apiname></xref> function provides an optional mechanism for platforms to extend the HAI
+by defining extension interfaces. These can be accessed by using the <xref href="GUID-6F23F34A-A0BE-349C-ADE7-61A5AEF48018.dita#GUID-6F23F34A-A0BE-349C-ADE7-61A5AEF48018/GUID-0D64A708-42C3-361A-B463-E9C0F3542919"><apiname>RSgDrawable::GetInterface()</apiname></xref> method,
+which delegates to <xref href="GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB.dita#GUID-185B6C03-E4F3-382A-AAD5-BA5D85334CBB/GUID-D1BFFF76-37B5-3DD5-A4E3-51B98264CB91"><apiname>MSgDrawableAdapter::GetInterface()</apiname></xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-26E51AB0-C0FC-55EA-B747-C834E2D4FD27.dita"><linktext>Graphics
+Resource Services Collection</linktext></link>
+</related-links></concept>

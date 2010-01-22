@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E6F08B67-8DBC-5896-946D-BD0D27F82FE2" xml:lang="en"><title>Views
+of a Server Application System</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AC0E13F3-5DFE-5060-BE09-B76A08632B5E"><title>Process view</title> <p>Client
+objects, in the client, talk to server objects, in the server application.
+The client and the server are in different processes. </p> <fig id="GUID-C5650791-6E61-5212-B563-42778AAEDE98">
+<image href="GUID-08698D45-1F37-553A-9497-0081271535A1_d0e147370_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-1453B676-A271-5D89-80B4-88C8DBDEAF1C"><title>Service view</title> <p>The
+diagram below shows the point of view of services which operate over the server
+application system. Services are things such as "printing", "send-as" and
+"contacts selection", which offer useful functionality to applications. </p> <p>The
+server application framework provides generic service support over a client/server
+link, upon which real services can be created. A service will typically provide
+a client-side interface that clients can use directly, and a server-side interface
+that server applications have to implement. </p> <fig id="GUID-81435382-06BE-5057-A23D-EDDC829191E4">
+<image href="GUID-CCC121FA-C180-5103-915D-583A0CE9FB45_d0e147386_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-A608EB50-672E-54B3-B438-BD42F7D3F191"><title>Symbian platform
+component view</title> <p>The diagram below shows the Symbian platform components
+involved in the server application support system. </p> <p>The core of the
+server application framework support is in Apparc, built on the client/server
+system provided by Base. Apparc is responsible for: </p> <ul>
+<li id="GUID-929FB213-9E6D-5056-B480-5B0E4C1B6825"><p>supporting multiple
+service types over the client server link </p> </li>
+<li id="GUID-1CF56457-2412-5C1C-A6EB-D36D7EC55ABB"><p>establishing client/server
+connections to already running server applications </p> </li>
+<li id="GUID-21AF6CB0-D1F9-51CE-B442-8FB29E8AF334"><p>monitoring the lifetime
+of the server for the client. </p> </li>
+</ul> <p>The server application framework is specialised by Uikon to allow
+the launching of new server application instances for the client to connect
+to. </p> <p>The server application framework may be specialised by System
+GUIs, for instance, to add policy regarding the relationships between window
+groups in client and server applications. </p> <p>Services may be provided
+by Symbian or Licensees. These depend on the server application framework,
+either as implemented in Apparc or Uikon. Only services based on Uikon's implementation
+of the server application framework can be used to start new application instances.
+Those based on Apparc's implementation must connect to a server application
+which is already started. </p> <p>Applications will use the server application
+framework appropriate for their platform. They may use whatever services are
+available on that platform, subject to security restrictions. </p> <fig id="GUID-6D5FD60F-731C-57EB-9019-FEFD04EA29DC">
+<image href="GUID-D3F800F3-0818-5DF2-947C-AB8DE0C0053C_d0e147432_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Client-server view</title> <p>The diagram below shows Apparc's
+implementation of the server application system from the client/server point
+of view. These are the points to note about this system: </p> <ul>
+<li id="GUID-1AAAFB86-9FF2-5E2E-90B6-675D38784A8E"><p>The basic client server
+link is between <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> and <xref href="GUID-90450078-D05F-3EEB-8A5E-B7110943DD33.dita"><apiname>CApaAppServiceBase</apiname></xref>.
+The protocol used on this link is for monitoring the lifetime of client and
+server. </p> </li>
+<li id="GUID-37D37F18-B68E-57DA-87AE-5D646B77DB39"><p>Services are implemented
+in sub-classes of <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> and <xref href="GUID-90450078-D05F-3EEB-8A5E-B7110943DD33.dita"><apiname>CApaAppServiceBase</apiname></xref>.
+The sub-class type for each particular service is identified by a UID. The
+protocol added between the client and server-side of a service protocol is
+specific to that service. </p> </li>
+<li id="GUID-29F5685B-6C96-5332-A0DA-65511EECB2E5"><p>Clients may monitor
+the lifetime of server applications using the <xref href="GUID-DB7DF858-5380-368F-BDAD-F9B6CBA4A2CC.dita"><apiname>CApaServerAppExitMonitor</apiname></xref> active
+object and the <xref href="GUID-1FE93B7E-FDA2-328A-A3A0-8C5351C1EF54.dita"><apiname>MApaServerAppExitObserver</apiname></xref> interface. The
+active object can be used to monitor any <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> derived
+object. </p> </li>
+<li id="GUID-507C6312-5D47-526D-8E0E-A1C38F91B386"><p>A server application
+has to derive a server class from <xref href="GUID-A056179D-64B3-3674-92F5-DE9B7749D450.dita"><apiname>CApaAppServer</apiname></xref>. This class
+should implement a function, <codeph>CApaAppServer::CreateServiceL()</codeph> which
+takes a UID identifying the type of service that the session should implement. </p> </li>
+<li id="GUID-C4207CD6-77CE-59F0-B91B-0A4F1DB2762C"><p>The service specific
+sessions on client and server-side marshal parameters across the client server
+link. Typically, the server-side will introduce a number of virtual functions
+to handle the client requests, which the server application must override
+and implement. </p> </li>
+</ul> <fig id="GUID-FBF5D23A-C44E-597D-8B85-9BAEACF55710">
+<image href="GUID-866B69E6-8D4C-546F-B9C9-244AD8988DE5_d0e147508_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-4D0B549E-E11D-54E2-9D8C-90F04771FF48"><title>Security view </title> <p>This
+section discusses security aspects of the server application support. Essentially,
+both client and server need to protect themselves against malicious versions
+of their counterpart that they may connect to. </p> <ol id="GUID-1E43D0D8-919E-5778-8C06-322C7049933A">
+<li id="GUID-0C4697C4-E0AB-56BE-B9F3-0400DF98AC60"><p> <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> protects
+the client from malicious servers in three ways: Firstly, it can monitor the
+lifetime of the server by holding open a request for server exit status; secondly,
+it has a time-out on the connection to the server so that the server cannot
+lock the client by not responding; thirdly, it can make this time-out mechanism
+available to derived classes. </p> </li>
+<li id="GUID-12FC7A23-41D5-590F-A211-5A07138B17E3"><p> <xref href="GUID-90450078-D05F-3EEB-8A5E-B7110943DD33.dita"><apiname>CApaAppServiceBase</apiname></xref> protects
+the server from malicious clients by allowing a security policy to be set
+for client requests. Note that the client/server framework provides support
+for unexpected client exit. There are two functions that server applications
+can override for security checking: <codeph>CApaAppServer::CreateServiceSecurityCheckL()</codeph> allows
+a capability check on connect and <codeph>CApaAppServiceBase::SecurityCheckL()</codeph> allows
+a security check on each message. </p> </li>
+<li id="GUID-2F7F6A94-4292-5A72-9862-CDAECA84B1E6"><p>Service specific sub
+sessions on the client-side should protect the client by checking the validity
+of parameters received from the server. They should not assume that they are
+talking to their equivalent class on the server-side. </p> </li>
+<li id="GUID-D61DDBA1-9E29-53BC-9F3C-492A41ADEADF"><p>Service specific sub
+sessions on the server-side should protect the server by checking the validity
+of parameters received from the client. They should not assume that they are
+talking to their equivalent class on the client-side. </p> </li>
+</ol> <fig id="GUID-A040B1BF-AF99-5E41-B9F8-3245F54AD25C">
+<image href="GUID-8617B132-D8C8-5769-95B9-867815B45B18_d0e147558_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-8C154D80-591D-5834-93B0-A99E9EF4BCD2"><title>Sequence views</title> <p>The
+following sections show sequence diagrams illustrating various dynamic relationships
+between client and server application. </p> <p><b>Server application start</b> </p> <p>When
+a client wishes to establish a connection with a new server application, it
+connects an <xref href="GUID-92F2DA99-0954-3399-9005-F3E817CB7E72.dita"><apiname>REikAppServiceBase</apiname></xref> derived object by calling
+its <codeph>REikAppServiceBase::ConnectNewAppL()</codeph> function. This starts
+a new instance of the server application, and passes information about the
+server name to the server. The server application creates a server with the
+appropriate name. <codeph>REikAppServiceBase</codeph> then connects to the
+server and tells the server what session type it requires. </p> <p>Note: <xref href="GUID-92F2DA99-0954-3399-9005-F3E817CB7E72.dita"><apiname>REikAppServiceBase</apiname></xref> (implemented
+in Uikon) has to be used to start new server applications. <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> (implemented
+in Apparc) cannot start new server applications, but it can connect to existing
+server applications, either by server name, or with the help of another connected <codeph>RApaAppServiceBase</codeph> instance. </p> <p>It
+would not be safe for the client to dictate the full name of the server to
+the server application. If this were possible, the client may be able to make
+server applications impersonate system servers. Instead, the client application
+tells the server a random number to use in the server name. The server name
+is then generated from this random number and the UID of the server application.
+Since both numbers are known to both parties, the combination can be checked
+for uniqueness and they can't be used to impersonate system servers. This
+name agreement system is therefore safe. </p> <fig id="GUID-DD480C95-45A1-5FE6-BDD6-A72E34BE0278">
+<image href="GUID-5690EA18-106E-52E6-ABD3-4D5EE3CA8B23_d0e147606_href.png" placement="inline"/>
+</fig> <p><b>Service creation</b> </p> <p>Continuing from the previous diagram,
+this diagram shows the creation and use of a service specific sub-session
+between the client and server application. </p> <p>To use a service, the client
+must first create a service specific session. This happens during the call
+to the <codeph>Connect…()</codeph> functions in <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> and <xref href="GUID-92F2DA99-0954-3399-9005-F3E817CB7E72.dita"><apiname>REikAppServiceBase</apiname></xref>.
+These functions connect the appropriate session sub-type by sending the UID
+for the session type to the server in the connect message. Because there are
+no spare slots in the connect message, this UID is passed in the version field.
+The server application's override of the <codeph>CreateServiceL()</codeph> function
+is called passing in the UID of the requested service. The server application
+can now instantiate it's implementation of the server-side objects for the
+service. </p> <fig id="GUID-7A6DB7F6-4CBC-5A69-A8E1-5BEF12911E20">
+<image href="GUID-84E742A8-2D24-55B8-A4DA-A67939A50754_d0e147636_href.png" placement="inline"/>
+</fig> <p><b>Service use</b> </p> <p>The diagram below shows the use of a
+service specific session between the client and server application. </p> <p>To
+use a service, the client-side implementation of the service sends service
+specific messages to the server, which are passed to the service's interface
+in the server. This decodes the messages and calls virtual functions in the
+server application's implementation of the service, to actually carry out
+the service. </p> <fig id="GUID-71C39EBC-EF06-5CA8-A7AC-ADD1BC8F562A">
+<image href="GUID-68C4E5E5-65A2-51BC-B3DC-2B83D29212D4_d0e147652_href.png" placement="inline"/>
+</fig> <p><b>Server application lifetime monitoring</b> </p> <p>If the client
+application requires monitoring of the server application's lifetime, which
+it often will, it should implement the <xref href="GUID-1FE93B7E-FDA2-328A-A3A0-8C5351C1EF54.dita"><apiname>MApaServerAppExitObserver</apiname></xref> interface
+and create a <xref href="GUID-DB7DF858-5380-368F-BDAD-F9B6CBA4A2CC.dita"><apiname>CApaServerAppExitMonitor</apiname></xref> to monitor a <xref href="GUID-2E824A1A-078A-3D43-8B49-DF6328330B51.dita"><apiname>RApaAppServiceBase</apiname></xref> derived
+connection to the server application. <codeph>CApaServerAppExitMonitor</codeph> opens
+a request for notification of exit to the server. When the server exits, this
+notification will be completed. The <codeph>CApaServerAppExitMonitor</codeph> then
+runs and tells its observer that the server application has exited. </p> <fig id="GUID-5807A9C6-86FC-5779-BA9D-A490791E7EE5">
+<image href="GUID-3457B9BC-2F8F-55C1-9B5F-FA210D3439C6_d0e147683_href.png" placement="inline"/>
+</fig> </section>
+<section><title>See also</title><p><xref href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita">Application
+Architecture Overview</xref></p></section>
+</conbody></concept>

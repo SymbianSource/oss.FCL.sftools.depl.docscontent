@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A4354C8C-2A00-50C1-8DC6-6CE748BC01EB"><title> Using Subtitle Graphic Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This document gives you more information about how to use Subtitle Graphic. </p> <section><title>Purpose</title> <p>Subtitle Graphic displays subtitles on the screen when you use two different drawing modes: </p> <ul><li id="GUID-955E7707-F33A-57B3-B859-F6D73FBE1B04"><p>swap frame mode </p> </li> <li id="GUID-71D61E03-6B70-500A-A4FC-DA414548849A"><p>draw frame mode </p> </li> </ul> <p><b>Required background</b> </p> <p>Subtitle Graphic is loaded by Video Player Controller to render subtitle graphics on a window when subtitle is added to a video screen. </p> <p><b>Introduction</b> </p> <p>Subtitle Graphic (<xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita"><apiname>CMMFSubtitleGraphic</apiname></xref>) takes bitmap handles to display subtitles on the window. The bitmap handle must be a transparent bitmap. The bitmap handle contains the subtitle image to render on the top of the video window. The bitmap handle must be the same size as the subtitle region. </p> </section> <section><title>Using Subtitle Graphic</title> <p>The following task is done using Subtitle Graphic: </p> <ul><li id="GUID-A15E631F-155C-572D-8078-9283AB76DD9D"><p><xref href="GUID-A4354C8C-2A00-50C1-8DC6-6CE748BC01EB.dita#GUID-A4354C8C-2A00-50C1-8DC6-6CE748BC01EB/GUID-E1D035E5-5E17-5DDB-B82F-ECF36C7E00C3">How to use Subtitle Graphic</xref>. </p> </li> </ul> <p id="GUID-E1D035E5-5E17-5DDB-B82F-ECF36C7E00C3"><b>Basic procedure to use Subtitle Graphic</b> </p> <p>The high-level steps to use Subtitle Graphic are as follows: </p> <ul><li id="GUID-BE4F403A-BCC2-5F25-9757-7710EA89B95E"><p>To create a new <codeph>CMMFSubtitleGraphic</codeph> call <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-9655DE26-C42B-354D-BD57-2C1EC7FC7454"><apiname>CMMFSubtitleGraphic::NewL()</apiname></xref>. </p> </li> <li id="GUID-398524C5-71DE-5089-89E2-FA3CEF3F5991"><p>To get the graphic identity of the created <codeph>CMMFSubtitleGraphic</codeph> call <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-3DCC1206-D30E-36F6-B26E-478CB9793255"><apiname>CMMFSubtitleGraphic::GetId(TWsGraphicId &amp;)</apiname></xref>. </p> <p> <b>Note:</b> If multiple window support is required, multiple Subtitle Graphics can be created at the same time, and each Subtitle Graphic will have a different graphic ID. Each instance of <codeph>CMMFSubtitleGraphic</codeph> can be used for one window. </p> </li> <li id="GUID-E0B844B0-3A43-5275-994F-3CE84C0DB749"><p>To draw to <codeph>CMMFSubtitleGraphic</codeph> there are two drawing modes: </p> <ul><li id="GUID-380735D0-EA1D-5D2D-AB05-F4E468C56ACA"><p> <b>Swap frame mode </b>  </p> <p> <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-6388C482-214B-370B-9376-E55A76540C47"><apiname>CMMFSubtitleGraphic::Initialize(TInt,
+                        TInt)</apiname></xref> initialises the CRP with two bitmap handles, which act as a front buffer and a back buffer. To swap the current drawing bitmap call <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-4AECA96C-4F4B-3444-8A79-47D215540492"><apiname>CMMFSubtitleGraphic::SwapFrame()</apiname></xref>. </p> <p>The example below shows Subtitle Graphic swap frame mode: </p> <codeblock id="GUID-AED66EBF-71FD-59AA-A8EC-6F3080C9587F" xml:space="preserve">
+
+// initialize crp with the specified bitmap handles
+crp-&gt;Initialize(bitmap1.Handle(), bitmap2.Handle()); 
+
+&lt;snip&gt; decode first frame into bitmap1 here… &lt;snip&gt;
+
+// display drawrect1 of bitmap1 for displayDuration number of microsecond
+crp-&gt;SwapFrame(1, drawRect1, displayDuration); 
+
+&lt;snip&gt; decode second frame into bitmap2 here… &lt;snip&gt;
+
+// display drawrect2 of bitmap2 for displayDuration number of microsecond
+crp-&gt;SwapFrame(2, drawRect2, displayDuration); 
+
+&lt;snip&gt; decode third frame into bitmap1 here… &lt;snip&gt;
+
+// display drawrect1 of bitmap1 for displayDuration number of microsecond
+crp-&gt;SwapFrame(1, drawRect1, displayDuration); 
+
+</codeblock> </li> <li id="GUID-7208CFB0-F006-5B12-9192-05F978D6F2C2"><p> <b>Draw frame mode</b>  </p> <p> <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-18A5204C-1C6F-3A8F-9174-CE20317668DF"><apiname>CMMFSubtitleGraphic::Initialize()</apiname></xref> initialises the CRP with no bitmap handles. To draw bitmap call <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-BBFF5CE4-D734-3844-810D-F1E2AB683813"><apiname>CMMFSubtitleGraphic::DrawFrame()</apiname></xref>. </p> <p>The example below shows Subtitle Graphic draw frame mode: </p> <codeblock id="GUID-7620F12E-2D57-5BA5-9C70-E821D37A62F6" xml:space="preserve">
+
+// initialize crp for drawing any bitmap handle
+crp-&gt;Initialize(); 
+
+&lt;snip&gt; decode first frame into bitmap1 here… &lt;snip&gt;
+
+// draw drawrect1 of bitmap1 for displayDuration number of microsecond
+crp-&gt;DrawFrame(bitmap1.Handle(), drawRect1, displayDuration); 
+
+&lt;snip&gt; decode second frame into bitmap2 here… &lt;snip&gt;
+
+// draw drawrect2 of bitmap2 for displayDuration number of microsecond
+crp-&gt;DrawFrame(bitmap2.Handle(), drawRect2, displayDuration);
+
+</codeblock> </li> </ul> <p>In both of the examples above, the <codeph>drawRect1</codeph> and <codeph>drawRect2</codeph> represent the region of the bitmap that contains the subtitle. The region is relative to the bitmap. The region is sent to indicate the region of the bitmap that needs to be drawn. The <codeph>displayDuration</codeph> is the time that the subtitle bitmap will be displayed before it is cleared. If the value is 0, the subtitle bitmap will not be cleared until the next <codeph>DrawFrame()</codeph>, <codeph>SwapFrame()</codeph>, or <codeph>Clear()</codeph> call. </p> </li> <li id="GUID-0B552DEC-75F9-539E-A7F5-7977CB8C1F62"><p>To clear Subtitle Graphic call <xref href="GUID-A6DB8EBA-56B2-35F2-A791-918400779A85.dita#GUID-A6DB8EBA-56B2-35F2-A791-918400779A85/GUID-25F7CD6B-659E-3CE7-90E3-0B3C13AE3F5C"><apiname>CMMFSubtitleGraphic::Clear()</apiname></xref>. This may be used when a video is stopped to remove the clear the subtitle bitmap from window. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-A9803A57-BB43-53F3-97BA-3B5E91D925F0.dita"><linktext> Subtitle Graphic Overview</linktext> </link> <link href="GUID-354240A8-2DDD-5181-9A36-9A054D239B62.dita"><linktext>Video Subtitle CRP Support from
+                MMF</linktext> </link> </related-links></concept>

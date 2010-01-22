@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-817C43E8-9169-4750-818B-B431D138D71A" xml:lang="en"><title>Using <codeph>GIOChannel</codeph></title><shortdesc>GIOChannel provides a portable method for using file descriptors,
+sockets and pipes and integrating them into the GLib main loop.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <codeph>g_io_channel_unix_new()</codeph> API takes a file descriptor
+as an input parameter and is used to create a new <codeph>GIOChannel</codeph>.
+Alternatively, the <codeph>g_io_channel_new_file()</codeph> API can be used
+to create a channel for a file. Once the channel is created, it can be used
+in a generic manner.</p>
+<p>To read a channel, APIs such as the following can be used: </p>
+<ul>
+<li><p><codeph>g_io_channel_read_chars()</codeph></p></li>
+<li><p><codeph>g_io_channel_read_line()</codeph></p></li>
+<li><p><codeph>g_io_channel_read_to_end()</codeph></p></li>
+</ul>
+<p>To write to a channel an API like <codeph>g_io_channel_write_chars()</codeph> is
+used.</p>
+<p>To set the position in the current <codeph>GIOChannel</codeph>, <codeph>g_io_channel_seek_position()</codeph> can
+be used.</p>
+<p>Finally the channel can be closed using <codeph>g_io_channel_shutdown()</codeph>.</p>
+<p>The following is an example code where a file descriptor to a plain file
+is used to create a <codeph>GIOChannel</codeph>, and then the contents of
+the file are read in chunks of 100 bytes and printed using <codeph>g_print</codeph>.
+Finally the channel is closed. </p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+	GIOChannel *channel;
+	gchar buf[100];
+	gsize bytes_read;
+	FILE *fp;
+	
+	if(argc != 2)
+	{
+		g_print("usage:cat &lt;file_name&gt;\n");
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+	
+	fp = fopen(argv[1],"r");
+	
+	if(!fp)
+	{
+		g_print("Unable to open the file %s\n",argv[1]);
+		return 1;
+	}
+		
+	channel = g_io_channel_unix_new(fileno(fp));
+	
+ 	do
+ 	{
+		g_io_channel_read_chars(channel,buf,100,&amp;bytes_read,NULL);
+		g_print("%s",buf);
+		
+	}
+	while(bytes_read &gt; 0);
+	
+	g_io_channel_shutdown(channel,TRUE,NULL);
+	
+	fclose(fp);
+ 
+	return 0;
+}
+ </codeblock>
+<p>In the example below, a sample code to copy a file is written. In the code,
+channels are opened using <codeph>g_io_channel_new_file()</codeph>. The contents
+of the file are read using <codeph>g_io_channel_read_chars()</codeph>, and
+the contents are written to a new file using <codeph>g_io_channel_write_chars()</codeph>.</p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+	GIOChannel *in_channel,*out_channel;
+	gchar buf[100];
+	gsize bytes_read,bytes_written;
+	GError *error = NULL;
+	
+	if(argc != 3)
+	{
+		g_print("usage:&lt;cp SOURCE&gt; &lt;DESTINATION&gt;\n");
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+		
+	in_channel = g_io_channel_new_file(argv[1],"r",&amp;error);
+	
+	if(!in_channel)
+	{
+		g_print("Unable to open the file %s to read\n",argv[1]);
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+	
+	out_channel = g_io_channel_new_file(argv[2],"w",&amp;error);
+	
+	if(!out_channel)
+	{
+		g_print("Unable to open the file %s to write\n",argv[2]);
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+	
+	do
+	{
+		g_io_channel_read_chars(in_channel,buf,100,&amp;bytes_read,&amp;error);
+		if(error)
+		{
+			g_print("Error while reading file %s\n",argv[1]);
+			g_print("Press any key to exit\n");
+			getchar();
+			return 1;
+		}
+		
+		g_io_channel_write_chars(out_channel,buf,bytes_read,&amp;bytes_written,&amp;error);
+		if(error)
+		{
+			g_print("Error while writing file %s\n",argv[2]);
+			g_print("Press any key to exit\n");
+			getchar();
+			return 1;
+		}
+	}
+	while(bytes_read &gt; 0);
+	
+       g_io_channel_shutdown(in_channel,TRUE,&amp;error);
+	if(error)
+	{
+		g_print("Error has occured\n");
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+	 
+	g_io_channel_shutdown(out_channel,TRUE,&amp;error);
+ 	if(error)
+	{
+		g_print("Error has occured\n");
+		g_print("Press any key to exit\n");
+		getchar();
+		return 1;
+	}
+	
+	g_print("File copied successfully...\n");
+	getchar();
+	
+	return 0;
+}</codeblock>
+<section id="GUID-96EC4949-D5B6-41A1-A55E-D02390E5CFD5">       <title>Using <codeph>GIOChannel</codeph> in
+GLib main loops</title>       <p><codeph>GIOChannel</codeph> provides a way
+to integrate file descriptors to main loops. The following code demonstrates
+the usage. In the code, a pipe is created. A thread is created which writes
+to the write end of the pipe. The main loop checks if the other end of the
+pipe is ready to read. If it is, then the callback function is called. The
+callback calls <codeph>g_main_loop_quit()</codeph>, and the main loop is terminated
+and <codeph>g_main_loop_run()</codeph> returns. </p><codeblock xml:space="preserve">#include &lt;glib.h&gt;
+#include &lt;stdio.h&gt;
+
+int fd[2];
+
+void *thread_function(void *data)
+{
+	// call sleep so that the main loop source is not ready immediately
+	sleep(10);
+	
+	write(fd[1],"GIOChannel main loop example",29);
+	return NULL;
+}
+
+gboolean my_callback(GIOChannel *source,GIOCondition condition,gpointer data)
+{
+	char buf[100];	
+	
+	read(fd[0],buf,sizeof(buf));
+	g_print("%s",buf);
+	
+	getchar();
+	
+	g_main_loop_quit((GMainLoop *)data);
+	
+	return FALSE;
+}
+
+int main()
+{
+	GMainLoop *loop;
+	GIOChannel *channel;
+	
+	pipe(fd);
+	
+	channel = g_io_channel_unix_new(fd[0]);
+	
+	g_thread_init(NULL);
+	g_thread_create(thread_function,NULL,TRUE,NULL);
+	
+	loop = g_main_loop_new(NULL,FALSE);
+	g_io_add_watch(channel,G_IO_IN | G_IO_HUP | G_IO_ERR,(GIOFunc)my_callback,loop);
+	g_main_loop_run(loop);
+	
+	g_io_channel_shutdown(channel,TRUE,NULL);
+
+	return 0;
+}
+</codeblock></section>
+</conbody></concept>

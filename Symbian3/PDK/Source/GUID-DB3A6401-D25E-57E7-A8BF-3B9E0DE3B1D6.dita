@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-DB3A6401-D25E-57E7-A8BF-3B9E0DE3B1D6" xml:lang="en"><title>Flexible
+Memory Model Tutorial</title><shortdesc>Describes how to enable Flexible Memory Model in the baseport. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-373DDC4E-7EF8-5D66-A617-EC5049DF0C2A"><p>Before you start,
+you must: </p> <ul>
+<li id="GUID-0B6AFF32-3E2E-52D0-AC3E-AD0EAAF58E9D"><p>Have the knowledge of<xref href="GUID-9781C95D-4606-57FB-9F62-B7CC45DDD968.dita"> Flexible Memory Model</xref>. </p> </li>
+<li id="GUID-00BC7130-2F81-51C8-83D1-B575FEFE2C07"><p>Know how to build rom<xref href="GUID-903A9956-87E2-5191-87A3-6D40797EB820.dita">ROM-Guide</xref> </p> </li>
+</ul> </prereq>
+<context id="GUID-2775CA32-D0AA-5F41-86DF-892C5A3B95D4"><p>The Flexible Memory
+Model is enabled in a baseport by modifying the <codeph>variant.mmh</codeph>, <codeph>bld.inf</codeph>, <codeph>header.iby</codeph> and <codeph>base_&lt;platform&gt;.iby</codeph> files. The following procedure describes the keywords to be used in different
+files to enable the Flexible Memory Model in the baseport. </p> </context>
+<steps id="GUID-13A9FE5D-77FF-5EC9-90B4-2476E204427F">
+<step id="GUID-34188387-A964-5654-AF48-9CBB6000EBBC"><cmd>In <filepath>variant.mmh</filepath> file
+of the baseport, replace the keyword <codeph>MM_MULTIPLE</codeph> with <codeph>MM_FLEXIBLE</codeph>. </cmd>
+
+<info>The key word <codeph>MM_FLEXIBLE</codeph> instructs the kernel to use
+the flexible memory model. </info>
+<stepxmp><codeblock id="GUID-F3522448-A359-5BF3-8E2E-7400AAF38FA1" xml:space="preserve">
+...
+#define MM_FLEXIBLE</codeblock> </stepxmp>
+</step>
+<step id="GUID-39F952CA-D08F-5B1F-9B84-550EEBB2179A"><cmd/>
+<info>In <filepath>bld.inf</filepath> file of the baseport, replace the option
+for bootstrap extension section. </info>
+<info>Change the option <codeph>MEMMODEL multiple</codeph> to <codeph>MEMMODEL
+                flexible</codeph>. </info>
+<info>This option configures the bootstrap to initialise the system for kernel
+to use the Flexible memory model. </info>
+<stepxmp><codeblock id="GUID-7FB67BA8-AB70-582E-B3BA-2D9EA53D3F22" xml:space="preserve">
+...
+#define FLEXIBLE
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-BA054DA0-D7CC-5C9A-892C-E6CF522EA6A6"><cmd/>
+<info>In both<filepath> header.iby</filepath> and <filepath>base_&lt;platform&gt;.iby</filepath> files
+change the line of <codeph>memmodel</codeph> to <codeph>memmodel flexible
+0x100000 0x1000                 -0x4000</codeph>. </info>
+<stepxmp><codeblock id="GUID-FC598405-1FDF-59D7-92B7-40E22483ACE2" xml:space="preserve">...
+memmodel flexible 0x100000 0x1000 -0x4000</codeblock> </stepxmp>
+</step>
+<step id="GUID-A22F96FA-F825-53AD-9172-0067E54B460C"><cmd/>
+<info>Add <codeph>dlldatatop 0x7f000000</codeph> in both <filepath>      
+          header.iby</filepath> and <filepath>base_&lt;platform&gt;.iby </filepath> files. </info>
+<info>If the line <codeph>dlldatatop</codeph> exists, replace it with <codeph>dlldatatop
+0x7f000000</codeph> in both files. </info>
+<stepxmp><codeblock id="GUID-8638F8E9-AB29-5D1A-9F00-14CAB2BFA891" xml:space="preserve">..
+dlldatatop 0x7f000000</codeblock> </stepxmp>
+<info>If the <codeph>dlldatatop</codeph> entry does not exist, enter <codeph>dlldatatop
+0x7f000000</codeph>. </info>
+</step>
+<step id="GUID-C12C4AE3-BB3A-5F30-8000-9F971826640B"><cmd/>
+<info>Build the ROM </info>
+</step>
+</steps>
+<result id="GUID-EFD44D09-3EAD-5257-A457-C72B3F086196"><p>The Flexible Memory
+Model is enabled in the built ROM. </p> </result>
+</taskbody><related-links>
+<link href="GUID-9781C95D-4606-57FB-9F62-B7CC45DDD968.dita"><linktext>Flexible
+Memory Model Guide</linktext></link>
+</related-links></task>

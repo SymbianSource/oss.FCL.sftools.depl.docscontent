@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-AB99E33E-322A-5C65-AAA0-6F3DE038ED71"><title>Uninstalling Features with Feature Manager</title><shortdesc>Provides instructions for removing features when uninstalling a software component. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context id="GUID-ACEA36C7-3E96-5384-A9F2-3FE58E409DB7"><p>When you install a software component you may want to disable any features which no other component requires. You may also want to modify the user-defined data relating to the feature. You do this by installing an executable which uninstalls the features. That executable is called <filepath>featureuninstaller.exe</filepath> and you create it by customising and installing its source code. </p> </context> <steps id="GUID-5ED35D95-A321-5130-B3EA-944084BA3E0E"><step id="GUID-1BC6BD63-A83D-5CBE-83F8-41CB0E30BD47"><cmd>Customise the source code in <filepath>featureuninstaller.cpp</filepath>, </cmd> <substeps id="GUID-5B7459CB-4DDF-5902-A3DB-A884809E1F9F"><substep id="GUID-38F1A44F-CB06-59DE-822B-B7605A5755FC"><cmd>Set the TUid <codeph>featureUid</codeph> to the UId of the feature to be disabled, as defined in <filepath>featureUIDs.h</filepath>, which you use to initialise <codeph>featureUid</codeph> </cmd> <stepxmp><codeblock id="GUID-D3A68BE5-312F-5B25-B808-1741931B6C1E" xml:space="preserve">    // TODO: Replace UID 0x00000000 with real value
+    TUid featureUid( TUid::Uid( 0x00000000 ) ); 
+</codeblock> </stepxmp> <info>and </info> </substep> <substep id="GUID-457FF316-1125-59DE-A52E-F905B60D0BD2"><cmd>set the TUint32 <codeph>featureData</codeph> to the user-defined data if any. </cmd> <stepxmp><codeblock id="GUID-B560B222-6591-50E9-A48E-888CD680C89A" xml:space="preserve">    // TODO: Set feature data. Replace &lt;featureData&gt; with real value!
+    // TODO: Uncomment when needed!
+    // TUint32 featureData( 0x00000000 );
+</codeblock> </stepxmp> </substep> </substeps> <info>This is the source code to be modified. </info> <stepxmp><codeblock id="GUID-A2545500-5C84-5783-BCBC-C175AEC5F9FA" xml:space="preserve">
+
+// INCLUDE FILES
+#include &lt;featurecontrol.h&gt;
+
+// LOCAL CONSTANTS AND MACROS
+_LIT(KTxt,"featureuninstaller: mainL failed");
+
+
+// ============================= LOCAL FUNCTIONS ===============================
+
+// -----------------------------------------------------------------------------
+// mainL
+// -----------------------------------------------------------------------------
+//  
+LOCAL_C void mainL()
+    {
+    // Connect Feature Control
+    RFeatureControl featureControl;
+    User::LeaveIfError( featureControl.Open() );
+    
+    // Example code disables an existing feature.
+    // TODO: Comment or uncomment code when needed. 
+    
+    // TODO: Specify in your .pkg file:
+    // @"featureuninstaller.sisx", (0x10283304)
+    
+    // TODO: Replace UID 0x00000000 with real value
+    TUid featureUid( TUid::Uid( 0x00000000 ) ); 
+    
+    // Feature data is 32-bit quantity for client read and write. Feature data is
+    // defined by owner of the feature and can contain for example flags, 
+    // enumeratons and/or integers.
+    // TODO: Set feature data. Replace &lt;featureData&gt; with real value!
+    // TODO: Uncomment when needed!
+    // TUint32 featureData( 0x00000000 );
+    
+    // Disable an existing feature.
+    User::LeaveIfError( featureControl.DisableFeature( featureUid ) );
+    
+    // OR disable an exsiting feature and set feature data.
+    // User::LeaveIfError( featureControl.SetFeature( featureUid, EFalse, featureData ) );
+    
+    featureControl.Close();
+    }
+
+
+
+</codeblock> </stepxmp> </step> <step id="GUID-80C46E27-B2CE-5464-A4D5-D6E3C0A76117"><cmd/><info>compile the code to <filepath>featureuninstaller.exe</filepath>, </info> </step> <step id="GUID-E46397B7-8DD9-54FA-A0CB-201A310C06AC"><cmd/><info>customise the package file <filepath>featureuninstaller.pkg</filepath> with the filepath of <filepath>featureuninstaller.exe</filepath>, and </info> <stepxmp><codeblock id="GUID-58ABFF7F-1EB7-55C7-8B07-087CB7254290" xml:space="preserve">; This file installs an exe that is run asynchronously on uninstallation, uninstalls a feature.
+
+;Languages
+&amp;EN
+
+;Header
+#{"featureuninstaller"}, (0x10283304), 1, 2, 3,TYPE=SA
+
+%{"Vendor"}
+:"Unique Vendor Name"
+
+"\epoc32\release\winscw\udeb\featureuninstaller.exe"-"!:\sys\bin\featureuninstaller.exe", FR, RR</codeblock> </stepxmp> </step> <step id="GUID-819026D8-FEFD-5B21-833D-C4A30409DDCE"><cmd/><info>convert <filepath>featureuninstaller.pkg</filepath> into a .sis file to be placed on the phone in accordance with the normal installation process. </info> </step> </steps> <result id="GUID-C9948138-DA6D-5A62-9298-05665E4BF57E"><p>The features you have uninstalled will now be disabled on the device. </p> </result> <postreq id="GUID-5EDEA2CA-24F9-589E-BC8E-682A5CF4D2F4"><p>There are no next steps to be taken. </p> </postreq> </taskbody><related-links><link href="GUID-5885167D-4755-54CC-B366-6DA89A608F8E.dita"><linktext>Installing Features with Feature
+                Manager Tutorial </linktext> </link> <link href="GUID-B71AC5E3-8AA8-55AD-916F-9E873926011B.dita"><linktext>Feature Manager Overview</linktext> </link> </related-links></task>

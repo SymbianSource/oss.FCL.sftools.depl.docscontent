@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0E93319A-439E-49D8-BF38-C809FEE4BB74" xml:lang="en"><title>User-side
+Creation</title><shortdesc>This document describes user-side creation of asynchronous requests.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Asynchronous requests are commonly initiated by a call to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-FCC4A3A9-69F5-3947-8D0F-2AD12086F1E2"><apiname>RBusLogicalChannel::DoRequest()</apiname></xref>.
+The user making an asynchronous request creates a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object
+and passes it along with the request type to the <xref href="GUID-9D910016-5611-30DD-A139-EE46705A4912.dita"><apiname>DoRequest()</apiname></xref> call.
+The request status is changed to <xref href="GUID-B0778F54-C5DD-3307-A1E2-0DD339C4E4E7.dita"><apiname>KRequestPending</apiname></xref> by the
+Kernel before sending the message to the driver. The user may then either
+wait on the request using <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref>, or it
+may queue one or more requests and then wait. It may have an active object
+handler to receive the request complete notifications. </p>
+<codeblock id="GUID-39AC44C2-1FDF-5A6C-81F0-0BA9BB23DF91" xml:space="preserve">// Request status object for transmit. This object will be used to 
+// read the status of asynchronous requests after the notification of 
+// request completion
+//
+ TRequestStatus txStatus;
+     
+// Call the LDD interface TransmitData() API with test data descriptor 
+// and TRequestStatus object as parameters. Here TransmitData() is a
+// wrapper over a DoRequest() call.
+//
+r = ldd.TransmitData(txStatus, KTestSendData);
+test(r==KErrNone);
+            
+// Wait till the request is complete on txStatus. The user thread is 
+// blocked with this call, till it is notified about the request 
+// completion.
+//
+User::WaitForRequest(txStatus);
+     
+// txStatus holds the request completion. TRequestStatus::Int() 
+// returns the completion code. It will be KErrNone in case of 
+// successful completion.
+//
+r = txStatus.Int();
+test(r==KErrNone);</codeblock>
+</conbody></concept>

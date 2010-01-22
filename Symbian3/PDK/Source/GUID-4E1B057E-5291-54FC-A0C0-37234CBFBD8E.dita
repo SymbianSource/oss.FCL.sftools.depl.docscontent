@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-4E1B057E-5291-54FC-A0C0-37234CBFBD8E" xml:lang="en"><title>Enumerating
+Applications</title><shortdesc>Device creators can use the APIs provided by APPARC to enumerate
+a list of applications on a device. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-A733DF2E-4FC5-5CBF-8F32-B5D43847FC0B">
+<step id="GUID-9439F626-0F50-59C9-B87F-3FAE9AF3C9C9"><cmd/>
+<info>Create a session with the APPARC server using the <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-A92887D0-694C-3792-B3C9-46B155FE83B9"><apiname>RApaLsSession::Connect()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-88901791-698A-5790-8742-8AA01F96E09E" xml:space="preserve">RApaLsSession apaLsSession;  
+
+// Connect to the APPARC server
+User::LeaveIfError(apaLsSession.Connect());
+</codeblock> </stepxmp>
+</step>
+<step id="GUID-22D84B52-B95F-5D95-AF17-669BC8D6923E"><cmd/>
+<info>Implement one or more of the following functions as per your requirement: </info>
+<substeps id="GUID-F8155F75-6D02-5AC8-9B8D-BB73AC591FC4">
+<substep id="GUID-49F98C14-2DF3-55B2-AEF5-3D0CBA78320F"><cmd/>
+<info> <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-70BFF68B-3563-3FAD-807C-895984620E2A"><apiname>RApaLsSession::GetAllApps()</apiname></xref> - Use this function
+to initialize the process of getting all applications in the list except the
+control panel applications. </info>
+</substep>
+<substep id="GUID-FDB73E93-2F2C-5090-BE29-85633F3F0F95"><cmd/>
+<info> <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-E0F9B1FA-976A-3A07-8A69-1713F81CE146"><apiname>RApaLsSession::GetEmbeddableApps()</apiname></xref> - Use this function
+to initialize the process of getting all the embeddable applications in the
+list except the control panel applications. </info>
+</substep>
+<substep id="GUID-5ECEDBB8-8C07-5EF5-A052-1C11E208BDF5"><cmd/>
+<info> <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-32AFB430-CFBA-3E1F-A396-198FEFDA7B29"><apiname>RApaLsSession::GetFilteredApps()</apiname></xref> - Use this function
+to initialize the process of getting all the filtered applications in the
+list except the control panel applications. </info>
+</substep>
+<substep id="GUID-A3769C11-1003-50E4-B0ED-4B38B0C1761B"><cmd/>
+<info> <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-866EBCF7-A570-3B98-A0C8-5402E75952DB"><apiname>RApaLsSession::GetServerApps()</apiname></xref> - Use this function
+to initialize the process of getting all the server applications in the list
+except the control panel applications. </info>
+</substep>
+</substeps>
+</step>
+<step id="GUID-B26025A2-FCDE-5469-B843-4815F71903B4"><cmd/>
+<info>Call the <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-A3FAD085-07BF-3048-A6DB-300AAB88C8CB"><apiname>RApaLsSession::GetNextApp()</apiname></xref> to get one application
+at a time. </info>
+<info>The <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-A3FAD085-07BF-3048-A6DB-300AAB88C8CB"><apiname>RApaLsSession::GetNextApp()</apiname></xref> must be called in
+loop to get information about the next application in the list. The application
+information is stored in <xref href="GUID-B5CD60A5-F371-3D9D-AB2D-652CA41D9158.dita"><apiname>TApaAppInfo</apiname></xref> variable. If there
+are no more applications present in the list, <codeph>ENoMoreAppsInList</codeph> message
+is returned. </info>
+<info>The following code snippet shows how to get a list of all the applications
+on the device: </info>
+<stepxmp><codeblock id="GUID-DF44AF8D-8E8D-53E1-9BD4-18D60D23BA84" xml:space="preserve">// Get the list of all the applications on the device
+
+TInt ret = apaLsSession.GetAllApps();
+if(ret==KErrNone)
+   {                
+    TApaAppInfo appInfo;
+
+    // Retrieve the next application in the list.
+            // appInfo contains the application information
+ 
+    while((ret= apaLsSession.GetNextApp(appInfo)) == KErrNone);
+
+
+    // Make sure ENoMoreAppsInList is returned at the end of list.
+
+    if(ret==RApaLsSession::ENoMoreAppsInList)
+      {
+         // No more applications in the list
+      }
+    }</codeblock> </stepxmp>
+<info>The following code snippet shows how to get a list of all the server
+applications on the device: </info>
+<stepxmp><codeblock id="GUID-8B32EDC3-1F06-5357-9334-1CFD95B8C44C" xml:space="preserve">// Get the list of all the server applications on the device
+
+TInt ret = apaLsSession.GetServerApps();
+if(ret==KErrNone)
+   {                
+    TApaAppInfo appInfo;
+
+    // Retrieve the next application in the list which provides a service.
+
+    while((ret= apaLsSession.GetNextApp(appInfo)) == KErrNone);
+
+
+    // Make sure ENoMoreAppsInList is returned at the end of list.
+
+    if(ret==RApaLsSession::ENoMoreAppsInList)
+      {
+         // No more server applications in the list
+      }
+    }</codeblock> </stepxmp>
+<info>The following code snippet shows how to get a list of all the embedded
+applications on the device: </info>
+<stepxmp><codeblock id="GUID-E3BC41F9-8B50-59CB-891C-90F9EB27B954" xml:space="preserve">// Get the list of all the embedded applications on the device
+
+TInt ret = apaLsSession.GetEmbeddedableApps();
+if(ret==KErrNone)
+   {                
+    TApaAppInfo appInfo;
+
+    // Retrieve the next embedded application in the application list 
+
+    while((ret= apaLsSession.GetNextApp(appInfo)) == KErrNone);
+
+
+    // Make sure ENoMoreAppsInList is returned at the end of list.
+
+    if(ret==RApaLsSession::ENoMoreAppsInList)
+      {
+          // No more embedded applications in the list
+      }
+    }</codeblock> </stepxmp>
+<info>The following code snippet shows how to get a list of all the filtered
+applications on the device: </info>
+<stepxmp><codeblock id="GUID-57572B8E-94CA-5948-BFE9-7A8AF7DBABA0" xml:space="preserve">// Get the list of all the application based on the filter defined in the parameter passed to it.
+
+TApaEmbeddabilityFilter &amp;filter = TApaEmbeddabilityFilter();
+filter.AddEmbeddability(TApaAppCapability::EEmbeddableUiOrStandAlone);
+
+TInt ret = apaLsSession.GetFilteredApps(filter);
+if(ret==KErrNone)
+   {                
+    TApaAppInfo appInfo;
+
+    // Retrieve the next application in the application list that matches the specified filter.
+
+    while((ret= apaLsSession.GetNextApp(appInfo)) == KErrNone);
+
+
+    // Make sure ENoMoreAppsInList is returned at the end of list.
+
+    if(ret==RApaLsSession::ENoMoreAppsInList)
+      {
+         // No more filtered applications in the list
+      }
+    }</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita"><linktext>Application
+Architecture Overview</linktext></link>
+</related-links></task>

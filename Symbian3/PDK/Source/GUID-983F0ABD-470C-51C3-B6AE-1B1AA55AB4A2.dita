@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-983F0ABD-470C-51C3-B6AE-1B1AA55AB4A2" xml:lang="en"><title>File
+Server Extensions</title><shortdesc>This document provides an overview of the file server extension
+architecture, and of the APIs that allows file server extensions to be developed
+and used. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A file server extension is a library that allows the functionality of a
+file server logical drive and its corresponding file system to be extended
+or modified. </p>
+<p>The Symbian platform uses a file server extension to implement its Flash
+Transition Layer (FTL) that allows a FAT file system to run on a NAND flash
+device. Because this layer is not needed when using FAT on a RAM disk or a
+MultiMediaCard, it is not necessary to add this functionality to the FAT file
+system itself. So the FTL is implemented as a file server extension and is
+only used on NAND local drives. </p>
+<p>The file server uses libraries called file systems, which implement support
+for particular file system formats, such as FAT and LFFS. These file system
+libraries in turn make calls to the media sub-system, which provides device
+drivers that handles interaction with the actual storage hardware. </p>
+<p>A file server extension is an additional layer that intercepts all calls
+from a file system to the media sub-system, as shown below: </p>
+<fig id="GUID-5034F500-1CC7-5A8A-B1C0-DB99FAF8FE93">
+<title>           File server extension architecture          </title>
+<image href="GUID-E36B0B87-7948-5288-9F4D-9A1F1EBDF972_d0e357270_href.png" placement="inline"/>
+</fig>
+<p>All calls to the media sub-system from a mounted file system go through
+a "proxy" drive interface provided by the loaded extension (or extensions),
+before the call is passed on to the media sub-system interface. </p>
+<p>An extension has the same lifetime as its corresponding file system object.
+This is usually a <xref href="GUID-FADDE053-CC1C-39BC-A52D-27093041BE20.dita"><apiname>CMountCB</apiname></xref> object but can also be a subsession
+object (for example <xref href="GUID-63DF657C-434D-353D-A536-8AF9D97C8260.dita"><apiname>CFileCB</apiname></xref>). On removable drives, if a
+mount with an extension is destroyed when the media is removed, then when
+the same media is reinserted, the mount object and extension should be created
+at the same time. </p>
+<p>Extensions can be referred to as being <i>primary</i> or <i>secondary</i>: </p>
+<ul>
+<li id="GUID-58C4DAEE-22E3-506E-81C2-4D5C9B69C7F8"><p>An extension is called
+primary if it is required for the file system to be used. Such extensions
+must be mounted before or at the same time as a file system is mounted on
+a drive. This can be done by modifying the initial mounting of the local file
+system in the <xref href="GUID-80698E62-E310-59CA-A524-5CF44C437BE4.dita">Base
+Starter</xref> component. The file system mounted on the drive must be dismounted
+before a primary extension can be dismounted. </p> <p>Only one primary extension
+is permitted to be mounted on a drive at a time. </p> </li>
+<li id="GUID-DB65DE20-5F80-5FC6-A847-EAE74F544A8C"><p>Secondary extensions
+can be added after a file system is mounted. The maximum number of extensions
+allowed is two. </p> <p>When two extensions are loaded, calls are passed through
+both extensions in turn. This is referred to as <i>chaining</i>. The order
+of chaining is determined by the order that extensions are mounted on the
+drive. The extension mounted first is closest to the media sub-system interface.
+Therefore the primary extension is always closest to the media sub-system
+interface. </p> </li>
+</ul>
+</conbody></concept>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D8ECC83A-4B48-5F5C-9334-5B79CDA95054" xml:lang="en"><title>Improving
+Load Time with SPI Files</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This page describes how to optimise how ECom finds ROM-based plug-ins.
+It is intended for device integration engineers who produce and configure
+phone ROMs. </p>
+<p>On startup, ECom finds which plug-ins are available are registers them.
+On releases before v9.1, it scanned drives for plug-in registration resource
+files, and then loaded each individually. v9.1 introduced the <i>SPI file,</i> which
+concatenates several resource files together. It is used to store the registration
+resources for all the ECom plug-ins that are on a read-only drive. This allows
+ECom to register the ROM-based plug-ins without having to scan the file system
+for individual resource files. </p>
+<p>The use of SPI files is optional, and is a decision taken by the device
+integrators that build the ROM. If SPI files are not used, then ECom scans
+for individual plug-in registration resource files. </p>
+<p><b>Specifying the plug-in in an Obey file </b> </p>
+<p>To specify that a plug-in should be included in a ROM, use the keyword <codeph>__ECOM_PLUGIN</codeph>,
+or its more concise macro equivalent <codeph>ECOM_PLUGIN</codeph>, in the
+component's Obey (<filepath>.iby</filepath>) file. These also provide the
+information that the ROM building process needs to create the SPI file. </p>
+<p>For more information about the <codeph>__ECOM_PLUGIN</codeph> keyword,
+refer to the <b>ROM Tools Guide</b> in the <b>Application Development Toolkit</b> available
+for download at <xref href="http://developer.symbian.org/main/tools_and_kits/index.php" scope="external">http://developer.symbian.org/main/tools_and_kits/index.php</xref>.</p>
+<p><b>Creating the SPI file for ROMs </b> </p>
+<p>You can specify that an SPI file should be created, or not, either by making
+a setting in the obey files being built, or by giving an argument to the <codeph>buildrom</codeph> tool
+used to build the ROM: </p>
+<ul>
+<li id="GUID-B6F93FAC-371A-5EED-B3A3-866E08A0FC76"><p>To use obey file commands,
+specify either <codeph>enable_spi</codeph> (to create the SPI file) or <codeph>disable_spi</codeph>  </p> </li>
+<li id="GUID-17E763A2-1021-512B-A965-D2B2E73DCC6F"><p>To use the <codeph>buildrom</codeph> command
+line, specify either <codeph>-spi</codeph> (to create the SPI file) or <codeph>–nospi</codeph>.
+These command line flags override the obey file keywords if they are also
+used. </p> </li>
+</ul>
+<p> <codeph>buildrom</codeph> creates the SPI file in the ECom server’s private
+directory for each drive in the ROM image. No further action is necessary. </p>
+<p>For more information on <codeph>buildrom</codeph> and other ROM building
+tools, refer to the <b>ROM Tools Guide</b> in the <b>Application Development
+Toolkit</b> available for download at <xref href="http://developer.symbian.org/main/tools_and_kits/index.php" scope="external">http://developer.symbian.org/main/tools_and_kits/index.php</xref>. </p>
+<p><b>Creating the SPI file for the emulator </b> </p>
+<p>You can create SPI files for use on the emulator, for purposes of testing
+or troubleshooting their use. Both the SPI file and the ECOM plug-in resource
+files can exist at the same time in the emulator build: ECom will use the
+SPI file, and ignore the individual ECom plug-in resource files. </p>
+<p>To do this, run the <codeph>spitool</codeph> tool, specifying the location
+of the input registration resource files, and of the output SPI file. Set
+the output location to be the private ECom directory (<filepath>\private\10009D8F</filepath>)
+on the drive where the plug-in resource files were sourced. </p>
+<p>For reference information on the <codeph>spitool</codeph> tool,  refer
+to the <b>ROM Tools Guide</b> in the <b>Application Development Toolkit</b> available
+for download at <xref href="http://developer.symbian.org/main/tools_and_kits/index.php" scope="external">http://developer.symbian.org/main/tools_and_kits/index.php</xref>. </p>
+</conbody></concept>

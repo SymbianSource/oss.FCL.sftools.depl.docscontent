@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EBF025DB-1552-5E99-8C07-09932DB60552" xml:lang="en"><title>Physical
+Channel Implementation</title><shortdesc>A media driver must implement a physical channel class derived
+from the <apiname>DMediaDriver</apiname> base class. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p/>
+<p>This includes those drivers associated with fixed media, such as the internal
+drive, or removable media, such as a PC Card or MultiMediaCard. </p>
+<p> <codeph>DMediaDriver</codeph> is an abstract class that has virtual functions
+that must be implemented by your derived class. The following class definition
+is typical: </p>
+<codeblock id="GUID-B39837DA-6037-58D2-A1BE-3E7F1E218F7B" xml:space="preserve">class DMyMediaDriver : public DMediaDriver
+    {
+public:
+    DMyMediaDriver (TInt aMediaId);
+    ~DMmcMediaDriver ();
+public:    
+    virtual void Close();
+public:    
+    virtual void Disconnect(DLocalDrive* aLocalDrive, TThreadMessage*);
+    virtual TInt Request(TLocDrvRequest&amp; aRequest);
+    virtual TInt PartitionInfo(TPartitionInfo&amp; anInfo);
+    virtual void NotifyPowerDown();
+    virtual void NotifyEmergencyPowerDown();
+public:
+    TInt DoCreate(TInt aMediaId);
+    };
+      </codeblock>
+<p>All the functions except the constructor and <codeph>DoCreate()</codeph> either
+implement or re-implement virtual functions defined by <codeph>DMediaDriver</codeph>. </p>
+<p>The framework does not require the <codeph>DoCreate()</codeph> function,
+but it is useful to implement such a function to act as a second-phase constructor
+in the creation of the media driver. In the example code fragments, we call <codeph>DoCreate()</codeph> from
+the <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700">PDD
+factory object's Create()</xref> function that is responsible for creating
+the media driver. </p>
+<p>There is, of course, nothing to stop you from adding your own functions
+and data members, if this is appropriate for your implementation. In addition,
+your are also free to add other classes, functions and enums to your media
+driver implementation. </p>
+<ul>
+<li id="GUID-E17276B8-4595-5A45-89B0-D053A659A17E"><p> <xref href="GUID-EBF025DB-1552-5E99-8C07-09932DB60552.dita#GUID-EBF025DB-1552-5E99-8C07-09932DB60552/GUID-FE5BB479-7AC4-5DB8-87A3-55E855E1A176">Constructor</xref> </p> </li>
+<li id="GUID-927ED2FA-9A58-5C99-85B6-44BAD9F2F47A"><p> <xref href="GUID-EBF025DB-1552-5E99-8C07-09932DB60552.dita#GUID-EBF025DB-1552-5E99-8C07-09932DB60552/GUID-D308D7F7-25B9-5A3A-BC19-A01C5948B949">DoCreate() - second phase constructor</xref>  </p> </li>
+<li id="GUID-380702AD-FBC8-584A-B875-B7C23AC841DE"><p> <xref href="GUID-EBF025DB-1552-5E99-8C07-09932DB60552.dita#GUID-EBF025DB-1552-5E99-8C07-09932DB60552/GUID-4ABC799E-33EE-5260-9CD0-71F0A5E7F980">PartitionInfo() - return the partition information</xref>  </p> </li>
+<li id="GUID-D0EC11D5-CC9C-5A45-BF5B-06CDBEB8738B"><p> <xref href="GUID-EBF025DB-1552-5E99-8C07-09932DB60552.dita#GUID-EBF025DB-1552-5E99-8C07-09932DB60552/GUID-EC193360-31C2-5012-8ED2-19F1C48C8FC5">Request() - handling requests</xref>  </p> </li>
+</ul>
+<section id="GUID-FE5BB479-7AC4-5DB8-87A3-55E855E1A176"><title>Constructor</title> <p>The
+media driver object is created by your PDD factory object's implementation
+of the <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700">Create()</xref> function.
+The following is the relevant line of code: </p> <codeblock id="GUID-012D3CB1-7C35-590E-AA5D-FBD0F21F957F" xml:space="preserve">...
+//Create my DMediaDriver derived object
+DMyMediaDriver* pD=new DMyMediaDriver (aMediaId);
+...</codeblock> <p>Your constructor, prototyped as: </p> <codeblock id="GUID-66FD6B05-D32B-5CD6-A546-B1B8E7733EE5" xml:space="preserve">DMyMediaDriver (TInt aMediaId);</codeblock> <p>gives you the chance to do any initialisation that is safe, i.e. that
+cannot fail. Typically, this is the kind of initialisation that does not need
+to acquire resources. This is the first phase of the typical Symbian platform
+two-phase construction process. </p> <codeblock id="GUID-A1C95B09-C03B-531A-9E38-0E77F9E574F5" xml:space="preserve">DMyMediaDriver::DMyMediaDriver (TInt aMediaId)
+    :DMediaDriver(aMediaId)
+    {
+    //…do safe initialisation here
+    }
+        </codeblock> <p>As this code fragment shows, you need to call the
+base class constructor first, forwarding the <codeph>TInt aMediaId</codeph> value.
+You do not need to do anything else with this value. Note that this value
+is the unique media ID used when the media driver was registered. </p> </section>
+<section id="GUID-D308D7F7-25B9-5A3A-BC19-A01C5948B949"><title>DoCreate()
+- second phase constructor</title> <p>The media driver object is created by
+your PDD factory object's implementation of the <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700">Create()</xref> function. The following is the relevant line of code, which is called after
+successful creation of the media driver object: </p> <codeblock id="GUID-003B4A82-853B-5ABF-A33F-69ED7AC520F9" xml:space="preserve">...
+// Call my media driver’s second-stage constructor
+Tint r = KErrNoMemory;
+    if(pD)
+        {
+        r = pD-&gt;DoCreate(aMediaId);
+        }
+...
+        </codeblock> <p>This is a second-phase constructor that allows you
+to do more complex initialisation, and initialisation that might fail. Typically,
+this is initialisation that acquires resources (including memory). The outline
+implementation of <codeph>DoCreate()</codeph> is: </p> <codeblock id="GUID-4380C850-B722-52E5-A849-602312C2441D" xml:space="preserve">TInt DMyMediaDriver::DoCreate(TInt aMediaId)
+    {
+    TInt r = KErrNone;
+    //…do complex initialisation here
+    return r;
+    }
+        </codeblock> <p>Depending on the complexity of your initialisation,
+you can either do all your initialisation here, and complete immediately,
+or you can do the initialisation as an asynchronous operation, in which case
+initialisation will complete at some later time. </p> <p>If you do this <i>synchronously</i>,
+then the return code should reflect the success or failure of the operation.
+In practice, this will almost always be <codeph>KErrNone</codeph>. </p> <p>If
+you do this <i>asynchronously</i>, then, on completion of the initialisation
+processing, a call should be made to: <codeph>DMediaDriver::OpenMediaDriverComplete()</codeph> passing
+either <codeph>KErrNone</codeph> or one of the other system-wide codes as
+appropriate. </p> </section>
+<section id="GUID-4ABC799E-33EE-5260-9CD0-71F0A5E7F980"><title>PartitionInfo()
+- return the partition information</title> <p>Once the media driver has been
+successfully created and initialised, and has informed the media driver subsystem
+of this fact by a call to <codeph>DMediaDriver::OpenMediaDriverComplete()</codeph>,
+then the subsystem makes a call to the media driver's <codeph>PartitionInfo()</codeph> function
+to get partition information for the media device. </p> <p>The prototype function
+is: </p> <codeblock id="GUID-C22CA159-CDD5-5900-B753-64E1A481B6F1" xml:space="preserve">TInt PartitionInfo(TPartitionInfo&amp; anInfo);</codeblock> <p>A <xref href="GUID-00D1DAB7-C23A-30F4-B5A3-B47EED5A5DD3.dita"><apiname>TPartitionInfo</apiname></xref> object is passed to the function, which the media driver must fill in. </p> <p>Decoding
+of partition information may require media access, and as such may be a long
+running activity. Support is provided that allows this to be done asynchronously.
+You use the <i>return code</i> from <codeph>PartitionInfo()</codeph> to tell
+the media driver subsystem which operational mode you are using: </p> <ul>
+<li id="GUID-6A5496C7-3896-5EA4-AF92-72BFAEAEED55"><p>return <b>KErrNone</b>,
+if the decoding operation is to be done <b>asynchronously</b>. Note that on
+completion, the asynchronous operation must call <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-1E38DA87-4D5C-3D3C-8FE9-145E5877D02A"><apiname>DMediaDriver::PartitionInfoComplete()</apiname></xref>,
+returning <codeph>KErrNone</codeph>, or one of the other system-wide error
+codes, if appropriate. </p> </li>
+<li id="GUID-4F34B295-062F-5FCB-809B-73F19E4DE1A2"><p>return a value <b>other
+than KErrNone </b>, if the decoding operation has been done <b>synchronously</b>.
+If the synchronous operation is successful, return <i>KErrCompletion</i>,
+otherwise return one of the other system-wide error codes, but not KErrNone. </p> </li>
+</ul> <p><b>Decoding
+simple partitions</b> </p> <p>The following example shows the implementation
+of a simple <codeph>PartitionInfo()</codeph> function. Such an implementation
+would be provided for non-removable media, such as internal Flash memory,
+where the layout is simple and known to the system. </p> <p>This implementation
+reports a single partition with the size of the entire media. The partition
+expects to be mounted with the FAT filesystem. </p> <p>Note that this operation
+is done synchronously, and the function returns <codeph>KErrCompletion</codeph> to
+indicate this. </p> <codeblock id="GUID-3D99CC4D-5996-502B-8A3F-6DE4675EAFE5" xml:space="preserve">TInt DMyMediaDriver::PartitionInfo(TPartitionInfo&amp; aInfo)
+    {
+    aInfo.iPartitionCount                = 1;
+    aInfo.iEntry[0].iPartitionBaseAddr    = 0;
+    aInfo.iEntry[0].iPartitionLen        = TotalSizeInBytes();
+    aInfo.iEntry[0].iPartitionType        = KPartitionTypeFAT12;
+    
+    aInfo.iMediaSizeInBytes                = TotalSizeInBytes();
+
+    return KErrCompletion;
+    }
+          </codeblock> <p><b>Decoding
+FAT Partitions</b> </p> <p>More complex implementations of <codeph>PartitionInfo()</codeph> may
+be required when handling removable media or more complex internal media where
+the layout of the media is unknown to the system. </p> <p>This example shows
+a typical implementation for a FAT based removable media device. Here, <codeph>PartitionInfo()</codeph> starts
+the operation, which is done asynchronously by the <codeph>DoPartitionInfo()</codeph> function. </p> <p>Note
+that <codeph>PartitionInfo()</codeph> returns <codeph>KErrNone</codeph>, which
+tells the media driver subsystem that the operation will be done asynchronously. </p> <p>Note
+also that on completion, <codeph>DoPartitionInfo()</codeph> calls <codeph>PartitionInfoComplete()</codeph> to
+tell the media driver subsystem that the operation is complete. </p> <codeblock id="GUID-17F9AD37-7D5F-5F8F-960B-EF36FBE03A04" xml:space="preserve">TInt DMyMediaDriverFlash::PartitionInfo(TPartitionInfo&amp; aInfo)
+    {
+    iPartitionInfo = &amp;anInfo                        // Store aInfo until needed
+
+    TInt errCode = LaunchPartitionInfoRequest();    // Start the asynchronous request
+
+    return(errCode);    // This needs to be KErrNone to indicate that the operation
+                        // will be completed asynchronously (unless an error occurs launching
+                        // the asynchronous request!)
+    }
+          </codeblock> <p>This is the function that runs asynchronously </p> <codeblock id="GUID-84368231-7B29-5EE9-A93B-851C7E5C0B62" xml:space="preserve">TInt DMyMediaDriver::DoPartitionInfo()
+    {
+    TInt partitionCount = iPartitionInfo-&gt;iPartitionCount = 0;
+
+    // Read of the first sector successful so check for a Master Boot Record
+    if (*(TUint16*)(&amp;iIntBuf[KMBRSignatureOffset])!=0xAA55)
+        {
+        return(KErrCorrupt);
+        }
+
+    // Move the partition entries to a 4 byte boundary
+    memcpy(&amp;iIntBuf[0],&amp;iIntBuf[KMBRFirstPartitionEntry],(sizeof(TMBRPartitionEntry)&lt;&lt;2)); 
+
+    // Search for a x86 default boot partition - let this be the first
+    TMBRPartitionEntry *pe=(TMBRPartitionEntry*)(&amp;iIntBuf[0]);
+
+    TInt i;
+    TInt defaultPartitionNumber=-1;
+    for (i=0;i&lt;KMaxPartitionEntries;i++,pe++)
+        {
+        if (pe-&gt;IsDefaultBootPartition())
+            {
+            SetPartitionEntry(&amp;iPartitionInfo-&gt;iEntry[0],pe-&gt;iFirstSector,pe-&gt;iNumSectors);
+            iHiddenSectors=pe-&gt;iFirstSector;
+            defaultPartitionNumber=i;
+            partitionCount++;
+            break;
+            }
+        }
+
+    // Now add any other partitions
+    pe=(TMBRPartitionEntry*)(&amp;iIntBuf[0]);     // Reset it
+    for (i=0;i&lt;KMaxPartitionEntries;i++,pe++)
+        {
+        if (defaultPartitionNumber==i)
+            {
+            continue;    // Already sorted
+            }
+        if (pe-&gt;IsValidDosPartition())
+            {
+            SetPartitionEntry(&amp;iPartitionInfo-&gt;iEntry[partitionCount],pe-&gt;iFirstSector,pe-&gt;iNumSectors);
+            if (partitionCount==0)
+            iHiddenSectors=pe-&gt;iFirstSector;
+            partitionCount++;
+            }
+        }
+
+    if (defaultPartitionNumber==(-1) &amp;&amp; partitionCount==0)
+        {
+        // Assume it has no MBR, and the Boot Sector is in the 1st sector
+        SetPartitionEntry(&amp;iPartitionInfo-&gt;iEntry[0], 0, iMediaSize);
+        iHiddenSectors=0;
+        partitionCount=1;
+        }
+        
+    iPartitionInfo-&gt;iPartitionCount=partitionCount;
+    iPartitionInfo-&gt;iMediaSizeInBytes=TotalSizeInBytes();
+
+    PartitionInfoComplete(err);
+    
+    return(KErrNone);
+    }
+          </codeblock> </section>
+<section id="GUID-EC193360-31C2-5012-8ED2-19F1C48C8FC5"><title>Request() -
+handling requests</title> <p>You handle requests by implementing your media
+driver's <codeph>Request()</codeph> function. This is prototyped as: </p> <codeblock id="GUID-2DABBFE2-5F74-5DC4-B1A5-E50A41258E8A" xml:space="preserve">TInt Request(TLocDrvRequest&amp; aRequest)=0;</codeblock> <p>This
+function is usually called in the context of the client thread that originally
+initiated the I/O request to the file server, although you should never assume
+so. Note that you may also see the originating thread referred to as <i>the
+remote thread</i>. </p> <p>The request type, as identified by the request
+ID, and the information associated with the request is accessed through the <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita"><apiname>TLocDrvRequest</apiname></xref> object,
+which is passed to the <codeph>Request()</codeph> function. The information
+supplied includes offsets, data lengths, the requesting thread etc, but clearly
+depends on the request ID. You get the request ID by calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-615CA1FE-0FDA-39F4-875D-FBB7B6F6FAD8"><apiname>TLocDrvRequest::Id()</apiname></xref>,
+and this will be one of the <xref href="GUID-720001A0-79E6-3E25-B5F0-4B39EAF95D12.dita#GUID-720001A0-79E6-3E25-B5F0-4B39EAF95D12/GUID-0559A1ED-05A1-386E-B728-0D500ED4E3EA"><apiname>DLocalDrive::TRequestId</apiname></xref> enum
+values. </p> <p>Each request ID, as defined by <xref href="GUID-720001A0-79E6-3E25-B5F0-4B39EAF95D12.dita#GUID-720001A0-79E6-3E25-B5F0-4B39EAF95D12/GUID-0559A1ED-05A1-386E-B728-0D500ED4E3EA"><apiname>DLocalDrive::TRequestId</apiname></xref> has
+a specific meaning. The information that is available also depends on the
+request ID. </p> <p>Depending on the request ID, the operation can be done
+synchronously or asynchronously. However, it is the responsibility of the
+implementor of the media driver to handle the incoming requests and to handle
+them as appropriate to the specific media, i.e. synchronously or asynchronously. </p> <p>In
+general, the function should return once the request is initiated. If the
+entire operation cannot be completed immediately, then further request processing
+must occur within ISRs and DFCs, i.e. using some hardware specific mechanism
+to indicate completion, or by the use of considerate poll timers to considerately
+poll the device for it’s current status, with the final request completion
+being done from within a DFC. The code that implements the asynchronous requests
+can run within its own thread, or use one of the default threads provided
+by the kernel (DFC queue thread 0). </p> <p>The underlying media driver framework
+allows multiple requests to be processed simultaneously. However, other than
+being able to issue multiple requests, there is no inherent support in the
+media driver framework to support the handling of multiple requests, so such
+functionality must be handled by the media driver itself. The underlying media
+driver framework does, however, provide basic support for deferring requests
+for later processing should the media driver not be capable of supporting
+multiple requests. </p> <table id="GUID-A216F849-6301-5C82-8D54-40BE612770F8">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>ECaps </p> </entry>
+<entry><p>This is a request for information about the size, type, attributes
+etc of the media. <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-F16E34E3-7DB1-3C6C-800D-173814AADC22"><apiname>TLocDrvRequest::RemoteDes()</apiname></xref> gives you
+access to the object into which the media driver should put the requested
+information. The object passed across is a <xref href="GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F.dita"><apiname>TLocalDriveCapsV2</apiname></xref> type,
+and this is passed by the media driver subsystem in the form of a package
+buffer, a <xref href="GUID-C7A094BD-846F-3ED2-8CCE-C0743DB3712A.dita"><apiname>TPckgBuf</apiname></xref> type. </p> <p>In practice, you just
+need to use a simple cast to access the object. The following code fragment
+is always used: </p> <codeblock id="GUID-35711E5C-5F23-5EC6-8B43-81C2168E1437" xml:space="preserve">...
+if (id == DLocalDrive::ECaps)
+    {
+    TLocalDriveCapsV2&amp; c = *(TLocalDriveCapsV2*)aRequest.RemoteDes();
+    ...
+    }
+....
+              </codeblock> <p>This request type is synchronous. </p> </entry>
+</row>
+<row>
+<entry><p>ERead </p> </entry>
+<entry><p>This is a request to read data from the media device asynchronously. </p> <p>You
+need to start an asynchronous operation that reads <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-5D4ABE07-1186-392F-911F-5586150A5FB4"><apiname>TLocDrvRequest::Length()</apiname></xref> bytes
+from the media, starting at position <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-0BF048C8-81F1-3E71-B13C-7605A6668A30"><apiname>TLocDrvRequest::Pos()</apiname></xref> on
+the media. </p> <p>You transfer the data to the requesting thread's process
+by calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-842F91FF-C780-3E2A-8860-8F34815452FC"><apiname>TLocDrvRequest::WriteRemote()</apiname></xref>, where the first
+parameter is the source descriptor representing the data you have just read.
+For example: </p> <codeblock id="GUID-80E5A231-3F69-5C33-ADE0-1E0C7674992E" xml:space="preserve">...
+TPtrC8 des((const TUint8*)(iBase),len);
+TInt r=iReadReq-&gt;WriteRemote(&amp;des,0);
+...
+              </codeblock> <p>In this example, <codeph>iBase</codeph> is the
+location of the data that has just been read in from the device, and <codeph>len</codeph> is
+the length of this data. The code fragment also assumes that the data to be
+returned starts at iBase, and not at some offset from iBase. </p> <p>As this
+is an asynchronous operation, then when all data has been transferred, the
+request must be completed by calling <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-8B9BB560-808F-3424-9638-7DED6737423E"><apiname>DMediaDriver::Complete()</apiname></xref>,
+passing the original request and a completion code. </p> </entry>
+</row>
+<row>
+<entry><p>EWrite </p> </entry>
+<entry><p>This is a request to write data to the media device asynchronously. </p> <p>You
+need to start an asynchronous operation that writes <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-5D4ABE07-1186-392F-911F-5586150A5FB4"><apiname>TLocDrvRequest::Length()</apiname></xref> bytes
+to the media, starting at position <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-0BF048C8-81F1-3E71-B13C-7605A6668A30"><apiname>TLocDrvRequest::Pos()</apiname></xref> on
+the media. </p> <p>Before doing the write, then you need to transfer the data
+to be written from the requesting thread's process by calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-96B80631-AD1C-35E8-8613-0A630BD7D9E9"><apiname>TLocDrvRequest::ReadRemote()</apiname></xref>,
+where the first parameter is the target descriptor. </p> <p>As this is an
+asynchronous operation, then when all data has been transferred, the request
+must be completed by calling <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-8B9BB560-808F-3424-9638-7DED6737423E"><apiname>DMediaDriver::Complete()</apiname></xref>,
+passing the original request and a completion code. </p> </entry>
+</row>
+<row>
+<entry><p>EFormat </p> </entry>
+<entry><p>This is a request to format a section of the media asynchronously. </p> <p>The
+start position of the section to be formatted can be found by calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-0BF048C8-81F1-3E71-B13C-7605A6668A30"><apiname>TLocDrvRequest::Pos()</apiname></xref>,
+and the number of bytes to be formatted can be found by calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-5D4ABE07-1186-392F-911F-5586150A5FB4"><apiname>TLocDrvRequest::Length()</apiname></xref>. </p> <p>Following
+a format operation, the state of the formatted section depends on the type
+of media. In practice, you should access locations within the specified section,
+so that bad regions can be detected and reported. </p> <p>The length of each
+format request is usually based on the value of <xref href="GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F.dita#GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F/GUID-BDF05FE9-56B5-328B-B562-9F59EF14DAB2"><apiname>TLocalDriveCapsV2::iEraseBlockSize</apiname></xref>,
+as returned by the <codeph>ECaps</codeph> request. If you need to adjust the
+start address of the next format request, you can return a positive value
+that is interpreted as indicating the actual number of bytes formatted in
+the current step. This feature is useful for media that prefers format operations
+to be performed on specific boundaries; for example MultiMedia Cards. </p> <p>As
+this is an asynchronous operation, then when the format operation has been
+done, the request must be completed by calling <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-8B9BB560-808F-3424-9638-7DED6737423E"><apiname>DMediaDriver::Complete()</apiname></xref>,
+passing the original request and a completion code. </p> </entry>
+</row>
+<row>
+<entry><p>EEnlarge </p> </entry>
+<entry><p>This is a request to enlarge the accessible range of the media asynchronously.
+For example, this is used on the internal RAM drive. </p> <p>Calling <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-5D4ABE07-1186-392F-911F-5586150A5FB4"><apiname>TLocDrvRequest::Length()</apiname></xref> gives
+you the number of bytes by which the accessible range is to be increased. </p> <p>The
+media attributes, as defined by the settings in <xref href="GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F.dita#GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F/GUID-886205BC-3234-3FDC-B17E-F9293C957097"><apiname>TLocalDriveCapsV2::iMediaAtt</apiname></xref> returned
+by the <codeph>ECaps</codeph> request, must have <xref href="GUID-8F5CB589-F631-3216-9BB0-DCCF96836E4E.dita"><apiname>KMediaAttVariableSize</apiname></xref> set,
+otherwise the request fails with <codeph>KErrNotSupported</codeph>. </p> <p>As
+this is an asynchronous operation, then when the operation is complete, the
+request must be completed by calling <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-8B9BB560-808F-3424-9638-7DED6737423E"><apiname>DMediaDriver::Complete()</apiname></xref>,
+passing the original request and a completion code. </p> </entry>
+</row>
+<row>
+<entry><p>EReduce </p> </entry>
+<entry><p>This is a request to reduce the accessible range of the media asynchronously.
+For example, this is used on the internal RAM drive. </p> <p>The range to
+be removed is defined as <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-5D4ABE07-1186-392F-911F-5586150A5FB4"><apiname>TLocDrvRequest::Length()</apiname></xref> bytes
+starting at <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-0BF048C8-81F1-3E71-B13C-7605A6668A30"><apiname>TLocDrvRequest::Pos()</apiname></xref>. In effect, the request
+removes the section from <codeph>Pos()</codeph> to <codeph>Pos()</codeph> + <codeph>Length()</codeph>,
+and the length is reduced by <codeph>Length()</codeph>. </p> <p>The media
+attributes, as defined by the settings in <xref href="GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F.dita#GUID-414CD5E5-216F-3D97-9F04-A93B1A0EA74F/GUID-886205BC-3234-3FDC-B17E-F9293C957097"><apiname>TLocalDriveCapsV2::iMediaAtt</apiname></xref> returned
+by the <codeph>ECaps</codeph> request, must have <xref href="GUID-8F5CB589-F631-3216-9BB0-DCCF96836E4E.dita"><apiname>KMediaAttVariableSize</apiname></xref> set,
+otherwise the request fails with <codeph>KErrNotSupported</codeph>. </p> <p>As
+this is an asynchronous operation, then when the operation is complete, the
+request must be completed by calling <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-8B9BB560-808F-3424-9638-7DED6737423E"><apiname>DMediaDriver::Complete()</apiname></xref>,
+passing the original request and a completion code. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-E6DF6D45-ACB1-5C0C-A4F1-02778EA69D34"><b>A simple implementation</b> </p> <codeblock id="GUID-6AABA189-4F0A-586D-B3DC-DC38F54A8721" xml:space="preserve">TInt DMyMediaDriver::Request(TLocDrvRequest&amp; aRequest)
+    {
+    TInt err = KErrNotSupported;
+    TInt id  = aRequest.Id();
+
+    if (id == DLocalDrive::ECaps)
+        {
+        TLocalDriveCapsV2&amp; c = *(TLocalDriveCapsV2*)aRequest.RemoteDes();
+        err = Caps(c);
+        c.iSize = m.Drive()-&gt;iPartitionLen;
+        c.iPartitionType = m.Drive()-&gt;iPartitionType;
+        return(err);
+        }
+
+    if(iCurrentReq != NULL)
+        {
+        return(KMediaDriverDeferRequest);
+        }
+
+    iCurrentReq = &amp;aRequest;
+
+    switch(id)
+        {
+        case DLocalDrive::ERead:
+            r = StartRead();
+            break;
+        case DLocalDrive::EWrite:
+            r = StartWrite();
+            break;
+        case DLocalDrive::EFormat:
+            r = StartErase();
+            break;
+        }
+
+    if (err &lt; 0)
+        {
+        iCurrentReq = NULL;
+        DMediaDriver::Complete(aRequest, err);
+        }
+    
+    return(err);
+    }
+            </codeblock> <p>This demonstrates the following behaviour: </p> <ul>
+<li id="GUID-12FE8B56-D998-5FDC-B3B8-CAAD3CBDD6C8"><p>The <codeph>ECaps</codeph> request
+is inherently synchronous, and must complete immediately. </p> </li>
+<li id="GUID-4188EC10-8F2D-5755-BC7A-9BEB663114E5"><p>This example only handles
+a single request at a time. If the media driver is busy handling a request,
+it can return the value <xref href="GUID-4E76E7B3-202A-3FE1-AAF2-5B41FF13843D.dita"><apiname>KMediaDriverDeferRequest</apiname></xref> which
+defers the message until the current request is complete. </p> </li>
+<li id="GUID-2A148BC4-E4B8-5EF5-ACF7-50BA52E5A02E"><p>Each message is passed
+on to the specific function that is responsible for handling the message.
+This provides readability and ease of maintenance. </p> </li>
+<li id="GUID-648C0A4B-3481-55A9-B0A4-887378B0EB7A"><p>If an error occurs,
+the request is completed immediately with the specified error code. </p> </li>
+</ul> <p>The following code is the implementation of the <codeph>StartWrite()</codeph> function
+that initiates the asynchronous write operation. It gets the length and position
+information, and then calls <codeph>DoWriteStep()</codeph>: </p> <codeblock id="GUID-B853FBC7-7A25-5A6B-8799-CB577595B461" xml:space="preserve">TInt DMyMediaDriver::StartWrite()
+    {
+    // Start an asynchronous write operation
+
+    iCurrentPos = iCurrentReq-&gt;Pos();
+    iCurrentLength = iCurrentReq-&gt;Length();
+
+    TInt err = DoWriteStep();
+        
+    return(err);
+    }
+                </codeblock> <p> <codeph>DoWriteStep()</codeph> performs a
+single write operation. In this example, a single write operation cannot exceed
+the capabilities of the hardware, so the request is split up into chunks of <codeph>KMyMediaDriverWriteLength</codeph> bytes. </p> <codeblock id="GUID-3C11FDAE-EA06-5B7C-9FC5-DA2C591FFF49" xml:space="preserve">TInt DMyMediaDriver::DoWriteStep()
+    {
+    // Perform a single write step
+
+    TUint8* destAddress = iBaseAddress + iCurrentPos;
+    TInt writeLength = MIN(iCurrentLength, KMyMediaDriverWriteLength);
+        
+    TPtr8 des(iData, writeLength);
+    TInt err = iCurrentReq-&gt;ReadRemote(&amp;des, iCurrentPos - iCurrentReq-&gt;Pos());
+    if (err != KErrNone)
+        {
+        return(err);
+        }
+
+        iCurrentPos += writeLength;
+        iCurrentLength -= writeLength;
+
+        TheHardware::StartWrite(iCurrentPos, writeLength, iData);
+    }
+                </codeblock> <p>The write operation to the hardware is performed
+by <codeph>TheHardware::StartWrite()</codeph>. For most hardware, completion
+is signalled by an interrupt, and the ISR handling the interrupt will queue
+a DFC. This in turn can call a function like <codeph>WriteComplete()</codeph> shown
+below: </p> <codeblock id="GUID-E1F615B2-E148-5C79-8F78-41407C0C2013" xml:space="preserve">TInt DMyMediaDriver::WriteComplete(TInt aResult)
+    {
+    // Called upon completion of the write operation
+    // (ie – in DFC after completion interrupt or polled status completion)
+
+    TBool completeRequest = (iCurrentLength == 0) || (aResult ! = KErrNone);
+        
+    if(!completeRequest)
+        {
+        // There is more data remaining, so write some more data…
+        if((aResult = DoWriteStep()) != KErrNone)
+            {
+            completeRequest = ETrue;
+            }
+        }
+        
+    if(completeRequest)
+        {
+        // We are all done, or an error occurred…
+        DMediaDriver::Complete(iCurrentReq, aResult);
+        iCurrentReq = NULL;
+        }
+    }
+                </codeblock> <p> <codeph>WriteComplete()</codeph> is an example
+of a callback or completion function, and shows how a single request may be
+broken up into a number of smaller chunks. The write request is only completed
+when the entire write operation is complete or an error occurs. </p> <p>This
+simple example has demonstrated how a simple <codeph>EWrite</codeph> request
+may be handled. The <codeph>ERead</codeph> and <codeph>EFormat</codeph> requests
+are handled in exactly the same way, taking into account the message parameters
+shown in the previous table. </p> <p id="GUID-2FF89E43-6F12-5A63-A8A5-298667C5D7A2"><b>Issues about physical addresses</b> </p> <p>If
+the media driver can use physical addresses, you need to be aware of a number
+of issues. </p> <ul>
+<li id="GUID-3CCA7A0E-B245-5221-AA0F-AA9CA1F33869"><p> <i>The address scheme
+used by the hardware</i>  </p> <p>All media devices have a minimum number
+of bytes that they can transfer. For example, the architecture of some memory
+card types requires data transfer in blocks of 512 bytes. To read one byte
+from this type of media device, the media driver must read a block of 512
+bytes and extract the byte from the block. To write one byte to a media device,
+the media driver must read a block of 512 bytes, change the content of the
+byte, and write the block to the media device. </p> </li>
+<li id="GUID-6AA344A1-607A-5220-AE65-70F1A5B35967"><p> <i>Data transfer smaller
+than the minimum size</i>  </p> <p>If the local media subsystem receives a
+request to transfer data with a length smaller than the minimum transfer size,
+the local media subsystem does not make a physical address available to the
+media driver. A call to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref> returns
+false. It is considered unsafe to give access to the physical data surrounding
+the requested memory location. </p> </li>
+<li id="GUID-B5CA6F1A-CCD3-5DA0-9297-547F0E80506A"><p> <i>Data transfer not
+aligned to the media device block boundary</i>  </p> <p>If the local media
+subsystem receives a request to transfer data, and the address on the media
+device is <i>not aligned</i> to the media device block boundary, you need
+to adopt the technique suggested below. The local media subsystem will make
+the physical address available to the media driver. A call to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref> returns
+true. </p> <p>Consider the following case. A request has been made to read
+1024 bytes from a media device that has a block size of 512 bytes. The 1024
+bytes start at offset +256 on the media device. </p> <fig id="GUID-30EA5683-9B12-59D6-88EF-21F4E84988B3">
+<image href="GUID-12CD8E91-4102-5253-A7DE-E5436028764F_d0e396579_href.png" placement="inline"/>
+</fig> <p>To get the first 256 bytes, you must read the first block of 512
+bytes from the media device. This can corrupt the physical memory passed in
+the I/O request. The solution is to read the first block from the media device
+into an intermediate buffer. Copy the 256 bytes from that buffer into the
+physical memory passed in the I/O request. </p> <p>To get the last 256 bytes,
+you must read the third block of 512 bytes from the media device into the
+intermediate buffer. Copy the 256 bytes from that buffer into the correct
+position in the physical memory passed in the I/O request. </p> <p>The middle
+512 bytes are aligned on the media device block boundary. The media driver
+can read this data into the correct position in the physical memory passed
+in the I/O request. </p> </li>
+<li id="GUID-27C1D94D-09CB-5C70-94DF-B1FDC8784DE9"><p> <i>Scatter/Gather DMA
+controllers</i>  </p> <p>DMA controllers can support the Scatter/Gather mode
+of operation. Each request in this mode of operation consists of a set of
+smaller requests chained together. This chain of requests is called the Scatter/Gather
+list. Each item in the list consists of a physical address and a length. </p> <p>Use <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-9879145B-D996-327E-87F6-3B8337A86A56"><apiname>TLocDrvRequest::GetNextPhysicalAddress()</apiname></xref> to
+help you populate the Scatter/Gather list. </p> <p>The following code fragment
+shows how you do this. The example assumes that the DMA controller supports
+a Scatter/Gather list with an unlimited number of entries. In practice, the
+number of entries in the list is finite. </p> <codeblock id="GUID-51D14E43-D388-507C-826E-8249EAA83287" xml:space="preserve">TPhysAddr physAddr; 
+   TInt physLength;
+   TInt err = KErrNone;
+
+   while (iRemaining &gt; 0)
+      {
+      err = iCurrentReq-&gt;GetNextPhysicalAddress(physAddr, physLength);
+      if(err != KErrNone)
+         return err;
+
+      iRemaining -= physLength;
+      PopulateScatterGatherList(physAddr, physLength);
+      }                            
+
+   return DoDataTransfer(pos, length);</codeblock> </li>
+</ul> <p>See also <xref href="GUID-E55B4FE5-517C-5A23-8ACA-E28EE202330B.dita#GUID-E55B4FE5-517C-5A23-8ACA-E28EE202330B/GUID-575211BC-BF66-5817-9825-EE402648D0CD">Register
+media driver support for physical addresses</xref>  </p> </section>
+</conbody></concept>

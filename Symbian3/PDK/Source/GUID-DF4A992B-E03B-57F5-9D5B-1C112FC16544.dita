@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DF4A992B-E03B-57F5-9D5B-1C112FC16544" xml:lang="en"><title>Example
+for Creating a Default Certificate Store</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section provides details on how the <codeph>certtool</codeph> can
+be used to create a default certstore to be used in a new device. For instance,
+a device creator would want to create a default certstore to be shipped with
+every device. The default certstore will most likely contain some default
+root certificates. </p>
+<p>User certificates might be added as well, for instance a device creator
+might add a user certificate to allow a particular device to authenticate
+itself during a SSL/TLS connection. In this manner the server will be sure
+it is interacting with a certain device model. </p>
+<p><b>The internal representation of a certificate store </b> </p>
+<p>The contents of a certificate store are preserved in two files, CAcerts.dat
+and certclients.dat. An actual device would store the default files in ROM,
+from there the files will be copied to RAM when the certstore is first used.
+The original ROM files are copied to RAM only if the files are not there already. </p>
+<p>The paths where the files are stored in ROM are: </p>
+<ul>
+<li id="GUID-A8FD8FBB-D3E1-51CB-8851-0F3E93875BA6"><p> <filepath>z:\System\Data\CACerts.dat</filepath>  </p> </li>
+<li id="GUID-840018D2-0200-5276-9696-C6BDA6AD75B0"><p> <filepath>z:\System\Data\certclients.dat</filepath>  </p> </li>
+</ul>
+<p>The paths where the files are stored in RAM are: </p>
+<ul>
+<li id="GUID-6C0E43B6-5C5F-5DC8-9030-09376F3E86AF"><p> <filepath>c:\System\Data\CACerts.dat</filepath>  </p> </li>
+<li id="GUID-999CFC77-565B-579A-A64E-2AD9B10B013A"><p> <filepath>c:\System\Data\certclients.dat </filepath>  </p> </li>
+</ul>
+<p>The full paths for the emulator in ROM are: </p>
+<ul>
+<li id="GUID-26756A2A-1148-531D-AFCD-A7C101C6C191"><p> <filepath>\epoc32\release\(platform)\(build)\z\
+             System\Data\CACerts.dat</filepath>  </p> </li>
+<li id="GUID-25213156-B9D1-5A9F-BD4E-26B026D02C6A"><p> <filepath>\epoc32\release\(platform)\(
+build)\z\              System\Data\certclients.dat </filepath>  </p> </li>
+</ul>
+<p>The full paths for the emulator in RAM are: </p>
+<ul>
+<li id="GUID-3A4B028D-A8B4-5B1A-8867-B08A3A48CBB7"><p> <filepath>\epoc32\(platform)\c\
+System\Data\CACerts.dat</filepath>  </p> </li>
+<li id="GUID-021DCED1-D59D-5CDC-AD6B-ED3BD4D0EBF4"><p> <filepath>\epoc32\(platform)\c\
+System\Data\certclients.dat </filepath>  </p> </li>
+</ul>
+<p>where (platform) stands for wins, winscw, armi, etc. and (build) for either
+udeb or urel. </p>
+<p>If the files are not present in RAM, when the certstore is first used the
+files are copied from ROM. If the files are not present at all, new empty
+ones will be created, this event should not occur in production devices. </p>
+<p><b>Generating a default certificate store </b> </p>
+<p>You can generate a default certificate store (the two files, CACerts.dat
+and certclients.dat) using <codeph>certtool</codeph> and the emulator. You
+can then take the resulting CACerts.dat and certclients.dat files and insert
+them in the final rom. </p>
+<p>To have a certificate store containing two certificates <filepath>Class1PrimaryCA.cer</filepath> and <filepath>serverca.cer</filepath>,
+the first step is to copy them to the emulator c drive. Copy them to a location,
+say <filepath>\epoc32\(platform)\c</filepath>. </p>
+<p>Use <codeph>certtool</codeph> to import the two certificates. Start the
+eshell: <filepath>\epoc32\release\(platform)\(build)\eshell.exe</filepath>. </p>
+<p>From the shell, import the certificates: </p>
+<p><userinput>certtool –label “Class 1” –import c:\Class1PrimaryCA.cer</userinput> </p>
+<p><userinput>certtool –label “Server CA” –import c:\serverca.cer</userinput> </p>
+<p>The next step is to set the applicability of the certificates. If the “Class
+1” certificate is to be trusted for software installation, SSL/TLS and OCSP,
+while the “Server CA” must be trusted for software installation only, you
+can then use <codeph>certtool</codeph> in the following manner: </p>
+<p><userinput>certtool -setapps –apps SWInstall SSL/TLS SWInstallOCSP “Class
+1”</userinput> </p>
+<p><userinput>certtool -setapps –apps SWInstall “Server CA”</userinput> </p>
+</conbody><related-links>
+<link href="GUID-4462E8C8-CF27-5F3B-ACE3-4213DA6C377C.dita"><linktext>certtool
+Reference</linktext></link>
+</related-links></concept>

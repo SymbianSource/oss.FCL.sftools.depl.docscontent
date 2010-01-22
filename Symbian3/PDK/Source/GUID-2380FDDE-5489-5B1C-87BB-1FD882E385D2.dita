@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2" xml:lang="en"><title>Migration
+Tutorial: Direct Memory Addressing</title><shortdesc>To handle direct memory addressing, you must to make the following
+changes to your code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If a media driver uses a data transfer mechanism like <xref href="GUID-E5576D91-BC5C-588E-BF90-5A1E3C445133.dita">DMA</xref>,
+data transfer can be faster if the media driver knows that an address passed
+in an I/O request is a physical address. This is known as direct memory addressing. </p>
+<ul>
+<li id="GUID-E2C6E9D0-0150-529C-953E-32DFDEA68E77"><p> <xref href="GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2.dita#GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2/GUID-621EB44F-25BB-5B71-BF74-ED0304B7B591">Changes to registration</xref>  </p> </li>
+<li id="GUID-62701989-76A6-52D5-A713-226343BED4EE"><p> <xref href="GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2.dita#GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2/GUID-49992CF9-404A-585C-8770-E9034434A344">Changes to request handling</xref>  </p> </li>
+<li id="GUID-79FF128E-98B3-5613-B02A-08A81FC5B82D"><p> <xref href="GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2.dita#GUID-2380FDDE-5489-5B1C-87BB-1FD882E385D2/GUID-5F4A392F-0EAF-5E69-B902-D987B8FFD610">Issues about physical addresses</xref>  </p> </li>
+</ul>
+<section id="GUID-621EB44F-25BB-5B71-BF74-ED0304B7B591"><title>Changes to
+registration</title> <p>If the media driver code can handle physical addresses,
+it must tell the local media subsystem. This process is called registration.
+The media driver calls <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-57B3380F-3CA6-3FF4-9D79-05B718E0743A"><apiname>LocDrv::RegisterDmaDevice()</apiname></xref> to register
+as part of the <xref href="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52.dita">media
+driver initialisation</xref> process. The media driver calls <codeph>RegisterDmaDevice()</codeph> after
+the media driver has <xref href="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52.dita#GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52/GUID-4A8DEEAB-32C4-5431-8226-5623E2BD9098">registered
+with the local media subsystem</xref>. </p> <p>After the call to <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-57B3380F-3CA6-3FF4-9D79-05B718E0743A"><apiname>LocDrv::RegisterDmaDevice()</apiname></xref>,
+the local media subsystem will test if the address in an I/O request is a
+physical address or a virtual address. The local media subsystem extracts
+the information that the media driver requires. The media driver gets this
+information through calls to the functions: </p> <ul>
+<li id="GUID-93AEF5CB-CB70-5369-BC33-9F2B51903FFE"><p> <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref>. </p> </li>
+<li id="GUID-33328F10-BE3D-5ADA-8FFE-5E19764E43F1"><p> <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-9879145B-D996-327E-87F6-3B8337A86A56"><apiname>TLocDrvRequest::GetNextPhysicalAddress()</apiname></xref>. </p> </li>
+</ul> <p>A <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita"><apiname>TLocDrvRequest</apiname></xref> object represents an I/O request
+and is passed to the media driver. </p> <p>There are three pieces of information
+that the local media subsystem needs from the media driver when the media
+driver registers: </p> <ul>
+<li id="GUID-7A889D6A-52E0-5FBB-BC2F-A1E10A0F0D4D"><p>The <i>minimum number
+of bytes</i> that the media device can transfer. For example, the architecture
+of some memory card types requires data transfer in blocks of 512 bytes. The
+local media subsystem can not support I/O requests for physical addresses
+where the length of the data is smaller than this minimum number. This limit
+prevents accidental access of the data outside the limits of the request. </p> </li>
+<li id="GUID-C778CC22-699B-5B01-B217-C6567CBE01E3"><p>The <i>maximum number
+of bytes</i> that the media driver can transfer in one burst. This value depends
+on the hardware. For eaxample,<xref href="GUID-0D2F811C-81C3-526F-8EA4-98E50261BF4B.dita">DMA
+Framework</xref> has limits that depend on the DMA controller. </p> </li>
+<li id="GUID-49B448A8-B8ED-5EF6-9AB2-BA43FD6ED34F"><p>The <i>alignment of
+memory</i> that the DMA controller requires. For example: a DMA controller
+might require 2 byte (word or 16 bit) alignment or 4 byte (double word or
+32 bit) alignment. For 2 byte alignment, specify 2; for 4 byte alignment specify
+4 etc. The local media subsystem can not support I/O requests for physical
+addresses that are not aligned according to this value. </p> </li>
+</ul> <p>You get all of this information from the documentation for the platform. </p> <p>This
+example code extends the code shown in the section <xref href="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52.dita">Media
+driver initialisation before the system is initialised</xref>. It adds a call
+to <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-57B3380F-3CA6-3FF4-9D79-05B718E0743A"><apiname>LocDrv::RegisterDmaDevice()</apiname></xref>. This call follows registration
+of the media driver with the local media subsystem. </p> <codeblock id="GUID-A56AFE4C-729A-57DA-B232-60A29CE7F735" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+    {
+    TInt r=KErrNoMemory;
+    DPrimaryMediaBase* pM=new DPrimaryMediaBase;
+    if (pM)
+        {//…Required here for Asynchronous creation (if supported)
+        pM-&gt;iDfcQ = &amp;MyDfcQ;
+ 
+        // Perform registration here
+        r = LocDrv::RegisterMediaDevice(MEDIA_DEVICE_TYPE,
+                                        MEDIA_DRIVECOUNT,
+                                        &amp;IMediaDriveNumbers[0],
+                                        pM,MEDIA_NUMMEDIA,KMediaDriveName
+                                       );
+        if ® != KErrNone)
+            {
+            return r;
+            }
+       
+        // Register support for physical addressing.
+        //
+        // Note : in practice the values passed to RegisterDmaDevice() would be
+        // either symbolic constants or functions that return values. If the 
+        // media driver is split into platform independent and platform dependent
+        // layers, and this code is in the independent layer, then you will need 
+        // functions in the dependent layer to provide these values.
+        r = LocDrv::RegisterDmaDevice(pM,
+                                                    512,  // Block Addressing 512 Bytes
+                                                    1024, // 1024 Byte address range
+                                                    2 );  // 2 Byte alignment
+        if ® != KErrNone)
+            {
+            return r;
+            }
+        ...
+        }
+    return®);
+    }
+      </codeblock> </section>
+<section id="GUID-49992CF9-404A-585C-8770-E9034434A344"><title> Changes to
+request handling</title> <p>To use physical addreses, you need to make changes
+to the code that deals with <codeph>ERead</codeph> and <codeph>EWrite</codeph> requests
+in your implementation of the <xref href="GUID-EBF025DB-1552-5E99-8C07-09932DB60552.dita#GUID-EBF025DB-1552-5E99-8C07-09932DB60552/GUID-EC193360-31C2-5012-8ED2-19F1C48C8FC5">DMediaDriver::Request()</xref> function. This section discusses the issues with <codeph>ERead</codeph> requests,
+but the principles apply to <codeph>EWrite</codeph> requests. </p> <p>There
+are a number of points to consider: </p> <p><b>Check if the address is physical </b> </p> <p>Call <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref> to
+test if the address passed is a physical address. For example, for a <codeph>ERead</codeph> request: </p> <codeblock id="GUID-90F1EE30-DAE5-5DE5-B42E-9EF48EB12509" xml:space="preserve">...
+   // iReadReq points to a TLocDrvRequest object
+   ...
+   iMediaStartPos = iReadReq-&gt;Pos();
+   iTotalLength   = I64LOW(iReadReq-&gt;Length()); 
+   iDoPhysicalAddress = iReadReq-&gt;IsPhysicalAddress();
+   if(iDoPhysicalAddress)
+      {
+      ..&lt; Physical address memory code &gt;..
+      }
+   else
+      {
+      ...&lt; Virtual address memory code &gt;...</codeblock> <p><b>Physical address code </b> </p> <p>If you want to use the physical address,
+you need to get the physical address and the length of contiguous memory at
+this location. Call <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-9879145B-D996-327E-87F6-3B8337A86A56"><apiname>TLocDrvRequest::GetNextPhysicalAddress()</apiname></xref> to
+get the physical address and the length of physically contiguous memory. The
+length of physically contiguous memory can be smaller than the length supplied
+in the read request, because physical memory can be fragmented into a number
+of small blocks. If the length is smaller than the length supplied in the
+read or write request, you call <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-9879145B-D996-327E-87F6-3B8337A86A56"><apiname>TLocDrvRequest::GetNextPhysicalAddress()</apiname></xref> again
+to get the address of the next physically contiguous block of memory. You
+repeat this operation until the read request is complete. For example, for
+a <codeph>ERead</codeph> request: </p> <codeblock id="GUID-2311A626-38BF-582F-B310-8E30D73AA1A7" xml:space="preserve">...
+   // iReadReq points to a TLocDrvRequest object
+   ...
+   TPhysAddr physAddr; 
+   TInt physLength;
+   TInt err = KErrNone;                
+   err = iReadReq-&gt;GetNextPhysicalAddress(physAddr, physLength);
+   if(err == KErrNone)
+      {                       
+      if (physLength &lt; iTotalLength)
+         {
+         // Memory is fragmented, note remainder. You will need 
+         // to use this code again using the remainder value.
+         iRemaining    = iTotalLength – physLength;
+         iTotalLength -= physLength;
+         }
+      
+      // Start data transfer into the current physically
+      // contiguous block of physical memory.
+      DoDataTransfer(iMediaStartPos, physLength, physAddr);
+      ...
+      }
+</codeblock> <p>If you do not want to deal with fragmented physical memory,
+you can use your original code. </p> <p><b>Virtual to physical address translation </b> </p> <p>Your code must not
+perform a virtual to physical address translation when it deals with physical
+memory. For example: </p> <codeblock id="GUID-4377A0D5-8E41-59AF-B26E-C468ABAFCF47" xml:space="preserve">void DMMCRxDmaHelp::ChannelTransfer(const SDmaPseudoDes&amp; aDes)
+      {
+      …
+      TPhysAddr dest;
+
+      if (iCurrentReq-&gt;IsPhysicalAddress())
+         dest = (TPhysAddr) aDes.iDest;
+      else
+         dest = Epoc::LinearToPhysical(aDes.iDest);
+      TPlatDma::SetDMARegister(KHoDMA_CDSA(iChno), dest);
+      …
+      }</codeblock> <p><b>Eliminate inter-process copy </b> </p> <p>You must change your code to
+remove calls to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-842F91FF-C780-3E2A-8860-8F34815452FC"><apiname>TLocDrvRequest::WriteRemote()</apiname></xref>. For <codeph>ERead</codeph> requests,
+data for transfer is already at the physical address. For example: </p> <codeblock id="GUID-1B14C66A-476C-5E3F-B0D7-502B54324D74" xml:space="preserve">if (!iCurrentReq-&gt;IsPhysicalAddress())
+      {
+      if( (id == DMediaPagingDevice::ERomPageInRequest)||
+          (id == DMediaPagingDevice::ECodePageInRequest) )
+         {
+         r = iCurrentReq-&gt;WriteToPageHandler((TUint8 *)(&amp; iBufPtr [0]), len, usrOfst);
+         }
+      else if(id==DLocalDrive::ERead)
+         {
+         r = iCurrentReq-&gt;WriteRemote(&amp;iBufPtr,usrOfst);
+         }
+      }</codeblock> <p>The same logic applies to <codeph>EWrite</codeph> requests.
+You need to remove calls to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-96B80631-AD1C-35E8-8613-0A630BD7D9E9"><apiname>TLocDrvRequest::ReadRemote()</apiname></xref>. </p> <p><b>Test your changes </b> </p> <p>You are recommended to run regression tests
+on your changed code to makes sure that the media driver operates correctly. </p> </section>
+<section id="GUID-5F4A392F-0EAF-5E69-B902-D987B8FFD610"><title>Issues about
+physical addresses</title> <p>If the media driver can use physical addresses,
+you need to be aware of a number of issues. </p> <p><b>The address scheme used by the hardware </b> </p> <p>All media devices
+have a minimum number of bytes that they can transfer. For example, the architecture
+of some memory card types requires data transfer in blocks of 512 bytes. To
+read one byte from this type of media device, the media driver must read a
+block of 512 bytes and extract the byte from the block. To write one byte
+to a media device, the media driver must read a block of 512 bytes, change
+the content of the byte, and write the block to the media device. </p> <p><b>Data transfer smaller than the minimum size </b> </p> <p>If the local
+media subsystem receives a request to transfer data with a length smaller
+than the minimum transfer size, the local media subsystem does not make a
+physical address available to the media driver. A call to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref> returns
+false. It is considered unsafe to give access to the physical data surrounding
+the requested memory location. </p> <p><b>Data transfer not aligned to the media device block boundary </b> </p> <p>If
+the local media subsystem receives a request to transfer data, and the address
+on the media device is <i>not aligned</i> to the media device block boundary,
+you need to adopt the technique suggested below. The local media subsystem
+will make the physical address available to the media driver. A call to <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-DD6773B4-9EF5-322F-B53D-29174DF3B3BF"><apiname>TLocDrvRequest::IsPhysicalAddress()</apiname></xref> returns
+true. </p> <p>Consider the following case. A request has been made to read
+1024 bytes from a media device that has a block size of 512 bytes. The 1024
+bytes start at offset +256 on the media device. </p> <fig id="GUID-2689C022-180B-51EF-A02D-E63ACA832EB2">
+<image href="GUID-647ADEDA-AB5A-548F-93C3-D099EAE6A030_d0e395231_href.png" placement="inline"/>
+</fig> <p>To get the first 256 bytes, you must read the first block of 512
+bytes from the media device. This can corrupt the physical memory passed in
+the I/O request. The solution is to read the first block from the media device
+into an intermediate buffer. Copy the 256 bytes from that buffer into the
+physical memory passed in the I/O request. </p> <p>To get the last 256 bytes,
+you must read the third block of 512 bytes from the media device into the
+intermediate buffer. Copy the 256 bytes from that buffer into the correct
+position in the physical memory passed in the I/O request. </p> <p>The middle
+512 bytes are aligned on the media device block boundary. The media driver
+can read this data into the correct position in the physical memory passed
+in the I/O request. </p> <p><b>Scatter/Gather DMA controllers </b> </p> <p>DMA controllers can support
+the Scatter/Gather mode of operation. Each request in this mode of operation
+consists of a set of smaller requests chained together. This chain of requests
+is called the Scatter/Gather list. Each item in the list consists of a physical
+address and a length. </p> <p>Use <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-9879145B-D996-327E-87F6-3B8337A86A56"><apiname>TLocDrvRequest::GetNextPhysicalAddress()</apiname></xref> to
+help you populate the Scatter/Gather list. </p> <p>The following code fragment
+shows how you do this. The example assumes that the DMA controller supports
+a Scatter/Gather list with an unlimited number of entries. In practice, the
+number of entries in the list is finite. </p> <codeblock id="GUID-EC3A441C-080F-5EB8-B0E8-E658F80687D4" xml:space="preserve">TPhysAddr physAddr; 
+   TInt physLength;
+   TInt err = KErrNone;
+
+   while (iRemaining &gt; 0)
+      {
+      err = iCurrentReq-&gt;GetNextPhysicalAddress(physAddr, physLength);
+      if(err != KErrNone)
+         return err;
+
+      iRemaining -= physLength;
+      PopulateScatterGatherList(physAddr, physLength);
+      }                            
+
+   return DoDataTransfer(pos, length);</codeblock> </section>
+</conbody><related-links>
+<link>
+<desc><xref href="GUID-E55B4FE5-517C-5A23-8ACA-E28EE202330B.dita#GUID-E55B4FE5-517C-5A23-8ACA-E28EE202330B/GUID-575211BC-BF66-5817-9825-EE402648D0CD">Register
+media driver support for physical addresses</xref></desc>
+</link>
+</related-links></concept>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3B6E25F7-C1A8-461F-97F7-421DB559BC98" xml:lang="en"><title>Process identification</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Sometimes it is useful for security reasons to obtain more information about server or application processes, and identify an application and even its vendor uniquely.</p>
+<ul>
+<li><p>To verify an application's identity, use <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Architecture/RApaLsSessionClass.html" format="application/java-archive">RApaLsSession</xref></codeph> to retrieve the application's name and  <i>Unique Identifier</i> UID, and compare them against known information.</p><p>For more information, see <xref href="GUID-EA05F9B6-52C7-4BD9-8B9A-4BA3456E70B5.dita">UID</xref>.</p></li>
+<li><p>Use the <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Architecture/TApaTaskListClass.html" format="application/java-archive">TApaTaskList</xref></codeph> class to get a list of currently running applications.</p><p>In the platform security architecture there are two different identifiers for applications: Secure Identifier (SID) and Vendor Identifier  (VID).</p></li>
+</ul>
+<p><b id="GUID-EEC50FC0-46D5-4ED7-AD95-67430D5EC652">Secure Identifier (SID)</b></p>
+<p>Every executable has its own <i>Secure Identifier</i> (SID), which is used to identify the running process launched from the executable. It can also be used to determine which private directory a process can access. SID is stored in the executable binary, so it has the same security as any executable code. The SID value is not relevant for <codeph>dll</codeph>.</p>
+<p>SID values are requested from the <xref href="http://www.symbiansigned.com" scope="external">Symbian Signed</xref> web site. The <xref href="GUID-1293DE8C-E803-4ADF-9FA8-862519337331.dita">Sofware Installer</xref> ensures that no two applications have the same SID value on a particular target device.</p>
+<p>To retrieve the SID of a process, use the <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/RProcessClass.html#%3a%3aRProcess%3a%3aSecureId%28%29const" format="application/java-archive">RProcess::SecureId()</xref></codeph> method . During inter process communication, use the <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TSecurityPolicyClass.html" format="application/java-archive">TSecurityPolicy</xref></codeph> class to specify a security policy consisting of both <xref href="GUID-6971B0A2-F79B-4E05-8AF3-BB1FC1932A22.dita">capability</xref> and SID checks.</p>
+<p>For information on how to define the SID in the <codeph>mmp</codeph> file, see <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/ToolsAndUtilities94/Build-ref/Mmp-ref/secureid.html" format="application/java-archive">secureid</xref></codeph>. If SID is not specified in the <codeph>mmp</codeph> file, the value of UID3 is used as the SID.</p>
+<p><b id="GUID-EEC50FC0-46D5-4ED7-AD95-67430D5EC654">Vendor Identifier (VID)</b></p>
+<p>In addition to SID, signed applications have a <i>Vendor Identifier</i> (VID) which can be used to identify the source of the application. Applications from one vendor usually share a common VID, but the vendor may have different VIDs for different product families. VIDs can also be used to group servers and clients into logical groups providing services to each other.</p>
+<p>Note that the VID cannot be reused for any other entity. For example, the Nokia VID (<codeph>0x101FB657</codeph>) is property of Nokia.</p>
+<p>For information on how to define the VID in the <codeph>mmp</codeph> file, see <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/ToolsAndUtilities94/Build-ref/Mmp-ref/vendorid.html" format="application/java-archive">vendorid</xref></codeph>.</p>
+<section><title>Secure inter process communication</title>
+<p>Authentication can be done in different ways. The server can decide to request (or not to request) capabilities from the client. The client's options are more limited, the server is usually authenticated by name. The <codeph>ProtServ</codeph> <xref href="GUID-6971B0A2-F79B-4E05-8AF3-BB1FC1932A22.dita">capability</xref> allows the server to insert an "!" in front of its name, indicating that the server can be trusted. Nameless servers are also possible, but no client can connect to them without a handle to the server. The server can also authenticate the client with SID and VID.</p>
+<p>Every server should define the following security policies:</p>
+<ul>
+<li><p>Which capabilities are required by the calling application</p></li>
+<li><p>Which SID and VID are required by the calling application</p></li>
+<li><p>What actions are possible or must be done with the information provided:</p>
+<ul>
+<li><p>Can input data be trusted?</p></li>
+<li><p>Is user acceptance needed for this operation?</p></li>
+<li><p>Can this server act as a proxy towards other components?</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</conbody></concept>

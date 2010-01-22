@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F14A2252-7D7B-5631-9796-3C9AC54014E7" xml:lang="en"><title>Repetitive
+Search</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>When a new search-sort asynchronous operation is successful, a unique ID
+is returned to the client, which is referred as query ID. This query ID can
+be used to repeat the same search-sort query. </p>
+<section><title>Required background</title> <p>To do a repetitive search operation,
+that is searching messages using a query ID, you must first get the query
+ID of that search operation. </p> </section>
+<section><title>Introduction</title> <p>Every new search-sort asynchronous
+query that is successful is assigned with a unique 32 bit integer value, which
+is referred to as a <xref href="GUID-01500959-E1C8-3491-B8F1-0D2F0512CC16.dita"><apiname>query           ID</apiname></xref>. This query ID is
+used to initiate the same search-sort operation (initiate a repetitive query)
+in future. The query ID can be retrieved using the <xref href="GUID-5D956759-5D21-3715-916E-F7E703172762.dita#GUID-5D956759-5D21-3715-916E-F7E703172762/GUID-1893C3C7-4F77-3630-B115-A161CCA2665A"><apiname>CMsvSearchSortOperation::GetQueryIdL()</apiname></xref> function. </p> <p><b>Marking</b> </p> <p>When the search-sort cache reaches its maximum size the message server
+deletes the least recently used query to accommodate a new one. However, there
+may be some queries and their results which the client wants to keep in the
+cache, irrespective of how frequently they are being used. </p> <p>Such queries
+can be marked by the client to indicate to the Messaging server that the query
+should not be disposed from the search-sort cache when the cache is full.
+Marked queries are considered for deletion only if all of the remaining queries
+are also marked. </p> <p>To mark a query ID, use the <codeph>TBool aMarkQuery</codeph> parameter
+in the <xref href="GUID-5D956759-5D21-3715-916E-F7E703172762.dita#GUID-5D956759-5D21-3715-916E-F7E703172762/GUID-6C81A72A-3BEC-3D18-9CAD-46E9309C3FEB"><apiname>CMsvSearchSortOperation::RequestL()</apiname></xref> function in
+your client application. </p> <codeblock id="GUID-EED135A5-C141-5525-9C0C-DCF318040C46" xml:space="preserve">IMPORT_C void RequestL (CMsvSearchSortQuery* aQuery, TBool aMarkQuery, TRequestStatus&amp; aQueryStatus, TInt aIterator=0)</codeblock> <p><b>Unmarking</b> </p> <p>To unmark a query ID, use the CMsvSearchSortOperation::UnmarkQuery()
+function in your client application. </p> <codeblock id="GUID-1C27E207-33F0-5F64-81FC-C50BF257BCB7" xml:space="preserve">IMPORT_C TInt UnmarkQuery  (const TInt aQueryId )</codeblock> <fig id="GUID-7D09EFAE-67B3-5142-A6EF-F9D86E39414F">
+<title>              Repetitive search request process            </title>
+<image href="GUID-E9F08BCA-39F6-55D3-8974-BD0FFB90DE11_d0e474375_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Procedure</title> <ol id="GUID-E149145A-A3CB-5CE9-9484-9A7B41E9D302">
+<li id="GUID-9D17EF5C-BCA1-5FAE-BE69-DDF6B441F4A5"><p>To get a query ID, complete
+the steps from 1 to 10 in <xref href="GUID-3F938A76-3F27-56ED-BB3D-0E7EC4ACFB9C.dita">New
+Search</xref>. </p> </li>
+<li id="GUID-CD3AABCA-4A90-5B1C-8D77-A2E76161DF2A"><p>Get the query ID from
+step 10 and start the search operation using the query ID as the search parameter. </p> </li>
+</ol><codeblock xml:space="preserve">void CSearchsortExample::SeachSortRequestByQueryIdL()
+    {
+    //1. Create a session with message server
+    // NOTE: CMsvSession::OpenSyncL requires a &amp;MMsvObserver parameter. This example assumes that 
+    // CSearchSortExample implements MMsvObserver.
+    CMsvSession* session = CMsvSession::OpenSyncL(*this);
+    CleanupStack::PushL(session);
+
+    //2. Create an instance of CMsvSearchSortOperation to perform a 
+    //search-sort operation    
+    CMSvSearchSortOperation* search = CMSvSearchSortOperation::NewL(*session);
+    CleanupStack::PushL(search);
+            
+    //3. Start the search operation using the query ID as the search parameter
+    TRequestStatus aStatus;
+    search-&gt;RequestL(iQueryId, aStatus);
+
+    //4. Wait for the result
+    User::WaitForRequest(aStatus);
+
+    //5. Create an array to hold Search-sort results
+    RArray&lt;TMsvId&gt; resultArray;
+
+    //6. Retrieve the results of the search. The format for the results should be the same as
+    // what is configured in step 2. Else, will leave with the KErrMsvInvalidResultRequest
+    // error
+    TInt err =  search-&gt;GetResultsL(resultArray);
+    if(ret == KErrNone)
+        {
+        TInt count = resultArray.Count();
+        }
+
+    //7. Store the query ID. This ID can be used in repetitive search queries.
+    iQueryId = search-&gt;GetQueryIdL();
+    
+    CleanupStack::PopAndDestroy(2); //search, session  
+    }</codeblock> </section>
+<example><title>Search-sort example</title> <p><xref href="GUID-B26A4743-F331-5AC3-A40A-28B14B785857.dita">SearchSortExample:
+Enhanced Search and Sort for Message Store </xref>  </p> </example>
+<section><title>See also</title> <p>For conceptual information on search-sort
+APIs, see <xref href="GUID-32C1FC8B-F7D2-5275-BDF2-0D662551294C.dita">Search-Sort
+Introduction</xref>. </p> </section>
+</conbody></concept>

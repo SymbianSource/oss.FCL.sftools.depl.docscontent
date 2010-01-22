@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-623CA1EE-4D25-495A-BD2F-BA7BF95D6D9C" xml:lang="en"><title>Creating
+a Vibra instance to control the vibra</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>A <codeph>CHWRMVibra</codeph> instance can be created by
+using <codeph>NewL()</codeph> or <codeph>NewLC()</codeph> methods. After this,
+vibra can be directly controlled via the provided class methods.</p><p><b>Without
+notify handling</b></p><p>The user has to create an instance of the <codeph>CHWRMVibra</codeph> implementation
+class using the <codeph>NewL()</codeph> or <codeph>NewLC()</codeph> constructor
+without a parameter. The following code snippet demonstrates how to create
+an instance without notify handling to control the device vibra:</p><codeblock xml:space="preserve">CHWRMVibra* vibra = CHWRMVibra::NewLC(); // No callbacks</codeblock><p><b>With notify handling </b></p><p>The client must derive a class from
+the <codeph>MHWRMVibraObserver</codeph> interface and implement the <codeph>VibraModeChanged()</codeph> and <codeph>VibraStatusChanged()</codeph> methods.</p><p>The following code snippet gives an example of the header of the class
+implemented by the client:</p><codeblock xml:space="preserve">// INCLUDES
+#include HWRMVibra.h // Link against HWRMVibraClient.lib.
+class CVibraStatusObserver : public CBase,
+                             public MHWRMVibraObserver
+    {
+    public:
+        CVibraStatusObserver();
+        ~CVibraStatusObserver();
+        void ConstructL();
+        static CVibraStatusObserver* NewL(); 
+        // from MHWRMVibraObserver
+        virtual void VibraModeChanged( CHWRMVibra::TVibraModeState aStatus );
+        virtual void VibraStatusChanged( CHWRMVibra::TVibraStatus aStatus );
+    private:
+        CHWRMVibra* iVibra;
+    };
+</codeblock><p>Create an instance of the <codeph>CHWRMVibra</codeph> implementation
+class using the <codeph>NewL()</codeph> or <codeph>NewLC()</codeph> constructor
+with a parameter. This parameter is a pointer to an object that is derived
+from <codeph>MHWRMVibraObserver</codeph>. Every vibra user setting profile
+change causes the notification using <codeph>MHWRMVibraObserver::VibraModeChanged()</codeph>.
+Every vibra status change causes the notification using <codeph>MHWRMVibraObserver::VibraStatusChanged()</codeph>. </p><p>The
+following code snippet demonstrates how to create an instance with notify
+handling to control the device vibra:</p><codeblock xml:space="preserve">void CVibraStatusObserver::ConstructL()
+    {
+    iVibra = CHWRMVibra::NewL( this )
+    }</codeblock></context>
+</taskbody></task>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5B4D38A7-DCDC-51D8-A349-050CF0FD1586" xml:lang="en"><title>Creating
+a Linked Typeface</title><shortdesc>The API that allows the linked typeface to be specified is for
+use by device creators. It is primarily designed for the creation of device
+system fonts. The platform security capability <apiname>ECapabilityWriteDeviceData</apiname> is
+required to register linked typefaces. <apiname>ECapabilityReadDeviceData</apiname> is
+required to fetch linked typeface information from the Font and Bitmap Server.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Target audience</b>: Device creators. </p>
+<p>This topic builds on the material in the <xref href="GUID-5042997F-4B8C-538D-B1E0-DD82F5283BB6.dita">Linked
+Fonts Guide</xref>. </p>
+<p>Once a linked typeface has been created any client may get a linked font
+back in response to a request for the nearest font. When the Font Store searches
+for the best match to the requested font specification, linked fonts are considered
+alongside normal bitmap and open fonts. If a linked font represents the best
+match, it is returned. As far as the client is concerned, the fact that it
+is a linked font is invisible. </p>
+<section><title>Example code</title> <p>The following code example shows how
+to create, specify and then register a linked typeface. </p> <codeblock id="GUID-052800CC-89C1-5279-85F1-354A4E72A93F" xml:space="preserve">// Create a typeface specification
+CLinkedTypefaceSpecification *typefaceSpec;
+    
+// This is the name of the new linked typeface.
+_LIT(KLinkedTypeface, "LinkedTypefaceTT") ;  
+            
+typefaceSpec = CLinkedTypefaceSpecification::NewLC( KLinkedTypeface );
+    
+// Create at least one linked typeface group.
+// Each typeface in the linked font must be assigned to a group.
+// The group specifies font characteristics.
+const TUint KGroup1Id = 1 ; // group ID
+CLinkedTypefaceGroup* group1 = CLinkedTypefaceGroup::NewLC( KGroup1Id ); 
+     
+// Italic angle is specified as a percentage. 
+group1-&gt;SetItalicAngle( 30 ); 
+group1-&gt;SetBaselineShift( ENoBaselineShift ); 
+    
+// Add the group to the typeface specification
+typefaceSpec-&gt;AddLinkedTypefaceGroupL( *group1 );
+CleanupStack::Pop(); // group1.
+    
+// Add additional groups...
+const TUint KGroup2Id = 2; 
+    
+...
+    
+// Add first typeface by creating an element specification. 
+// This must be the name of a font in the font store.
+_LIT( KLinkedTypeface1, "LinkedFont1TT" );  
+    
+CLinkedTypefaceElementSpec *elementSpec1;
+elementSpec1 = CLinkedTypefaceElementSpec::NewLC( KLinkedTypeface1, KGroup1Id );
+    
+// One typeface (not necessarily the first) must be set as the canonical typeface.
+elementSpec1-&gt;SetCanonical( ETrue );
+    
+// Add the element to the typeface.
+typefaceSpec-&gt;AddTypefaceAtBackL( *elementSpec1 );
+CleanupStack::Pop() ;  // elementSpec1.
+    
+// Create and add additional element specifications.
+    
+...
+    
+elementSpecX = CLinkedTypefaceElementSpec::NewLC( KLinkedTypefaceX, KGroupNId );
+    
+...
+    
+typefaceSpec-&gt;AddTypefaceAtBackL( *elementSpecX );
+    
+...
+    
+// Register the linked typeface with the Typeface store.
+// iDev is a previously created CFbsDevice.
+CFbsTypefaceStore* typefaceStore = CFbsTypefaceStore::NewL( iDev ); 
+CleanupStack::PushL( typefaceStore );
+    
+typefaceSpec-&gt;RegisterLinkedTypefaceL( *typefaceStore  );
+CleanupStack::PopAndDestroy( 2, store );</codeblock> <p>The following code
+example shows one way of getting the nearest font to a specified font specification. </p> <codeblock id="GUID-798C4BE0-13E3-52E3-BA11-BAD7BBDD019B" xml:space="preserve">TFontSpec fontSpec;
+fontSpec.iTypeface.iName = KRequiredTypeface;
+fontSpec.iHeight = 20;
+fontSpec.iFontStyle.SetBitmapType(EAntiAliasedGlyphBitmap);
+    
+// CFbsTypefaceStore
+CFont* myFont;
+tfstore-&gt;GetNearestFontToMaxHeightInPixelsL(myFont, fontSpec);
+    
+// CFbsBitGc
+gc-&gt;UseFont(myFont);
+...</codeblock> </section>
+<section><title>Multiple linked typefaces</title> <p>You can create any number
+of linked typefaces (subject to device resource limitations) as long as they
+all have different names. You can: </p> <ul>
+<li id="GUID-FF336655-EB61-592E-B53F-9A57F633003C"><p>use the same typeface
+as a component typeface in multiple linked typefaces </p> </li>
+<li id="GUID-AD9D223D-DFEC-508E-924D-E094DCCC8B5A"><p>create the same linked
+font multiple times in multiple clients </p> </li>
+<li id="GUID-063627A4-6977-53AB-B5D0-6D719D5A693F"><p>create multiple linked
+fonts, with different specifications, from the same linked typeface </p> </li>
+<li id="GUID-992337FA-8694-5543-BBE2-3B71E9A99634"><p>create multiple linked
+fonts from different linked typefaces </p> </li>
+<li id="GUID-6D846BAB-6E9F-58FB-BBF7-5D34FED41E9E"><p>create linked typefaces
+that can contain nested linked typefaces, if supported by the font rasterizer. </p> </li>
+</ul> <p>The following constraints apply: </p> <ul>
+<li id="GUID-F1907D39-0E96-5CEA-81C8-BCCD98FC90D6"><p>The typefaces composing
+a linked typeface must be open typefaces. Bitmaps fonts are not supported. </p> </li>
+<li id="GUID-56FE1B5E-9B4C-50CA-887B-53ED72136AFC"><p>The linked typeface
+name must be unique. </p> </li>
+<li id="GUID-67F9FAA2-3110-545A-95F4-FDDF2B8453EA"><p>The typefaces in a linked
+typeface must be present when the linked typeface is registered. </p> </li>
+<li id="GUID-13AF8625-19E8-5E05-A325-F856FDA16FE9"><p>Linked typefaces cannot
+be deleted. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-5042997F-4B8C-538D-B1E0-DD82F5283BB6.dita"><linktext>Linked Fonts
+Guide</linktext></link>
+<link href="GUID-90644B52-69D7-595C-95E3-D6F7A30C060D.dita"><linktext>Font and
+Text Services Collection                 Overview </linktext></link>
+<link href="GUID-416A3756-B5D5-5BCD-830E-2371C5F6B502.dita"><linktext>Font Store
+Component                 Overview </linktext></link>
+<link href="GUID-71DADA82-3ABC-52D2-8360-33FAEB2E5DE9.dita"><linktext> Font and
+Bitmap Server                 Component Overview </linktext></link>
+</related-links></concept>

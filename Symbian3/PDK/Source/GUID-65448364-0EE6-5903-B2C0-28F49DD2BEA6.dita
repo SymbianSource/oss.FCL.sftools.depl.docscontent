@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-65448364-0EE6-5903-B2C0-28F49DD2BEA6" xml:lang="en"><title>Using
+the LBS Administration API</title><shortdesc>This document explains how to get and set LBS Administration settings
+at runtime. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p>This document describes how to use the
+LBS administration service via the LBS Administration API. </p> </section>
+<section><title>Required background</title> <p><xref href="GUID-9348D79B-D4BF-50B0-B787-DDA2765CE058.dita">LBS
+Administration Service Overview</xref> describes the LBS administration service
+and the LBS Administration API. </p> </section>
+<section><title>Introduction</title> <p>Client applications use the LBS Administration
+API in two ways: </p> <ul>
+<li id="GUID-216C30CC-9B78-5DDD-84F0-7DF5970DAE74"><p><xref href="GUID-65448364-0EE6-5903-B2C0-28F49DD2BEA6.dita#GUID-65448364-0EE6-5903-B2C0-28F49DD2BEA6/GUID-8C0486E7-CED1-5902-ADC8-742C3A166C6B">Accessing LBS administration settings</xref> </p> </li>
+<li id="GUID-CFAC089A-F282-5AA3-9C8F-AA6551AE3AE8"><p><xref href="GUID-65448364-0EE6-5903-B2C0-28F49DD2BEA6.dita#GUID-65448364-0EE6-5903-B2C0-28F49DD2BEA6/GUID-E9801842-4844-51BA-97D3-5073926E3EDA">Receiving notifications of LBS administration settings changes</xref>  </p> </li>
+</ul> <p>The LBS Administration API is packaged in <filepath>lbsadmin.dll</filepath>.
+Client applications include <filepath>lbsadmin.h</filepath> and link against <filepath>lbsadmin.lib</filepath>.
+To set administration settings, an application must have the capability <i>WriteDeviceData</i>.
+No capabilities are required to read administration settings. </p> </section>
+<section id="GUID-8C0486E7-CED1-5902-ADC8-742C3A166C6B"><title>Accessing LBS
+administration settings</title> <p>This section describes how client applications
+use the LBS Administration API to get and set LBS administration settings.
+Examples are given for the different types of administration settings categories. </p> <p><b>Location request settings </b> </p> <p>These setting are used to turn
+location requests on and off. Settings exist for Mobile Originated Location
+Requests (MO-LR), Mobile Terminated Location Requests (MT-LR) and Transfer
+Location to 3rd Party Requests (X3P). The code example below shows how to: </p> <ol id="GUID-4035F478-DF5C-51E2-BE62-DF61BE39F235">
+<li id="GUID-F14D1F81-10B9-5BAA-8E7E-56FD57034A71"><p>Turn on MO-LR (self
+locate) in the home network and when roaming. </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-F3E58804-AAEE-32A6-A3C8-9868C9C8283C"><apiname>CLbsAdmin::TSelfLocateService</apiname></xref> defines
+the constants used to configure MO-LR. </p> <codeblock id="GUID-B0DD1766-92DA-5E9D-90A3-2B25892B9C29" xml:space="preserve">#include &lt;lbsadmin.h&gt;
+
+...
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+TInt err = KErrNone;
+
+// Turn on MO-LR in home network &amp; when roaming.
+err = admin-&gt;Set(KLbsSettingHomeSelfLocate, CLbsAdmin::ESelfLocateOn);
+err = admin-&gt;Set(KLbsSettingRoamingSelfLocate, CLbsAdmin::ESelfLocateOn);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+<li id="GUID-33536D62-BE7E-5A90-BC8A-61E8369F8A8E"><p>Turn on MT-LR (external
+locate) in the home network and off when roaming. <i>Note that Emergency MT-LR
+is unaffected and is always on.</i> </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-74AF5A08-F6D9-36F7-A904-710C18248569"><apiname>CLbsAdmin::TExternalLocateService</apiname></xref> defines
+the constants used to configure MT-LR. </p> <codeblock id="GUID-72B95EC8-68A4-5C17-B0D3-02C9F6F1785A" xml:space="preserve">
+...
+
+// Turn on external locate in home network. Turn off when roaming.
+err = admin-&gt;Set(KLbsSettingHomeExternalLocate, CLbsAdmin::EExternalLocateOn);
+err = admin-&gt;Set(KLbsSettingRoamingExternalLocate, CLbsAdmin::EExternalLocateOff);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+<li id="GUID-59F1B3AE-BB7F-5928-AEF8-BC15E3603E2C"><p>Turn on X3P (transfer
+to third party) in the home network and off when roaming. </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-9FF8B24A-5254-34A3-8626-9BFCF5440158"><apiname>CLbsAdmin::TTransmitLocateService</apiname></xref> defines
+the constants used to configure X3P. </p> <codeblock id="GUID-DE2B5662-2B10-5C21-AA78-242EB6B15EDD" xml:space="preserve">
+...
+
+// Turn on transfer to 3rd party locate. Turn off when roaming.
+err = admin-&gt;Set(KLbsSettingHomeTransmitLocate, CLbsAdmin::ETransmitLocateOn);
+err = admin-&gt;Set(KLbsSettingRoamingTransmitLocate, CLbsAdmin::ETransmitLocateOff);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+<li id="GUID-74EB2EBF-1C1A-5824-B63B-5CE15962ABDC"><p>Get the location request
+settings </p> <codeblock id="GUID-20528E10-900C-5EB2-8329-C784024F1D18" xml:space="preserve">
+...
+
+// Get some settings...
+CLbsAdmin::TSelfLocateService selfLocate;
+CLbsAdmin::TExternalLocateService externalLocate;
+CLbsAdmin::TTransmitLocateService transmitLocate;
+
+err = admin-&gt;Get(KLbsSettingHomeSelfLocate, selfLocate);
+err = admin-&gt;Get(KLbsSettingHomeExternalLocate, externalLocate);
+err = admin-&gt;Get(KLbsSettingHomeTransmitLocate, transmitLocate);
+
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> </li>
+</ol> <p><b>Quality profile settings </b> </p> <p>Quality profiles define the quality
+of position required by a LBS location request. They are used when a client
+makes a LBS location request without specifying any position quality criteria. </p> <p>Quality
+profiles are defined in the file <filepath>lbsprofile.ini</filepath>. The
+file is located at <filepath>&lt;rom_drive&gt;:\private\10282253\lbs\lbsprofile.ini</filepath> or <filepath>&lt;system_drive&gt;:\private\10282253\lbs\lbsprofile.ini</filepath> (the file location is dependent on the licensee OS build and configuration
+process). </p> <p>An example quality profile file is shown below in which
+two quality profiles defined. Each quality profile has a unique ID defined
+by the value <codeph>ProfileID</codeph>. </p> <codeblock id="GUID-2BA6B674-48F4-5AE5-A925-7FEDD2C52365" xml:space="preserve">
+# lbsprofile.ini
+# Quality Profiles for LBS services
+#
+
+[1]
+ProfileID= 0
+MaxTime= 130
+HorizontalAccuracy= 50
+VerticalAccuracy= 1000
+    
+[2]
+ProfileID= 1
+MaxTime= 120
+HorizontalAccuracy= 20
+VerticalAccuracy= 1000
+</codeblock> <p>The default quality profiles for use by MO-LR, MT-LR and X3P
+are defined in the LBS administration repository initialisation file. </p> <p>The
+code example below shows how to use the LBS Administration API to change the
+quality profile for MO-LR. </p> <codeblock id="GUID-69A28FAF-0157-5685-A8B5-D37230930897" xml:space="preserve">
+#include &lt;lbsadmin.h&gt;
+
+...
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+TLbsQualityProfileId selfProfileId;
+TLbsQualityProfileId newProfileId = 1;
+
+TInt err = KErrNone;
+
+// Set quality profile for MO-LR
+err = admin-&gt;Get(KLbsSettingQualityProfileSelfLocate, selfProfileId);
+if (err != KErrNone)
+ {
+ // Handle error
+ ...
+ }
+
+if (selfProfileId != 1)
+ {
+ err = admin-&gt;Set(KLbsSettingQualityProfileSelfLocate, newProfileId);
+ if (err != KErrNone)
+  {
+  // Handle error
+  ...
+  }
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> <p><b>GPS operation mode settings </b> </p> <p>These settings configure the
+mode of operation of GPS in the home network and when roaming. </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-9F902F01-29A3-3929-B045-83C72DB96E39"><apiname>CLbsAdmin::TGpsMode</apiname></xref> defines
+the constants used to configure GPS. </p> <p>The code example below shows
+how to use the LBS Administration API to configure GPS to calculate position
+using assistance data from the network. LBS tries to get assistance data from
+the network to calculate the location, but if this data is not available then
+LBS attempts to get a GPS fix without it. </p> <codeblock id="GUID-C86B287A-BE20-5EAC-87A1-DD43C3B22235" xml:space="preserve">
+#include &lt;lbsadmin.h&gt;
+
+...
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+TInt err = KErrNone;
+
+// 1. Use assisted mode GPS in home network and when roaming
+err = admin-&gt;Set(KLbsSettingHomeGpsMode, CLbsAdmin::EGpsPreferTerminalBased);
+err = admin-&gt;Set(KLbsSettingRoamingGpsMode, CLbsAdmin::EGpsPreferTerminalBased);
+
+// 2. Get home GPS mode setting
+CLbsAdmin::TGpsMode gpsMode;
+err = admin-&gt;Get(KLbsSettingHomeGpsMode, gpsMode);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> <p><b>Network protocol module setting </b> </p> <p>This setting gets and sets
+the UID of the network protocol module that is used in both the home network
+and when roaming. </p> <p>Note that the value of the UID must be that of the
+ECom protocol module implementation as defined by <codeph>implementation_uid</codeph> in
+the ECom resource file. </p> <p>The code example below shows how to use the
+LBS Administration API to set the network protocol module. </p> <codeblock id="GUID-E27A8EB5-73BF-5C06-AFB1-124BA213ED8E" xml:space="preserve">
+#include &lt;lbsadmin.h&gt;
+
+...
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+TInt err = KErrNone;
+TUid modUid;
+
+// Get the UID of licensee network protocol module ECom plug-in
+...
+
+// Set the network protocol module
+err= admin-&gt;Set(KLbsSettingHomeProtocolModule, modUid);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> <p> <i>Note that changing the KLbsSettingHomeProtocolModule setting
+requires a restart of the LBS subsystem. This may require a reboot of the
+mobile device for the change to take effect, but not if the LBS subsystem
+is configured to start in transient mode, as is the case in Standalone Privacy
+Mode.</i>  </p> <p><b>Privacy notifier settings </b> </p> <p>These settings are used to: </p> <ul>
+<li id="GUID-DE62EDC7-9838-5E1C-A7E1-5EFABA73CFC0"><p>Configure LBS to use
+a privacy controller or privacy notifiers </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-E10A0475-7286-3AC1-9131-DEC07BA5B75B"><apiname>CLbsAdmin::TPrivacyHandler</apiname></xref> defines
+the constants that configure LBS to use a privacy controller or privacy notifiers. </p> </li>
+<li id="GUID-0EC51415-C82A-5745-8D92-02308F2157C0"><p>Set the action to take
+on timeout of a MT-LR privacy request </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-F063FE21-9996-3F0E-9BE2-95067EF5B5E6"><apiname>CLbsAdmin::TPrivacyTimeoutAction</apiname></xref> defines
+the constants that configure the action to take on timeout. <i/>  </p> <p> <i>Note
+that setting this to reject MT-LR does not reject Emergency MT-LR.</i>  </p> </li>
+</ul> <p>The code example below shows how to use the LBS Administration API
+to configure LBS to use privacy notifiers and to reject privacy requests on
+timeout. </p> <codeblock id="GUID-10647598-E6E6-5AC6-B8B9-A9821A6A102B" xml:space="preserve">
+#include &lt;lbsadmin.h&gt;
+
+...
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+TInt err = KErrNone;
+
+// Set LBS to use privacy notifiers
+err = admin-&gt;Set(KLbsSettingPrivacyHandler, CLbsAdmin::EPrivacyHandleByNotifier);
+
+// Set LBS to reject privacy requests on timeout
+err = admin-&gt;Set(KLbsSettingPrivacyTimeoutAction, CLbsAdmin::EPrivacyTimeoutReject);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> <p> <i>Note that changing the KLbsSettingPrivacyHandler setting
+requires a restart of the LBS subsystem. This may require a reboot of the
+mobile device for the change to take effect, but not if the LBS subsystem
+is configured to start in transient mode, as is the case in Standalone Privacy
+Mode.</i>  </p> <p><b>GPS set clock module settings </b> </p> <p>These settings are used to: </p> <ol id="GUID-C7318704-53F4-5924-90BA-3C21E4124D97">
+<li id="GUID-3BE29F03-BBB8-5BB5-A0FC-A91A7B1B244B"><p>Configure LBS to allow
+the system clock to be synchronised with GPS </p> <p> <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-43E5D177-778D-304C-BE11-18FBABE66E28"><apiname>CLbsAdmin::TClockAdjust</apiname></xref> defines
+the constants that configure system clock synchronisation. </p> <p>LBS can
+be configured to allow fully automatic system clock synchronisation. This
+means the system clock is synchronised with GPS at regular intervals. </p> <p>The
+code example below shows how to turn on automatic clock adjustment. </p> <codeblock id="GUID-4363CC8B-5B5C-5B67-AAF1-6A9C7BEF8924" xml:space="preserve">#include &lt;lbsadmin.h&gt;
+
+...
+
+TInt err = KErrNone;
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+// Configure LBS to allow automatic clock synchronisation 
+err = admin-&gt;Set(KLbsSettingClockAdjust, CLbsAdmin::EClockAdjustOn);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+<li id="GUID-08EAB46C-E380-5894-A5DC-EFB772C38FDA"><p>Specify the UID of the
+GPS set clock plug-in </p> <p>A GPS set clock plug-in is an ECom plug-in that
+allows LBS to set the system time on the mobile device. </p> <p>LBS contains
+a default implementation of a set clock plug-in that sets the system time
+by calling <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-145F52E6-2A29-3FF1-8AD1-7009BE0074D7"><apiname>User::SetUTCTime()</apiname></xref>. It is only necessary to
+change the <codeph>KLbsSettingSetClockModule</codeph> setting if a licensee
+wishes to use some other means to set the system time. Setting <codeph>KLbsSettingSetClockModule</codeph> to
+0 specifies that LBS will use the default plug-in. </p> <p>If <codeph>KLbsSettingSetClockModule</codeph> is
+set to some value other than 0, it must be set to the UID of a licensee set
+clock plug-in. The UID must be that of the ECom implementation as defined
+by <codeph>implementation_uid</codeph> in the ECom resource file. </p> <p>The
+code example below shows setting the clock module to a licensee set clock
+plug-in UID. </p> <codeblock id="GUID-E8C94942-D695-5C21-A481-BFAD90EA5C27" xml:space="preserve">
+...
+
+TUid KLicenseeClockModule;
+
+// Get the licensee clock module ID 
+// (only if licensee uses a module other than the default)
+
+...
+
+// Set UID of GPS Clock module
+err = admin-&gt;Set(KLbsSettingSetClockModule, KLicenseeClockModule);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> <p> <i>Note that changing the KLbsSettingSetClockModule setting
+requires a reboot of the mobile device for the change to take effect.</i>  </p> </li>
+<li id="GUID-86074A94-591E-5492-9C1C-85556DE9E8A9"><p>Set the clock adjustment
+interval </p> <p>This is the time in milliseconds between system clock updates.
+This setting is only used if LBS is configured to allow automatic system clock
+adjustment (see 1 above). </p> <codeblock id="GUID-2D92311E-85BF-5C4A-8431-134A3FB4DA9C" xml:space="preserve">
+...
+
+TUint KClockInterval(604800000); // 7 days in milliseconds
+
+// Set the clock adjustment interval
+err = admin-&gt;Set(KLbsSettingClockAdjustInterval, KClockInterval);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+<li id="GUID-9175992C-AAD5-500F-A49D-C09F5B18F0CB"><p>Set the clock adjustment
+threshold </p> <p>This is a time in milliseconds. The system clock is adjusted
+if the time difference between it and the GPS clock is greater than this threshold
+time. This setting is only used if LBS is configured to allow automatic system
+clock adjustment (see 1 above). </p> <codeblock id="GUID-9B34634C-D30F-5568-ABAC-60A721FDECBA" xml:space="preserve">
+...
+
+TUint KClockThreshold(1000); // 1 second 
+err = admin-&gt;Set(KLbsSettingClockAdjustThreshold, KClockInterval);
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+...
+</codeblock> </li>
+</ol> </section>
+<section id="GUID-56DA510B-4BBE-57B6-B616-888845435276"><title>Resetting the
+administration settings</title> <p>An application can reset administration
+settings to the defaults specified in the administration settings initialisation
+file by calling <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-42D1B1DF-A5BD-3143-BBC3-EDFC1151356D"><apiname>CLbsAdmin::ResetToDefault()</apiname></xref>. </p> <codeblock id="GUID-1666A431-4F00-5907-A713-93AD12E0ED9D" xml:space="preserve">#include &lt;lbsadmin.h&gt;
+
+...
+
+TInt err = KErrNone;
+
+CLbsAdmin* admin = CLbsAdmin::NewL();
+CleanupStack::PushL(admin);
+
+err = admin-&gt;ResetToDefault();
+
+if (err != KErrNone) 
+ {
+ // Handle error
+  ...
+
+ }
+
+CleanupStack::PopAndDestroy();
+</codeblock> </section>
+<section id="GUID-E9801842-4844-51BA-97D3-5073926E3EDA"><title>Receiving notifications
+of LBS administration settings           changes</title> <p>Applications can
+register to receive notifications of changes to LBS administration settings.
+To create a class to receive notifications of LBS administration settings
+changes, a developer: </p> <ol id="GUID-54DA2B43-59FB-5D1A-8378-E5997544C86E">
+<li id="GUID-78B58802-F98E-5ADB-8346-5C4365AD0C6A"><p>Defines an observer
+class derived from <xref href="GUID-800E7AE0-0115-3483-A010-933C05759532.dita"><apiname>MLbsAdminObserver</apiname></xref>  </p> <codeblock id="GUID-3224D2FA-B7D0-5B6A-8D86-A370460D6B06" xml:space="preserve">
+#include &lt;lbsadmin.h&gt;
+
+
+class CLbsAdminObserver : public MLbsAdminObserver
+ {
+ 
+ public:
+ 
+ static CLbsAdminObserver* NewL();
+
+ // From MLbsAdminObserver
+ void OnSettingUpdateEvent(TInt aError, const TLbsAdminSetting&amp; aSetting);
+
+ protected:
+  CLbsAdminObserver();
+  ~CLbsAdminObserver();
+ void ConstructL();
+
+ private:
+  CLbsAdmin* iLbsAdmin;
+  TLbsAdminSettingGroup iGroup; 
+ 
+ };    
+ </codeblock> </li>
+<li id="GUID-E85A37EC-5134-569A-89CD-43948A90B80D"><p>Defines the types of
+administration settings changes of interest to the observer by creating a <xref href="GUID-CB92B5FC-CD68-34F8-A866-BED0686C08B5.dita"><apiname>TLbsAdminSettingGroup</apiname></xref> bitmask. </p> <p>The
+code example below shows the observer class constructor in which a <codeph>TLbsAdminSettingGroup</codeph> bitmask
+is defined. </p> <codeblock id="GUID-BDF1E269-AC43-5875-9BD6-E2C2CB75564E" xml:space="preserve">
+CLbsAdminObserver::CLbsAdminObserver()
+ {
+  iGroup = KLbsSettingHomeSelfLocate | KLbsSettingRoamingSelfLocate | KLbsSettingHomeExternalLocate |
+           KLbsSettingRoamingExternalLocate |  KLbsSettingHomeTransmitLocate |
+           KLbsSettingRoamingTransmitLocate;
+        
+ }
+</codeblock> </li>
+<li id="GUID-B2DE2F36-64E1-5BD3-B6AE-4080CBEA0345"><p>Writes an implementation
+of the <xref href="GUID-800E7AE0-0115-3483-A010-933C05759532.dita#GUID-800E7AE0-0115-3483-A010-933C05759532/GUID-8CAC965D-6CC3-325C-AFB2-4471F27D9CC1"><apiname>MLbsAdminObserver::OnSettingUpdateEvent()</apiname></xref> method.
+This method is called when there is a change in one of the administration
+settings defined in the bitmask (see point 2 above). </p> <p>The code example
+below shows a partial method implementation in which the value of the <codeph>aSetting</codeph> parameter
+value is checked. Once the value of <codeph>aSetting</codeph> is known, the
+value of the setting is obtained by calling <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-299B1851-2DE9-3BDF-8DA0-E11E50101466"><apiname>CLbsAdmin::Get()</apiname></xref> with
+the appropriate parameters. </p> <codeblock id="GUID-BBDD9AEE-C1D1-500D-A969-101851BAB6C7" xml:space="preserve">
+void CLbsAdminObserver::OnSettingUpdateEvent(TInt aError, const TLbsAdminSetting&amp; aSetting)
+ {
+
+  if (aSetting == KLbsSettingHomeSelfLocate)
+   {
+   // Setting for MO-LR in home network has changed
+   // Get the new setting
+
+   TInt err;
+   CLbsAdmin::TSelfLocateService selfLocate;
+   err = iLbsAdmin-&gt;Get(KLbsSettingHomeSelfLocate, selfLocate);
+
+   if (err != KErrNone) 
+    {
+    // Handle error
+    ...
+
+    }
+
+   }
+
+   // And similar for other TLbsAdminSetting types in the TLbsAdminSetting bitmask
+   ...
+
+ }
+</codeblock> </li>
+<li id="GUID-3E1C9550-DEFA-5383-9DA9-0E22799AA275"><p>Registers an observer
+object to receive notification of status change events by calling <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-297BD9C9-36E3-38C5-BB79-35A785B49744"><apiname>CLbsAdmin::NewL()</apiname></xref> with
+the observer object and a <xref href="GUID-CB92B5FC-CD68-34F8-A866-BED0686C08B5.dita"><apiname>TLbsAdminSettingGroup</apiname></xref> bitmask
+as parameters. The code example below shows this in the NewL() method of the
+observer class. </p> <codeblock id="GUID-9F8D7AE4-77A0-5D39-A831-CEF1E5E790B9" xml:space="preserve">
+CLbsAdminObserver* CLbsAdminObserver::NewL()
+ {
+ CLbsAdminObserver* self = new(ELeave)CLbsAdminObserver();
+ CleanupStack::PushL(self);
+ self-&gt;ConstructL();
+ CleanupStack::Pop();
+ return self;
+ }
+
+void CLbsAdminObserver::ConstructL()
+ {
+ iLbsAdmin = CLbsAdmin::NewL(*this, const_cast&lt;TLbsAdminSettingGroup&amp;&gt;(iGroup));
+ }
+</codeblock> </li>
+</ol> <p>An application can stop receiving notification of administration
+settings changes by calling <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-2CAC0F41-B58B-30D6-8742-23B38338ED1A"><apiname>CLbsAdmin::ClearNotificationMask()</apiname></xref>. </p> <p>An
+application can change the administration settings changes for which it receives
+notification by calling <xref href="GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945.dita#GUID-E8B4B321-6B45-3764-ADD2-CD05A5533945/GUID-C04ED964-9259-3B96-8144-0A022C3D26BA"><apiname>CLbsAdmin::SetNotificationMaskL()</apiname></xref>. </p> <p>The
+code example below shows the use of these methods to receive notification
+of GPS mode settings changes. </p> <codeblock id="GUID-5EB78AAE-375B-5102-9D07-BDFDD587F1D8" xml:space="preserve">
+iLbsAdmin-&gt;ClearNotificationMask();
+
+// Change the notification mask to get changes to GPS mode
+iGroup = KLbsSettingHomeGpsMode |  KLbsSettingRoamingGpsMode;
+
+iLbsAdmin-&gt;SetNotificationMaskL(iGroup);
+</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-852E58C1-EA5C-5B46-9020-4463D3FA06AD.dita"><linktext>The LBS Administration
+Repository Initialisation File</linktext></link>
+<link href="GUID-9348D79B-D4BF-50B0-B787-DDA2765CE058.dita"><linktext>LBS  Administration
+Service Overview</linktext></link>
+</related-links></concept>

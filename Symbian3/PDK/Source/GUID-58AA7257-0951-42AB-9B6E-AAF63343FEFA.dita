@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-58AA7257-0951-42AB-9B6E-AAF63343FEFA" xml:lang="en"><title>DMA Channel Operations</title><shortdesc>This document describes how a device driver should open and close
+a DMA channel.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-C4241738-D4C3-4171-87B2-5EDFFACE4002"><title>Open</title><p>To
+use a DMA channel it has to be opened. <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-514BA285-3563-3C24-A067-F360098A6ADF"><apiname>TDmaChannel::Open()</apiname></xref> must
+be called to open the channel, and the required information provided in a <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-6B973278-8BE7-3CE5-97D8-60E8D3F4D473"><apiname>TDmaChannel::SCreateInfo</apiname></xref> structure.
+The actual DMA channel selection is done by the hardware specific layer. The
+cookie passed to the <codeph>SCreateInfo</codeph> structure holds an object
+from the hardware specific layer, which provides the DMA channel information. </p> <codeblock id="GUID-A1CA8DBA-1378-502B-8CC8-6D83F13DD151" xml:space="preserve">/**
+ Initializes the DMA for transmit. This function does all the 
+ required generic initialization to use the DMA framework. This 
+ function does not have any variant specific initializations. 
+    The implementation of the function can be the same on all 
+    variants, except if the variant has a different DFCQ buffer size.
+ 
+ @return     KErrNone on success, else standard error code on failure
+ */
+TInt DExDriverUartTxDma::Init()
+    {
+    ...
+
+    // Create the helper object for DMA transmit. This object 
+    // pointer is provided to System DMA controller driver during 
+    // channel operations such as opening, closing and starting
+    //
+    iHelper = new DExDriverTxDmaHelper(iUartComm);
+    if (iHelper == NULL)
+        {
+        return KErrNoMemory;
+        }
+
+    // Initialize the channel information to select and configure the DMA     
+    // channel
+    TDmaChannel::SCreateInfo info;
+    info.iCookie = (TUint)iHelper;
+    info.iDesCount = 1; // For single buffered transfers
+    info.iDfcPriority = 4; // Set the priority of this DFC for DMA
+    info.iDfcQ = iUartComm-&gt;DfcQ(); // DFCQ onto which this request
+ // has to be queued    
+
+    // DMA channel has to be opened before doing any operations on 
+    // the channel. TDmaChannel::Open() opens the DMA channel as 
+    // set by info passed and selected by the hardware-specific layer. 
+    // Using the cookie, the helper class's ChannelOpen() is called 
+    // for DMA channel initialization.
+    // 
+    r = TDmaChannel::Open(info, iTxDmaChannel);
+    if (r!=KErrNone)
+        {
+        return r;
+        }
+    ...
+    }</codeblock> </section>
+<section id="GUID-5E09A55C-A2B9-4E02-9BCF-F23558357B70"><title>Close</title> <p>A DMA channel has to be closed after completing
+all the DMA operations. This releases the DMA channel for other resources
+and peripherals. To close a previously opened channel, the channel should
+be idle, with no pending requests. So, before closing, call <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-0A98D2DC-2A61-3FBD-AB7A-623FE926A183"><apiname>TDmaChannel::CancelAll()</apiname></xref>,
+which cancels the current request and any pending DMA requests. This should
+then be followed by closing the channel using <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-8204AFBD-2A60-372E-B626-35BD19851FF7"><apiname>TDmaChannel::Close()</apiname></xref>. </p> <codeblock id="GUID-4BA5CDD2-6BD3-5179-89B8-7337ED5809AA" xml:space="preserve">/**
+ Destructor. Deinitializes the member variables, cancels any 
+ requests, closes the channel, deletes the DMA requests, frees the 
+ hardware chunks allocated.
+ */    
+
+DExDriverUartTxDma::~DExDriverUarttxDma()
+    {
+    ...
+    // if DMA channel is existing, cancel all requests on it.    
+    //
+    if (iTxDmaChannel)
+        {
+        // TDmaChannel::CancelAll() cancels the current request and 
+        // any pending requests on the DMA channel
+        //     
+        iTxDmaChannel-&gt;CancelAll();
+        }
+    ...
+
+    if(iTxDmaChannel)
+        {
+        // Close the DMA channel. TDmaChannel::Close() closes a 
+        // previously opened channel. All the requests on this 
+        // channel should have been cancelled prior to this, i.e. 
+        // TDmaChannel::CancelAll() should have been called before 
+        // this call.
+        //
+        iTxDmaChannel-&gt;Close();
+        }
+    ...
+    }</codeblock> <p>To stop DMA without closing the channel, simply cancel
+the request. </p></section>
+</conbody></concept>

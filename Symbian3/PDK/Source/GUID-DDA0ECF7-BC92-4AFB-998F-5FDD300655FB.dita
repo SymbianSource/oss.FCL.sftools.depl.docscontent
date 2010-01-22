@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-DDA0ECF7-BC92-4AFB-998F-5FDD300655FB" xml:lang="en"><title>Getting
+a Nearest Equivalent Language</title><abstract><p>In this example, the system language is <codeph>ELangCanadianEnglish</codeph> and
+there is no exact match of the resource file on the system. The application
+calls <xref href="GUID-5F9CAA3E-D8BF-3488-9797-3B9FB4452930.dita#GUID-5F9CAA3E-D8BF-3488-9797-3B9FB4452930/GUID-EA0690FF-419D-353C-BBED-95000E21F843"><apiname>BaflUtils::NearestLanguageFileV2()</apiname></xref> to get the closest
+match. There are three available resource files: </p> <ul>
+<li id="GUID-3CBF0BF9-04E1-5211-B2CF-53B40FEF7FF4"><p> <filepath>c:\FileMenu.rsc</filepath> is
+the language-neutral resource file. </p> </li>
+<li id="GUID-406A6D60-19B9-5233-BE6F-28EF10E70C1F"><p> <filepath>c:\FileMenu.r01</filepath> is
+for <codeph>ELangEnglish</codeph>. </p> </li>
+<li id="GUID-22C5F02D-2D36-5C51-BDFC-498BDB717059"><p> <filepath>c:\FileMenu.r10</filepath> is
+for <codeph>ELangAmerican</codeph>. </p> </li>
+</ul> </abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-11-1-1-8-1-5-1-5-1-5-1-8-1-5-1-3-1">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-7-1-11-1-1-8-1-5-1-5-1-5-1-8-1-5-1-3-1-1"><cmd/>
+<info><p>In the application, define a string with the neutral-language resource
+file name. </p> <codeblock id="GUID-438C8582-247E-5109-9E3B-ABC38818E6E2" xml:space="preserve">_LIT(KRscFilename, "C:\\FileMenu.rsc"); </codeblock></info>
+</step>
+<step id="GUID-9E49C0AD-8007-461A-A019-AC792ACA9997"><cmd/>
+<info><p>Create a session with the File Server to search the file system for
+available resource files.  <codeblock id="GUID-D1DD087E-ECE9-5BD6-984F-B427AA96E838" xml:space="preserve">RFs fileServerSession;
+CleanupClosePushL(fileServerSession);
+User::LeaveIfError(fileServerSession.Connect());</codeblock></p></info>
+</step>
+<step id="GUID-3D9B43BD-E641-441E-8795-0CEF53BD231C"><cmd/>
+<info><p>Construct a buffer to save a resource file name. The buffer takes
+the neutral-language resource file name as a input parameter to <xref href="GUID-5F9CAA3E-D8BF-3488-9797-3B9FB4452930.dita#GUID-5F9CAA3E-D8BF-3488-9797-3B9FB4452930/GUID-EA0690FF-419D-353C-BBED-95000E21F843"><apiname>BaflUtils::NearestLanguageFileV2()</apiname></xref>.
+It will be updated with a new value after the call.  <codeblock id="GUID-4CB6F88B-E26B-54C6-919A-BB812913947D" xml:space="preserve">TBuf&lt;256&gt; filename;
+filename.Copy(KRscFilename);</codeblock></p></info>
+</step>
+<step id="GUID-C785E5AD-EB3A-4A76-9D27-E564F5CB970D"><cmd/>
+<info><p>Define a <xref href="GUID-698538DF-DCDC-347B-BD32-DD9EB896BAFB.dita"><apiname>TLanguage</apiname></xref> as a return parameter for the
+nearest equivalent language.  <codeblock id="GUID-5D7ABE60-B9D7-5A33-A219-A6144C539817" xml:space="preserve">TLanguage lang=ELangNone;</codeblock></p></info>
+</step>
+<step id="GUID-C3A49C71-5071-40DA-91D8-012CD47D3BD8"><cmd/>
+<info><p>Get the nearest language.  <codeblock id="GUID-B9F41C54-782A-5650-AAD9-EB3291B6E6BA" xml:space="preserve">BaflUtils::NearestLanguageFileV2(fileServerSession, filename, lang);
+...</codeblock></p></info>
+</step>
+<step id="GUID-C8A8A118-B7F8-4F6D-AD9A-33FBD61D9C33"><cmd/>
+<info><p>Close the session with the File Server.  <codeblock id="GUID-DA7D701D-2BA6-536C-B4A2-3FDCA5DD23C3" xml:space="preserve">CleanupStack::PopAndDestroy (&amp;fileServerSession);</codeblock></p></info>
+</step>
+</steps>
+<result>       <p> The <codeph>filename</codeph> parameter is updated as <filepath>"c:\\FileMenu.r10"</filepath> which
+is the closest resource file for <codeph>ELangCanadianEnglish</codeph>. The <codeph>lang</codeph> parameter
+is returned as <codeph>ELangAmerican</codeph> (value 10) which is the nearest
+equivalent language. </p>     </result>
+</taskbody></task>

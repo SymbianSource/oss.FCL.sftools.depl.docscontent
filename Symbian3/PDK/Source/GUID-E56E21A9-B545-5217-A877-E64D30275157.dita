@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E56E21A9-B545-5217-A877-E64D30275157" xml:lang="en"><title>Policy
+Evaluator Plug-in</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section explains the user prompting function in the Messaging Middleware
+module. It also explains how to extract the serial buffer from the various
+Message Type Modules (MTM) of messaging components to the User Prompt Service
+(UPS) Policy Evaluator plug-in. </p>
+<section><title>Overview</title> <p>The Messaging Middleware module enables
+the users to automatically request the user's permission for sending messages.
+The user's permission for outbound messages depends on the capability of the
+client application that sends the email or SMS message. The phone users are
+prompted to decide if any activity that can be billed (for example, sending
+an email message or an SMS message) must be allowed or not. The phone user
+is prompted with a dialog box to allow or deny the operation, and to choose
+if that decision should apply to one operation, or always for a particular
+client application. </p> <p>If the client application uses the SendAs server
+to send email or SMS messages, then the user is prompted at the SendAs server
+stage only and not at the server MTM stage. This behaviour can be configured
+at ROM build time. </p> <p><b>Configuration</b> </p> <p>At ROM build time,
+the phone manufacturers can configure the following: </p> <ul>
+<li id="GUID-DB05B857-3581-5868-AFA8-BA94D85ADCE7"><p>The scope of the permission
+granted to send email or SMS messages; that is, for one operation only or
+always for a particular client application. </p> </li>
+<li id="GUID-69B12279-9ECE-5D20-89FB-6C1CE76AB9AA"><p>Whether the user is
+prompted for processes that have the network services capability, or not. </p> </li>
+<li id="GUID-2A1E3811-E3C4-500C-BA51-C320772B5052"><p>Whether the user is
+prompted for processes that do not have the network services capability, or
+not. </p> </li>
+</ul> </section>
+<section><title>Architecture</title> <p>The request to send email or SMS messages
+from a UI application and SendAs servers is passed from a client MTM to the
+Message Server, on to the corresponding server MTM, and then to UPS. </p> <p>UPS
+uses the Policy Evaluator plug-in, which allows a security decision to be
+specific to an individual UI application. The Policy Evaluator plug-in prompts
+the phone user (using the Dialog creator plug-in) for permission to send a
+message, if the client application does not have the correct capability set. </p> <fig id="GUID-3A131C1E-CAA8-554A-A9A0-119E762D174C">
+<title>              User prompting service architecture            </title>
+<image href="GUID-629A9EF6-3029-5165-9B8B-471D341D33C5_d0e471339_href.png" placement="inline"/>
+</fig> <dl>
+<dlentry>
+<dt>UPS</dt>
+<dd><p>User Prompt Service </p> <p>UPS allows device creators to specify whether
+requests made by applications to access services, such as, a request to make
+a telephone call, are processed silently, or whether the user is required
+to confirm the request. For more information on UPS, see <xref href="GUID-1A5C7320-B017-5CD9-B3EA-1301CC08A762.dita">User
+Prompt Service overview</xref>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>SendAs server</dt>
+<dd><p>The following are some of the important SendAs server features: </p> <ul>
+<li id="GUID-719A5CF7-2026-593D-8C36-36D57B6EDFFD"><p>Send a message after
+the capability policing of the client application has been completed. </p> <p>For
+more information on capability policing, see the <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform
+Security</xref> guide. </p> </li>
+<li id="GUID-F6FB396F-3CC8-5277-896D-8FFE8333B163"><p>Allow client applications
+to launch an editor for a specified message type. </p> </li>
+<li id="GUID-00D7ABFC-E671-5CDA-A33D-8029E3A97631"><p>Allow client applications
+to query the message type. </p> </li>
+</ul> <p>For more information on SendAs server, see <xref href="GUID-63816E09-46C7-503A-ADA0-E350C7ACF3C4.dita">SendAs</xref>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Policy Evaluator</dt>
+<dd><p>Policy Evaluator is an ECOM plug-in, which is responsible for generating
+fingerprints used to locate previous decision records related to the request.
+A default Policy Evaluator is provided by Symbian platform, but device creators
+can also write a Policy Evaluator. For more information on Policy Evaluator,
+see <xref href="GUID-43080A86-72D3-5422-953E-A5EF79961D7B.dita">Writing a UPS Policy
+Evaluators</xref>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Dialog creator</dt>
+<dd><p>Dialog creator is an ECOM plug-in, which generates and displays dialog
+prompts. Device creators define the Dialog creator plug-in. For more information
+on Dialog creator, see <xref href="GUID-A8130D83-E684-5B6C-BDFE-EB6EE3CD49E8.dita">Writing
+a UPS Dialog Creator</xref>. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Implementation consideration</title> <p>The device creator
+must implement the Policy Evaluator and Dialog creator plug-ins to get the
+full functionality of the UPS service. </p> <p>The Policy Evaluator plug-in
+can use the destination parameter to check if a particular request made by
+a client application is permissible for a particular destination. </p> <p>Message
+Server that interact with the UPS service can pass the destination parameter
+(phone number, server address, and so on.) as a <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref> descriptor.
+If there is more than one parameter, the Message Server serialises the list
+of addresses to a <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC           </apiname></xref> descriptor. </p> <p>To
+enable the device creator to use this data, the Policy Evaluator plug-in must
+convert <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref> to an address list. </p> </section>
+<section><title>Extracting the serial buffer</title> <p>The following code
+snippet shows how to convert the <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref> descriptor to the
+address list. When the <xref href="GUID-AD05E838-D8AD-366B-B5F9-5FC061414D7C.dita#GUID-AD05E838-D8AD-366B-B5F9-5FC061414D7C/GUID-899D2AE8-E495-3718-BFDF-96328F436B00"><apiname>CPromptRequest::Destination()</apiname></xref> method
+is called, it returns a <codeph>const</codeph>  <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref> reference,
+which contains the externalized destination values. </p> <p>In order to internalize
+this <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref>, the plug-in needs to implement the <xref href="GUID-2D8EC1BB-F8FC-3A6A-A953-4303FB2B0222.dita"><apiname>Internalise()</apiname></xref> functionality
+using the following method: </p> <codeblock id="GUID-A6730A8E-D3BA-5E84-81D1-4A97D53B6AFF" xml:space="preserve">void InternaliseDestinationParameterL ()
+        {    
+         const TDesC&amp; d = iRequest-&gt;Destination(); // iRequest is a pointer of type CPromptRequest
+         TPtrC8 p(reinterpret_cast&lt;const TUint8*&gt;(d.Ptr()), d.Length() * 2);
+         RDesReadStream readStream(p);
+         InternalizeL(readStream);
+        }
+InternalizeL (RReadStream&amp; aStream)
+        {
+         TInt count = aStream.ReadInt32L ();
+         RArray&lt;TPtrC&gt; destinationArray;
+         TBuf&lt;1000 &gt; destination ; // 1000 since this is the maximum length if the header info of a mail
+         for(TInt I=0;i&lt; count;++I)
+               {
+                aStream &gt;&gt; destination;
+                destinationArray.Append(destination);
+               }
+        }
+</codeblock> <p>The device creator can now use the extracted serial buffer
+for displaying dialog prompts. </p> </section>
+</conbody><related-links>
+<link href="GUID-33C7EEEB-88B8-5587-916D-2C5D122F6010.dita"><linktext>SMS     
+           MTM</linktext></link>
+<link href="GUID-4384066E-158A-5F63-A823-7793DAE680BF.dita"><linktext>Email</linktext>
+</link>
+</related-links></concept>

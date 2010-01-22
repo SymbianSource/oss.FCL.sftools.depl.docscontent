@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B5CC77D2-5871-51D8-B359-77EFC081B423" xml:lang="en"><title>Files
+Containing Multiple Content Objects</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Content Access Framework provides a generic mechanism for exploring files
+that contain multiple content objects. These files are often referred to as
+archive files. This can be <filepath>.ZIP</filepath> compression archive or
+a DRM protected archive, such as an OMA <filepath>.DCF</filepath> file. An
+application can explore the content objects inside a file using the <xref href="GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601.dita#GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601/GUID-FC40011B-32D3-328B-BB59-35BEF46A215A"><apiname>ContentAccess::CContent</apiname></xref> class. </p>
+<section><title>Structure of a file containing multiple content objects</title> <p>An
+archive file can have content objects and meta-data or information associated
+with the content. This meta-data can include information, such as the MIME
+type of the content, the encryption algorithm, the compressed size of the
+content. This information can be retrieved from the attributes related to
+a content object, see <xref href="GUID-B6912FE7-4C2A-5FC7-BDA8-702CA2C0214A.dita">Content
+Object Attributes</xref>. </p> <p>The content and meta-data may also be arranged
+in a hierachy with container objects grouping content objects together. A
+typical archive can have a complex structure as the example shown below: </p> <fig id="GUID-13E44820-5D67-580F-BC0D-26A935EB1F72">
+<image href="GUID-4B7410B2-849B-5E89-97BF-E06613F600CB_d0e607160_href.png" placement="inline"/>
+</fig> <p>In this scenario, the file itself can be considered as the top level
+container. All other content, containers and meta-data are nested inside.
+In an archive file, applications can quickly search for the content objects
+they are interested in by using <xref href="GUID-FC40011B-32D3-328B-BB59-35BEF46A215A.dita#GUID-FC40011B-32D3-328B-BB59-35BEF46A215A/GUID-FA4BB868-3297-39F0-BAB8-C4BF4F5A2B60"><apiname>ContentAccess::CContent::Search()</apiname></xref>,
+see <xref href="GUID-09A760FD-4C2A-5F79-91F2-DCC25A63699C.dita">Consumer API Tutorial</xref>. </p> </section>
+<section id="GUID-34F8F3F7-B497-5BBE-B282-33DF7DB0D560"><title>Identifying
+a content object within a file</title> <p>Archive files containing several
+content objects cannot be referred to using just the URI of the file. The
+Content Access Framework uses a concept of virtual paths to identify content
+objects within a file. The virtual path is a combination of the file URI and
+a unique identifier supplied by the agent: </p> <ul>
+<li id="GUID-CA623AF7-3752-5369-BFE2-1CDADC963A26"><p> <codeph>URI</codeph>:
+the location of the file. </p> </li>
+<li id="GUID-9455FFE0-129D-5EDB-B7E9-BC4D907DE53C"><p> <codeph>UniqueId</codeph>:
+the content object inside the file. </p> </li>
+</ul> <p>A content file is only handled by the agent that recognises it. The
+unique identifier is not required to be decoded by anyone other than the agent
+that generated it, so the format is left for the agent to implement as it
+sees fit. For instance, an OMA DRM agent may put the Content ID (CID) in the <codeph>UniqueId</codeph> field. </p> <p>The
+only constraint is that the <codeph>UniqueId</codeph> must be unique within
+the file. An application must be able to directly reference a content object
+just using the <codeph>UniqueId</codeph>. </p> </section>
+<section id="GUID-28BE6074-E800-5320-89DD-D047F5C0FD86"><title>Objects used
+to identify a content object within a file</title> <p><b>Virtual path pointer
+objects on the stack </b> </p> <p>The <xref href="GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601.dita#GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601/GUID-70925BDF-36EF-3705-9C95-9EE211543517"><apiname>ContentAccess::TVirtualPathPtr</apiname></xref> is
+used to point to two descriptors holding the URI of a file and the <codeph>UniqueId</codeph> of
+a content object within the file. It can also be used to point to another <codeph>TVirtualPathPtr</codeph>.
+Since it is only a pointer, the original descriptors used to initalise the <codeph>TVirtualPathPtr</codeph> must
+not be destroyed or modified while the <codeph>TVirtualPathPtr</codeph> is
+still in use. </p> <p><b>Virtual path objects on the heap </b> </p> <p>The <xref href="GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601.dita#GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601/GUID-D56FD380-1335-33BB-B42E-6C1911274B06"><apiname>ContentAccess::CVirtualPath</apiname></xref> class
+stores the file URI and content object <codeph>UniqueId</codeph> in its own
+descriptors. There is a cast operator that allows the <codeph>CVirtualPath</codeph> to
+be used as if it were a <codeph>TVirtualPathPtr</codeph> . </p> <p><b>Examples </b> </p> <codeblock id="GUID-C2E6E29D-C2DF-5D7C-B262-B979FC91A1A8" xml:space="preserve">// Open a CContent object to browse the objects inside a file 
+CContent *c = CContent::NewL(_L("C:\file.dcf")); 
+CleanupStack::PushL(c); 
+
+// Create an array to store the embedded objects 
+RStreamablePtrArray&lt;CEmbeddedObject&gt; myArray; 
+
+// Get an array of the embedded objects within the current container in the file 
+c-&gt;GetEmbeddedObjects(myArray); 
+
+// If necessary we can get a "mangled" version of the URI that 
+// references the particular object within the file 
+// i.e. "C:\file.dcf\\OBJECT1" 
+                
+CData* data = iContent-&gt;OpenContentL(EPlay,myArray[0]-&gt;UniqueId());
+
+TFileName uri;
+data-&gt;GetStringAttribute(EPreviewURI,uri); 
+.
+.
+.
+// Now we can use our TPtrC later to create a TVirtualPath object from a URI 
+TVirtualPathPtr aPtr = aURI; 
+
+// print the file URI "C:\file.dcf" 
+printf(aPtr.URI()); 
+                         
+// print the content object's UniqueId "OBJECT1" 
+printf(aPtr.UniqueId()); 
+
+// Create a copy of the virtual path on the heap so we don't have any ownership problems 
+CVirtualPath *myVirtualpath =  CVirtualPath::NewL(aPtr) 
+
+// Can now delete the CContent object without losing our VirtualPath
+CleanupStack::PopAndDestroy(c);</codeblock> </section>
+<section><title>Special cases for the UniqueId field</title> <p><b>KNullDesC16()
+- "" </b> </p> <p>A zero length <codeph>UniqueId</codeph> is used to refer
+to the entire file. If a file is opened this way, no translation of the contents
+is performed. The ability to open the file with no translation is required
+for example to attach the file to an outgoing message. As with any other function
+in CAF, access to the file is at the agent's discretion. </p> <p><b>KDefaultContentObject()
+- "DEFAULT" </b> </p> <p>Allows an application to refer to the default content
+object within a file. In the case of an unprotected file handled by the <codeph>F32Agent</codeph>,
+it is the entire file, the same as if the <codeph>UniqueId</codeph>  <codeph>""</codeph> was
+used. Other agents, particularly those with a single content object embedded
+within the file, use <codeph>"DEFAULT"</codeph> to refer to their only content
+object. </p> <p>Even though the <codeph>DEFAULT</codeph> content object is
+supported, it is recommended that agents always use <codeph>CContent</codeph> to
+enumerate the objects within the file. </p> </section>
+</conbody></concept>

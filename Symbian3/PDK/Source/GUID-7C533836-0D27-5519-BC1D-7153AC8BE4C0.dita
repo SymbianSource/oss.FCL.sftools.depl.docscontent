@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7C533836-0D27-5519-BC1D-7153AC8BE4C0" xml:lang="en"><title>Media
+Driver Guide</title><shortdesc>Describes the issues that need to be considered, when writing a
+media device driver for a writable data demand paging environment. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-46C98F8A-1486-4FAD-918D-3FB0E7CA372E"><title>Purpose</title> <p>This document explains the points that
+have to be considered when writing a media driver in an environment that uses
+writable data paging. </p> </section>
+<section id="GUID-1A89843E-B174-49F0-87D8-A8ADBE933A54"><title>Issues to consider</title> <p>The main issue to consider when
+writing a media device driver for a writable demand paging environment is
+to avoid page faults from occurring in DFCs, since this can lead to a deadlock
+condition between the driver and the client process. </p> <p>This can be avoided
+using the following methods: </p> <ul>
+<li id="GUID-76EF65C9-63E8-5C9B-99CD-A8BFBBA9B68C"><p>Use shared chunks. </p> <p>Shared
+chunks are memory areas that are accessible by both kernel-side and user-side
+and they are never paged. </p> <p>This is the best solution for drivers that
+involve fast throughput such as media drivers. </p> </li>
+<li id="GUID-32198DFA-CCF9-5260-A677-88F5B9FBF315"><p>Use synchronous rather
+than asynchronous data transfer </p> <p>This could be done by implementing
+the following steps: </p> <ol id="GUID-8C359B63-D166-5A54-8772-811FC2656E66">
+<li id="GUID-018F2121-A883-5B2F-B70E-C77069B3F1A1"><p>The client requests
+a notification when data is available. </p> </li>
+<li id="GUID-0FC1D31E-4937-572B-BD80-99DDFABCC0BF"><p>The data arrives. </p> </li>
+<li id="GUID-6B47B0FA-8921-5B12-A71C-0E66DD286FD1"><p>The driver writes data
+into an internal buffer and completes the client request. </p> </li>
+<li id="GUID-14E4D83B-7361-5DE4-90BF-B9CEB658FF1D"><p>The client makes a read
+request. </p> </li>
+<li id="GUID-FF2A912E-3FBB-5671-ADBE-090FED1CD873"><p>The driver writes the
+data back to the client in the client thread context. </p> </li>
+</ol> <p>This approach is easy to implement, however it requires the buffering
+of data. </p> </li>
+<li id="GUID-08F4A4BD-699B-5800-BD2D-78A5406C19EB"><p>Use the <xref href="GUID-066868C5-12F8-59A5-A2DE-FEDC4F459771.dita">flexible
+memory model</xref>  </p> <p>This provides the ability for the memory to be
+mapped into a drive's address space as unpaged. </p> <p>This is an alternative
+to the use of shared chunks. </p> <p>However, this is not supported on the
+moving or multiple memory models. </p> </li>
+</ul> </section>
+<section id="GUID-4FD645F8-26C0-411E-9B82-56085E88CD74"><title>See also</title> <p> <xref href="GUID-91C11D80-7A62-5135-8EE0-6EC5576D1118.dita">Demand
+Paged Device Drivers Writing Guide</xref>  </p> <p>The above document is an
+guide writing to device drivers. </p> </section>
+</conbody></concept>

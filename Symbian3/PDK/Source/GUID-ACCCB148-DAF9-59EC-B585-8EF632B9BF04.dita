@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-ACCCB148-DAF9-59EC-B585-8EF632B9BF04"><title>SQL Joins</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This guide explains how to use CROSS JOIN phrases to override the optimizer's ordering of tables. </p> <section><title>Introduction</title> <p>SQLite uses the “CROSS JOIN” phrase as a means to override the table reordering decisions of the query optimizer. The CROSS JOIN connector is rarely needed and should probably never be used prior to the final performance tuning phase of application development. Even then, SQLite usually gets the order of tables in a join right without any extra help. But on those rare occasions when SQLite gets it wrong, the CROSS JOIN connector is an invaluable way of tweaking the optimizer to do what you want. </p> <p><b>Intended audience:</b> </p> <p>This document is intended to be used by Symbian OS licensees and third party application developers. </p> </section> <section id="GUID-8B5F579E-B94D-527C-9530-367B5B0729C9"><title>Use CROSS JOIN to Force a Particular Join Ordering</title> <p>The SQLite query optimizer will attempt to reorder the tables in a join in order to find the most efficient way to evaluate the join. The optimizer usually does this job well, but occasionally it will make a bad choice. When that happens, it might be necessary to override the optimizer's choice by explicitly specifying the order of tables in the SELECT statement. </p> <p>To illustrate the problem, consider the following schema: </p> <codeblock id="GUID-8B2D4E3C-7231-5D63-B8CD-CD687750CD1E" xml:space="preserve">
+CREATE TABLE node(
+    id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+CREATE INDEX node_idx ON node(name);
+
+CREATE TABLE edge(
+    orig INTEGER REFERENCES node,
+    dest INTEGER REFERENCES node,
+    PRIMARY KEY(orig, dest)
+);
+
+CREATE INDEX edge_idx ON edge(dest,orig);
+</codeblock> <p>This schema defines a directed graph with the ability to store a name on each node of the graph. Similar designs (though usually more complicated) arise frequently in application development. Now consider a three-way join against the above schema: </p> <codeblock id="GUID-61383F86-E84F-58F4-B2B1-81CD25635B88" xml:space="preserve">
+SELECT e.*
+FROM edge AS e,
+ node AS n1,
+ node AS n2
+WHERE n1.name = 'alice'
+ AND n2.name = 'bob'
+ AND e.orig = n1.id
+ AND e.dest = n2.id;
+</codeblock> <p>This query asks for information about all edges that go from nodes labelled “alice” over to nodes labelled “bob”. </p> <p>There are many ways that the optimizer might choose to implement this query, but they all boil down to two basic designs. The first option looks for edges between all pairs of nodes. The following pseudocode illustrates: </p> <codeblock id="GUID-19A9F537-D791-5894-9FA9-E205B3768CF7" xml:space="preserve">
+foreach n1 where n1.name='alice' do:
+    foreach n2 where n2.name='bob' do:
+        foreach e where e.orig=n1.id and e.dest=n2.id do:
+            return e.*
+        end
+    end
+end
+</codeblock> <p>The second design is to loop over all 'alice' nodes and follow edges off of those nodes looking for nodes named 'bob'. (The roles of 'alice' and 'bob' might be reversed here without changing the fundamental character or the algorithm): </p> <codeblock id="GUID-02A72F7B-D5AB-5306-95F9-9832EF05FB25" xml:space="preserve">
+foreach n1 where n1.name='alice' do:
+    foreach e where e.orig=n1.id do:
+        foreach n2 where n2.id=e.dest and n2.name='bob' do:
+            return e.*
+        end
+    end
+end
+</codeblock> <p>The first algorithm above corresponds to a join order of n1-n2-e. The second algorithm corresponds to a join order of n1-e-n2. </p> <p>The question the optimizer has to answer is which of these two algorithms is likely to give the fastest result, and it turns out that the answer depends on the nature of the data stored in the database. </p> <p>Let the number of alice nodes be M and the number of bob nodes be N. Consider two scenarios: In the first scenario, M and N are both 2 but there are thousands of edges on each node. In this case, the first algorithm is preferred. With the first algorithm, the inner loop checks for the existence of an edge between a pair of nodes and outputs the result if found. But because there are only 2 alice and bob nodes each, the inner loop only has to run 4 times and the query is very quick. </p> <p>The second algorithm would take much longer here. The outer loop of the second algorithm only executes twice, but because there are a large number of edges leaving each 'alice' node, the middle loop has to iterate many thousands of times. So in the first scenario, we prefer to use the first algorithm. </p> <p>Now consider the case where M and N are both 3500. But suppose each of these nodes is connected by only one or two edges. In this case, the second algorithm is preferred. </p> <p>With the second algorithm, the outer loop still has to run 3500 times, but the middle loop only runs once or twice for each outer loop and the inner loop will only run once for each middle loop, if at all. So the total number of iterations of the inner loop is around 7000. </p> <p>The first algorithm, on the other hand, has to run both its outer loop and its middle loop 3500 times each, resulting in 12 million iterations of the middle loop. Thus in the second scenario, second algorithm is nearly 2000 times faster than the first. </p> <p>In this particular example, if you run ANALYZE on your database to collect statistics on the tables, the optimizer will be able to figure out the best algorithm to use. But if you do not want to run ANALYZE or if you do not want to waste database space storing the SQLITE_STAT1 statistics table that ANALYZE generates, you can manually override the decision of the optimizer by specifying a particular order for tables in a join. You do this by substituting the keyword phrase “CROSS JOIN” in place of commas in the FROM clause. </p> <p>The “CROSS JOIN” phrase forces the table to the left to be used before the table to the right. For example, to force the first algorithm, write the query this way: </p> <codeblock id="GUID-E0FE82CE-0D32-535F-A4F7-EF582BFA7AE9" xml:space="preserve">
+SELECT *
+FROM node AS n1 CROSS JOIN
+ node AS n2 CROSS JOIN
+ edge AS e
+WHERE n1.name = 'alice'
+ AND n2.name = 'bob'
+ AND e.orig = n1.id
+ AND e.dest = n2.id;
+</codeblock> <p>And to force the second algorithm, write the query like this: </p> <codeblock id="GUID-33AD25F2-E58E-5018-BE0C-025FC2116643" xml:space="preserve">
+SELECT *
+FROM node AS n1 CROSS JOIN
+ edge AS e CROSS JOIN
+ node AS n2
+WHERE n1.name = 'alice'
+ AND n2.name = 'bob'
+ AND e.orig = n1.id
+ AND e.dest = n2.id;
+</codeblock> <p>The CROSS JOIN keyword phrase is perfectly valid SQL syntax according to the SQL standard, but it is syntax that is rarely if ever used in real-world SQL statements. Because it is so rarely used otherwise, SQLite has appropriated the phrase as a means to override the table reordering decisions of the query optimizer. </p> <p>The CROSS JOIN connector is rarely needed and should probably never be used prior to the final performance tuning phase of application development. Even then, SQLite usually gets the order of tables in a join right without any extra help. But on those rare occasions when SQLite gets it wrong, the CROSS JOIN connector is an invaluable way of tweaking the optimizer to do what you want. </p> </section> </conbody><related-links><link href="GUID-22844C28-AB5B-5A6F-8863-7269464684B4.dita"><linktext>SQL Overview</linktext> </link> <link href="GUID-78773BCA-ADF6-53E6-AC80-5CB2AE1F8BCC.dita"><linktext>SQL Server Guide</linktext> </link> <link href="GUID-E51836E1-D33E-506C-B75B-19B8E3CC313A.dita"><linktext>SQLite</linktext> </link> <link href="GUID-1F12E3F5-45B2-55EC-B021-00338277C608.dita"><linktext>SQL DB Overview</linktext> </link> <link href="GUID-43CA02E7-0101-5824-B91B-E15EE20C829A.dita"><linktext>Avoid Transient
+                Tables</linktext> </link> <link href="GUID-49A3419F-D20A-5C5D-B2FF-51724EF37704.dita"><linktext>Prevent
+                Datafile Corruption</linktext> </link> <link href="GUID-C2FAEBB2-4A1A-5BB0-9670-4801525CBC6A.dita"><linktext>SQL Index
+                Tips</linktext> </link> <link href="GUID-B994E6F7-228A-5433-B87F-91857C5D93D6.dita"><linktext>SQL Insertion
+                Tips</linktext> </link> <link href="GUID-4FC23DB7-4758-5DA4-81FF-0DAB169E2757.dita"><linktext>SQL Schema
+                Tips</linktext> </link> <link href="GUID-2A2920E0-5D40-5358-BC0C-8572CEFE078C.dita"><linktext>SQL
+                Expressions</linktext> </link> <link href="GUID-126FCCCC-0E7D-59AE-959A-2F94A7319C4B.dita"><linktext>SQL Statement
+                Tips</linktext> </link> <link><linktext/></link><link href="GUID-B7E978C1-45CA-554C-8028-D901B97BA2E0.dita"><linktext> ANALYZE
+                Command</linktext> </link> <link href="GUID-AF5A75D7-0687-546C-87B2-0B7DF7D33217.dita"><linktext> SQL WHERE CLause
+                Tips</linktext> </link> </related-links></concept>

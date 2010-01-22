@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B9B35999-0937-51C5-BB77-91A6C039CE2F" xml:lang="en"><title>ISR
+Table and Interrupt IDs</title><shortdesc>The ISR Table and Interrupt IDs must be defined by the ASSP/Variant. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-1342D8AC-CE52-488F-84BE-B87D4018B873"><title>ISR Table</title> <p>Decide on the number of interrupts that
+exist in the system. If the port is split into a core ASSP layer, and a device
+Variant layer, the core layer should include only those interrupts that exist
+on the ASSP. </p> <p>In the core ASSP implementation, declare a static <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-77E83634-BBF6-5190-9434-9FB700547CD0">ISR
+table</xref>, of type <xref href="GUID-2C9B6510-D045-3FA1-AD65-B544E30D34C7.dita"><apiname>SInterruptHandler</apiname></xref> with the same number
+of entries that you have just worked out. </p> <p>In the template port, for
+example, this table is static member of the <codeph>TemplateInterrupt</codeph> class: </p> <codeblock id="GUID-733FA201-2D43-5044-AAEA-D98D26BF3B36" xml:space="preserve">const TInt KNumTemplateInts=EAsspIntIdZ+1;
+
+class TemplateInterrupt : public Interrupt
+    {
+ ...
+ public:
+     static SInterruptHandler Handlers[KNumTemplateInts];
+    };
+            </codeblock> <p> <codeph>SInterruptHandler</codeph> is defined
+in <filepath>...\e32\include\kernel\arm\assp.h</filepath>, and <codeph>TemplateInterrrupt</codeph> is
+defined in <filepath>...\template_assp\template_assp_priv.h</filepath>. </p> </section>
+<section id="GUID-1AC207D8-5395-4583-BCF1-7C952609D227"><title>Interrupt IDs</title> <p>Declare an enum in an exported header
+file that provides labels for each of the possible <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-8E58F4C9-0290-55E0-A4FD-B6C2361BE205">Interrupt ID</xref> s in the table. </p> <p>For example, in the template
+port, the interrupt IDs are defined by the <codeph>TTemplateAsspInterruptId</codeph> enum,
+defined in <filepath>...\template_assp\template_assp.h</filepath>, and is
+part of the ASSP layer: </p> <codeblock id="GUID-9E221131-1A5C-5969-8A1B-945D943D70E0" xml:space="preserve">// Enumerate here all ASSP interrupt souces. It could be a good idea to enumerate them in a way that facilitates
+// operating on the corresponding interrupt controller registers (e.g using their value as a shift count)
+//
+// EXAMPLE ONLY
+enum TTemplateAsspInterruptId
+    {
+    // ASSP or first-level Interrupt IDs
+    EAsspIntIdA=0,
+    EAsspIntIdB=1,
+    EAsspIntIdC=2,
+    EAsspIntIdD=3,
+    EAsspIntIdE=4,
+    // ...
+    EAsspIntIdUsb=11,
+    EAsspIntIdDma=12,
+    // ...
+    EAsspIntIdZ=25
+    };</codeblock> </section>
+</conbody></concept>

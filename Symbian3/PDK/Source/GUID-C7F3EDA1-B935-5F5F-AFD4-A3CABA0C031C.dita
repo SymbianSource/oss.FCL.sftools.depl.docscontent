@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-C7F3EDA1-B935-5F5F-AFD4-A3CABA0C031C"><title>Interface Extensibility</title><shortdesc>Symbian OS v9.5 onwards, the plug-in framework supports interface extensibility. An extended interface extends the existing functionality of the original interface (instantiation interface). By extending interfaces, the framework developers need not change the existing interface specifications to support new requirements. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>Framework developers who build the frameworks on top of the plug-in framework, define and publish extension interfaces to the existing interfaces used in the framework. Once an interface extension is published by the framework developer, the plug-in developers implement the extensions if required. </p> <section><title>Introduction</title> <p>By extending interfaces, the framework developers need not change their interface specifications to support new requirements. </p> <p>Changing interface specifications is a complex activity in the below listed scenarios: </p> <ul><li id="GUID-BDEC7D4D-84A2-58C3-AE5A-06A418EC026A"><p>The framework developer is not the only supplier of plug-in implementation. </p> </li> <li id="GUID-26FB3ADE-C529-54A2-ACA9-26B06989A809"><p>The framework also needs to support plug-ins implementing the original interface. </p> </li> </ul> <p>The interface extensions allows framework developers to publish discrete, identifiable extensions to the existing interface classes. The extension interfaces supported by each plug-in can be determined and used appropriately. </p> <p>The images below illustrate how the interface extensibility feature works. </p> <p>The class diagram shows the implementation of the original interface. </p> <fig id="GUID-C85FB42D-1EE5-508E-B81F-D96B8A8E23E7"><title>
+             Class diagram of the original interface 
+          </title> <image href="GUID-7D78DFA8-301C-5A0C-9F83-7C4BBEAE34C2_d0e190400_href.jpg" placement="inline"/></fig> <p>The next class diagram shows an example of the original class <b>CImplementationClass</b> supporting two extensions . The extensions have been added to the <b>CExampleInterface</b> each using a different implementation methodology . </p> <p> <b>CExampleInterfaceExtended</b> requires no data and so has been added to the inheritance of the original plug-in <b>CImplementationClass</b> object. <b>MExampleInterfaceExtended2</b> shows how extensions can be realized in separate objects with their own data. </p> <fig id="GUID-B2D1AF5C-0789-5D9B-8EB1-13226C864D38"><title>
+             Class diagram of the extended interface 
+          </title> <image href="GUID-DAF12BDB-5453-5DDD-ACBA-4C29AE448D87_d0e190427_href.jpg" placement="inline"/></fig> <p>The extended interfaces should maintain the binary compatibility by not changing the original interface class definition. The functional compatibility should be maintained by incorporating interface extensions as optional. This allows the framework to function with original and extended plug-in implementations. </p> <p>To accommodate interface extensibility, the following changes are applied to the plug-in framework. </p> <ul><li id="GUID-6D8129A2-4829-5039-AAAE-FB6529CC6F56"><p>A new resource file format to allow plug-in providers to register interface with extensions (Resource file format version 3). </p> </li> <li id="GUID-9F6DF121-3B7F-54AC-88A1-3DBFA428FCDA"><p>A new <codeph>targettype</codeph> PLUGIN3. </p> </li> <li id="GUID-615B9514-77A7-505B-82C5-B71EFEE4C80E"><p>New APIs accommodated in the framework to search for plug-ins supporting desired interface extensions. </p> </li> <li id="GUID-C7C6CED9-18A8-5C28-98B6-C8061EC73DFC"><p>A new proxy table for the plug-in implementations to export factory methods to instantiate the extended interface objects and a method to manually release the objects after use. </p> </li> </ul> <p>Accommodation of interface extensibility still allows the default resolvers and custom resolution of implementations. </p> </section> <example><title>Interface extensibility example</title> <p>The code below shows the definition of an extended class: </p> <codeblock id="GUID-C0A7CEC3-5078-5482-8483-0CE338077DD5" xml:space="preserve">
+class CExampleInterface : public CBase
+{
+public:
+    virtual void DoMethodL() = 0;
+};
+
+// Extended Interface 0x10009E44
+
+class MExampleInterfaceExtended
+{
+public:
+    virtual void DoMethodExtended() = 0;
+};
+
+// Extended Interface 0x10009E45
+
+class MExampleInterfaceExtended2
+{
+public:
+    virtual void DoMethodExtended2() = 0;
+};
+
+</codeblock> <p>The code below shows the instantiation of extended functions: </p> <codeblock id="GUID-AF382EE0-C8D0-55ED-807A-2A51C3D8B72A" xml:space="preserve">// the Instantiation Interface
+
+const TUid KExampleInterfaceUid = {0x10009DBB}; 
+const TUid KExtendedInterfaceUid1 = {0x10009E44};
+const TUid KExtendedInterfaceUid2 = {0x10009E45};
+
+// Set up extended interfaces UID list which form part of the resolution criteria.
+RArray&lt;TUid&gt; extendedInterfaces;
+CleanupClosePushL(extendedInterfaces);
+extendedInterfaces.AppendL(KExtendedInterfaceUid1);
+extendedInterfaces.AppendL(KExtendedInterfaceUid2);
+
+// set up resolve parameter
+_LIT8 (KExampleImplementationData,"Extended Interface Example");
+TEComResolverParams ResolverParams;
+ResolverParams.SetDataType(KExampleImplementationData());
+ResolverParams.SetGenericMatch(ETrue);
+
+TUid instanceKey;
+CExampleInterface* instantiateIf = static_cast&lt;CExampleInterface*&gt;
+(REComSession::CreateImplementationL(KExampleInterfaceUid,
+                                       extendedInterfaces,
+                                       instanceKey,
+                                       ResolverParams) );
+CleanupStack::PopAndDestroy(&amp;extendedInterfaces);
+
+CleanupStack::PushL(instantiateIf);
+
+// May want to TRAP here if KErrNotSupported is handled, i.e. extension optional
+MExampleInterfaceExtended2* ext2 = static_cast&lt;MExampleInterfaceExtended2*&gt;(
+  REComSession::GetExtendedInterfaceL(instanceKey, KExtendedInterfaceUid2));
+
+// access old interface function
+instantiateIf-&gt;DoMethodL(); 
+
+// access extension function 
+ext2-&gt;DoMethodExtended2();   
+
+</codeblock> </example> </conbody></concept>

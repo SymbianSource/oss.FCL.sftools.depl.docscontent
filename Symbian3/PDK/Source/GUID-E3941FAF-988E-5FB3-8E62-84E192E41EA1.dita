@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1" xml:lang="en"><title>Managing
+a Dynamic Startup Configuration</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>Managing a Dynamic Startup Configuration
+(DSC) corresponds to the process of <xref href="GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1.dita#GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1/GUID-29F02099-0371-5FF5-B6A1-7C035096ED68">adding</xref>, <xref href="GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1.dita#GUID-E3941FAF-988E-5FB3-8E62-84E192E41EA1/GUID-E331B03E-28BA-567E-9E84-5E7DFFEEDCEC">modifying</xref> and
+removing items from a DSC. For example, a device creator can add an AMC (After
+Market Component) to a DSC, which is required to be started at phone boot
+time along with other AMCs. Another example can be a device creator wishing
+to change the start up behavior of an AMC, so that it can start in the background. </p> <p>You
+can use <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref> and <xref href="GUID-54F2480A-07A1-3FA1-920D-5F1D3469C40B.dita"><apiname>CDscItem</apiname></xref> to manage
+a DSC. <xref href="GUID-54F2480A-07A1-3FA1-920D-5F1D3469C40B.dita"><apiname>CDscItem</apiname></xref> is dependant upon common startup classes <xref href="GUID-90F95A8A-A901-3987-99ED-57F1A57F1C09.dita"><apiname>CStartupProperties</apiname></xref>, <xref href="GUID-CE6290FD-9E85-3587-851E-F50791556DCE.dita"><apiname>TStartupMethod</apiname></xref>, <xref href="GUID-117F3C1B-9E2D-34D2-9353-7CB8C9369D27.dita"><apiname>TStartupType</apiname></xref> and <xref href="GUID-60321D90-AC11-349A-9CA7-CDC962A63A07.dita"><apiname>TRestartAction</apiname></xref>. </p> <p>Usage
+of <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref> is straightforward. You need to create an
+instance of <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref>, call <codeph>OpenL()</codeph> and
+use the functions as appropriate. Most of the functions leave with error codes,
+rather than returning. The error code is typically <codeph>KErrNotReady</codeph>,
+if the DSC database is not set up, or the code returned by the encapsulated
+database client. </p> <p>Note that <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita"><apiname>RDscStore</apiname></xref> is NOT derived
+from <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita"><apiname>RSessionBase</apiname></xref>. </p> </section>
+<section><title>Procedure</title> <p id="GUID-29F02099-0371-5FF5-B6A1-7C035096ED68"><b>Adding
+an item to a DSC</b> </p> <ol id="GUID-03CFC3E5-19C7-5CCF-BC8B-9FA78BDB2AF4">
+<li id="GUID-231AB326-E496-5F5F-940E-A85884A2FBB2"><p>Create the DSC item
+using <xref href="GUID-54F2480A-07A1-3FA1-920D-5F1D3469C40B.dita"><apiname>CDscItem</apiname></xref>. </p> <codeblock id="GUID-F193D641-FBA7-53EC-B736-B770B54343F6" xml:space="preserve">TUid        iDscUid;
+iDscUid = TUid::Uid(KDefaultSymbianDsc);
+
+//Create the instance
+CDscItem* dscItem = CDscItem::NewL();
+CleanupStack::PushL(dscItem);
+
+dscItem-&gt;SetDscId(iDscUid);
+
+//Define the name of the AMC    
+_LIT( filename, "mypackage.exe"); 
+
+//Arguments for the AMC
+TPtrC    amaArgs;
+...
+
+//Set the file parameters for the AMC
+dscItem-&gt;SetFileParamsL(filename, amaArgs);
+
+//Set the start-up properties for the AMC
+dscItem-&gt;SetStartupTypeL(TStartupType::EStartProcess);
+dscItem-&gt;SetStartMethodL(TStartMethod::EFireAndForget);
+dscItem-&gt;SetNoOfRetriesL(TNoOfRetries::ERetry0);
+
+...
+
+CleanupStack::PopAndDestroy(dscItem);</codeblock> </li>
+<li id="GUID-C5431C80-CBE7-5D12-B701-0C28F09FFFBC"><p>Add the DSC item to
+the DSC using <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita#GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F/GUID-11BA9684-72EF-329F-B94B-223515E1133A"><apiname>RDscStore::AddItemL()</apiname></xref>. </p> <codeblock id="GUID-994924FF-9657-580F-AA2E-C0564868BA67" xml:space="preserve">RDscStore    dscClient;
+dscClient.OpenL();
+CleanupClosePushL(dscClient);
+
+...
+
+dscClient.AddItemL(*dscItem);
+CleanupStack::PopAndDestroy();</codeblock> </li>
+</ol> <p id="GUID-E331B03E-28BA-567E-9E84-5E7DFFEEDCEC"><b>Modifying an item
+in a DSC</b> </p> <ol id="GUID-DF840BDC-1799-50F4-8BAB-89891FEC35AC">
+<li id="GUID-F60BD2CA-F3C7-5CAA-97F0-64AE5810790F"><p>Make changes to the
+DSC item as per your requirement using the functions of <xref href="GUID-54F2480A-07A1-3FA1-920D-5F1D3469C40B.dita"><apiname>CDscItem</apiname></xref>. </p> <codeblock id="GUID-F48EBB29-4318-592E-ABF6-4B3D5A10DDA9" xml:space="preserve">CDscItem* dscItem = CDscItem::NewL();
+CleanupStack::PushL(dscItem);
+
+//Change the start-up properties for the AMC
+dscItem-&gt;SetStartupTypeL(TStartupType::EStartApp);
+dscItem-&gt;SetStartMethodL(TStartMethod::EWaitForStart);
+dscItem-&gt;SetNoOfRetriesL(TNoOfRetries::ERetry1);
+
+...
+
+CleanupStack::PopAndDestroy(dscItem);</codeblock> </li>
+<li id="GUID-C6592B4D-45CA-5034-8739-F659755AD5C2"><p>Pass the updated DSC
+item to the DSC using <xref href="GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F.dita#GUID-EB3CA81E-8684-3851-A556-1C91CAD3891F/GUID-9BB82550-B622-3777-BC4B-6966D4EC6995"><apiname>RDscStore::UpdateItemL()</apiname></xref>. </p> <codeblock id="GUID-8EF684B4-29C4-50BA-9CE7-22BABB676666" xml:space="preserve">RDscStore    dscClient;
+dscClient.OpenL();
+CleanupClosePushL(dscClient);
+
+...
+
+dscClient.UpdateItemL(*dscItem);
+CleanupStack::PopAndDestroy();</codeblock> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-70202CC9-BC49-539A-8255-4B0B9C24A702.dita"><linktext> After Market
+Application Starter Overview</linktext></link>
+<link href="GUID-623B375B-6EAD-53A2-AB4E-CCDF1BDB5057.dita"><linktext>Creating
+a Dynamic Startup Configuration</linktext></link>
+</related-links></concept>

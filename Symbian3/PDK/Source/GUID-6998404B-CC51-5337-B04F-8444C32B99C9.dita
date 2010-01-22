@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-6998404B-CC51-5337-B04F-8444C32B99C9" xml:lang="en"><title> Writing
+an Inbound Hook Tutorial</title><shortdesc>This topic describes how to write an inbound hook. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-538FFCBC-31FB-5B6A-B997-E38B68C54123">
+<step id="GUID-6170D075-3962-59EA-BD58-28933D6214B9"><cmd>The <xref href="GUID-1A52EC87-DAD1-32C8-B530-295A65EB7292.dita"><apiname>CIp6Hook()</apiname></xref> is
+a base class for all hook protocols. For more information, see the <xref href="GUID-3490B79F-7D03-3071-864E-D9C7107608DE.dita"><apiname>MIp6Hook()</apiname></xref> and <xref href="GUID-9A313A0F-FCEE-3C3E-808F-DE46FB577BD7.dita"><apiname>CProtocolBaseUnbind()</apiname></xref> classes. </cmd>
+</step>
+<step id="GUID-EACF710B-9FAB-511E-B3B9-45A33E553267"><cmd/>
+<info>The <xref href="GUID-10F2F06B-003E-3F29-AE09-6A85D3682729.dita"><apiname>ApplyL()</apiname></xref> function is derived from the <codeph>CIp6Hook()</codeph> class
+to create an inbound hook. The following are the parameters of an <codeph>ApplyL()</codeph> function: </info>
+<choicetable id="GUID-37EC06D0-A557-4B55-B09E-33BD4B59DD7D" keycol="1">
+<chrow>
+<choption><p>aPacket</p></choption>
+<chdesc><p>Packet to process</p></chdesc>
+</chrow>
+<chrow>
+<choption><p>aInfo</p></choption>
+<chdesc><p>Packet information </p></chdesc>
+</chrow>
+</choicetable>
+<info>  Note: The <codeph>ApplyL()</codeph> function is not used for post
+or pre-processing hooks. </info>
+</step>
+</steps>
+<example><title>How to write an Inbound Hook example </title> <p>The following
+is an example code for how to write an inbound hook: </p> <codeblock id="GUID-9EB3E680-7CAE-5EE3-8B15-8FF06E3294CA" xml:space="preserve">
+CHookExample::ApplyL(RMBufHookPacket &amp;aPacket, RMBufRecvInfo &amp;aInfo)
+ {
+   if (aInfo.iProtocol != iProtocol)
+        // Normally, it should never get here in this example. But,
+       // if the prototocol was just changed via SetOption...
+   return KIp6Hook_PASS;
+   TInet6Packet&lt;TExtensionHeader&gt; ext(aPacket, aInfo.iOffset);
+   if (ext.iHdr == NULL)
+   return KIp6Hook_PASS;   // Bad packet? But let someone else worry about it.
+     if (ext.iHdr-&gt;Port() != iPort)
+         return KIp6Hook_PASS;   // Not for me, let someone else handle it.
+
+     const TInt hdrlen = aInfo.CheckL(ext.iHdr-&gt;HeaderLength());
+     if (aInfo.iIcmp)
+         {
+         // Header is in returned packet of an ICMP Error
+         const TInt offset = aInfo.iOffset - aInfo.iOffsetIp;// Relative offset within problem packet
+         if (aInfo.iIcmp == KProtocolInet6Icmp &amp;&amp; // only ICMP6 can be tested like this
+             aInfo.iType == KInet6ICMP_ParameterProblem &amp;&amp;// A parameter problem...
+             offset &lt;= (TInt)aInfo.iParameter &amp;&amp; // after start of this header?
+             offset + hdrlen &gt; (TInt)aInfo.iParameter)// and before end of this header?
+             {
+             // Someone didn't accept my strange header.
+             // Could set some flag and stop sending it.
+             aPacket.Free();
+             return -1;
+             }
+         // Error is not about my header, fall to DONE
+         }
+     else
+         {
+         // Implement header semantics
+         // (none in this example).
+         }
+     // Header processed (Done), skip over
+     // - need to indicate the location of "my next header" field,
+     aInfo.iPrevNextHdr = (TUint16)(aInfo.iOffset+1);
+     // - need to make the protocol of the following header available
+     aInfo.iProtocol = ext.iHdr-&gt;NextHeader();
+     // - and finally, update the offset over my header.
+     aInfo.iOffset += hdrlen;
+     return KIp6Hook_DONE;
+     }
+
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-340C57A4-B799-502D-8B86-39955E2F4268.dita"><linktext>Creating
+an ESK File</linktext></link>
+<link href="GUID-88AB6957-6D2B-5668-8CC3-4E426E68C9B7.dita"><linktext>Writing an
+Outflow  Hook</linktext></link>
+</related-links></task>

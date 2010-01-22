@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B4218FA6-5BE0-4000-BC85-3078892EDADA" xml:lang="en"><title>Environment
+changes</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Environment Change Notifier informs an application about changes
+in the system environment. The class that implements the API is <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Utilities/CEnvironmentChangeNotifierClass.html#%3a%3aCEnvironmentChangeNotifier" format="application/java-archive"><parmname>CEnvironmentChangeNotifier</parmname></xref>, which is an
+active object. The following changes are notified:</p>
+<ul>
+<li><p>Change of system locale</p></li>
+<li><p>System time passes midnight</p></li>
+<li><p>System time changes</p></li>
+<li><p>Death of any thread</p></li>
+<li><p>Status of the power supply changes</p></li>
+</ul>
+<p>In order to receive environment change events, a <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TCallBackClass.html#%3a%3aTCallBack" format="application/java-archive"><parmname>TCallBack</parmname></xref> object must be created. The constructor of the callback object takes two
+parameters: The first is a pointer to a function to be called when an event
+occurs and the second is a pointer to the object that implements the function.</p>
+<codeblock id="GUID-E2EF1177-95F9-4286-A7A7-84B8A84733B3" xml:space="preserve">TCallBack( TInt ( *aFunction )( TAny* aPtr ) )</codeblock>
+<p>The <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Application_Utilities/CEnvironmentChangeNotifierClass.html#%3a%3aCEnvironmentChangeNotifier" format="application/java-archive"><parmname>CEnvironmentChangeNotifier</parmname></xref> object takes
+two parameters. The first one is a priority of the active object and the second
+one is a reference to the callback object.</p>
+<codeblock id="GUID-CA2369AC-310D-4EB5-8D23-5554D53555B0" xml:space="preserve">static CEnvironmentChangeNotifier* NewL(TInt aPriority, const TCallBack&amp; aCallBack)</codeblock>
+<p>The <parmname>Start()</parmname> function is called in order to start
+observation. </p>
+<codeblock id="GUID-D468B6A3-1DD7-4D9B-A9B1-85B140BD8186" xml:space="preserve">void Start()</codeblock>
+<p>When an environment change event occurs, the function whose pointer
+was given to the callback object is called. Details about an event that occurred
+can be queried using the <parmname>Change()</parmname> function. </p>
+<codeblock id="GUID-A21AD287-6EBF-4426-8DE9-6D014DF61A44" xml:space="preserve">TInt Change() const</codeblock>
+<p>The function returns a bit pattern, where each bit value corresponds
+to one of the enumerations defined in <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/e32const.hGlobals.html#%3a%3aTChanges" format="application/java-archive"><parmname>TChanges</parmname></xref> <parmname> (e32const.h)</parmname>.</p>
+<codeblock id="GUID-3096C720-C190-47CC-AD44-E8C6B8833092" xml:space="preserve">enum TChanges
+    {
+    EChangesLocale = 0x01,
+    EChangesMidnightCrossover = 0x02,
+    EChangesThreadDeath = 0x04,
+    EChangesPowerStatus = 0x08,
+    EChangesSystemTime = 0x10,
+    EChangesFreeMemory = 0x20,
+    EChangesOutOfMemory = 0x40,
+    };
+</codeblock>
+<p>Code example:</p>
+<codeblock id="GUID-15A3C2A9-1AAD-4C1A-A4D6-9EE13E659583" xml:space="preserve">void CExampleEnvChangeNotifier::ConstructL()
+    {
+    iCallBack = new( ELeave )TCallBack( CallBackFunction, this );
+    iChangeNotifier =
+    CEnvironmentChangeNotifier::NewL( 0, *iCallBack );
+    iChangeNotifier-&gt;Start();
+    }
+CExampleEnvChangeNotifier::~CMyEnvChangeNotifier()
+    {
+    iChangeNotifier-&gt;Cancel();
+    delete iChangeNotifier;
+    delete iCallBack;
+    }
+TInt CExampleEnvChangeNotifier::CallBackFunction( TAny* aFunction )
+    {
+    return( (CEventsEnvChangeNotifier* )aFunction )-&gt;ChangeL();
+    }
+TInt CExampleEnvChangeNotifier::ChangeL()
+    {
+    TInt change = iChangeNotifier-&gt;Change();
+    if( change &amp; EChangesLocale )
+        {
+        // Locale change, do something
+        }
+    if( change &amp; EChangesMidnightCrossover )
+        {
+        // Midnight crossover, do something
+        }
+    if( change &amp; EChangesThreadDeath )
+        {
+        // Thread death, do something
+        }
+    if( change &amp; EChangesPowerStatus )
+        {
+        // Power status change, do something
+        }
+    if(change &amp; EChangesSystemTime )
+        {
+        // System status change, do something
+        }
+    return 1;
+    }
+</codeblock>
+</conbody></concept>

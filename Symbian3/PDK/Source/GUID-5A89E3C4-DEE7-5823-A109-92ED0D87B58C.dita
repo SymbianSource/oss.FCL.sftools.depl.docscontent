@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C" xml:lang="en"><title>Deriving
+from COpenFont</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Overview</title> <p>Write a class derived from <codeph>COpenFont</codeph> to
+represent an instance of a typeface at a particular size, provide bitmaps
+of the glyphs, and determine whether a particular character is defined in
+the typeface. An object of this type is created by <codeph>COpenFontFile::GetNearestFontInPixelsL()</codeph> when
+it is called by the Font and Bitmap server. </p> <p>To derive from <codeph>COpenFont</codeph>: </p> <ul>
+<li id="GUID-855B3E95-D4FB-514D-9C9A-E325D4572F8B"><p>Write a function to
+construct the derived object on the shared heap. The base class constructor
+must be called when creating the derived object. </p> </li>
+<li id="GUID-1B4CA215-8150-580D-A9F2-3E7000A3317C"><p>Provide an implementation
+for <codeph>COpenFont</codeph>'s pure virtual function <codeph>RasterizeL()</codeph>. </p> </li>
+</ul> <p>These are discussed further in the following sections. </p> </section>
+<section><title>Construction using the shared heap </title> <p>The derived
+object must be created on a shared heap because it is shared by several processes,
+e.g. the Font and Bitmap Server and its clients. The following code fragment
+shows how the FreeType implementation creates the object on the shared heap <codeph>aHeap</codeph>: </p> <codeblock id="GUID-BF5816D4-8EFA-5A63-860F-F6F42A49914D" xml:space="preserve">CFreeTypeFont* CFreeTypeFont::NewL(RHeap* aHeap,
+    COpenFontSessionCacheList* aSessionCacheList,
+    CFreeTypeFontFile* aFontFile,TInt aSizeInPixels)
+    {
+    CFreeTypeFont* f =
+        (CFreeTypeFont*)aHeap-&gt;AllocL(sizeof(CFreeTypeFont));
+    new(f) CFreeTypeFont(aHeap,aSessionCacheList,aFontFile);
+    CleanupStack::PushL(f);
+    f-&gt;ConstructL(aSizeInPixels);
+    CleanupStack::Pop();
+    return f;
+    }</codeblock> <p>Note that we use <codeph>aHeap-&gt;AllocL()</codeph> to
+obtain memory, then construct in place using a placement argument to <codeph>new</codeph>. </p> <p>The
+base class constructor is called when creating the derived object. Pass the
+arguments <codeph>aHeap</codeph> and <codeph>aSessionCacheList</codeph> supplied
+to <codeph>COpenFontFile::GetNearestFontInPixelsL()</codeph>, and pass the
+address of the <codeph>COpenFontFile</codeph> object that creates the <codeph>COpenFont</codeph> (i.e.,
+'this') as <codeph>aFile</codeph>. </p> </section>
+<section><title>Implementing RasterizeL()</title> <p>The derived class's <codeph>RasterizeL()</codeph> function
+is called by the Font and Bitmap Server to return the bitmap for a specified
+Unicode character. The function prototype is given below: </p> <codeblock id="GUID-806BC2E7-F34E-5809-BE79-56319147D77B" xml:space="preserve">virtual void RasterizeL(TInt aCode,TOpenFontGlyphData* aGlyphData) = 0;</codeblock> <p> Implementations
+must create a bitmap, in Symbian's run-length-encoded format, for the Unicode
+character <codeph>aCode</codeph>. The bitmap must be placed in <codeph>aGlyphData-&gt;iBitmapBuffer</codeph>,
+and the character metrics must be placed in <codeph>aGlyphData-&gt;iMetricsBuffer</codeph>.
+The other parts of <codeph>aGlyphData</codeph> should be left alone. </p> <p>The
+actual rasterization task should be passed to the rasterization engine. One
+way of doing this is to call some rasterization member function of the <codeph>COpenFontFile</codeph> object,
+to which a pointer can be obtained by calling <codeph>COpenFont::File()</codeph>.
+The derived <codeph>COpenFontFile</codeph> object can then call a rasterizer
+function via a pointer it owns to the rasterizer context object. Note that <i>if</i> the
+rasterizer context object is derived from <codeph>COpenFontRasterizerContext</codeph>,
+it will have utility functions for writing bits to the bitmap buffer in Symbian's
+run-length-encoded format. </p> <p>The FreeType implementation follows this
+strategy. <codeph>CFreeTypeFont::RasterizeL()</codeph> calls <codeph>CFreeTypeFontFile::RasterizeL()</codeph>,
+which calls <codeph>CFreeTypeContext::RasterizeL()</codeph>. </p> <p><b>The
+run-length-encoded bitmap format</b> </p> <p>The run-length-encoded format
+is a packed binary format starting on a byte boundary and made up of a number
+of sections. </p> <p>Each section starts with a five-bit header. If the first
+bit of the header is 0 the next four bits are a repeat count, starting with
+the least significant bit, and a single row of bits follows (the number of
+bits in a row is specified by <codeph>aGlyphData-&gt;iMetricsBuffer.Width()</codeph>).
+If the first bit of the header is 1 the next four bits are a count of non-repeating
+rows, again starting with the least significant bit, and that many rows of
+bits follow. </p> <p>See <xref href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita">How
+to derive from COpenFontRasterizerContext</xref> for an implementation of
+this algorithm. </p> </section>
+</conbody><related-links>
+<link href="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5.dita"><linktext>Creating
+a Font Rasterizer Plug-in</linktext></link>
+<link href="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9.dita"><linktext>Deriving
+from COpenFontRasterizer</linktext></link>
+<link href="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547.dita"><linktext>Deriving
+from COpenFontFile</linktext></link>
+<link href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita"><linktext>Deriving
+from COpenFontRasterizerContext</linktext></link>
+</related-links></concept>

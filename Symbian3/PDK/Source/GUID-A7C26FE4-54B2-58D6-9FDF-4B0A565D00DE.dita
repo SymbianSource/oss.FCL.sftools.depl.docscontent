@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-A7C26FE4-54B2-58D6-9FDF-4B0A565D00DE" xml:lang="en"><title>Seeking
+a Position in a Large File </title><shortdesc>This tutorial shows how to seek a particular position in a large
+file. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The function <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-58F3EDD5-7DEF-38AA-A9B6-B68782B3FE83"><apiname>RFile64::Seek()</apiname></xref> is the 64-bit
+version of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref>. The <codeph>Seek()</codeph> function
+can modify the file pointer to point to any position addressable by the <codeph>aPos</codeph> parameter. </p> <p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-C4E483DB-4292-3619-95F3-87F70AC6EB19"><apiname>RFile64::Seek(TSeek
+aMode, TInt64&amp; aPos)</apiname></xref>. </p> <p>To get the current position of
+the file pointer use the <xref href="GUID-CA98DC2A-4B7D-336D-A251-C29120DDD444.dita"><apiname>TSeek</apiname></xref> mode <xref href="GUID-054ECFC9-C8C2-32B6-81DE-0526B3B17FF1.dita"><apiname>ESeekCurrent</apiname></xref>.
+The function updates the output parameter with the new file pointer position
+in 64-bits. </p><p>Different modes of operation can be specified. These modes
+are defined by <xref href="GUID-CA98DC2A-4B7D-336D-A251-C29120DDD444.dita"><apiname>TSeek</apiname></xref>.</p> </context>
+<steps id="GUID-DFFBEA03-D0B8-55BB-97F4-6C2B68AB0276">
+<step id="GUID-AEA38679-553B-54C1-8DC7-1AAC09777C9A"><cmd>Use <codeph>TInt64</codeph> instead
+of <codeph>TInt</codeph> for the offset from the location specified in <codeph>aMode</codeph>. </cmd>
+<stepxmp><codeblock id="GUID-F64A228F-0D34-5EBA-9579-17C87BD8FCF0" xml:space="preserve">// Remove TInt filePosition = 0;
+TInt64 filePosition = 0;</codeblock> </stepxmp>
+</step>
+<step id="GUID-A867C9DB-6DCE-53CF-9808-1866A64657C7"><cmd>To retrieve the
+current position of the file pointer in a large file use <codeph>RFile::Seek64()</codeph> with
+the mode <xref href="GUID-054ECFC9-C8C2-32B6-81DE-0526B3B17FF1.dita"><apiname>ESeekCurrent</apiname></xref>. </cmd>
+<stepxmp><codeblock id="GUID-FFEA160C-2DB6-527B-89C7-ECD5D447974B" xml:space="preserve">TInt64 filePosition = 0;
+// Remove r = file.Seek(ESeekCurrent, filePosition);
+r = file.Seek64(ESeekCurrent, filePosition);</codeblock> </stepxmp>
+</step>
+<step id="GUID-F5738D61-A81A-542B-AC29-B9AE76785CEE"><cmd>To set the file
+pointer to a particular positionwithin a large file use <codeph>RFile::Seek64()</codeph> with
+the seek mode <xref href="GUID-458B652E-537A-3FC0-9DF7-396907A13522.dita"><apiname>ESeekStart</apiname></xref> and a seek position value that
+is of type <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref>. </cmd>
+<stepxmp><codeblock id="GUID-FFB160EE-6FE6-56C3-A486-0329BC9EFEC3" xml:space="preserve">TInt64 seekPos = 3000000000;
+// Remove r = file.Seek(ESeekStart, seekPos);
+r = file.Seek64(ESeekStart, seekPos);</codeblock> </stepxmp>
+</step>
+</steps>
+<example><title>Seek position example</title> <p>If large file seek is required
+use <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-58F3EDD5-7DEF-38AA-A9B6-B68782B3FE83"><apiname>RFile64::Seek()</apiname></xref> instead of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref> and
+use a TInt64 value to specify the location. </p> <codeblock id="GUID-24BE4FD9-A4C0-5AC9-9253-B810D7237189" xml:space="preserve">    // RFile file;
+    RFile64 file;
+    TInt err = file.Open(TheFs, _L(“BIGFILE.BIG”), EFileWrite);
+    if(err != KErrNone)
+        {
+        // We will only get here if a real error condition occurs.
+        return err;
+        }
+
+    // Large file access is now supported!
+    // TInt seekPos = 0;
+    Tint64 seekPos = 0;
+
+    // Seek the current position. This can be greater than 2GB.
+    err = file.Seek(ESeekEnd, seekPos);
+    if(err != KErrNone)
+        {
+        return err;
+        }</codeblock> </example>
+</taskbody></task>

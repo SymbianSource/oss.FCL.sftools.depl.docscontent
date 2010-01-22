@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B046D3DF-8BD2-48C2-A347-D6F74FE30F6D" xml:lang="en"><title>Sensor
+Channel Declaration</title><shortdesc>This document provides details about the sensor channel declarations.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A168B467-2AEC-4A96-8E34-5FE683086672"><title>Channel
+type declarations</title><p>All the supported sensor channels
+are declared in the Sensor definitions API headers and classes. For details,
+see <filepath>Symbian Developer Library &gt; Symbian Developer Library &gt; Symbian
+OS Reference &gt; S60 C++ Reference &gt; os &gt; Sf Sensor_definitions_API</filepath>.
+For details about the types of Sensor Channels, see <xref href="GUID-F1935106-C730-4C64-A19A-0FC04F0E7121.dita">Types
+of Sensor Channels</xref>.</p>The number of implemented channels can vary
+between products. For information on supported sensor channels on different
+devices, see <xref href="http://www.forum.nokia.com/devices/matrix_s60_5ed_1.html" scope="external">Device specifications</xref> on Forum Nokia.<p>Every channel
+is defined by its unique channel type ID constant and a short description. </p><p>For
+example, a double tapping channel declaration is as shown in the following
+code snippet:</p><codeblock xml:space="preserve">    /**
+    * - Name:          Double tapping event channel type
+    * - Type:          Event
+    * - Datatype:      TSensrvTappingData
+    * - Description:   Double tapping events 
+    */
+    const TSensrvChannelTypeId KSensrvChannelTypeIdAccelerometerDoubleTappingData = 0x10205081;</codeblock> 
+   </section>
+<section id="GUID-8701672A-9CCB-458E-8364-65C21179F833"><title>Channel
+data type declarations</title><p>Sensor Channels can be classified based on
+the type of data that they provide. The classification is as follows:<ul>
+<li><p>Continuous Data Channel:  A channel that outputs continuous data at
+regular intervals. For example, Accelerometer XYZ, Rotation and Magnetometer
+XYZ.</p></li>
+<li><p>Event Channel:  A channel that signals a client when an appropriate
+event occurs. For example, Single Tap and Double Tap.</p></li>
+<li><p>State channel:  A channel that signals a client when its state has
+changed. For example, Proximity Monitor.</p></li>
+</ul></p><p> The channel data types are declared in each sensor's header file.
+For example, a double tapping channel data type declaration is as shown in
+the following code snippet:</p><codeblock xml:space="preserve">    class TSensrvTappingData 
+        {
+    public:
+        /**
+        * Channel data type Id number
+        */
+        static const TSensrvChannelDataTypeId KDataTypeId = 0x1020507F;
+        /**
+        * Channel data type enumerations
+        */
+        enum TSensrvAccelerometerAxisDataIndexes
+              {
+              iTimeStamp = 0,
+              iDirection
+              };
+            };
+    public:
+        /**
+        * - Item name:   Sampling time.
+        * - Item Index:  0
+        * - Conditions:  None
+        * - Description: Timestamp for a sample.
+        */   
+        TTime iTimeStamp;    
+        /**
+        * - Item name:   Tapping direction bitmask
+        * - Item Index:  1
+        * - Conditions:  Binary
+        * - Description: Direction bitmask of the tapping event.
+        *                See constant definitions above.
+        */
+        TUint32 iDirection;
+        };</codeblock><p>The channel data type ID (for example, <xref href="GUID-5770EEF9-C7C8-36A0-B152-132D043FD4F3.dita#GUID-5770EEF9-C7C8-36A0-B152-132D043FD4F3/GUID-686A106F-3CC4-35C4-850D-93ABEE49DAC9"><apiname>TSensrvTappingData::KDataTypeId</apiname></xref>)
+is a unique ID for each data type, enabling the separation of data types from
+each other. The data type ID is used in <codeph>TSensrvChannelInfo</codeph> to
+define the data type used in a channel. </p><p>The channel data type index
+(for example, <codeph>TSensrvTappingData::iDirection</codeph>) is used to
+point to an attribute inside a data type. Attributes of the <xref href="jar:GUID-759FBC7F-5384-4487-8457-A8D4B76F6AA6.jar!/html/classTSensrvTappingData.html" format="application/java-archive"><codeph>TSensrvTappingData</codeph></xref> class are <codeph>iTimeStamp</codeph> and <codeph>iDirection</codeph>. </p><p>The
+channel data type index is used in:<ul>
+<li>properties (<codeph>TSensrvProperty</codeph>) if a property scope is a
+channel item</li>
+<li>conditions (<codeph>CSensrvChannelCondition</codeph>) to identify which
+attribute is used as a condition</li>
+</ul></p></section>
+<section id="GUID-BFC1DE84-96C8-40E2-94FA-4C315FC2B19C"><title>Channel property
+declarations</title><p>Channel properties are declared in <codeph>sensrvgeneralproperties.h</codeph> and
+sensor specific files. For example, general properties for all channel types
+are declared in the <codeph>sensrvgeneralproperties.h</codeph> file and accelerometer
+specific properties are declared in the <codeph>sensrvaccelerometersensor.h</codeph> file. </p><p>Each
+channel property is defined by its unique property ID constant and a short
+description. The property type specifies the type of the value the property
+contains. It can be <codeph>TInt</codeph>, <codeph>TReal</codeph> or <codeph>TBuf</codeph>.
+Property scope can be defined for a: </p><ul>
+<li>channel</li>
+<li>specific attribute inside channel data</li>
+<li>sensor related to a channel.</li>
+</ul><p>For example, accuracy property is declared as shown in the following
+code snippet:</p><codeblock xml:space="preserve">    /**
+    * - Name:         Accuracy of the channel data
+    * - Type:         TReal
+    * - Scope:        Channel item property
+    * - Mandatory:    No
+    * - Capability:   None
+    * - Description:  Returns the accuracy of this channel of the sensor as a
+    *                 percentage of reading (=data value).
+    */
+    const TSensrvPropertyId KSensrvPropIdChannelAccuracy = 0x000000008;
+</codeblock><p>A mandatory section specifies if the property is required for
+all channels. Capability section specifies the required capabilities to change
+value of the property. </p><p>The example content of the accuracy property
+is shown in the following code snippet. </p><codeblock xml:space="preserve">    iPropertyId   = KSensrvPropIdChannelAccuracy
+    iItemIndex    = KSensrvItemIndexNone
+    iArrayIndex   = ESensrvSingleProperty
+    iRealValue    = 10.0
+    iReadOnly     = ETrue
+    iRealValueMax = n/a
+    iRealValueMin = n/a
+    iPropertyType = ESensrvRealProperty
+    iSecurityInfo = n/a</codeblock><p>The array index is explained in <xref href="GUID-8DCBAA05-9741-48C8-A831-966D37FBC05A.dita">Array Properties</xref>.</p></section>
+</conbody></concept>

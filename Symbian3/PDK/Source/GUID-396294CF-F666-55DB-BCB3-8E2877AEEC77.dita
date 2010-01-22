@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77" xml:lang="en"><title>Interrupt
+Service Routines (ISRs)</title><shortdesc>This document describes how to write interrupt service routines
+(ISRs) to handle interrupt events raised by hardware devices. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>For background information on interrupts and their properties, see <xref href="GUID-709C26A7-3724-52A8-ACA1-619BD241E6B8.dita">Interrupts concepts</xref>. </p>
+<p><b>Contents </b> </p>
+<ul>
+<li id="GUID-7AB833B1-1045-5AA3-8670-1FCCC3DD4AA6"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-BE704403-3561-51B6-B67A-5AE6F92E8ED4">Overview of writing an ISR</xref>  </p> </li>
+<li id="GUID-5C6E2905-7998-5944-B9BB-EF623149C91A"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-03A7DE3B-9464-59D3-8A25-FF9A889367B4">Binding an ISR</xref>  </p> </li>
+<li id="GUID-87C0AD7D-FEAC-5E4D-88B8-F922C8C308CA"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-26047830-2D66-5131-B90C-ADB256BA415D">General rules for writing an ISR</xref>  </p> </li>
+<li id="GUID-184F7DC3-DD8C-51B6-876B-BF30E7590206"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-552B7611-AE40-5619-92C1-64B3229C5863">Enabling, disabling and acknowledging interrupts</xref>  </p> </li>
+<li id="GUID-9F96E659-F40B-53C7-82DC-B273EF149AAD"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-DC812838-29AA-566C-99D1-C67D3BD20EF7">Disabling interrupts when accessing shared data</xref>  </p> </li>
+<li id="GUID-9281B2D3-6917-5343-8E7C-83020B2ABD70"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-B0D7E71F-7844-5EA8-BD9E-C6AF566B0DC2">Unbinding ISRs</xref> </p> </li>
+<li id="GUID-0AF9CBC0-44B8-512D-B50A-EDDCEDECCE58"><p> <xref href="GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77.dita#GUID-396294CF-F666-55DB-BCB3-8E2877AEEC77/GUID-B21F9662-BE7E-5445-B5B7-F8136BD3D571">Interrupt handling FAQs</xref> </p> </li>
+</ul>
+<section id="GUID-BE704403-3561-51B6-B67A-5AE6F92E8ED4"><title>Overview of
+writing an ISR</title> <p>An interrupt service routine (ISR) is a static function.
+This means that it cannot be a normal class member function or a virtual function.
+It takes a single 32-bit parameter, which is defined as a <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> *
+type, since it is usually the pointer to the owning class, although you can
+pass any 32-bit value as the parameter. This value is defined when you bind
+the ISR so it is effectively a constant. </p> <p>The function has the signature: </p> <codeblock id="GUID-FAA2CB12-AFAD-5C43-B729-6BAA2DBD8B5A" xml:space="preserve">void MyIsr(TAny* aParam);</codeblock> <p>For
+example, a local static ISR might be implemented: </p> <codeblock id="GUID-EFA6B93B-7162-5137-BD3F-9F1A504C088D" xml:space="preserve">void MyIsr(TAny* aParam)
+    {
+    DMyDeviceDriver* self = (DMyDeviceDriver*)aParam;
+    ...
+    }</codeblock> <p>In this example, the parameter is a pointer back to the
+owning class, its <codeph>this</codeph> pointer, so the first step is to cast
+the <codeph>TAny*           aParam</codeph> to something usable. </p> <p>You
+could equally make the function a static member of the class: </p> <codeblock id="GUID-33AB8D67-8C64-57AF-B866-933EAE332E3B" xml:space="preserve">class DMyDeviceDriver : public DBase
+    {
+    ...
+private:
+    static void MyIsr( TAny* aParam );
+    };
+    </codeblock> <codeblock id="GUID-757BFB58-2B1A-581C-9E93-28B89B122972" xml:space="preserve">void DMyDeviceDriver::MyIsr(TAny* aParam)
+    {
+    DMyDeviceDriver* self = (DMyDeviceDriver*)aParam;
+    ...
+    }
+    </codeblock> <p>This doesn't make any difference to the implementation
+of the ISR function, <codeph>MyIsr()</codeph>; it's a purely cosmetic decision
+to keep the function as a member of the class it effectively belongs to. Either
+way is acceptable - it's your choice. </p> </section>
+<section id="GUID-03A7DE3B-9464-59D3-8A25-FF9A889367B4"><title>Binding an
+ISR</title> <p>You need to bind an ISR to the interrupt it services. This
+is done by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref>. For example: </p> <codeblock id="GUID-32424D32-D093-5ABF-A4C4-497F20D7604E" xml:space="preserve">TInt DMyDeviceDriver::BindInterrupt()
+    {
+    return Interrupt::Bind( ETimerInt, &amp;MyIsr, this );
+    }
+    </codeblock> <p>Notes: </p> <ul>
+<li id="GUID-18D8A11C-7202-5E13-978F-695D26A83991"><p>The call to <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> can
+fail so you must check whether the return code is <codeph>KErrNone</codeph>.
+Possible failure modes are that an ISR is already bound to the interrupt (<codeph>KErrInUse</codeph>)
+or it is not a valid interrupt source (<codeph>KErrArgument</codeph>). </p> </li>
+<li id="GUID-9E92C9AA-8DC4-5C0F-B3C1-2A8E6348052D"><p>The first parameter
+passed to <codeph>Interrupt::Bind()</codeph> is the ID of the interrupt to
+which the ISR is being bound. Interrupt IDs will be defined in a header file
+provided by the base port, typically as enum values (though not necessarily
+so), and are likely to be different for each base port. </p> </li>
+<li id="GUID-D9EED64E-38EF-513A-8E3E-959DD75545E3"><p>The second parameter
+is the address of the ISR itself. </p> </li>
+<li id="GUID-7FD37FED-B540-5C8B-AA29-9879F9EDABF8"><p>The third parameter
+is the 32-bit value that will be passed to the ISR function when it is eventually
+called. In this example, it is a pointer back to the <codeph>DMyDeviceDriver</codeph> class
+instance. </p> </li>
+<li id="GUID-2D64E297-2448-5074-982E-3787FC80B642"><p>You need to remember
+whether your attempt to bind to the interrupt is successful. For example,
+following a successful attempt to bind the interrupt, another client tries
+to open a channel on the same device driver. During channel construction,
+the second channel would attempt to bind to the interrupt. This would fail
+with <codeph>KErrInUse</codeph>, causing the device driver framework to destroy
+the second channel object. The destructor would then unbind the interrupt,
+but this would actually unbind it from the first channel, causing it stop
+working. </p> <p>So the use of a flag is important: you set it to indicate
+that the channel has successfully bound the interrupt, and then only unbind
+it if the flag is set. </p> </li>
+</ul> </section>
+<section id="GUID-26047830-2D66-5131-B90C-ADB256BA415D"><title>General rules
+for writing an ISR</title> <p>It is not possible to state how an interrupt
+should be handled as this depends entirely on the hardware, but there are
+some general rules that can be applied. </p> <p>There are two important considerations
+when writing an ISR: </p> <ul>
+<li id="GUID-E4F2A21A-7CD1-5C07-B408-07FFACC85265"><p>The state of the system
+is indeterminate. This means that your ISR must be self-contained. That means
+you cannot signal threads, allocate or de-allocate memory, copy memory to
+or from user processes, or call most kernel functions. </p> </li>
+<li id="GUID-DBE29C58-4F6B-5E55-B14B-A73C539ED491"><p>The whole system is
+blocked while your ISR is running, so you must keep it as short as possible.
+Any lengthy processing must be done in a delayed function call (DFC). </p> </li>
+</ul> <p><b>(1)</b> </p> <p>In
+general an ISR can do the following: </p> <ul>
+<li id="GUID-5B4EB8D2-C6C5-5EAC-AC32-125863CBC093"><p>Clear the interrupt
+in the peripheral. </p> </li>
+<li id="GUID-036A2B06-8897-575A-BD12-6368D957CCB2"><p>Disable the interrupt. </p> </li>
+<li id="GUID-038BC1AE-CB46-5825-A08B-03BE53F84000"><p>Read or write peripheral
+registers. For example, to determine whether there were any errors, or to
+start a new task. </p> </li>
+<li id="GUID-48A8879A-F36C-50FE-B5C9-3FF718D3E546"><p>Read data from, or write
+data to, the peripheral. </p> </li>
+<li id="GUID-4136BB9A-D22F-5F98-847F-AAC3E48954A2"><p>Start or stop <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita"><apiname>NTimer</apiname></xref> or
+DMA transfer operations. </p> </li>
+<li id="GUID-44E472C0-3738-5159-A550-C9BD19C583CA"><p>Queue DFCs. </p> </li>
+</ul> <p>The first few operations do not rely on the state of any other part
+of the software since they only read or write I/O registers. You cannot access
+process data directly, because the kernel might have been interrupted while
+it was moving memory around, but you can safely read or write any kernel-side
+memory owned by your device driver. This means that it can access member variables
+of your device driver class, or any classes it owns, and any buffers it has
+already allocated. </p> <p>Typically, device drivers that transfer data, such
+as serial port drivers, create a buffer that is used to hold data temporarily
+so that it can be accessed by the ISR. This buffer is normally just a member
+of the class, for example: </p> <codeblock id="GUID-45C39637-D2F3-55A7-9345-F21B359494B3" xml:space="preserve">class DMyDeviceDriver : public DBase
+    {
+    ...
+private:
+    TUint8 iDataBuffer[KBufferSize];
+    };
+      </codeblock> <p>The ISR can read from, or write to, this buffer as part
+of the process of transferring data to or from the peripheral. </p> <p>When
+deciding what you want to do in the ISR, it is very important to consider
+how long it is going to take. While you can get some idea just by looking
+at the number of lines of code, this can sometimes be misleading. Here for
+example, the ISR would appear to be very fast since it only writes a single
+word of data: </p> <codeblock id="GUID-49E348E9-F8F0-5B0E-BF61-35F53A7E579C" xml:space="preserve">void MyIsr(TAny* aParam)
+    {
+    DMyDeviceDriver* self = (DMyDeviceDriver*)aParam;
+    TPeripheral::WriteData(self-&gt;iNextData);
+    }
+      </codeblock> <p>But you need to consider how long the write operation
+actually takes. The peripheral might be on a separate slow bus which could
+impose a large number of clock cycles penalty in synchronising the buses before
+the data is actually transferred. In such a case it might be better to queue
+a DFC or IDFC to handle the write operation; the overhead of handling this
+particular ISR may be longer, but overall it could improve the responsiveness
+of the system. </p> <p><b>(2)</b> </p> <p>An
+ISR that accesses member variables of a class can become somewhat untidy if
+it has to keep referencing them all with <codeph>self-&gt;</codeph>, like this: </p> <codeblock id="GUID-68809930-477D-5742-AE9F-0B5D7E2A1D47" xml:space="preserve">void DMyDeviceDriver::MyIsr(TAny* aParam)
+    {
+    DMyDeviceDriver* self = (DMyDeviceDriver*)aParam;
+    self-&gt;iData = TPeripheral::ReadData();
+    if (self-&gt;iState == EFinished)
+        {
+        TPeripheral::Stop();
+        }
+    else
+        {
+        TPeripheral::WriteData(self-&gt;iNextData);
+        }
+    }</codeblock> <p>A common pattern to avoid all those uses of <codeph>self-&gt;</codeph> is
+to put the code into an inline function that is a normal member of the class: </p> <codeblock id="GUID-33B2272F-4EC1-577C-965A-152BE9D6091B" xml:space="preserve">class DMyDeviceDriver : public DBase
+    {
+    ...
+private:
+    static void MyIsr(TAny* aParam);
+    inline void HandleInterrupt();
+    };</codeblock> <codeblock id="GUID-07C588CE-E06E-55DF-96DF-0EFFC131A1FA" xml:space="preserve">void DMyDeviceDriver::MyIsr(TAny* aParam)
+    {
+    ((DMyDeviceDriver*)aParam)-&gt;HandleInterrupt();
+    }</codeblock> <codeblock id="GUID-0A78B4C7-1883-58F9-94E3-94C3028513DA" xml:space="preserve">inline void DMyDeviceDriver::HandleInterrupt()
+    {
+    iData = TPeripheral::ReadData();
+    if (iState == EFinished)
+        {
+        TPeripheral::Stop();
+        }
+    else
+        {
+        TPeripheral::WriteData(iNextData);
+        }</codeblock> <p>Because <codeph>HandleInterrupt()</codeph> is inline,
+the compiler will put the code inside <codeph>MyIsr()</codeph>, effectively
+removing the function call. Barring compiler quirks, this should produce identical
+code but is easier to read. </p> <p><b>(3)</b> </p> <p>Use assembler if possible.
+The ISR is probably the most time-critical section of the entire system, so
+if there is a good chance of optimizing the code by writing directly in assembler
+then you should consider doing so. It is wise to start with the ISR written
+in C++ until you have it working. It is up to you to decide whether you want
+to allow ISRs written in assembler. However, assembler is less readable than
+C++, so don't use it unless you really are obtaining a speed benefit. </p> </section>
+<section id="GUID-552B7611-AE40-5619-92C1-64B3229C5863"><title>Enabling, disabling
+and acknowledging interrupts</title> <p>Before an interrupt can launch an
+ISR, it must be enabled. This is done by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref>.
+For example: </p> <codeblock id="GUID-3E374F8A-4709-5824-AF54-04EA443ECA67" xml:space="preserve">Interrupt::Enable(ETimerInt);</codeblock> <p>The
+interrupt remains enabled until you call <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref>,
+for example: </p> <codeblock id="GUID-5FD441F5-254B-589B-A680-BD2838C7529D" xml:space="preserve">Interrupt::Disable(ETimerInt);</codeblock> <p>Both
+functions are provided by the baseport. Notice that you have to pass the interrupt
+ID number to these functions. You can call these functions from any context
+on the kernel side – from an ISR, a DFC, an IDFC, or a kernel thread. </p> <p>You
+often need to acknowledge an interrupt. This is very dependent on the hardware
+and the implementation of the dispatcher, so you will need to check with your
+hardware engineers and the software engineers who wrote the dispatcher or
+any documentation for the kernel port to see whether interrupts have to be
+acknowledged. If you do need to acknowledge an interrupt, do this by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-DB641A23-82B2-373E-A514-E11118CB6E69"><apiname>Interrupt::Clear()</apiname></xref>,
+for example: </p> <codeblock id="GUID-A53CC9C4-59FC-534A-AFC6-A5FB09100BB4" xml:space="preserve">Interrupt::Clear(ETimerInt);</codeblock> <p>Again,
+you need to pass interrupt ID number to this function. </p> </section>
+<section id="GUID-DC812838-29AA-566C-99D1-C67D3BD20EF7"><title>Disabling interrupts
+when accessing shared data</title> <p>If you have data that is accessed both
+by an ISR and by a DFC or a kernel thread, such as state information, you
+may need to provide controlled access to this data to prevent it being updated
+at the same time by the ISR and the DFC or kernel thread, or to prevent it
+from being changed by one of these while the other is reading it. You can
+do this by disabling the interrupt before accessing the data in the DFC or
+thread and then re-enabling it afterwards; for example: </p> <codeblock id="GUID-1FD2B536-333A-59B9-95F0-3ABF208194C4" xml:space="preserve">TInt DMyDeviceDriver::ChangeState(TState aNewState)
+    {
+    Interrupt::Disable(ETimerInt);
+    iState = aNewState;
+    Interrupt::Enable(ETimerInt);
+    }
+</codeblock> <p>You can be sure that, after returning from <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref>,
+the ISR cannot be called until you call <codeph>Interrupt::Enable()</codeph>. </p> <p>Sometimes,
+there may be data that can be accessed by several ISRs. For data that is publicly
+available, you may not even know which other ISRs can access it. In this case
+you can disable <i>all</i> interrupts in the system; for example: </p> <codeblock id="GUID-55626B76-EACB-54D9-965B-0E9DEE3D8155" xml:space="preserve">TInt DMyDeviceDriver::ChangeState(TState aNewState)
+    {
+    TInt savedState = NKern::DisableAllInterrupts();
+    iState = aNewState;
+    NKern::RestoreInterrupts(savedState);
+    }</codeblock> <p>The call to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-8C251C65-FDE7-3161-8D2B-61401FB6487F"><apiname>NKern::DisableAllInterrupts()</apiname></xref> returns
+the previous state, which <i>must</i> be passed to <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2D328082-3A9F-3467-81CF-B1C68866E163"><apiname>NKern::RestoreInterrupts()</apiname></xref>.
+This allows nested calls to <codeph>NKern::DisableAllInterrupts()</codeph>  </p> <p> <i>If
+you need to disable all interrupts, then it is essential that you re-enable
+interrupts as soon as possible.</i>  </p> <p>You only need to disable interrupts
+if: </p> <ul>
+<li id="GUID-6590626A-1FFB-5D21-AB91-30791619C76E"><p>you are changing the
+data inside a DFC or a thread when the ISR might also want to read or write
+it. </p> </li>
+<li id="GUID-0B628927-D058-5168-AB95-1F5C499A1232"><p>you are reading the
+data several times inside the DFC or thread when the ISR might change the
+data during this time. </p> </li>
+</ul> <p>You do not need to disable interrupts in the DFC or thread if: </p> <ul>
+<li id="GUID-C11B0D37-2A7F-55E3-AD64-6F02A4719BBD"><p>you are only reading
+a single 8-, 16- or 32-bit value once. This is an atomic operation, so if
+the ISR attempts to change the data, then you will safely read either the
+old or the new value. </p> </li>
+<li id="GUID-2DE5E281-8681-5DFC-B32E-A363384FB501"><p>you are only writing
+a single 8-, 16- or 32-bit value once. This is an atomic operation, so if
+the ISR attempts to read the data, then it will safely read either the old
+or the new value. </p> </li>
+<li id="GUID-2499FBDC-D3F0-5007-9B85-3A29F29477BC"><p>Neither the ISR nor
+the DFC/thread changes the data. </p> </li>
+</ul> </section>
+<section id="GUID-B0D7E71F-7844-5EA8-BD9E-C6AF566B0DC2"><title>Unbinding ISRs</title> <p>If
+the code that handles an interrupt can be deleted or removed, for example,
+a PDD that can be unloaded or an LDD channel that can be closed, you need
+to ensure that you unbind the interrupt. To do this, just call <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref>,
+passing the interrupt ID; for example: </p> <codeblock id="GUID-0BE57728-6A4A-5C20-9AB4-E94649C8A468" xml:space="preserve">Interrupt::UnBind(ETimerInt);</codeblock> <p>You must make sure that you are unbinding an interrupt that you have previously
+bound! </p> </section>
+<section id="GUID-B21F9662-BE7E-5445-B5B7-F8136BD3D571"><title>Interrupt handling
+FAQs</title> <table id="GUID-B30C91E9-9AA8-5B5B-A53A-6DB2E09D0F32">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>Can I use <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-CAAD1252-CBEF-318B-B61D-D12D4E80C5CF"><apiname>Kern::Printf()</apiname></xref> in an ISR? </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>You can use <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-CAAD1252-CBEF-318B-B61D-D12D4E80C5CF"><apiname>Kern::Printf()</apiname></xref> as a simple way of
+debugging the ISR (Interrupt Service Routine). However you should bear in
+mind that: </p> <ul>
+<li id="GUID-CB916565-F3F7-5274-A27B-42BCA8EC55BA"><p> <codeph>Kern::Printf()</codeph> takes
+time to execute which may disrupt your interrupt handling. </p> </li>
+<li id="GUID-F6F8D082-6892-5E60-A968-64AAE5C92C91"><p> <codeph>Kern::Printf()</codeph> in
+an ISR may interrupt and corrupt a <codeph>Kern::Printf()</codeph> in a DFC
+or thread – this won't cause any harm but can make the resulting debug trace
+hard to follow. </p> </li>
+</ul> <p>Don’t use the following format options: %O, %o, %M, %m or %T. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>When I unbind my ISR, I get a spurious interrupt panic. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>First check that you are using the correct interrupt ID. If you
+are, this probably indicates a defect in the baseport, that it is not disabling
+the interrupt before unbinding the ISR. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>I've bound my ISR but it is never called. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>Have you called <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> to enable
+the interrupt? If you have, check whether the interrupt is actually signalling.
+You will need to refer to the hardware manual to find out how to check the
+interrupt controller for pending interrupts. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>When I enable my interrupt I get a spurious interrupt panic. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>Check that you are binding to the correct interrupt ID, and that
+the interrupt IDs in your <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> calls
+are the same. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>I've called Disable() but my ISR is still called. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>First, note that there is a race condition between the interrupt
+and the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> call. It is possible that
+the interrupt could signal during the preamble to <codeph>Disable()</codeph> before
+it has actually disabled the interrupt. If the call to <codeph>Disable()</codeph> has
+returned, or you receive multiple calls to your ISR, check that you are disabling
+the correct interrupt ID. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>My ISR is called continuously. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>Check whether you should be calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-DB641A23-82B2-373E-A514-E11118CB6E69"><apiname>Interrupt::Clear()</apiname></xref> or
+writing to an I/O register to acknowledge and clear the interrupt. If you
+are already doing this, are you using the correct interrupt ID and/or writing
+to the correct I/O register? </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>My ISR is called even though the I/O device it handles isn't generating
+an interrupt. </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>The interrupt is probably shared by a number of I/O peripherals
+and you need to check the peripheral you are handling to determine whether
+it actually requires servicing. </p> </entry>
+</row>
+<row>
+<entry><p>-</p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p> <b>Q</b> </p> </entry>
+<entry><p>After I enable my interrupt the whole system freezes </p> </entry>
+</row>
+<row>
+<entry><p> <b>A</b> </p> </entry>
+<entry><p>You probably need to clear the interrupt, and are not doing so,
+which means that the ISR is being called continuously preventing any other
+code from running. See the above question: <i>My ISR is called continuously</i>. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

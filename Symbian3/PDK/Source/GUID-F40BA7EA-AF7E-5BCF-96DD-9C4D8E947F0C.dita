@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F40BA7EA-AF7E-5BCF-96DD-9C4D8E947F0C" xml:lang="en"><title>Writing
+a CSBEClient for Backup</title><shortdesc>This section describes the recommended <apiname>conn::CSBEClient</apiname> function
+calls for a partial and incremental backup. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Context</title> <p>A partial backup backs up the data of specified
+data owners. Application developers provide a full list of data owners in
+the backup and restore registration file. To back up a subset of the list,
+the Security IDs (SIDs) of the specified data owners must be passed to the
+Backup Engine. </p> <p>An incremental backup backs up files that are new or
+modified since the last backup. After each incremental backup, a snapshot,
+which saves a list of file names and details of each data owner, is saved.
+Before each incremental backup, the previously saved snapshots must be provided
+to the Backup Engine. </p> </section>
+<section><title>Steps</title> <ol id="GUID-C9A4B10B-8D7A-562E-A7FF-B5C039CE514E">
+<li id="GUID-3C3EA5AB-B255-55A6-BE4D-58EFF9B0CE50"><p>The user application
+must instantiate <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> to connect to the Backup
+Engine. </p> <p><codeblock id="GUID-E84080F8-2D77-5C9C-82EF-12D2CD6B4686" xml:space="preserve">iBackupClient = CSBEClient::NewL();</codeblock> </p> </li>
+<li id="GUID-5F6972FC-9183-5908-9A3C-2FA45742A485"><p>Get a list of registered
+data owners from the Backup Engine. </p> <p><codeblock id="GUID-E67258BD-A391-5378-A496-932097F22BE8" xml:space="preserve">iBackupClient-&gt;ListOfDataOwnersL(RPointerArray&lt;CDataOwnerInfo&gt;&amp; iDataOwners);</codeblock> </p> <p>The Backup Engine parses the backup registration files to return
+an array of <xref href="GUID-DD6B46F8-8B3F-3BDD-A2C0-1B12287911D3.dita"><apiname>CDataOwnerInfo</apiname></xref> objects. A <xref href="GUID-DD6B46F8-8B3F-3BDD-A2C0-1B12287911D3.dita"><apiname>CDataOwnerInfo</apiname></xref> object
+encapsulates all the information regarding a particular data owner on the
+phone, such as packages that the data owners belong to and data types (public
+data or private data). These objects can be internalized and externalized
+to create backup archives. </p> </li>
+<li id="GUID-51142C40-E334-5865-A07D-EC65ED8CDB95"><p>Send a list of data
+owners to the Backup Engine. </p> <p>To back up the data of specified data
+owners, pass the array of the Secure IDs (SID) of these data owners to the
+Backup Engine. </p> <p> Note: Each Symbian process is identified by its SID. </p> <p><codeblock id="GUID-DC33230F-C5FD-5B4D-A083-C256B31D99C7" xml:space="preserve">iBackupClient-&gt;SetSIDListForPartialBURL(RSIDArray&amp; aSIDs);</codeblock> </p> </li>
+<li id="GUID-3FEC5DB5-BD3A-5BB4-8CBB-AF1E02CD13CF"><p>Set the Backup Engine
+to the backup mode which signals the start of a backup. </p> <p>The Backup
+Engine <xref href="GUID-88A5F321-17BA-566B-B025-22DB11664E54.dita">publishes the
+mode to the subscribed data owners</xref>. This gives the data owners some
+time to prepare for the backup, for example they can release resources in
+case of file lock or data conflict. </p> <p>The mode contains the backup types:
+full or partial, base or incremental. </p> <p><codeblock id="GUID-26AD4017-DE62-5E24-8A24-AEF9B1748CF5" xml:space="preserve">iBackupClient-&gt;SetBURModeL (
+                             const TDriveList&amp; aDriveList,
+                             
+                             //Specify partial backup,
+                             //defined in epoc32/include/connect/sbdefs.h
+                             TBURPartType aBURType,      
+
+                             //Specify incremental backup,
+                             //defined in epoc32/include/connect/sbdefs.h
+                             TBackupIncType aBackupIncType
+                           );
+</codeblock> </p> </li>
+<li id="GUID-04A8BE86-6D96-5ECF-9E7F-844DFEB6824C"><p>Request the state of
+active data owners from the Backup Engine. </p> <p>This step ensures that
+the data owners are ready to supply data in the following steps, for example
+file locks are released. </p> <p><codeblock id="GUID-06ECF9D7-D735-5B29-90A3-68FEFD3F31E0" xml:space="preserve">iBackupClient-&gt;SIDStatusL(RSIDStatusArray&amp; aSIDStatus);</codeblock> </p> </li>
+<li id="GUID-8BA8CC19-2324-5D0A-84B0-9F50BF10C6CD"><p>Supply data snapshots
+got from the host PC to the Backup Engine. </p> <p>Before doing an incremental
+backup, the Backup Engine needs to know a list of the files included in the
+preceding backup. Refer to step 13 for saving snapshots after an incremental
+backup. </p> <p><codeblock id="GUID-D74CE5A8-CBB2-5217-8953-389EEC358E66" xml:space="preserve">iBackupClient-&gt;SupplyDataL(
+                             CSBGenericTransferType&amp; aSnapShotTransferType,
+                             TBool aFinished
+                           );</codeblock> </p> <p>A snapshot transfer type
+must be passed to the function above. For more information about creating
+snapshot transfer types, refer to the <xref href="GUID-8BFC185E-91FD-5E04-A26C-728B06F31FDD-GENID-1-7-1-23-1-1-4-1-3-1-6-1-6-1.dita">Creating
+transfer types</xref> section. </p> </li>
+<li id="GUID-DB8A0DB8-2FD9-5F86-A791-960043DC8C78"><p>Inform the Backup Engine
+that all snapshots have been supplied and it is ready to do the backup. </p> <p><codeblock id="GUID-FEC18F5C-B2CE-5A97-B14C-0684F9839F7B" xml:space="preserve">iBackupClient-&gt;AllSnapshotsSuppliedL();</codeblock> </p> </li>
+<li id="GUID-6BE5428B-ADEC-514D-A3C5-43953E1911E0"><p>Request the size of
+the data to be backed up from the Backup Engine. </p> <p>The file size information
+can be sent to the PC to track the backup progress. </p> <p><codeblock id="GUID-C99CC93F-FD0F-508D-8638-F3D2C7885796" xml:space="preserve">iBackupClient-&gt;ExpectedDataSizeL(CSBGenericTransferType&amp; aGenericTransferType);</codeblock> </p> </li>
+<li id="GUID-A3711593-3A3A-5A16-AB40-5CE79582509E"><p>Get a list of public
+files to be backed up from the Backup Engine. </p> <p>The file list can be
+sent to the PC to track backup progress. </p> <p><codeblock id="GUID-07D3F3B9-152A-582B-BF9C-8336FB73A0E9" xml:space="preserve">iBackupClient-&gt;PublicFileListL(
+                                TDriveNumber aDrive,
+                                CSBGenericDataType&amp; aGenericDataType,
+                                RFileArray&amp; aFiles
+                              );</codeblock> </p> <p>The Backup Engine can
+get a list of public files, but it does not supply public files directly to
+the backup server. Device creators must copy the public files from the device
+and supply them to the host PC in their backup server implementations. </p> </li>
+<li id="GUID-22A6F0AD-F0DF-56C9-8D91-DE3B1B96271C"><p>Request the system data
+from the Backup Engine for backup. </p> <p><codeblock id="GUID-270B8E6E-4E3E-51D0-8965-2A1CBB85655D" xml:space="preserve">iBackupClient-&gt;RequestDataL(CSBGenericTransferType&amp; aGenericTransferType);</codeblock> </p> <p> Note: Refer to the <xref href="GUID-8BFC185E-91FD-5E04-A26C-728B06F31FDD-GENID-1-7-1-23-1-1-4-1-3-1-6-1-6-1.dita">Creating
+transfer types</xref> section for an example of creating the required <xref href="GUID-2A9C2278-088A-3C16-BAA1-5E97DBBC4979.dita"><apiname>CSBGenericTransferType</apiname></xref>. </p> </li>
+<li id="GUID-D449FECD-C8DE-53D9-9541-592526491E76"><p>Request active private
+data from the backup Engine for backup. </p> <p><codeblock id="GUID-0E64EE9A-2756-551C-9442-A5BCEDABC2DC" xml:space="preserve">iBackupClient-&gt;RequestDataL(CSBGenericTransferType&amp; aGenericTransferType);</codeblock> </p> </li>
+<li id="GUID-066A67CD-2E42-51E7-BCFB-6FE56B6F7613"><p>Request passive private
+data from the backup Engine for backup. </p> <p><codeblock id="GUID-5D16114E-9E66-52A2-BE25-1EDFFB245D95" xml:space="preserve">iBackupClient-&gt;RequestDataL(CSBGenericTransferType&amp; aGenericTransferType);</codeblock> </p> </li>
+<li id="GUID-6B33556D-7F5A-5F33-9695-BAE32A590796"><p>Request the snapshots
+of all data owners. The backup server can then send the snapshots to the host
+PC for backup. </p> <p>After an incremental backup, <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> must
+request snapshots from the Backup Engine. The backup server sends the snapshots
+to the host PC and the host PC saves the information. </p> <p><codeblock id="GUID-110BD5E6-A2D7-5AF5-8F36-1E8C3B065877" xml:space="preserve">iBackupClient-&gt;RequestDataL(CSBGenericTransferType&amp; aSnapShotTransferType);</codeblock> </p> </li>
+<li id="GUID-D3528970-74F0-5F64-A2D4-0342C00E585C"><p>Set the Backup Engine
+into the normal mode. </p> <p>After the data is backed up on the PC, set the
+Backup Engine to the normal mode. The subscribed data owners respond to the
+signal and resume the state before the backup. For example, resume file locks
+or a GUI application recovers to the state and view prior to the backup. </p> <p><codeblock id="GUID-648F6685-01C3-5D17-98CB-9EACB8929C0F" xml:space="preserve">iBackupClient-&gt;SetBURModeL(
+                             const TDriveList&amp; aDriveList, 
+                             TBURPartType aBURType,
+                             TBackupIncType aBackupIncType
+                           );
+</codeblock> </p> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-0BD22FDB-1A5C-56AA-A7FC-BD2271B2F928.dita"><linktext>Writing a
+Backup Engine Client (CSBEClient)</linktext></link>
+</related-links></concept>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A84BC81D-50B5-47FE-AC45-34EFFCC9238C" xml:lang="en"><title>Passing
+Stack Or Temporary Variables To An Asynchronous Service</title><shortdesc>This document describes porting problems related to asynchronous
+services.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The client-server framework used on Symbian platform assumes that a client
+thread stops running after passing an asynchronous request to a server and
+does not resume until the server has finished handling the request. In SMP
+there is no guarantee that this will happen, and consequently there is an
+impact on the way in which you pass variables between client and server threads.</p>
+<section id="GUID-BB17B13B-288E-465F-8A4B-98D08FFC23B5">       <title>Passing
+variables to an asynchronous service in an SMP safe way</title>       <p>On
+a single core system it is common for client code to assume that the client
+thread will be pre-empted by the server thread since the server thread has
+higher priority. On SMP this is not so, as the two threads may be running
+on separate cores. It is therefore quite possible for a client thread to continue
+running while an asynchronous request is being serviced and might unwind its
+own stack before the server has written to that stack in response to the request.</p><p>One
+way round this problem is to force the client thread to wait until the request
+has been serviced, but then the request is no longer asynchronous.</p><p>On
+SMP a client thread should not pass stack variables to a server thread when
+making an asynchronous request. Instead, the data should be held in class
+members of the client class, since member variables are stored on the heap.
+This principle applies to all temporary variables in a client thread.</p><p>The
+following code examples illustrate the problem.</p><p><b>Example 1:</b></p><codeblock xml:space="preserve">108 inline TInt RWlanLogicalChannel::ManagementCommand(
+109     const TDesC8&amp; aInBuffer, 
+110     TDes8* aOutBuffer, 
+111     TRequestStatus* aStatus)
+112     {
+…
+114	SOidMsgStrorage* pdu( new SOidMsgStrorage );
+116	SOutputBuffer output = { NULL, 0 }; 
+…
+141             // Execute command asynchronously
+142             DoRequest(EWlanCommand, *aStatus, pdu, 
+143                 (output.iData ? &amp;output : NULL) 
+144                 );
+…
+146	ret = KErrNone;
+...
+149         // always remember to deallocate
+150         
+151         }
+154     }
+…
+</codeblock><p><b>Example 2:</b></p><codeblock xml:space="preserve">108 inline TInt RWlanLogicalChannel::ManagementCommand(
+109     const TDesC8&amp; aInBuffer, 
+110     TDes8* aOutBuffer, 
+111     TRequestStatus* aStatus)
+112     {
+…
+147	iAsyncOidCommandMsg = *pdu;
+148	iAsyncOidCommandOutput = output;
+149       DoRequest(
+150           EWlanCommand, 
+151           *aStatus, 
+152           &amp;iAsyncOidCommandMsg, 
+153           (output.iData ? &amp;iAsyncOidCommandOutput : NULL) );
+146	ret = KErrNone;
+...
+149         // always remember to deallocate
+150         
+151         }
+154     }
+	
+…
+</codeblock><p>In the first example, the variables <parmname>pdu</parmname> and <parmname>output</parmname> are
+stack variables declared within the function <codeph>ManagementCommand()</codeph> and
+there is a danger that the stack will have been unwound before the server
+tries to write to those variables. In the second example, <parmname>pdu</parmname> and <parmname>output</parmname> have
+the same function as before but are class members of <parmname>RWlanLogicalChannel</parmname>.
+They are therefore stored on the heap and will persist until the request is
+completed regardless of the state of the stack.</p>     </section>
+</conbody><related-links>
+<link href="GUID-6B8B45E5-1594-455E-9FAE-0A7768305F95.dita"><linktext>SMP - Development
+Tips For Making Code SMP Safe</linktext></link>
+</related-links></concept>

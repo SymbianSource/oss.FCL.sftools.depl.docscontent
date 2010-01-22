@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A36B7C77-F0F7-599A-83BC-26B4A80496BD" xml:lang="en"><title>MIME
+Content Policy</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>MIME Content Policy API is used for checking the MIME types and file extensions
+against the Closed Content List (<codeph>apfmimecontentpolicy.rss</codeph>).
+It also provides the functionality for checking if a given file is a DRM envelope,
+and a function to check if a file is considered closed content for any reason. </p>
+<section><title>Description</title> <p>MIME Content Policy utility
+uses File Server to access the resource files and Application Architecture
+Server (apparc) for recognizing and checking the MIME type using Symbian recognizers. </p> <p>This
+utility uses Content Access Framework to check whether a file is forward locked,
+superdistributable or a DRM envelope. </p> <p>All functionality can be accessed
+via a <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>CApfMimeContentPolicy</apiname></xref> instance. </p> <p>The
+functionality of this utility can be accessed through the <codeph>apfmimecontentpolicy.h</codeph> interface
+header. The binaries are linked to <codeph>Apfile.DLL</codeph>. </p> <p>The
+diagram below illustrates the key relationships between the MIME Content Policy
+utility and the other subsystems: </p> <fig id="GUID-C81CE8AB-E02D-5D7D-931F-9FC5D3A26F3D">
+<title>              Class diagram of the MIME Content Policy            </title>
+<image href="GUID-E08D9F14-F50A-56C7-9D95-9306E540A02C_d0e147058_href.png" placement="inline"/>
+</fig> <table id="GUID-AFE0184C-15E9-508D-A98A-988F3BAD5E3B">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry><p><b>Class</b></p></entry>
+<entry><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>CApfMimeContentPolicy</apiname></xref>  </p> </entry>
+<entry><p>An interface class for the MIME Content Policy component. All the
+calls are routed to the <codeph>CApfMimeContentPolicyImpl</codeph> class without
+further processing here. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>CApfMimeContentPolicyImpl</codeph>  </p> </entry>
+<entry><p>Implements the MIME Content Policy functionality. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>CContent</codeph>  </p> </entry>
+<entry><p>A Symbian class for browsing the content objects contained within
+a single file. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>RResourceFile</apiname></xref>  </p> </entry>
+<entry><p>A Symbian class for accessing the resource file. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>RFs</apiname></xref>  </p> </entry>
+<entry><p>A Symbian class for a file system session. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>RApaLsSession</apiname></xref>  </p> </entry>
+<entry><p>A Symbian class for an Application Architecture Server session.
+Needed for recognizing the MIME type of a file. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p><b>Usage</b> </p> <p>A <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>CApfMimeContentPolicy</apiname></xref> instance
+is created using one of its exported factory methods, <codeph>NewL()</codeph> or <codeph>NewLC()</codeph>.
+The exported interface can then be used in the usual way via the created instance.
+After the usage, the instance must be cleaned up using either <codeph>PopAndDestroy()</codeph> or <codeph>delete</codeph>. </p> <p>This
+utility uses the common Symbian platform error handling mechanisms and has
+no specific errors defined. </p> </section>
+<section><title>Example</title> <p>An example of code explaining the usage
+of MIME Content Policy API is given below: </p> <codeblock id="GUID-47E582CB-B4CF-5EC7-A328-3E22E864167A" xml:space="preserve">#include &lt;apfmimecontentpolicy.h&gt;
+#include &lt;apgcli.h&gt; // RApaLsSession
+
+RApaLsSession   aLs; 
+TFileName fileName = &lt;name of the file to be checked&gt;
+TUid            uid;
+TDataType       recData;
+
+CApfMimeContentPolicy *ccp = CApfMimeContentPolicy::NewLC();
+
+if (ccp-&gt;IsDRMEnvelope( fileName ))    
+    {
+    // Whatever needs to be done if file is DRM envelope. 
+    }
+
+// Check file extension.    
+TParse parser;
+parser.Set(fileName, NULL, NULL);
+if (ccp-&gt;IsClosedExtension(parser.Ext()))
+    {
+    // Do what needs to be done if closed content.
+    }
+
+aLs.Connect(); // Open session with Application Architecture Server
+aLs.AppForDocument(fileName, uid, recData);  // Get MIME type for file.
+
+// Check if this MIME type is closed.
+if (ccp-&gt;IsClosedType(recData.Des())   
+    {  
+    // Whatever needs to be done if type is closed.
+    }
+
+// Check if file is closed for any reason:
+if (ccp-&gt;IsClosedFileL( fileName );
+    {
+    // Do whatever has to be done if file is closed.    
+    }
+
+// Don't forget to clean up.
+CleanupStack::PopAndDestroy();  // ccp
+</codeblock> <p>For more information on individual methods, see the reference
+API for <xref href="GUID-9C1A6E56-5017-355C-B246-2B9CA7DA0D1B.dita"><apiname>CApfMimeContentPolicy</apiname></xref>. </p> </section>
+</conbody></concept>

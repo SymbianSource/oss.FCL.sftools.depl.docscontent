@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-B756AB28-A0EA-5AA3-86E3-CCFFCD642F08"><title>What are links</title><shortdesc>This topic describes the structure of links. A link is a container and an element. A link is an item that can be stored in the Comms Database. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>A link is a container. A link refers to another record. A link can be included in a record. </p> <p>A link is represented by the templated class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBRecordLink&lt;T&gt;</apiname></xref>. The template parameter defines the type of record to which the link refers. </p> <fig id="GUID-0DFAC1B1-F79B-5C11-8EF3-13E70DBC5984"><image href="GUID-0FF61B9C-8B0D-5369-B0DA-29AA169B4308_d0e91349_href.png" placement="inline"/></fig> <p>A link is a public data member of a class. The class defines the structure of record. This record is the 'parent' record of the linked record. For example, Symbian OS defines the class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CCDIAPRecord</apiname></xref> that represents an Internet Access Point (IAP) record. A set of IAP records form an IAP table. The public data members of this class are the fields and links that make the record. The following code shows part of the class definition. Some parts are omitted - this is not the complete class definition. </p> <codeblock id="GUID-AF4A223F-5A3F-53ED-B797-AB75BB80E174" xml:space="preserve">class CCDIAPRecord : public CCDRecordBase
+    {
+    public:
+        CMDBField&lt;TDesC&gt;                        iServiceType;
+        CMDBRecordLink&lt;CCDServiceRecordBase&gt;    iService;
+        CMDBField&lt;TDesC&gt;                        iBearerType;
+        CMDBRecordLink&lt;CCDBearerRecordBase&gt;     iBearer;
+        CMDBRecordLink&lt;CCDNetworkRecord&gt;        iNetwork;
+        CMDBField&lt;TUint32&gt;                      iNetworkWeighting;
+        CMDBRecordLink&lt;CCDLocationRecord&gt;       iLocation;
+        ...
+    }
+ </codeblock> <p>A <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBRecordLink&lt;T&gt;</apiname></xref> object contains an integer. The integer is the <xref href="GUID-6DAF85AD-E412-5823-81C2-FC1755A90A84.dita#GUID-6DAF85AD-E412-5823-81C2-FC1755A90A84/GUID-4DDD4947-D379-5B68-8DC0-B67B074FA852">element Id</xref> of the linked record in the database. </p> <p>If you have a parent record in memory, you call the <codeph>LoadL()</codeph> function on the link object <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBRecordLink&lt;T&gt;</apiname></xref> to get the linked record into memory. You can access the linked record through the <codeph>iLinkedRecord</codeph> pointer. This pointer is a member of the <codeph>CMDBRecordLinkBase</codeph> class, but you can access this data member through the <codeph>CMDBRecordLink&lt;T&gt;</codeph> object. </p> <p>There are two cases: </p> <ul><li id="GUID-EB395834-73F0-592B-ADB0-0DB6499B534C"><p>If you know what type of record the link refers to you cast the pointer to the correct type. For example: </p> <codeblock id="GUID-A72D6DD6-31F4-5CB9-8688-810E33250DC7" xml:space="preserve">CCDDialOutISPRecord* ptrIspRecord = static_cast&lt;CCDDialOutISPRecord*&gt;(ptrSingleIAPRecord-&gt;iService.iLinkedRecord);</codeblock> <p>where <codeph>ptrSingleIAPRecord</codeph> is of type <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CCDIAPRecord</apiname></xref>. </p> </li> <li id="GUID-A1E77CBE-3E79-55A1-9FA2-3CFF55C9FADB"><p>If you do not know what type of record the link refers to you cast the pointer to the base class for records. You use <codeph>GetFieldByNameL()</codeph> or <codeph>GetFieldByIdLaccess()</codeph> to access the data in the linked record. For example: </p> <codeblock id="GUID-684703C6-0754-5F69-91E1-6ED1202A0895" xml:space="preserve">CCDServiceRecordBase* ptrServiceRecord = static_cast&lt;CCDServiceRecordBase*&gt;(ptrSingleIAPRecord-&gt;iService.iLinkedRecord);
+CMDBField&lt;TUint32&gt;* field; 
+
+// Find a field by its Id. In this code fragment, the field we are looking for 
+// is the bearer speed field.
+field = (CMDBField&lt;TUint32&gt;*)ptrServiceRecord-&gt;GetFieldByIdL(KCDTIdBearerSpeed);</codeblock> </li> </ul> </conbody><related-links><link href="GUID-9D56FF77-A20B-5BFB-8DE6-19CC4535DFED.dita"><linktext>Following
+                a link to another table and finding a field by Id and by name: Tutorial</linktext> </link> </related-links></concept>

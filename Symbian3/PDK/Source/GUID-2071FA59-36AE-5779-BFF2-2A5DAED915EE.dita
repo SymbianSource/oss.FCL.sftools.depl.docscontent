@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2071FA59-36AE-5779-BFF2-2A5DAED915EE" xml:lang="en"><title>Considerations
+for Device Creators</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Content Access Framework has several configurable aspects that can be altered
+at build-time. This section describes the considerations that must be understood
+by the device creators while using CAF. </p>
+<section><title>F32 Agent user interface</title> <p>The F32 Agent by default
+has no user interface. Its interface is implemented by a separate <filepath>F32AGENTUI.DLL</filepath>.
+This DLL can be replaced with a DLL that actually does display information
+on the screen. </p> <p>See also: <xref href="GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601.dita#GUID-0F5CE9B5-E674-3962-8376-CFB1ECB2F601/GUID-7F5A58AF-A916-3B86-A2C3-609C5CD41DDA"><apiname>ContentAccess::TF32AgentUiFactory</apiname></xref></p> </section>
+<section><title>CAF recognizer MIME types</title> <p>The content types that
+CAF is allowed to map to <codeph>x-caf-contentMimeType</codeph> are given
+in the <filepath>RECCAF.DLL</filepath> configuration file. This file is located
+in the Apparc server's private directory as <filepath>\private\10003a3f\RecCaf\RecCafMimeTypes.txt</filepath>. </p> <p> <b> Important:</b> Device
+creators must check to be sure all required MIME types are included in the
+file. </p> </section>
+<section><title>Allowing CAF to load non-ROM based agents</title> <p>The Content
+Access Framework's default resolution behaviour on target devices results
+in Content Access Agents (CAAs) only being loaded from the ROM drive. This
+behaviour increases the security and reliability of the Content Access Framework
+and is in addition to the Platform Security capabilities system. </p> <p>If
+a device creator wants to produce a more open device relying only on capabilities
+to allow post production agents to be installed this default resolution behaviour
+can be overridden. When it is overridden CAF loads all CAAs visible to the
+ECom service regardless of the drive that contains them. To do this the macro <codeph>CAF_LOAD_POST_PRODUCTION_AGENTS</codeph> needs
+to be defined at ROM build. In the emulator platform the default resolution
+behaviour is as if this macro is always defined. </p> <p>The definition of
+this macro patches a data variable in the <filepath>caf.dll</filepath> at
+ROM build-time. </p> </section>
+<section><title>Omitting agents from ROMs</title> <p>It is possible for device
+integrators to choose whether to support both protected and unprotected content
+or just unprotected content with the definition of the <codeph>SYMBIAN_EXCLUDE_DRM_AGENT_PLUGINS</codeph> macro
+at the ROM build stage. </p> <p>The device creators' UI platforms that wish
+to support this feature need to include this macro in the obey files of the
+Content Access Agents that are integrated into their platform. For example: </p> <codeblock id="GUID-462FA5C5-7FB3-5253-B005-2C455470C2DF" xml:space="preserve">##ifndef __OMA_CAA_IBY__ 
+
+##define __OMA_CAA_IBY__
+
+##ifndef SYMBIAN_EXCLUDE_DRM_AGENT_PLUGINS
+
+ECOM_PLUGIN(omacaa_plugin.dll,10111213.rsc)
+file=ABI_DIR\\BUILD_DIR\\omacaa_server.exe    omacaa_server.exe
+data=DATAZ_\\private\\10111210\\settings.ini   \\private\\10111210\\settings.ini
+
+##endif
+
+##endif
+</codeblock><p>For more details of this option, see the files <codeph>RemovableFeatures.iby</codeph> and <codeph>feature.iby</codeph> in<filepath> \\epoc32\\rom\\include</filepath></p> </section>
+</conbody></concept>

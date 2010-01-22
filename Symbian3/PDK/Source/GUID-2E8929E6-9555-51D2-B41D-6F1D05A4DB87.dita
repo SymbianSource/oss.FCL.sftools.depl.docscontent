@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2E8929E6-9555-51D2-B41D-6F1D05A4DB87" xml:lang="en"><title>Render
+Stages Overview</title><shortdesc>Render stages are ROM-based plug-ins to the Window Server render
+stage framework. They can be chained to form a rendering pipeline, which takes
+the draw operations that are produced by the Window Server and ultimately
+passes them to the UI surface. Render stages can selectively filter, modify,
+or redirect the draw operation stream, as required—for example, to perform
+transition effects (TFX). </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<p>Render stages therefore provide a mechanism for device creators to customize
+the Window Server rendering pipeline without modifying the Window Server code.
+In addition, in ScreenPlay the render stages are able to monitor and modify
+display control attributes, and scale and position the application extent
+within the full UI area. </p>
+<p>Instead of using a concrete rendering API, the Window Server uses abstract
+APIs, for which the render stage plug-ins provide the concrete implementations. </p>
+<section id="GUID-B431C15F-B567-5A6F-8E3F-1A45CE2FACDE"><title>Architecture</title> <p>The
+following diagram shows where render stages fit into the Window Server architecture. </p> <fig id="GUID-B1321BD9-2EF4-5BB3-8226-880C460526C1">
+<title>              Window Server architecture showing render stages    
+       </title>
+<image href="GUID-25A63716-D637-589D-BAB7-B962455F2DC6_d0e218778_href.png" placement="inline"/>
+</fig> <p>Symbian provides default render stage plug-ins, which are of production
+quality and reproduce the rendering behavior in Symbian OS v9.4. In ScreenPlay,
+device creators can replace the render stage plug-ins with their own bespoke
+plug-ins. In the non-ScreenPlay variant, the interfaces are prototypes and
+the render stage plug-ins should not be replaced in a real device. Note that
+different APIs are used in ScreenPlay from the non-ScreenPlay variant. This
+section documents the ScreenPlay APIs. </p> </section>
+<section id="GUID-E225354D-1EFC-513E-843E-42528C3FCCCF"><title>Typical use
+case</title> <p>The primary use case is that a device creator adds a render
+stage plug-in into the render stage chain in order to create transition effects
+(TFX). For example, the device creator could add a TFX engine render stage
+as shown in the following diagram. This could be used to slide in menus and
+other elements of the user interface. </p> <p>The TFX render stage might redirect
+relevant draw operations onto a TFX surface. Then later the TFX render stage
+could inject those captured drawing operations into the displayed scene over
+a sequence of frames, in order to create the desired effect. </p> <fig id="GUID-75F4A91E-D764-5BF4-8B21-74689EB43E7A">
+<title>              A typical render stage configuration, showing some of
+the key              interfaces            </title>
+<image href="GUID-0F2AE495-F6D8-5351-BD83-76D579564C2E_d0e218800_href.png" placement="inline"/>
+</fig> <p>The render stages are stacked on top of each other—effectively they
+are chained into a pipeline, in which the Window Server "talks" only to the
+first render stage. This render stage in turn talks only to the second render
+stage. Notice that the second render stage uses a concrete rendering API to
+control the UI surface. This is in contrast to the first render stage, which
+uses the abstract <xref href="GUID-44844998-D8BF-3F2F-9BA2-FB9BB497F8C0.dita"><apiname>MWsGraphicsContext</apiname></xref> API, which acts as
+a proxy for the concrete API. </p> <p>Let us look at how it works in sequence.
+Redraw stores hold GDI draw operations and then play them back. The abstract
+interface for GDI draw operations is <xref href="GUID-44844998-D8BF-3F2F-9BA2-FB9BB497F8C0.dita"><apiname>MWsGraphicsContext</apiname></xref> and
+the redraw stores pass the draw operations on to the first render stage in
+the chain using <xref href="GUID-44844998-D8BF-3F2F-9BA2-FB9BB497F8C0.dita"><apiname>MWsGraphicsContext</apiname></xref> calls. The first render
+stage in the chain processes these and passes a possibly modified stream of
+GDI operations on to the second render stage (which is the final render stage
+in this example). This final render stage converts the GDI operations into
+concrete rendering calls (such as BitGDI or OpenVG) for rendering into the
+UI surface. However, alternatives are possible. For example, redraw stores
+can also include <codeph>DrawWsGraphic()</codeph> calls, which when played
+back result in the execution of Content Rendering Plug-ins (CRPs). </p> <p>Window
+Server clients can introduce <xref href="GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7.dita">external
+surfaces</xref> into the scene using <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-4EBFFA14-418A-3A2A-B147-39BFC96CE45F"><apiname>RWindowBase::SetBackgroundSurface()</apiname></xref>.
+These are tracked through the window tree using the abstract interface for
+the composition context. The final render stage converts these abstract interface
+calls into calls to the <xref href="GUID-63CB6C7E-44EC-5D0B-A37D-FE78F7D76592.dita">composition
+interface</xref>. </p> <p>Note that render stage chains are on a per-screen
+basis. If there are multiple screens, there are multiple render stage chains.
+The chains can use the same render stage classes, but they use different object
+instances of those classes. </p> </section>
+<section><title>Implementing the interfaces</title> <p>After it constructs
+the render stage chain, the Window Server requests various interfaces from
+the top render stage using the Window Server's object provider mechanism.
+Some of the interfaces are mandatory, some are optional. </p> <p>Usually each
+render stage in the chain implements the interfaces and passes the calls through
+to the next render stage. For example, a TFX render stage might redirect some
+GDI draw operations and play them back later, so that what passes in at the
+top is not the same as what passes out at the bottom. In this case, the render
+stage provides its own implementation of the interface, although that implementation
+generally calls the implementation provided by the next stage. </p> <p>However,
+sometimes a render stage does not need to make any modification to what passes
+through the interface. Then the render stage does not provide an implementation—it
+simply passes the draw operations through to the next render stage. For example,
+generally only the final render stage needs to implement the <xref href="GUID-B1E048A2-D5E8-3E7F-A6AC-6B8F3ED3067C.dita"><apiname>MWsScreenDevice</apiname></xref> interface,
+which provides information about the screen size and orientation. </p> <p>The
+following diagram shows a concrete render stage implementing three of the
+main <xref href="GUID-11BC2AAA-FDB8-5600-8488-F27A9552E336.dita">render stage interfaces</xref>.
+Although this is the usual practice, it is not mandatory. The concrete render
+stage could instead delegate the implementation of some of the interfaces
+to helper classes. </p> <fig id="GUID-84104CD3-C78C-50C7-9155-50596B3EE3EF">
+<title>              A concrete render stage class implementing key render
+stage              interfaces            </title>
+<image href="GUID-973CF8E7-18C8-5E24-BC7A-97148FAEF3E4_d0e218869_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-5D81D1A7-26A0-5461-9AC5-3EF359D283CB"><title>Advanced use
+case</title> <p>Render stages can optionally create their own <b>visuals tree</b> to
+mirror the structure of the Window Server's window tree. The render stage
+can then temporarily change the attributes of nodes in the tree and introduce
+new nodes that the Window Server does not know about. This enables the render
+stage chain to introduce sophisticated transition effects. </p> <p>To create
+a visuals tree, the render stage must implement the <xref href="GUID-028CC583-AC32-3D60-943A-A80F84E05DD2.dita"><apiname>MWsWindowTreeObserver</apiname></xref> interface.
+The Window Server uses this to communicate the structure of the window tree
+to the render stage, so that the render stage can build up its replica tree. </p> <p>Similarly
+render stages can optionally capture the drawing for each window from the
+Window Server redraw stores and build up their own <b>visuals stores</b> to
+store the drawing for the nodes in the visuals tree. To do this, the render
+stage must implement the <xref href="GUID-21240143-D578-3114-9836-F765F70A987C.dita"><apiname>MWsDrawAnnotationObserver</apiname></xref>. The
+Window Server uses this to communicate which node in the tree each batch of
+drawing operations relates to. </p> <fig id="GUID-97D46D41-589A-504D-B7C0-9092E6E5DF17">
+<title>              Render stage that has a visuals tree and visual stores
+           </title>
+<image href="GUID-3248A2B1-54D0-56E3-B770-DC595B01EA04_d0e218905_href.png" placement="inline"/>
+</fig> <p>Render stages that implement their own visuals stores typically
+use the Window Server's <b>change-tracking</b> rendering mode. This is an
+optimization of the <xref href="GUID-22093E74-EFE7-5642-93DE-1573E18F7C08.dita">Window
+Server rendering loop</xref> for render stages that build visuals stores.
+The render stage is then responsible for playing back the drawing operations
+in the visuals store whenever the screen is to be updated. Typically this
+is done using a painter's-style algorithm. </p> <p>By implementing a visuals
+tree and visuals stores, render stages can perform more complex TFX than is
+possible otherwise. However, implementing a visuals tree and visuals stores
+is not necessary for some TFX, such as sliding windows onto the screen. </p> <p> <i>Note</i>:
+The painter's algorithm (sometimes called priority fill) is a common solution
+in 3D computer graphics. The algorithm mimics the painting technique of painting
+the distant parts of a scene before parts that are in the foreground, even
+though this may result in covering up some of the distant areas. The algorithm
+sorts the polygons in a scene by their depth and then draws them in order
+from the back to the front. </p> </section>
+<section><title>Configuring the render stage chain</title> <p>Parameters in
+the <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini file</xref> control
+the configuration of the render stages as follows: </p> <ul>
+<li id="GUID-D7209CD8-A745-557E-B472-ECB188EF4A09"><p>The <codeph>PLUGINS</codeph> parameter
+controls which render stages are loaded when the Window Server starts up.
+In addition, a separate section specifies details (such as ID and type) for
+each plug-in. </p> </li>
+<li id="GUID-3F59881C-911B-5CD0-9704-78773F7B639B"><p>The <codeph>RENDERSTAGES</codeph> parameter
+configures the render stage chain and the <codeph>CHANGETRACKING</codeph> parameter
+selects change-tracking rendering mode (instead of the default dirty-rectangle
+tracking mode). You can specify these separately for each screen, so that
+different effects can be used for each screen. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-3A2785D4-6185-50C3-8D7E-5D94CD2B7C98.dita"><linktext>Render Stages</linktext>
+</link>
+<link href="GUID-98EA7E2B-4AC6-55AE-985F-B5EE1E0A79E7.dita"><linktext>Creating
+a Render Stage Plug-in</linktext></link>
+<link href="GUID-22093E74-EFE7-5642-93DE-1573E18F7C08.dita"><linktext>Window Server
+Rendering Loop</linktext></link>
+</related-links></concept>

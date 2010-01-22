@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F5541D28-A6BA-5934-980A-D081DF1A2875" xml:lang="en"><title>Device
+Driver Initialisation Sequence</title><shortdesc>This topic describes the sequence of function calls that occur
+when a device driver is initialised. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The initialisation typically has three main stages: </p>
+<ol id="GUID-06539049-D7EB-54F0-9823-0655D0B18F44">
+<li id="GUID-909B51D7-43D5-5F1B-B61A-EC94F6BEB9D1"><p>The device driver DLLs
+are loaded, using <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-AE0D51B7-7ADC-3C9F-ACAA-8F6D9EA0AEFA"><apiname>User::LoadLogicalDevice()</apiname></xref> and <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-A0F4BF4A-9C58-3E5E-88E1-6D98597DDA18"><apiname>User::LoadPhysicalDevice()</apiname></xref>.
+This loads the code into RAM, if necessary, and creates the <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref> and <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> derived
+objects and places them into their respective kernel side object containers.
+This step only needs to be done once, not every time the driver is used. Note
+that not all drivers need a PDD. </p> </li>
+<li id="GUID-1F38758E-3F09-50FF-82DB-D04647E0E041"><p>The client opens a channel
+to the driver. This is done by calling the <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref> user
+side API, passing in the name of the logical device (the name of the LDD factory
+object, not the filename of the LDD DLL), the unit number, an optional physical
+device name (the name of the PDD factory object) and an optional extra information
+block. This call triggers the following steps kernel side: </p> <ol id="GUID-FA8359C2-D0E3-5274-A3D0-DF50CF65A0E3">
+<li id="GUID-5BACC57D-C056-5ECA-86B0-90DC8A3E2BBB"><p>The name of the logical
+device is used to locate the LDD factory object, which is the <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref> object. </p> </li>
+<li id="GUID-FC21F5BF-34BE-5D9B-A697-A377B3FD9080"><p>The <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita#GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB/GUID-8BA973ED-7B55-357C-BF58-A88572921F58"><apiname>DLogicalDevice::Create()</apiname></xref> function
+is called to create a <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> derived object.
+This is the logical channel, through which all client interaction with the
+driver will occur. The pointer to the <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref> object
+is put into the logical channel <codeph>iDevice</codeph> member for later
+use. </p> </li>
+<li id="GUID-9A4D2014-C2F8-5CC5-A680-269D94317839"><p>If the logical device
+requires an accompanying physical device, as indicated by the <xref href="GUID-DD3574F6-5EA7-3E2E-B906-E1E320DE10CD.dita"><apiname>KDeviceAllowPhysicalDevice</apiname></xref> flag
+in the <codeph>iParseMask</codeph> member of <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref>),
+then a search is made for a matching PDD. If no PDD is required, skip to step
+6. </p> </li>
+<li id="GUID-FD15D242-483C-51C7-BF09-5F654983D8CC"><p>If a physical device
+name name is supplied in the user side call to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref>,
+then the device driver framework locates the corresponding <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> object,
+and calls <codeph>Validate()</codeph> on it, passing the unit number and the
+optional extra information block. </p> <p>If no physical device name is provided,
+a search is made for all <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> objects with names
+of the form <codeph>x.y</codeph> where <codeph>x</codeph> is the LDD name;
+for each such object, <codeph>Validate()</codeph> is called, passing the unit
+number and optional extra information block; the first one which returns <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> is
+taken as the matching PDD. The pointer to the matching <codeph>DPhysicalDevice</codeph> is
+placed in the logical channel's <codeph>iPhysicalDevice</codeph> member for
+later use. Note that the logical channel, a <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> derived
+object does exist at this point. </p> </li>
+<li id="GUID-B0AADFF2-9961-5B09-AECE-DE2EA8AFAA8A"><p> <codeph>Create()</codeph> is
+called on the matching PDD factory object (the <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> object),
+again passing the unit number and optional extra information block. This call
+creates a <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> -derived object, the physical channel.
+Unlike the logical channel, which must be derived from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> and
+must conform to a globally defined interface, the physical channel has an
+interface which is determined only by the LDD with which it is used. The physical
+channel pointer is placed in the logical channel <codeph>iPdd</codeph> field
+for later use. </p> </li>
+<li id="GUID-3F9E9193-4AFC-5352-8A5C-68A8B9135A6B"><p> <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-F519F46D-075F-322B-8DE6-7FFF07F1DEA1"><apiname>DLogicalChannelBase::DoCreate()</apiname></xref> is
+called, again passing the unit number and optional extra information block.
+This function should allocate any additional resources required and prepare
+the hardware for use. </p> </li>
+<li id="GUID-90029BFB-9AC2-5FC6-B140-B41500E69331"><p>The new logical channel
+is added to the appropriate kernel-side object container and a handle is created
+for the user side client. </p> </li>
+</ol> </li>
+<li id="GUID-AED818E0-C90C-57CD-9B8A-444708B31B65"><p>Once the logical channel
+has been created, the client can proceed to the third stage, which involves
+actually using the channel to perform the required operations with the hardware.
+A typical device driver will derive a class from <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita"><apiname>RBusLogicalChannel</apiname></xref> and
+define various functions on that derived class. </p> </li>
+</ol>
+<p>This is a visual representation of the order of object creation. The order
+of calls is shown going vertically down; objects are left to right. </p>
+<p>It assumes that the required LDD and PDD(s) have already been loaded and
+the LDD and PDD factory objects have been created. </p>
+<fig id="GUID-1E9779D0-DDBF-556D-8929-2100035F0A26">
+<title>           Device driver initialisation sequence          </title>
+<image href="GUID-B7253D1F-02B7-59C2-968C-8EE42994A561_d0e269984_href.png" placement="inline"/>
+</fig>
+</conbody></concept>

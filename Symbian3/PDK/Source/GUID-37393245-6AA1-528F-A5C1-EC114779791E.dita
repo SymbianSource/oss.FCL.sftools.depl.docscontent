@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-37393245-6AA1-528F-A5C1-EC114779791E" xml:lang="en"><title>Screen
+Driver Graphics Acceleration Support</title><shortdesc>This topic introduces the 2D graphics hardware acceleration support
+provided by the Screen Driver component. This is generally used only in the
+non-ScreenPlay variant, because ScreenPlay provides better alternatives for
+implementing support for graphics acceleration hardware. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">Non-ScreenPlay</xref>. <b>Target
+audience</b>: Device creators </p>
+<p>2D graphics acceleration enables improved performance for multimedia applications.
+The Screen Driver component provides an API for hardware acceleration. This
+is defined in <filepath>graphicsaccelerator.h</filepath> and is abstract.
+The abstract base class for all accelerators is <xref href="GUID-26AD7E66-3C68-308D-9612-98438622FAC9.dita"><apiname>CGraphicsAccelerator</apiname></xref>.
+The API also defines a set of common 2D graphics operations that are capable
+of being accelerated in hardware (by a separate graphics processor), or in
+software (by a DLL that optimizes the algorithms for particular devices and
+display modes). The API may or may not be implemented by device creators. </p>
+<p>Note that graphics acceleration, if implemented in the Screen Driver component,
+is designed to be used transparently within <xref href="GUID-EAAD1719-C02C-5705-A5C3-993E36441BE6.dita">BitGDI</xref>,
+not called explicitly by clients. </p>
+<section><title>Architectural relationships</title> <p>The Screen Driver API
+for 2D graphics hardware acceleration is closely related to the following: </p> <ul>
+<li id="GUID-6BCB5C4E-1D79-5E40-9E5D-0AE96D9E2524"><p><xref href="GUID-B6D4AEE9-5C17-51D9-BBDE-7CCB5218279D.dita">GDI</xref>.
+The graphics acceleration support that is provided by the Screen Driver component
+is integrated into the underlying implementation of the GDI API. Applications
+do not need to be aware of whether or not a particular graphics operation
+is accelerated. If an accelerated implementation of a function is available,
+it is used in preference to the generic algorithm. </p> </li>
+<li id="GUID-A670E135-AAF3-55DB-A2F6-DF519B71A434"><p><xref href="GUID-EAAD1719-C02C-5705-A5C3-993E36441BE6.dita">BitGDI</xref>.
+Software graphics accelerators can draw to standard bitmaps (the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> class),
+as well as hardware bitmaps (represented by the <xref href="GUID-DE8E21D9-FF93-358D-A479-F84435DBECAD.dita"><apiname>RHardwareBitmap</apiname></xref> class).
+However, hardware graphics accelerators can only draw to hardware bitmaps. </p> </li>
+</ul> </section>
+<section><title>Description</title> <p>Each class derived from <xref href="GUID-B741084F-D353-3298-9F97-2F93DF5B2CE3.dita"><apiname>TGraphicsOperation</apiname></xref> represents
+a different accelerated graphics operation. The subset of these operations
+supported by an accelerator is hardware-dependent and varies from device to
+device. The graphics accelerator's capabilities can be queried before it is
+used. The <xref href="GUID-EAA3593A-95E4-33BC-A43D-AC1E9E354245.dita"><apiname>TGraphicsAcceleratorCaps</apiname></xref> class gives some of
+the capabilities, for instance whether mask bitmaps must be in a certain display
+mode. To find out whether a particular operation is supported, an attempt
+should be made to execute it. Unsupported functions should simply return <codeph>KErrNotSupported</codeph>.
+The user of the API does not need to be aware of whether an operation is accelerated
+in hardware or in software—the API is the same for both. </p> <p>The types
+of accelerated operations that are enabled by this API include: </p> <ul>
+<li id="GUID-BB4A305D-5EA2-56B9-8F9E-78F6A8669CAA"><p>filling a rectangle
+with a color or pattern; fading and inverting colors </p> </li>
+<li id="GUID-6A4EDF8C-6C0F-52A8-98F0-F26083A4A2F1"><p>a variety of bitblt
+operations, including using a mask, transparency or alpha blending. These
+operations may involve scaling the bitmap </p> </li>
+<li id="GUID-4F5086F2-1886-5E1D-87F1-30106EC7C82F"><p>filling a polygon with
+a color or a pattern. </p> </li>
+</ul> <p>All of these operations may optionally take place within a clipping
+region. </p> <p>Hardware graphics acceleration can only draw to hardware bitmaps.
+These are bitmaps that are stored in a static, contiguous area of physical
+memory that is accessible to both the CPU and a separate graphics processor.
+The interface to a hardware bitmap is the class <xref href="GUID-DE8E21D9-FF93-358D-A479-F84435DBECAD.dita"><apiname>RHardwareBitmap</apiname></xref>.
+Software graphics acceleration can write to both <codeph>CFbsBitmap</codeph> s
+and <codeph>RHardwareBitmap</codeph> s. </p> </section>
+<section><title>Limitations</title> <p>The Screen Driver provides a synchronous
+API for the implementation of hardware acceleration. This means that although
+each operation may execute faster than within a software implementation, the
+calling thread on the CPU must wait for each GPU operation to complete. This
+can cause significant delay within the context of the Window Server. In addition,
+graphics acceleration hardware is generally designed to accept a pipeline
+of instructions rather than the individual instructions provided by the Screen
+Driver. The Screen Driver's one-by-one approach causes greater latency than
+could be achieved using a pipeline approach. These limitations are part of
+the rationale for the introduction of the <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay
+architecture</xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita"><linktext>The Non-ScreenPlay
+Architecture</linktext></link>
+<link href="GUID-9E7D563E-9FFB-5FA9-8944-9CBAC281FDD2.dita"><linktext>Screen Driver
+Component</linktext></link>
+<link href="GUID-E9FF94D2-AFFD-54A4-A6C2-00929BC70DB0.dita"><linktext>BitGDI Concepts</linktext>
+</link>
+<link href="GUID-0AB9B221-38AE-576E-AC5A-C4C106E3D93B.dita"><linktext>GDI Overview</linktext>
+</link>
+</related-links></concept>

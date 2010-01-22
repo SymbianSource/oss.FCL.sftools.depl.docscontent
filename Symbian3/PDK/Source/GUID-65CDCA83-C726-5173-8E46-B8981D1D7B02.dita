@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02" xml:lang="en"><title>Battery
+Monitor Implementation Tutorial</title><shortdesc>A base port can implement code to monitor the battery of the phone
+and to provide notifications when the battery power is low.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> The battery monitor code is implemented in the power controller kernel
+extension. </p>
+<p>Note: to implement battery monitor code, the battery monitor hardware must
+be accessible to the Application CPU of the phone. </p>
+<p>Typically, your battery monitor class would derive from the <codeph>DBatteryMonitor</codeph> class,
+defined as: </p>
+<codeblock id="GUID-D0249D2C-933F-584F-9596-126CCC4361AC" xml:space="preserve">class DBatteryMonitor
+    {
+public:
+    IMPORT_C DBatteryMonitor();
+    IMPORT_C void Register();
+public:
+    virtual TSupplyStatus MachinePowerStatus() = 0;
+    virtual void SystemTimeChanged(TInt anOldTime, TInt aNewTime) = 0;
+    };</codeblock>
+<p>Symbian platform considers that batteries can be in one of 4 possible logical
+states, defined by the <codeph>TSupplyStatus</codeph> enum. It is up to the
+implementor of the battery monitor component to map these logical states to
+points on the main battery discharge curve. </p>
+<p>There are two pure virtual functions to be implemented: </p>
+<ul>
+<li id="GUID-714DB74E-2405-54B5-B129-B6D2A3C4D5B5"><p> <xref href="GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02.dita#GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02/GUID-3471CC3E-0903-54F0-8EB2-5201AB139731">DBatteryMonitor::MachinePowerStatus()</xref> </p> </li>
+<li id="GUID-4296048D-82EC-5513-A089-E723D390EF5E"><p> <xref href="GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02.dita#GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02/GUID-1A5D9A50-1A28-59B5-862B-3DA5EAAAC26F">DBatteryMonitor::SystemTimeChanged()</xref> </p> </li>
+</ul>
+<p>We also suggest that the battery monitor component offer a public function
+prototyped as: </p>
+<codeblock id="GUID-EFB607B3-828C-54C3-A365-662FD6A74701" xml:space="preserve">void SupplyInfo(TSupplyInfoV1&amp; si);</codeblock>
+<p>to supply information about the state of the main battery and the backup
+battery (if there is one), or external power to user side components that
+may require it (e.g. a user-side power monitor component that is used to track
+the state of batteries and initiate an orderly shutdown if it reaches a critically
+low level), and is usually called by the <codeph>EHalGroupPower</codeph> handler
+for <codeph>EPowerHalSupplyInfo</codeph> in response to calling <codeph>HAL::Get()</codeph> with <codeph>EPowerGood</codeph>, <codeph>EPowerBatteryStatus</codeph>, <codeph>EPowerBackupStatus</codeph>, and <codeph>EPowerExternal</codeph>.
+Such a function would need to fill in a subset of the fields defined by <codeph>TSupplyInfoV1</codeph>. </p>
+<section id="GUID-3471CC3E-0903-54F0-8EB2-5201AB139731"><title>DBatteryMonitor::MachinePowerStatus()</title> <codeblock id="GUID-32E4B2FF-F638-59DC-98B9-CBFE15E1FCEC" xml:space="preserve">virtual TSupplyStatus MachinePowerStatus() = 0;</codeblock> <p>This
+should read and return the logical state of the main battery or, if external
+power is connected, it should return <codeph>EGood</codeph>. </p> <p><b>When
+is it called?</b> </p> <p>The function is called by peripheral drivers via
+a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-84835157-E5B9-3834-8FFC-CD482A946F4A"><apiname>Kern::MachinePowerStatus()</apiname></xref> before starting lengthy
+operations or operations that may result in a substantial increase in power
+consumption. </p> <p><b>Implementation issues</b> </p> <p>A suggested implementation
+would have the function reading the state of the main battery, or whether
+external power is connected, and mapping to one of the logical states defined
+by <codeph>TSupplyStatus</codeph>. When requested by the power manager it
+returns the logical state. </p> </section>
+<section id="GUID-1A5D9A50-1A28-59B5-862B-3DA5EAAAC26F"><title>DBatteryMonitor::SystemTimeChanged()</title> <codeblock id="GUID-CC55B65D-B849-5FAA-A678-3DFD58D14F9D" xml:space="preserve">virtual void SystemTimeChanged(TInt anOldTime, TInt aNewTime) = 0;</codeblock> <p>This
+function is now deprecated, and you should just define an empty implementation. </p> </section>
+</conbody></concept>

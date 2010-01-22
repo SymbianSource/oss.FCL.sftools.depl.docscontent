@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0CD273A2-434C-52E0-B840-CCF24B2853B8" xml:lang="en"><title>Generating
+Random Bytes</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This example shows how the <codeph>CRandom::GenerateRandomBytesL()</codeph> method
+is used to populate a descriptor with a series of random bytes. </p>
+<codeblock id="GUID-69C4E8AB-CF2F-59C4-B96D-5B540602E7A6" xml:space="preserve">
+using namespace CryptoSpi;
+
+//Create a pointer to store the factory-generated random implementation object
+CRandom* randomImpl = NULL;
+
+//Calling the CreateRandomL() method of the random factory class 
+//creates a new CRandom object    
+TRAPD(err, CRandomFactory::CreateRandomL(randomImpl, KRandomUid, NULL));
+
+if(randomImpl &amp;&amp; (err == KErrNone))
+    {    
+    //Create an 8 bit descriptor 50 bytes long with a max length of 50 bytes
+    TBuf8&lt;50&gt; randomStr(50);
+ 
+    //Passing the 8 bit descriptor to the CRandom::GenerateRandomBytesL() 
+    //method fills it with random bytes. If there is no memory available 
+    //or any problems occur, the method may leave.    
+    randomImpl-&gt;GenerateRandomBytesL(randomStr); 
+    }
+
+//Destroy the random implementation object    
+delete randomImpl;
+randomImpl = NULL;</codeblock>
+</conbody></concept>

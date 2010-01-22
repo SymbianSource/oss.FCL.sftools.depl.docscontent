@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-4ED3D609-5E24-53D2-BF0C-DE7BD2E79260" xml:lang="en"><title>Phone
+Signal Tutorial</title><shortdesc>This tutorial describes how to retrieve the phone signal strength
+using the multimode phone sub-sessions. Phone signal strength information
+is expressed as two integers: </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<context><ol>
+<li id="GUID-EA817066-A735-4172-B922-169C302B2964"><p>Signal strength in dBm 
+</p></li>
+<li id="GUID-A8DD66DE-5D29-4BD2-8188-DE65B0A4C33C"><p>Number of signal bars that the phone must display. </p></li>
+</ol><p/></context>
+<steps-unordered>
+<step id="GUID-3AD4B6FA-0EAD-5326-A180-D20C7AD7D34E"><cmd>Find if the signal
+information can be obtained using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetSignalCaps()</apiname></xref>  </cmd>
+</step>
+<step id="GUID-945B4ADF-F3A9-5C9F-9390-8B6FD6D7BC6D"><cmd>Get the signal information
+using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetSignalStrength()</apiname></xref>. </cmd>
+</step>
+<step id="GUID-7DBC5004-EF2C-53DA-B52A-0F92C8E908DC"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifySignalStrengthChange()</apiname></xref> to
+get the notification if signal information changes. </cmd>
+</step>
+</steps-unordered>
+<result><p>The function must return the signal strength and the number of
+bars to be displayed to the user. </p> </result>
+<example><title>Phone signal example</title> <p>The following code checks
+if the signal information can be obtained, and if so, gets the signal information.
+The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <p> </p> <codeblock id="GUID-EAFB9736-4EC9-59ED-BF9C-6F79D351D5CF" xml:space="preserve">TUint32 signalCaps;
+User::LeaveIfError(iMobilePhone.GetSignalCaps(signalCaps));
+
+TInt32 signalStrength = 0;
+TInt8 bars = -1;
+if (signalCaps &amp; RMobilePhone::KCapsGetSignalStrength)
+    {
+    TRequestStatus status;
+    iMobilePhone.GetSignalStrength(status, signalStrength, bars);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+    }
+</codeblock> </example>
+</taskbody></task>

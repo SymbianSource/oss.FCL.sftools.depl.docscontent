@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE" xml:lang="en"><title>InterpretSIS
+Examples</title><abstract><p>This section explains the following InterpretSIS examples:</p><ul>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-5ddda82b-39b2-4240-b89b-3f796f8f8e94">Overriding
+the installation drive specified in the PKG file</xref></li>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-0bddead5-381b-4d8c-9437-74a4d9ef48b5">Configuring
+the content of ROM drive</xref></li>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-bd93fd67-d9b3-491b-802c-27cbd1038c0e">Configuring
+the registry version</xref></li>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-1df8c2ad-3bab-4b03-8245-b37826c2910d">Installing
+system upgrade packages</xref></li>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-2e68d8df-461c-428e-9874-9b0df47072f0">Uninstalling
+preinstalled packages</xref></li>
+<li><xref href="GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE.dita#GUID-882DCE58-5E5F-44D2-9E84-093709EAA4BE/GUID-b4a2d72c-95ab-44e6-8bf3-5cba3957c67e">Supporting
+device variant creation</xref></li>
+</ul></abstract><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section id="GUID-5DDDA82B-39B2-4240-B89B-3F796F8F8E94"><title>Overriding
+the installation drive specified in the PKG file</title><p>You can override
+the target drive definition defined in the PKG file by specifying the <codeph>–s</codeph> option
+and providing the drive location at the command prompt as explained in the
+following example: </p> <p>If <filepath>file1.sis</filepath> contains the
+following three files to install: </p> <ul>
+<li id="GUID-6C6573D5-8C70-57C7-90BC-5E81DEBCCCAC"><p> <filepath>!:\file1.txt</filepath>  </p> </li>
+<li id="GUID-661199AC-5E93-54AE-ABF4-E207462425B0"><p> <filepath>c:\file2.txt</filepath>  </p> </li>
+<li id="GUID-2CB80A26-24A5-5F0F-80F5-94792753E865"><p> <filepath>d:\file3.txt</filepath>  </p> </li>
+</ul> <p>and the <filepath>d</filepath> drive is defined in the configuration
+file as: </p> <codeblock id="GUID-DA091A3B-4A93-510A-96C2-7744FB1566EA" xml:space="preserve">DRIVE = c:\drive_d d</codeblock> <p>then,
+if you run the InterpretSIS tool with the following options and arguments: </p> <p><userinput>interpretsis
+–z c:\rom_drive -c c:\system_drive –s file1.sis +d</userinput> </p> <p> <filepath>file1.txt</filepath>, <filepath>file2.txt</filepath> and <filepath>file3.txt</filepath> are all installed to the <filepath>D</filepath> drive. </p> <p>If
+you do not specify the drive at the command prompt </p> <p><userinput>interpretsis
+–z c:\rom_drive -c c:\system_drive –s file1.sis</userinput> </p> <p>then <filepath>file1.txt</filepath>, <filepath>file2.txt</filepath> and <filepath>file3.txt</filepath> are all installed to the default system drive (<filepath>C</filepath> drive). </p></section>
+<section id="GUID-0BDDEAD5-381B-4D8C-9437-74A4D9EF48B5"><title>Configuring
+the content of ROM drive</title><p>Sometimes it is impractical and unnecessary
+to create a ROM drive with thousands of files for each product. The contents
+of the ROM drive can alternatively be specified as multiple LOG and OBY files
+using the <codeph>–r</codeph> option as shown in the following example: </p> <p><userinput>interpretsis
+-r rofsbuild_log_file1,rofsbuild_log_file2,...</userinput> </p> <p>ROM stub
+SIS files must be present in the directory defined by the <codeph>–t</codeph> option: </p> <p><userinput>interpretsis
+-r rofsbuild_log_file1,rofsbuild_log_file2 –t .\romdrive\system\data</userinput> </p></section>
+<section id="GUID-BD93FD67-D9B3-491B-802C-27CBD1038C0E"><title>Configuring
+the registry version</title><p>Device creators can generate SIS Registry entry
+files that are compatible with previous versions of Symbian platform. To achieve
+this, use the <varname>-k </varname> option to specify which version of the
+SIS Registry must be used to create the files. For example: </p> <p><userinput>interpretsis
+-k 5.1</userinput> </p> <p>If the SISRegistry version is not specified on
+the command line using the <codeph>–k</codeph> option, <b>InterpretSIS</b> generates
+SISRegistry according to the ROM marker file found in <filepath>z:\system\install\</filepath>. </p> <p>This
+marker file has the format <filepath>sisregistry_x.y.txt</filepath>, with
+x-y as the major-minor version number. If a marker file is not found and a
+version has not been specified on the command line, InterpretSIS by default
+generates version 5.1 SIS Registry entries. </p></section>
+<section id="GUID-1DF8C2AD-3BAB-4B03-8245-B37826C2910D"><title>Installing
+system upgrade packages</title><p>The InterpretSIS tool supports system upgrades
+for preinstalled packages. However, it cannot validate certificate chains.
+Therefore, even if signatures that chain back to a root certificate exists
+in the SWI certificate store trusted for system upgrades, <codeph>InterpretSIS</codeph> cannot
+determine that <codeph>RU</codeph> SIS files can be installed without a corresponding
+ROM Stub SIS file. </p> <p>To overcome this limitation, device creators can
+use the <codeph>+sucert</codeph> option in conjunction with the <codeph>–s</codeph> option.
+This indicates the SIS file is signed with a <codeph>SU</codeph> certificate.
+With this flag set, <codeph>InterpretSIS</codeph> can eclipse ROM files and
+override files from other packages. </p> <p><userinput>interpretsis -s file1.sis
+[+sucert] –s file2.sis</userinput> </p> <p> <b>Note:</b> Eclipsing can also
+be achieved using the <codeph>–e</codeph> option with <codeph>InterpretSIS</codeph>.
+However, the usage of <codeph>sucert</codeph> flag allows the SIS files to
+be re-installed by using the backup and restore functionality. It also represents
+the <codeph>SU</codeph> cert flag in the SIS Registry entries correctly. </p></section>
+<section id="GUID-2E68D8DF-461C-428E-9874-9B0DF47072F0"><title>Uninstalling
+preinstalled packages</title><p>Run <codeph>IntepretSIS</codeph> at the command
+prompt. Specify <codeph>–x</codeph> option with a comma seperated list of
+package UIds to remove preinstalled packages and associated files. </p> <p><userinput>interpretsis
+&lt;options&gt; –x &lt;package UID&gt;,&lt;package UID&gt;.</userinput> </p> <p>This
+command removes all upgrades and does not check for dependencies. </p> <p> <b>Notes:</b>  </p> <ul>
+<li id="GUID-7D027408-D7A6-5358-9472-532605975B73"><p>The <codeph>-x</codeph> option
+cannot be used in conjunction with the <codeph>–s</codeph> option while installing
+SIS files. </p> </li>
+<li id="GUID-5BA93014-50B1-569E-8151-2439C710CE1C"><p>InterpretSIS cannot
+remove preinstalled packages from an external media card. These are packages
+that are installed to a media drive with the <codeph>+mccardalone</codeph> or <codeph>+mccardalonenr</codeph> option.
+These packages are not registered in the SIS Registry. </p> </li>
+</ul></section>
+<section id="GUID-B4A2D72C-95AB-44E6-8BF3-5CBA3957C67E"><title>Supporting
+device variant creation</title><p>InterpretSIS supports device variant creation
+through a configuration file. The configuration file must be specified using
+the -i option in the command line as shown in the following example: </p> <p><userinput>interpretsis
+-i config.txt</userinput> </p> <p>You can configure the following parameters: </p> <ul>
+<li id="GUID-2FEB48CA-AFE8-571F-A257-715C6962BB3A"><p> <b>HAL attribute values</b>  </p> <p>Refer
+to <codeph>HALData::TAttribute</codeph> for a list of HAL attributes supported
+by the <codeph>InterpretSIS</codeph> tool. </p> <codeblock id="GUID-4F7A6D29-08F5-5915-83B6-7E61D6A570CF" xml:space="preserve">// The device specific version number,
+//as defined by the Symbian device creator.
+//
+// &lt;numeric type&gt;
+MANUFACTURERSOFTWAREREV = 0x200
+</codeblock> </li>
+<li id="GUID-FCF6187B-323E-5FFF-98D5-B950492EC4B3"><p> <b>Additional Drives</b>  </p> <p>Use
+the <codeph>DRIVE</codeph> keyword to define additional directories in the
+configuration file. As the drives on the device can be located internally
+(system drive) or externally (removable media drive), the keyword <codeph>ext</codeph> can
+be used to indicate that the defined drive is external: </p> <codeblock id="GUID-793972C9-569C-5A12-9808-9DA7FA47CE14" xml:space="preserve">DRIVE = Path drive-letter [ext]</codeblock> <p>By defining drives as <codeph>ext</codeph>, the device creators can create
+independent memory card images on them. The following examples represent paths
+to the <filepath>e</filepath> drive and <filepath>f</filepath> drive. </p> <codeblock id="GUID-FBB9549E-16F3-526C-BF2F-3DEAD2466AF6" xml:space="preserve">DRIVE = d:\drive_e e ext
+DRIVE = d:\drive_f f</codeblock> </li>
+<li id="GUID-E8D473F4-5D85-5FE4-A5B8-0ED60D670EEC"><p> <b>Language</b>  </p> <p>Use
+the <codeph>LANGUAGE</codeph> keyword to define the SIS file installation
+preference language. The associated data is a decimal number as defined in <codeph>TLanguage</codeph> enum. </p> <codeblock id="GUID-1364BD16-E151-5986-8CE1-018F415109E7" xml:space="preserve">// Language code for the device
+// Refer TLanguage enum for language values
+// &lt;numeric type&gt;
+LANGUAGE = 2 // French
+</codeblock> </li>
+<li id="GUID-7162D239-9BA4-5789-B710-B3C7BE995E7C"><p> <b>Device Supported
+Language</b>  </p> <p>Use the <codeph>DEVICE_SUPPORTED_LANGUAGE</codeph> keyword
+to define the languages supported by the Symbian device. This enables <codeph>IntepretSIS</codeph> to
+install language specific files for only those languages that are supported
+by the Symbian device. That is, during installation, the languages supported
+by the Symbian device are matched with the languages supported in the SIS
+file. When an exact match is found, the files corresponding to that language
+are copied to the Symbian device. If an exact match is not found for any of
+the device supported languages, the files for all equivalent languages (supported
+by the SIS files) corresponding to each of the device supported languages
+are copied to the Symbian device. </p> <p>For example, if the SIS file supports
+UK English(01), French(02) and International English(47), and the Symbian
+device supports only American English(10) then during installation, as an
+exact match for American English is not found, the files for UK English and
+International English (both equivalent match) are copied to the Symbian device.
+See <xref href="GUID-10A50B7C-63DB-599B-86C1-17989595CBD2.dita">Equivalent Languages
+Reference</xref> for a list of all language equivalents supported by Symbian
+Foundation. </p> <p>The following example illustrates the usage of <codeph>DEVICE_SUPPORTED_LANGUAGE</codeph> in
+the configuration file: </p> <codeblock id="GUID-7286DDA4-24BB-5D62-824F-9CCB23B077AB" xml:space="preserve">// Language supported by the device
+// Refer TLanguage enum for language values
+DEVICE_SUPPORTED_LANGUAGE = 01
+DEVICE_SUPPORTED_LANGUAGE = 02
+</codeblock><note> During installation, if an exact or an equivalent language
+match is not found in the SIS file, the files for the first language that
+is specified in the SIS file are copied to the Symbian device. </note></li>
+</ul></section>
+</refbody></reference>

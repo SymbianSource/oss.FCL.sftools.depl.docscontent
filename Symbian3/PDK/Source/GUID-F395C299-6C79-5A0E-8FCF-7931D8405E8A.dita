@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F395C299-6C79-5A0E-8FCF-7931D8405E8A" xml:lang="en"><title>Description</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Server applications have been introduced to Symbian platform since v9.0
+for <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform Security</xref>.
+Principally, they offer a more secure solution to embedded applications. </p>
+<p>A server application is an application that contains a server to which
+other applications can connect. Importantly, the server application runs in
+a separate <xref href="GUID-E6F08B67-8DBC-5896-946D-BD0D27F82FE2.dita#GUID-E6F08B67-8DBC-5896-946D-BD0D27F82FE2/GUID-AC0E13F3-5DFE-5060-BE09-B76A08632B5E">process</xref> than
+that of the client (e.g. another application) that launched it. This lets
+each party protect their own memory and storage/disk space and have flexible
+security policies (which is in contrast to interactions between DLL-based
+applications that allow complete access to the memory and disk space of their
+hosts). The server application system permits applications to establish powerful
+inter-process communications links. This allows applications and other UI
+components to observe the principle of least privilege by only requiring <xref href="GUID-F395C299-6C79-5A0E-8FCF-7931D8405E8A.dita#GUID-F395C299-6C79-5A0E-8FCF-7931D8405E8A/GUID-049F04BC-546E-53F9-8212-C0DC6D5B94C2">capabilities</xref> necessary
+to do their job, and not the capabilities of applications that use them or
+of components that are used by them. It also allows for better compartmentalisation
+of data, by restricting access to <xref href="GUID-F395C299-6C79-5A0E-8FCF-7931D8405E8A.dita#GUID-F395C299-6C79-5A0E-8FCF-7931D8405E8A/GUID-8CACFFD5-51FF-5902-B4B5-2DBA506A3CD9">data
+caged files</xref> to a client/sever interface. Correct use of the server
+application system can improve the security, stability, robustness, usability
+and functionality of a platform. </p>
+<p>A client can launch one or many server applications; server applications
+can have multiple clients, though they have a one-to-one relationship when
+they're running. </p>
+<section id="GUID-A3712A05-A6A1-549F-98E6-5E9DEC37006C"><title>Services</title> <p>Clients
+and server applications interact through common services, which adhere to
+a protocol defining the communication channel between the two. This inter-process
+communication channel also provides a security checkpoint for application
+capability checking, etc.. </p> <p>Services offer useful functionality to
+clients, for example, applications often use other applications to send messages,
+view, edit and create files, these can be considered services, which may be
+implemented in a number of ways (e.g. a printing service). The client asks
+the server (via the application containing it) to perform such tasks. </p> <p>Server
+applications and clients can each have one or many services. Each service
+type is identified by a UID, see the <xref href="GUID-F7CC81CE-E823-5196-944A-5F7524411A08.dita">Registration
+and discovery</xref> section below. </p> </section>
+<section id="GUID-049F04BC-546E-53F9-8212-C0DC6D5B94C2"><title>Capabilities</title> <p>The
+Symbian <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform Security</xref> system
+uses capabilities to police who is allowed to do what in the system. </p> <p>Processes
+are assigned capabilities in their executables at build time. These capabilities
+indicate the things that the process is allowed to do, for example, <codeph>ReadUserData</codeph> (see <codeph>TCapability::ECapabilityReadUserData</codeph>). </p> <p>Servers can check that their clients have particular capabilities
+before they carry out client requests. For example, a contacts server may
+check that a client process has the <codeph>ReadUserData</codeph> capability. </p> <p>DLLs
+may also be assigned capabilities. This means that the DLL is trusted to be
+used in a process which has these capabilities. You cannot load a DLL into
+a process when the process has capabilities that the DLL does not have. DLLs
+cannot add capabilities to processes, a DLL having a capability does not mean
+that the DLL can use that capability. The capabilities that a DLL can use
+depend on the process that it is executing in. </p> <p>Before the introduction
+of platform security, application and other UI component interaction was achieved
+with the following techniques. Embedding allowed one application to use another
+inside its process. View switching allowed one application to control which
+views are displayed by another. DLLs allowed static functionality to be added
+to an application. Plug-in DLLs allowed dynamic addition of functionality
+to an application. </p> <p>These techniques are all still available, to some
+extent, in the application frameworks with platform security. However, those
+that rely on DLLs for UI component interaction are now limited, by the capability
+rules described above. To achieve fully flexible relationships between UI
+components a client/server or other cross process link between components
+is now required. </p> <p>For example, consider a server that allows clients
+to send an SMS message. Clearly this will require its clients to have a network
+capability. However, it is reasonable for a platform to want the user to decide
+when SMS messages are sent, no matter which application (with or without capabilities)
+wants to send them. Therefore, the platform will want to supply a UI component
+that has the ability to send SMS messages on behalf of other applications,
+asking the user for confirmation. If such a component were supplied as a DLL,
+it would have to run in the client applications process and run with the capabilities
+of that process. This may prevent it from being able to send SMS messages
+if the client application does not already have that capability. If, however,
+the component is supplied as a separate application running in its own process
+with a client/server interface allowing other applications to use it, then
+it can always ask the user and always send messages, no matter which application
+originates the request. Note that such cases where the user is allowed to
+permit actions without capabilities are only valid for "user capabilities". </p> </section>
+<section id="GUID-8CACFFD5-51FF-5902-B4B5-2DBA506A3CD9"><title>Data caging</title> <p>The
+Symbian <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform Security</xref> system
+allows processes to have private files, which are only accessible by that
+process. Any code that is executing within a process, including code loaded
+in DLLs, can access the files in the process's data cage. Code that is executing
+in other processes cannot access the files in the data cage, except where
+the owning process explicitly supports it. A process can allow other processes
+access to individual files in its data cage by file handle sharing, or by
+providing an API which encapsulates access to data caged files. Such access
+to data caged files and data must be granted with care according to the sensitivity
+of the data. </p> <p>Consider a memo-pad application that stores a user's
+memos as files in its data cage. This application wants to be able to send
+memos in messages, so it links to a "send-as" library. If this send-as library
+loads the message transports as DLLs in the memo-pad application's process,
+an evil message transport DLL could access all the memo files, deleting, copying
+or altering them. If however the send-as library uses IPC connections to the
+message transports, the memo pad application controls exactly how much these
+message transports can access, limiting the amount of damage that an evil
+message transport can do. Similarly, the memo-pad application may offer an
+API to allow other processes to access the memos. Since the memos are considered
+to be user data, the access should be limited to processes with <codeph>ReadUserData</codeph> capability. </p> </section>
+<section><title>See also</title><ul>
+<li><p><xref href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita">Application
+Architecture Overview</xref></p></li>
+</ul></section>
+</conbody></concept>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6C069F43-207C-5C6A-B9F6-3865BE8E70E8" xml:lang="en"><title>Variant
+configuration file syntax</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p>A variant configuration file (<filepath>.var</filepath>)
+defines settings that are specific to a variant. It is used to modify certain
+aspects of an existing build platform. </p> </section>
+<section><title>Syntax</title> <p> <varname>KEYWORD</varname> [<varname>OPERATION</varname>]
+[<varname>VALUE</varname>] </p> <p>A summary of keywords, operations and values
+is given below: </p> <p><b>Keyword</b> </p> <p>Possible keywords are as follows: </p> <table id="GUID-D6F58101-A22F-5377-9190-B8E609DE35ED">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>VARIANT</codeph>  </p> </entry>
+<entry><p>Indicates that <varname>VALUE</varname> is the name of the variant
+configuration. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>VIRTUAL</codeph>  </p> </entry>
+<entry><p>Indicates that the variant is meant only for grouping variants and
+not to be used as a build configuration. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EXTENDS</codeph>  </p> </entry>
+<entry><p>Indicates that the variant extends an existing variant configuration. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>VARIANT_HRH</codeph>  </p> </entry>
+<entry><p>Specifies the pre-included header (<filepath>.hrh</filepath>) file
+that defines feature macros. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>BUILD_INCLUDE</codeph>  </p> </entry>
+<entry><p>Specifies the location of the files to be included when building
+the binary. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>ROM_INCLUDE</codeph>  </p> </entry>
+<entry><p>Specifies the location of the files to be included when building
+the ROM image containing the variant binary. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p> <b>Note</b>: If VARIANT_HRH keyword is not present, then <codeph>/epoc32/include/variant/name.hrh</codeph> is
+used. </p> <p><b>operation</b> </p> <p>The possible operations are <codeph>set</codeph>, <codeph>append</codeph> and <codeph>prepend</codeph>.
+These operations provide the flexibility of extending the existing include
+paths within the <filepath>.var</filepath> file. The operations are applicable
+only to the <codeph>BUILD_INCLUDE</codeph> and <codeph>ROM_INCLUDE</codeph> keywords. </p> <p> <b>Example</b>  </p> <codeblock id="GUID-3D6B0229-A64F-52BB-9BDF-10ABDF99F11E" xml:space="preserve"># default.var
+VARIANT default
+BUILD_INCLUDE set         /epoc32/include
+BUILD_INCLUDE append    /epoc32/include/variant
+ROM_INCLUDE set        /epoc32/rom/include</codeblock> <codeblock id="GUID-91F8392C-C822-5829-BA42-FB8F9AB6AECD" xml:space="preserve"># phone.var
+VARIANT phone
+EXTENDS default
+BUILD_INCLUDE append    /epoc32/include/variant/phone
+ROM_INCLUDE prepend    /epoc32/rom/phone</codeblock> <p>For the variant <codeph>phone</codeph> the
+include lists will be: </p> <codeblock id="GUID-72B415A7-84D6-5818-9E64-B736D505E873" xml:space="preserve">BUILD (/epoc32/include, /epoc32/include/variant, /epoc32/include/variant/phone)
+ROM (/epoc32/rom/phone, /epoc32/rom/include)</codeblock> <p><b>value</b> </p><p>Value
+can be a variant name, a file name or a directory name. for example, myphone
+or /epoc32/tools/variant/name.var.  </p><ul>
+<li><p>Use '/' as the path separator between files and directories.</p></li>
+<li><p>Begin all paths with '/' implying that they are relative to EPOCROOT.</p></li>
+</ul> <p><b>Example</b> </p> <p>An example of a variant: </p> <codeblock id="GUID-50190D57-7C49-5697-A858-7626D59B1967-GENID-1-8-1-1-7-1-12-1-2-2-20" xml:space="preserve">VARIANT        name
+VIRTUAL
+EXTENDS        parent
+VARIANT_HRH    /epoc32/include/variant/something.hrh
+BUILD_INCLUDE    set        directoryA
+BUILD_INCLUDE    append        directoryB
+BUILD_INCLUDE    prepend    directoryC
+ROM_INCLUDE    set        directoryD
+ROM_INCLUDE    append        directoryE
+ROM_INCLUDE    prepend    directoryF
+
+</codeblock> <p><b>Notes</b> </p> <ul>
+<li id="GUID-84B8E804-46B8-5422-9CFE-048C9EF0179B-GENID-1-8-1-1-7-1-12-1-2-2-22-1"><p>All <filepath>.var</filepath> files
+must exist in <filepath>/epoc32/tools</filepath> <filepath>/</filepath> <varname>variant</varname>. </p> </li>
+<li id="GUID-CDB78FAD-58A6-5464-ACC6-EFBCEDFD5092-GENID-1-8-1-1-7-1-12-1-2-2-22-2"><p>A default variant configuration
+file (<filepath>default.var</filepath>) must exist in <filepath>/epoc32/tools/variant/</filepath>. </p> </li>
+<li id="GUID-7216C624-7E28-52A5-BAA7-BB897286AE51-GENID-1-8-1-1-7-1-12-1-2-2-22-3"><p>The name of the variant
+configuration file (.var) must be same as the variant name. For example, if
+the variant name is <b>myvar</b>, then the variant configuration file must
+be named as <filepath>myvar.var</filepath>. </p> </li>
+<li id="GUID-CADF1047-C92E-5A8C-81FB-64CAA19380B8-GENID-1-8-1-1-7-1-12-1-2-2-22-4"><p>Each variant must have
+a default <filepath>&lt;variant_name&gt;.hrh</filepath> file at <filepath>/epoc32/include/variant/</filepath>.
+If you want to use any other <filepath>.hrh</filepath> file under EPOCROOT,
+use the <codeph>VARIANT_HRH</codeph> keyword to specify its name along with
+the relative path. </p> </li>
+<li id="GUID-FEEDF642-117E-5E4F-8CD4-B6305B977204-GENID-1-8-1-1-7-1-12-1-2-2-22-5"><p>A default variant cannot
+be <codeph>VIRTUAL</codeph>. </p> </li>
+</ul> </section>
+<section><title>Example</title> <p>An example of a variant: </p> <codeblock id="GUID-50190D57-7C49-5697-A858-7626D59B1967-GENID-1-8-1-1-7-1-12-1-2-3-3" xml:space="preserve">VARIANT        name
+VIRTUAL
+EXTENDS        parent
+VARIANT_HRH    /epoc32/include/variant/something.hrh
+BUILD_INCLUDE    set        directoryA
+BUILD_INCLUDE    append        directoryB
+BUILD_INCLUDE    prepend    directoryC
+ROM_INCLUDE    set        directoryD
+ROM_INCLUDE    append        directoryE
+ROM_INCLUDE    prepend    directoryF
+
+</codeblock> </section>
+<section><title>Notes</title> <ul>
+<li id="GUID-84B8E804-46B8-5422-9CFE-048C9EF0179B-GENID-1-8-1-1-7-1-12-1-2-4-2-1"><p>All <filepath>.var</filepath> files
+must exist in <filepath>/epoc32/tools</filepath> <filepath>/</filepath> <varname>variant</varname>. </p> </li>
+<li id="GUID-CDB78FAD-58A6-5464-ACC6-EFBCEDFD5092-GENID-1-8-1-1-7-1-12-1-2-4-2-2"><p>A default variant configuration
+file (<filepath>default.var</filepath>) must exist in <filepath>/epoc32/tools/variant/</filepath>. </p> </li>
+<li id="GUID-7216C624-7E28-52A5-BAA7-BB897286AE51-GENID-1-8-1-1-7-1-12-1-2-4-2-3"><p>The name of the variant
+configuration file (.var) must be same as the variant name. For example, if
+the variant name is <b>myvar</b>, then the variant configuration file must
+be named as <filepath>myvar.var</filepath>. </p> </li>
+<li id="GUID-CADF1047-C92E-5A8C-81FB-64CAA19380B8-GENID-1-8-1-1-7-1-12-1-2-4-2-4"><p>Each variant must have
+a default <filepath>&lt;variant_name&gt;.hrh</filepath> file at <filepath>/epoc32/include/variant/</filepath>.
+If you want to use any other <filepath>.hrh</filepath> file under EPOCROOT,
+use the <codeph>VARIANT_HRH</codeph> keyword to specify its name along with
+the relative path. </p> </li>
+<li id="GUID-FEEDF642-117E-5E4F-8CD4-B6305B977204-GENID-1-8-1-1-7-1-12-1-2-4-2-5"><p>A default variant cannot
+be <codeph>VIRTUAL</codeph>. </p> </li>
+</ul></section>
+</conbody><related-links>
+<link href="GUID-917413FC-0AC0-5768-B5AD-36BD2EDCB1FF.dita"><linktext>How to build
+feature based variants</linktext></link>
+<link href="GUID-7FF363B0-B05F-5490-8D9C-59061B905381.dita"><linktext>How to build
+ROMs with variants</linktext></link>
+</related-links></concept>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-E81D70B1-FB3F-501D-AD3F-038C8BE997BF"><title>Updating the Network PSY Central Repository Initialization File </title><shortdesc>This topic shows you how to modify the settings of the Network PSY and the Network Location Manager so that they do not conflict with each other. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>As described in <xref href="GUID-D0C20045-FCC5-53CB-BBDB-7AA058C9139E.dita">Network PSY Overview</xref>, the Network PSY does not integrate directly with positioning hardware. It uses the Network Location Manager with a Network Protocol Module to connect the Location Server (<codeph>eposserver.exe</codeph>) to positioning hardware. </p> <p>There are two places that information about the properties of the Network PSY and Network Protocol Module are stored: </p> <ul><li id="GUID-6443AE6F-BBD2-5519-A09E-A9EAFA0A0C2A"><p>The Network PSY registers itself as a PSY with the LBS subsystem using a Central Repository Initialization file <filepath>10285abe.cre</filepath> with keys defined by the <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref>. </p> </li> <li id="GUID-6511E265-0964-5FB6-A0E7-22AD101DAAAF"><p>The Network Location Manager uses the file <filepath>networklocationmanager.ini</filepath> to specify the positioning properties of your Network Protocol Module and network. </p> </li> </ul> <p>The description of the properties of the Network PSY and the Network Protocol Module must be correctly described in both <filepath>networklocationmanager.ini</filepath> and <filepath>10285abe.cre</filepath>. </p> <p>This procedure assumes you have created a Network Protocol Module for your device's positioning hardware and have modified <filepath>networklocationmanager.ini</filepath> to describe correctly the properties of the Network Protocol Module/network. </p> </context> <steps-unordered><step id="GUID-2F964162-CFC7-5FA3-AC3B-F38C8B5C404B"><cmd/><info>The contents of <filepath>networklocationmanager.ini</filepath> as supplied with the Symbian platform are shown below. You need to modify this if your Network Protocol Module and network have different properties from the ones shown here. </info> <stepxmp><codeblock id="GUID-D3CAEB9A-B377-50A7-8424-39B575B00F1D" xml:space="preserve">
+# networklocationmanager.ini
+
+[1]
+Version= 0.1.1        #
+ModuleId= 271064387    # dec
+ModuleName= "NetLocManager"    # 
+TechnologyType= 0010    # binary
+DeviceLocation= 0010    # binary
+Capabilities= 1111    # binary
+ClassesSupported= 111111    # binary
+TimeToFirstFix= 20000    # ms
+TimeToNextFix= 20000    # ms
+HorizontalAccuracy= 100 # real
+VerticalAccuracy= 100 # real
+CostIndicator= 3    # dec
+PowerConsumption = 2 # dec
+ExecutableName= "lbsnetlocmanager.exe"
+</codeblock> </stepxmp> </step> <step id="GUID-8646AB0E-D2AF-56FE-8A5C-6FB1C0544C9C"><cmd/><info>If necessary, modify the Network PSY Central Repository Initialization text file <filepath>10285abe.txt</filepath> as follows: </info> <substeps id="GUID-6CE3B994-D484-55B4-AFE3-748692413788"><substep id="GUID-E0B93F1A-5EC4-5DD1-97F5-1BFF00B8FEDE"><cmd>Modify the Central Repository Initialization file for the Network PSY so that the values are the same as those in <filepath>networklocationmanager.ini</filepath>. </cmd> <info>The Central Repository Initialization file for the Network PSY implementation supplied with the Symbian platform is <filepath>datasourcemodules\lbsposfwadaptation\lbsnetpsy\cenrep\10285abe.txt</filepath>. It contains the following: </info> <stepxmp><codeblock id="GUID-E9B7266B-9DBD-5A81-B020-B833F7748987" xml:space="preserve">
+cenrep
+version 1
+[owner]
+0x101f97b2
+[defaultmeta]
+ 0
+[platsec]
+ cap_rd=ReadDeviceData cap_wr=WriteDeviceData
+[Main]
+0x1 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x2 int 0 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x3 int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x4 int 20000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x5 int 20000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x6 real 100 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x7 real 100 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x8 int 3 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x9 int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xa int 2 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xb int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xc int 15 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xd int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xe int 1 0 cap_rd=alwayspass cap_wr=alwaysfail
+0xf string "\\resource\\lbsnetpsy_name.rsc" 0 cap_rd=alwayspass cap_wr=alwaysfail
+0x10000000 int 2000000 0 cap_rd=alwayspass cap_wr=alwaysfail
+</codeblock> </stepxmp> <info>For a full description of the meanings of these keys, see <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref>. </info> <info>The important keys for this task are shown in the following table: </info> <stepxmp><table id="GUID-5FAAB3F8-23F0-5EEA-951D-A400192F8A52"><tgroup cols="4"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><thead><row><entry>Key name</entry> <entry>Key value</entry> <entry>Meaning</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <codeph>KPSYTimeToFirstFix</codeph>  </p> </entry> <entry><p> <codeph>0x4</codeph>  </p> </entry> <entry><p>Time to First Fix </p> </entry> <entry><p>This must be the same time as the <codeph>TimeToFirstFix</codeph> value in <filepath>networklocationmanager.ini</filepath>. </p> <p> <b>Important note: In the PSY Central Repository Initialization file the time is specified in microseconds. In the Integration Module .ini file the time is specified in milliseconds.</b>  </p> </entry> </row> <row><entry><p> <codeph>KPSYTimeToNextFix</codeph>  </p> </entry> <entry><p> <codeph>0x5</codeph>  </p> </entry> <entry><p>Time to Next Fix </p> </entry> <entry><p>This must be the same time as the <codeph>TimeToNextFix</codeph> value in <filepath>networklocationmanager.ini</filepath>. </p> <p> <b> Important note: In the PSY Central Repository Initialization file the time is specified in microseconds. In the Integration Module .ini file the time is specified in milliseconds. </b>  </p> </entry> </row> <row><entry><p> <codeph>KPSYHorizontalAccuracy</codeph>  </p> </entry> <entry><p> <codeph>0x6</codeph>  </p> </entry> <entry><p>Horizontal Accuracy </p> </entry> <entry><p>This must be the same as the <codeph>HorizontalAccuracy</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is specified in metres. </p> </entry> </row> <row><entry><p> <codeph>KPSYVerticalAccuracy</codeph>  </p> </entry> <entry><p> <codeph>0x7</codeph>  </p> </entry> <entry><p>Vertical Accuracy </p> </entry> <entry><p>This must be the same as the <codeph>VerticalAccuracy</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is specified in metres. </p> </entry> </row> <row><entry><p> <codeph>KPSYCostIndicator</codeph>  </p> </entry> <entry><p>0x8 </p> </entry> <entry><p>Cost Indicator </p> </entry> <entry><p>This must be the same as the <codeph>CostIndicator</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is an integer taken from the <xref href="GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D.dita#GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D/GUID-78C084A0-43F8-3040-BD98-70E2E62A5D45"><apiname>TPositionQuality::TCostIndicator</apiname></xref> enum. </p> </entry> </row> <row><entry><p> <codeph>KPSYPowerConsumption</codeph>  </p> </entry> <entry><p> <codeph>0x9</codeph>  </p> </entry> <entry><p>Power Consumption </p> </entry> <entry><p>This must be the same as the <codeph>PowerConsumption</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is an integer taken from the <xref href="GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D.dita#GUID-1AA235FA-CEC1-3853-8F96-C538C02B596D/GUID-AD77543D-625A-39CF-A1D5-F5B5636E17F7"><apiname>TPositionQuality::TPowerConsumption</apiname></xref> enum. </p> </entry> </row> <row><entry><p> <codeph>KPSYTechnologyType</codeph>  </p> </entry> <entry><p> <codeph>0xa</codeph>  </p> </entry> <entry><p>Technology Type </p> </entry> <entry><p>This must be the same as the <codeph>TechnologyType</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is taken from the <xref href="GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26.dita#GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26/GUID-03AF8C51-1CAF-3F4C-BED1-17844FAE8423"><apiname>TPositionModuleInfo::_TTechnologyType</apiname></xref> enum. </p> <p> <b>Important note: In the PSY Central Repository Initialization file the value is specified as decimal integer. In the Integration Module .ini file the value is specified in binary.</b>  </p> <p>In the file shown above, the value of 2 for this key specifies that the Network PSY supports a technology type of <codeph>ETechnologyNetwork</codeph> = 2 = 0010 in binary. </p> </entry> </row> <row><entry><p> <codeph>KPSYCapabilities</codeph>  </p> </entry> <entry><p> <codeph>0xc</codeph>  </p> </entry> <entry><p>Device Capabilities </p> </entry> <entry><p>This must be the same as the <codeph>Capabilities</codeph> value in <filepath>networklocationmanager.ini</filepath>. The value is taken from the <xref href="GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26.dita#GUID-B098F3DB-E2FE-3C5A-8508-4B04D954AB26/GUID-4A84D57F-D202-3F79-8094-139D69630C6D"><apiname>TPositionModuleInfo::_Capabilities</apiname></xref> enum. </p> <p> <b>Important note: In the PSY Central Repository Initialization file the value is specified as a decimal integer. In the Integration Module .ini file the value is specified in binary.</b>  </p> <p>In the file shown above the value of 15 for this key specifies that the Network PSY supports the capabilities: </p> <p> <codeph>ECapabilityHorizontal + ECapabilityVertical +
+                             ECapabilitySpeed + ECapabilityDirection </codeph> = 15 decimal or 1111 in binary. </p> </entry> </row> </tbody> </tgroup> </table> </stepxmp> </substep> <substep id="GUID-971F2EF1-AAF0-55A9-AC4D-5A3E59595D43"><cmd>Make a binary version of the Central Repository Initialization text file <filepath>10285abe.txt</filepath>. </cmd> <info>The LBS build process makes a binary version of the Network PSY Central Repository files and copies them to <filepath>epoc32\winscw\c\private\10202BE9</filepath>. </info> <info>To rebuild the Network PSY Central Repository file you can use the makefile <filepath>createlbsnetpsyrep.mk</filepath> in <filepath>datasourcemodules\lbsposfwadaptation\lbsnetpsy\group</filepath>. </info> <info>Use the <xref href="GUID-9BB4A44E-6870-5A25-8EA8-0B0F1565213F.dita">ROM macros</xref> to copy the Network PSY DLL and the Central Repository files into a device ROM. </info> </substep> </substeps> </step> </steps-unordered> </taskbody><related-links><link href="GUID-178F91C8-32F4-5CD3-B81D-F0A6C45097E5.dita"><linktext>Network PSY
+                Overview</linktext> </link> <link href="GUID-9BB4A44E-6870-5A25-8EA8-0B0F1565213F.dita"><linktext>Include the Network PSY in
+                ROM</linktext> </link> </related-links></task>

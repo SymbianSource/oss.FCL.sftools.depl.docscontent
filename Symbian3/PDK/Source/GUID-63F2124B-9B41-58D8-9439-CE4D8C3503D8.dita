@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-63F2124B-9B41-58D8-9439-CE4D8C3503D8"><title>Running a Custom Command</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This section describes how to run a custom command. </p> <section><title>Required background</title> <p>Before you start, you must refer to the CommandList resource file that contains the list of custom commands. </p> </section> <section><title>Introduction</title> <p>The <codeph>SSM_START_CUSTOM_COMMAND</codeph> resource struct provides data to be interpreted by the custom command as arguments. The <codeph>MSsmCustomCommand</codeph> interface provides a mechanism to initialise Thread Local Storage (TLS). TLS is used by multiple custom command implementations within a single DLL. This interface provides a mechanism for the plug-in to perform some clean-up before the DLL is unloaded. </p> </section> <section><title>Procedure</title> <p>Follow the procedure given below to run the custom command: </p> <ol id="GUID-1E031E0C-0DBA-5E06-8B64-806FDC951525"><li id="GUID-7F6C3719-11F6-551B-B4BD-7AB3C3279578"><p>Create a custom command as shown in the code snippet. </p> <codeblock id="GUID-5C087F1F-F108-5F8A-B4DF-C78170DD6345" xml:space="preserve">CreateCustomCommand::CreateCustomCommand()</codeblock> </li> <li id="GUID-A585A76C-0060-5086-8CF6-07E4C9361FBD"><p>Initialize the custom command as shown in the code snippet. </p> <codeblock id="GUID-0AF490B7-8578-5267-8C39-69396FDCCF40" xml:space="preserve">TInt CreateCustomCommand::Initialize( CSsmCustomCommandEnv* aCmdEnv )</codeblock> </li> <li id="GUID-0C5ADEF0-3A24-5F0C-B59E-517BFAD6DB15"><p>Call the custom command using <codeph>SSM_START_CUSTOM_COMMAND</codeph> as shown in the code snippet. </p> <codeblock id="GUID-071BE96E-189E-554B-B907-3F116D56D145" xml:space="preserve">
+// Valid ESsmWaitForStart struct with data
+RESOURCE SSM_START_CUSTOM_COMMAND r_command_custom_cmd1
+{
+    severity = ECmdCriticalSeverity;
+    execution_behaviour = ESsmWaitForStart;
+    dllname = "tcust_cmd.dll";
+    ordinal = 1;
+    unload_on_finish = EUnloadImmediately;
+    retries = 3;
+    dll_data = r_command_custom_cmd_good_data;
+}
+
+// Custom command data
+RESOURCE SSM_COMMAND_CUSTOM_CMD_DATA r_command_custom_cmd_good_data
+{
+    val1 = '1';
+    val2 = '2';
+    val3 = '3';
+    val4 = '4';
+    val5 = '5';
+}
+</codeblock> </li> <li id="GUID-9DE4C16F-CF78-52E7-8F3B-58366252BA01"><p>Run the custom command as shown in the code snippet. </p> <codeblock id="GUID-85D830D6-AEED-52CC-AC78-858F79FAC0A7" xml:space="preserve">void CreateCustomCommand::Execute( const TDesC8&amp; aParams, TRequestStatus&amp; aRequest )
+</codeblock> </li> </ol> </section> <section><title>Result</title> <p>The custom command is succesfully implemented. </p> </section> </conbody><related-links><link href="GUID-EFBBB53F-8402-5010-8B8D-96D0FC46F784.dita"><linktext>Creating a Custom Command</linktext> </link> <link href="GUID-F14A2C1F-7803-5D93-B871-6AAC30F50115.dita"><linktext>Calling a Custom Command</linktext> </link> </related-links></concept>

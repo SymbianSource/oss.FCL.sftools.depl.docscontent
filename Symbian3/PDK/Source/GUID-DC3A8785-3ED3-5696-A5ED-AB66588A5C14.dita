@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14" xml:lang="en"><title>EGL
+Porting Guide</title><shortdesc>This is a guide for implementers of EGL working with the Symbian
+platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Target audience</b>: Device creators. </p>
+<section id="GUID-B4226103-3C9D-4E49-A447-45B057488305"><title>Required functionality </title> <p>The
+implementation DLL must implement:</p><ul>
+<li><p>All of the standard functions declared in the <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface component</xref>.</p></li>
+<li><p>The <xref href="GUID-DEA883D0-7C53-407A-AC5D-0A3208E667C7.dita">EGL Reusable
+Sync Extension</xref> if OpenWF Composition is in use.</p></li>
+<li><p>The <xref href="GUID-8ED4E590-4FDC-4267-87D9-C7E5E57D6B7E.dita">EGL Resource
+Profiling Extension</xref> which can be used to retrieve GPU
+resource utilization information. </p></li>
+</ul><p>Any implementation-specific functions can be included in the DLL or
+placed into a separate DLL.</p> <p>Symbian implementations must use the following
+native type interpretations for compatibility. Window and pixmap types are
+actually defined as <codeph>void*</codeph> to avoid compilation problems for
+C programs. However, the native types specified must be used, because pointers
+are cast to these types within the implementation. </p> <table id="GUID-5F79DD06-1F95-5E36-B020-2141A672AE97">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>OpenGL ES type</entry>
+<entry>Native type</entry>
+<entry>Defined type</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><codeph>EGLNativeDisplayType</codeph> </entry>
+<entry>int </entry>
+<entry><codeph>int</codeph> </entry>
+</row>
+<row>
+<entry><codeph>EGLNativeWindowType</codeph> </entry>
+<entry><xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> <codeph>*</codeph> </entry>
+<entry><codeph>void*</codeph> </entry>
+</row>
+<row>
+
+<entry><codeph>EGLNativePixmapType</codeph>  </entry>
+<entry><xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> <codeph>* </codeph> </entry>
+<entry><codeph>void* </codeph> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>For information about implementing window surfaces and pixmaps,
+see: </p> <ul>
+<li id="GUID-3299A027-7B6F-54B2-9E22-28F233D7F2F1"> <xref href="GUID-0B2421FD-8431-5DDA-9FE3-046734AE495E.dita">Window
+Surface Implementation</xref></li>
+<li id="GUID-05B529F5-0B80-5A41-866C-4AEA2C9769E4"> <xref href="GUID-453CFE84-B2BA-56E6-BCB2-1162432B2358.dita">Pixmap
+Implementation</xref></li>
+</ul> <p><b>Warning </b> </p> <p>Implementations of the EGL APIs must not
+open a session (<xref href="GUID-E5B29AC0-4953-385F-84C5-13EE6CB77D46.dita"><apiname>RFbsSession</apiname></xref>) with the <xref href="GUID-71DADA82-3ABC-52D2-8360-33FAEB2E5DE9.dita">Font
+and Bitmap Server</xref> because this can lead to a deadlock caused by the
+Font and Bitmap Server's dependence on EGL. Therefore within the implementation
+of the EGL APIs: </p> <ul>
+<li id="GUID-7BCFEA36-AAFC-5AEF-A9A7-D2B1927389AC"><p>Do not call <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-6CA684BC-746E-3357-90A0-E5105DDC4E01"><apiname>RWsSession::Connect()</apiname></xref> to
+create a session to the Window Server because this automatically creates an <xref href="GUID-E5B29AC0-4953-385F-84C5-13EE6CB77D46.dita"><apiname>RFbsSession</apiname></xref>. </p> </li>
+<li id="GUID-41A6C1CE-B87E-55CD-8EC2-A080303612A4"><p>Do not call any of the
+Font and Bitmap Server APIs except on a <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> object
+that has been passed into the function as an argument. </p> <p> </p> </li>
+</ul> </section>
+<section id="GUID-3EF15D30-E800-45C7-B1C5-74FD0EC7E3F0"><title>Library file</title> <p>The
+EGL implementation must not deliver the <filepath>libEGL.lib</filepath> file,
+because it is provided by the <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface component</xref>. To prevent a LIB file being automatically generated,
+place the <codeph>NOEXPORTLIBRARY</codeph> directive in the MMP project file
+that builds the implementation DLL. </p> <p>The LIB file delivered by the <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL Interface component</xref> has
+only EGL standard functions and no implementation-specific functions. This
+is to ensure that client programs do not link to implementation-specific functions
+and so are portable across EGL implementations. </p> </section>
+<section id="GUID-46E3542D-09D6-43E8-B8B4-B6081450DB8D"><title>EGL version
+variability point</title> <p>The <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface component</xref> provides header files for EGL 1.2, 1.3 and 1.4.
+The EGL 1.4 headers are used by default. However, there is a variability point
+that can be used to change the header version. This allows a staged migration
+from one version to the next. </p> <p>The variability point consists of adding
+one of the following <codeph>#define</codeph> identifiers to the <filepath>eglheaders.mmh</filepath> file: </p> <ul>
+<li id="GUID-D400FDC2-44DB-5D4E-8355-3DB34DAA6549"><codeph>SYMBIAN_EGLHEADERS_API_VERSION_1_4</codeph> </li>
+<li id="GUID-E6CEFB0E-E60E-5B60-9085-83BC648B085C"><codeph>SYMBIAN_EGLHEADERS_API_VERSION_1_3</codeph> </li>
+<li id="GUID-BC66DCE0-042E-577F-B1E0-45F72B8FDFC4"><codeph>SYMBIAN_EGLHEADERS_API_VERSION_1_2</codeph> </li>
+</ul> <p>The <filepath>eglheaders.mmh</filepath> file is <codeph>#included</codeph> in
+the EGL Interface component's <filepath>bld.inf</filepath> and <filepath>egllib.mmp</filepath> files. </p> </section>
+<section id="GUID-A9195FBE-2418-5211-BD77-8DE3AFA5F1F4"><title>Ordinal reservation </title> <p>Symbian
+has adopted an ordinal reservation scheme for EGL in order to maximize extensibility
+while minimizing compatibility problems. The scheme is shown in the following
+table. </p> <table id="GUID-827E458D-965F-5258-9DA1-FA0FCB2A9FAE">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>Ordinals</entry>
+<entry>Description</entry>
+<entry>Owner</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>1</p> </entry>
+<entry><p>Reserved for use by implementations. </p> </entry>
+<entry><p>EGL implementer </p> </entry>
+</row>
+<row>
+<entry><p>2…249 </p> </entry>
+<entry><p>Reserved for the EGL Interface component to use for the standard
+functions that are defined in the EGL specification. In order to avoid future
+binary compatibility issues, do not use these in your implementation. </p> </entry>
+<entry><p>Symbian </p> </entry>
+</row>
+<row>
+<entry><p>250…499 </p> </entry>
+<entry><p>Reserved for use by implementations. </p> </entry>
+<entry><p>EGL implementer </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The following diagram illustrates a typical ordinal usage scenario. </p> <fig id="GUID-9EDB47A4-043E-52AE-A6F9-E449563B77B7">
+<title>              Typical EGL ordinal usage scenario            </title>
+<image href="GUID-03ED031D-65DB-51DE-8238-1F2ADF3BC936_d0e245515_href.png" placement="inline"/>
+</fig> <p>Note the following: </p> <ul>
+<li id="GUID-050C3247-7462-52BB-A94D-01BC793761FB"><p>The DEF file for the
+EGL Interface uses ordinal position entry points 2-249. </p> </li>
+<li id="GUID-D9BD2169-A2ED-5C44-990C-7B705530E7FB"><p>The <codeph>TARGETTYPE</codeph> keyword
+is set to <codeph>IMPLIB</codeph> in the EGL Interfaces's MMP file to indicate
+that only a LIB file is to be generated. </p> </li>
+<li id="GUID-0C96A6C4-6A2D-59AB-B026-8D55982D9485"><p>The DEF file for the
+EGL implementation uses the full range of ordinal position entry points. </p> </li>
+<li id="GUID-D822C741-2A75-590A-B519-246CE68D5D4D"><p>The <codeph>NOEXPORT</codeph> keyword
+is used in the implementation's MMP file to suppress the generation of a LIB
+file. </p> </li>
+<li id="GUID-DC7B2260-FEE7-5E29-9CA9-1D9381D528B7"><p>The <codeph>TARGETTYPE</codeph> keyword
+is set to <codeph>DLL</codeph> in the implementation's MMP file to indicate
+that it is a DLL project. </p> </li>
+</ul> </section>
+<section id="GUID-7B4FCF2F-9130-405B-B0C0-F569A7052885"><title>Internal functions</title> <p>The
+LIB file that the EGL Interface component produces is used to access the public
+methods of <filepath>libEGL.dll</filepath>. However, the DLL also has private
+methods. Sometimes internal access to these private methods is required—for
+example, by the implementation of an EGL client rendering API, such as OpenVG. </p> <p>When
+access to the private methods is required, it is recommended that the EGL
+implementation provides a separate private LIB file containing the internal
+API calls. This private LIB file works in a similar way to the public one
+in that it does not create a DLL. Appropriate clients can then link to the
+private LIB file when required. Applications should use the public LIB file
+to access the public methods of the EGL DLL. </p> <p>This mechanism ensures
+that normal clients never see the internal API calls and avoids tight coupling
+with a specific implementation. </p> <fig id="GUID-BA940F99-A4A4-5DF4-88A3-32A500EC9AC1">
+<title>              EGL implementation's private LIB file            </title>
+<image href="GUID-FDDDF1F0-42D8-570E-AF06-620825FA1022_d0e245586_href.png" placement="inline"/>
+</fig> <p>Note the following: </p> <ul>
+<li id="GUID-C68A977A-0134-550D-8DAB-886B2E83F56E"><p>The DEF file for the
+private interface uses ordinal position entry points 1 and 250-499. </p> </li>
+<li id="GUID-61BA63E7-D0A3-531C-B378-7DF6890644CD"><p>The <codeph>TARGETTYPE</codeph> keyword
+is set to <codeph>IMPLIB</codeph> in the private interface's MMP file to indicate
+that only a LIB file is to be generated. </p> </li>
+<li id="GUID-6A0E6E83-DF39-5243-8834-8CAA122A2C7D"><p>The <codeph>LINKAS</codeph> keyword
+is used in the private interface's MMP file to indicate that it is to work
+with <codeph>libEGL.dll</codeph>. </p> </li>
+</ul> </section>
+<section id="GUID-31B83800-5789-4029-84F4-BD4451C4FA3B"><title>Extension functions</title> <p>If
+an EGL implementation provides an extension to EGL, clients must use the standard
+EGL function <codeph>eglGetProcAddress()</codeph> to access that functionality.
+This mechanism allows client programs to access the extension function without
+the need to expose the function through the DEF file. </p> </section>
+<section id="GUID-984B148D-C342-464A-B929-5AA2B8AE6A2E"><title>UIDs</title> <p>The
+Symbian platform libraries are given unique identifiers when they are built.
+The following UIDs have been allocated for EGL implementations: </p> <table id="GUID-20E5EE23-06A9-5565-8CF3-63A2CD8D8383">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>Library</entry>
+<entry> UID2</entry>
+<entry>UID3</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>EGL  </entry>
+<entry><codeph>0x1000008d </codeph> </entry>
+<entry><codeph>0x10281AB8 </codeph> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The UIDs are provided in <filepath>egluids.hrh</filepath>, which
+is provided in the <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface component</xref>. </p> </section>
+<section id="GUID-8DF58D61-F0A2-4EFE-8DAD-CFE4117CDFE6"><title>Platform security </title> <p>From
+Symbian OS v9.0 onwards, platform security must be considered. Essentially
+this requires adding the following lines to the <filepath>MMP</filepath> file:
+ </p> <codeblock id="GUID-B43D55E9-5F1D-52DB-9B2E-2059B7C8C15C" xml:space="preserve">CAPABILITY All –Tcb 
+VENDORID &lt;your vendor id in hex&gt; </codeblock> </section>
+<section id="GUID-5DE89FBE-FBD7-4304-A453-32A55E3DAA5E"><title>ROM building </title> <p>Building
+a ROM image for a target platform involves using IBY files. There is a generic
+IBY file called <filepath>egl.iby</filepath> for the EGL implementation. This
+must not be replaced. However, you can create an implementation-specific IBY
+file. This should have a unique name with the format <filepath>egl_adaptation.iby</filepath>,
+where <filepath>adaptation</filepath> is replaced by the vendor's name. For
+example: </p> <codeblock id="GUID-0787AB13-84BD-5CCB-9001-4C4DAF0684CF" xml:space="preserve">// EGL_VENDOR.IBY
+    
+#ifndef __EGL_VENDOR_IBY__
+#define __EGL_VENDOR_IBY__
+    
+REM EGL Vendor implementation
+    
+file=ABI_DIR/BUILD_DIR/libegl_vendor.dll                 /sys/bin/libEGL.dll
+    
+#endif</codeblock> <p>This IBY file must be exported by the <filepath>bld.inf</filepath> file
+to the <filepath>/epoc32/rom/include/</filepath> folder. </p> <p>You can include
+this implementation-specific IBY file in a device ROM configuration file by
+adding the following line to a top-level OBY file like this: </p> <codeblock id="GUID-E51D16DC-0059-58D2-A3E4-866E34BFB15E" xml:space="preserve">#define EGL_DRV &lt;egl_vendor.iby&gt;</codeblock> <p>This
+is the preferred method. However, an alternative is to specify the IBY on
+the BUILDROM command line like this: </p> <codeblock id="GUID-9C5B7F9E-AA57-5694-A4DB-9E4ED500FA98" xml:space="preserve">BUILDROM ... –DEGL_DRV="^&lt;"EGL_vendor.iby"^&gt;" ... </codeblock> <p>Notice that the ^ character is used as an escape character for the &lt;
+and &gt; characters. </p> <p>See <xref href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita">Selection
+of Adaptations</xref> for more information. </p> </section>
+<section id="GUID-BD4C33B6-EBBA-44DE-86BB-1896D1E74F79"><title>Project files</title> <p>Here
+is an example MMP file: </p> <codeblock id="GUID-9F08315E-DB1C-52C9-B777-6FD265EFF1CB" xml:space="preserve">#include "/epoc32/include/platform/egl/egluids.hrh" // For UIDs
+     
+// These statements are always required: 
+target          libEGL.dll             // Destination filename
+targettype      dll                    // Binary build type
+uid             KUidSharedDllUidValue KUidEGLDllUidValue       // File UIDs
+capability      All –Tcb               // Platform Security requirement
+vendorid        &lt;Your vendor ID in hex&gt;
+NOEXPORTLIBRARY                        // Suppress generation of LIB/DSO file
+DEFFILE         libegl13.def
+         
+// These statements are examples and may vary:
+userinclude     ../include             // Local include files
+systeminclude   /epoc32/include        // Symbian include files
+    
+sourcepath      ../egl                 // Relative path to source files
+    
+source          context.cpp            // Source files
+source          display.cpp
+source          egl.cpp
+source          surface.cpp
+    
+library         euser.lib              // For the user library.
+library         fbscli.lib             // For CFbsBitmap, etc.
+library         bitgdi.lib             // For CFbsBitmapDevice, CFbsBitGc, etc.
+library         ws32.lib               // For RWindow, Direct Screen Access, etc.</codeblock> </section>
+<section id="GUID-8B5874FB-7367-484E-90B2-2AD9C2F522AB"><title>Example bld.inf</title> <p>A <filepath>bld.inf</filepath> file
+is also required: </p> <codeblock id="GUID-42A0C512-1685-5A1A-9687-851BF431BC00" xml:space="preserve">PRJ_PLATFORMS
+DEFAULT      
+    
+PRJ_EXPORTS
+egl_vendor.iby       /epoc32/rom/include/egl_vendor.iby
+      
+PRJ_MMPFILES
+./egl.mmp</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-0B2421FD-8431-5DDA-9FE3-046734AE495E.dita"><linktext>Window Surface
+Implementation</linktext></link>
+<link href="GUID-453CFE84-B2BA-56E6-BCB2-1162432B2358.dita"><linktext>Pixmap Implementation</linktext>
+</link>
+<link href="GUID-D252E75C-C8CA-5C51-8DA3-95B937A1295C.dita"><linktext>EGL Interface
+Component</linktext></link>
+<link href="GUID-DC8BFEF5-DA50-52DA-8CE2-5729A4A005F6.dita"><linktext>EGL Collection
+Overview</linktext></link>
+<link href="http://www.khronos.org/egl/" scope="external"><linktext>http://www.khronos.org/egl/</linktext>
+</link>
+</related-links></concept>

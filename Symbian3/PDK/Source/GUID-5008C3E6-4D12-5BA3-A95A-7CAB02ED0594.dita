@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-5008C3E6-4D12-5BA3-A95A-7CAB02ED0594"><title>Privacy Request API Tutorial</title><shortdesc>This topic describes how to use the <codeph>Privacy
+        Request API</codeph>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><prereq><p>The reader must be familiar with the Privacy Protocol Module and the Privacy Request API. </p> </prereq> <context><p>When LBS is configured to load the Privacy Protocol Module, it handles only privacy requests and does not calculate position fixes. It is the responsibility of licensee domestic OS components to obtain the device's position. The <xref href="GUID-E1710E40-B8F5-5CF8-B9FE-698869A1770F.dita">Privacy Request API</xref> provides the means to send privacy requests into the LBS subsystem. </p> <p>To use the Network Privacy API a licensee must create a client component that runs in the licensee domestic OS. This component receives privacy and location requests from the network or from an installed application and forwards them to the LBS subsystem via the Privacy Request API. </p> <p>The Privacy Request API is only available with the Privacy Protocol Module. The first privacy request sent via the Network Privacy API causes the LBS subsystem components to be started. </p> <p>Many of the implementation details of creating a Privacy Request API client are licensee-specific. Generally, the client must: </p> <ul><li id="GUID-6F4E4B47-707B-574E-B84D-A56735BA956F"><p>Listen for privacy and location requests received from the client. </p> </li> <li id="GUID-7A907A6B-8A62-50F7-B80D-0CEC892DDE64"><p>Use the Privacy Request API to forward privacy requests to the LBS subsystem. </p> </li> <li id="GUID-37006B7B-FE52-5BCE-A16E-3DC200B0C5F9"><p>Receive responses to privacy requests from the LBS subsystem via the Privacy Request API and return them to the client. </p> </li> <li id="GUID-BCA372D2-FCF5-542A-BC1D-BE456BA5694E"><p>If a privacy request is accepted, forward the subsequent location request to a component in the licensee domestic OS so that a position fix can be obtained. </p> </li> </ul> <p>The steps that follow describe only the interactions of the client with the Privacy Request API. </p> </context> <steps id="GUID-70CE3988-65BE-5175-9E49-C83075FDBA99"><step id="GUID-4CF0205F-0392-593F-AE1A-9763D65B5DF4"><cmd>Create a Privacy Request API client. </cmd> <info>The code example below shows a simple implementation of an <xref href="GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A.dita"><apiname>MLbsPrivacyRequestObserver</apiname></xref> subclass that uses the Privacy Request API. Such a class could be the basis of an observer class in a licensee client application. </info> <stepxmp><codeblock id="GUID-026AAC28-BE07-5CFB-BAA2-DD346AB8F51C" xml:space="preserve">
+#ifndef CMYPRIVACYREQUESTLISTENER_H_
+#define CMYPRIVACYREQUESTLISTENER_H_
+
+#include &lt;lbsprivacyrequest.h&gt;
+#include &lt;lbsloccommon.h&gt;
+
+class CMyPrivacyRequestObserver : public MLbsPrivacyRequestObserver
+{
+
+public:
+    static CMyPrivacyRequestObserver* NewL();
+    virtual ~CMyPrivacyRequestObserver();
+
+// From MLbsPrivacyRequestObserver
+public:
+    void OnPrivacyResponse(TLbsPrivacyRequestId aRequestId, const TLbsPrivacyResponse&amp; aResponse, TInt aError);
+    
+public:
+    void VerifyPrivacyRequest(const TLbsExternalRequestInfo&amp; aInfo);
+    void NotifyPrivacyRequest(const TLbsExternalRequestInfo&amp; aInfo);
+    void CancelPrivacyRequest(TLbsPrivacyRequestId&amp; aRequestId);
+    void TimeoutPrivacyRequest(TLbsPrivacyRequestId&amp; aRequestId);
+
+protected:
+CMyPrivacyRequestObserver();
+
+private:
+    CLbsPrivacyRequest* iPrivacy;
+    TLbsPrivacyRequestId iRequestId; // This demo client just stores a single request ID
+    void ConstructL();
+};
+
+#endif /*CMYPRIVACYREQUESTLISTENER_H_*/
+</codeblock> </stepxmp> <info>The code below shows the creation of a <xref href="GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47.dita"><apiname>CLbsPrivacyRequest</apiname></xref> object in the second phase constructor of the observer. The LBS subsystem is transient when it uses the Privacy Protocol Module. Creating an instance of <codeph>CMyPrivacyRequestObserver</codeph> does not cause the LBS subsystem to be started. </info> <stepxmp><codeblock id="GUID-2FCE526A-8349-5DBB-9BCA-9F6E47D55AF2" xml:space="preserve">
+CMyPrivacyRequestObserver* CMyPrivacyRequestObserver::NewL()
+    {
+    CMyPrivacyRequestObserver* listener = 
+                  new (ELeave)CMyPrivacyRequestObserver();
+
+    CleanupStack::PushL(listener);
+    listener-&gt;ConstructL();
+    CleanupStack::Pop(listener);
+    return listener;
+    }
+
+void CMyPrivacyRequestObserver::ConstructL()
+    {
+    iPrivacy = CLbsPrivacyRequest::NewL(*this);
+    }
+</codeblock> </stepxmp> </step> <step id="GUID-B1A1D2EE-267B-5830-9C3F-4DE61073600E"><cmd>Write code to send a privacy verification request. </cmd> <info>The licensee client receives a privacy verification request from the network or a local application. The privacy request requires user verification. The following describes the steps the licensee client application performs for a privacy verification request: </info> <substeps id="GUID-87F96DA5-B499-5BB9-8807-CE49953FEC5E"><substep id="GUID-76014EDA-5867-5AB4-A68A-EC2FB293F0BC"><cmd/><info>The client creates an instance of class <xref href="GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08.dita"><apiname>TLbsExternalRequestInfo</apiname></xref> (or <xref href="GUID-EB52E7D5-55AE-3539-A212-AB2B5430D407.dita"><apiname>TLbsExternalRequestInfo2</apiname></xref>) and populates it with the privacy request data. </info> <info>For a local privacy request, the client must call <xref href="GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08.dita#GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08/GUID-A7DF2BBC-B2E9-39CB-B8D0-1A1B9D4018AC"><apiname>TLbsExternalRequestInfo::SetRequestSource()</apiname></xref> with a parameter of <xref href="GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08.dita#GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08/GUID-4FF586E1-4503-32CC-BF50-414D7F02034C"><apiname>TLbsExternalRequestInfo::ERequestSourceLocal</apiname></xref>. The client must have the capabilities <codeph>Location</codeph> and <codeph>ReadDeviceData</codeph>. For a privacy request from the network, a parameter of <xref href="GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08.dita#GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08/GUID-9396B026-170A-33B2-80DF-8FFB112EE9EC"><apiname>TLbsExternalRequestInfo::ERequestSourceNetwork</apiname></xref> must be passed. The client must have the capabilities <codeph>Location</codeph>, <codeph>ReadDeviceData</codeph> and <codeph>NetworkServices</codeph>. </info> <info>The client creates an instance of an object of class <xref href="GUID-DA7E60CF-52F9-3ACF-AB12-E647AD980C81.dita"><apiname>TLbsPrivacyRequest</apiname></xref> and defines the privacy advice and privacy action. For a privacy verification request, the privacy advice is set to <codeph>TLbsPrivacyRequest::ERequestAdviceVerify</codeph>. </info> </substep> <substep id="GUID-FE378075-4070-5AA2-B8B3-F8B8775970F4"><cmd/><info>The client calls <xref href="GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47.dita#GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47/GUID-456AB7A5-73D7-36E3-B455-6B9D6B8B598D"><apiname>CLbsPrivacyRequest::NewPrivacyRequest()</apiname></xref>. This method is asynchronous and non-blocking. The client can process multiple privacy requests by calling <codeph>NewPrivacyRequest()</codeph> multiple times. Each request is identified by a unique request ID which is returned by LBS as an output parameter. The LBS subsystem is started if it is not running when a request is made. </info> </substep> <substep id="GUID-9AFB9D8A-765F-588B-8505-360675062665"><cmd/><info>When the privacy request is completed, the method <xref href="GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A.dita#GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A/GUID-14A97B64-59EF-3AE0-B144-3EE66754F610"><apiname>MLbsPrivacyRequestObserver::OnPrivacyResponse()</apiname></xref> is called on the client observer. The licensee client sends the privacy response to the local application or the network (whichever made the privacy request). </info> </substep> </substeps> <info>The following code example demonstrates how to use the Privacy Request API to verify a privacy request. </info> <stepxmp><codeblock id="GUID-84CB99B1-55CA-5BBD-9723-44A28D057383" xml:space="preserve">
+// In this example, the TLbsExternalRequestInfo object
+// is created by the client application
+void CMyPrivacyRequestObserver::VerifyPrivacyRequest(const TLbsExternalRequestInfo&amp; aInfo)
+    {
+    
+    // Example shows how to set the privacy advice to verify the request
+    // and set the privacy action to reject if there is no privacy response
+    
+    TLbsPrivacyRequest privacy;
+    privacy.SetRequestAdvice(TLbsPrivacyRequest::ERequestAdviceVerify);
+    privacy.SetRequestAction(TLbsPrivacyRequest::ERequestActionReject);
+    TInt err = iPrivacy-&gt;NewPrivacyRequest(iRequestId, privacy, aInfo);
+    if (err != KErrNone)
+        {
+        // Error could be KErrArgument if incorrect parameters passed
+        // or any other Symbian error code
+        }
+    }
+</codeblock> </stepxmp> <info> <xref href="GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A.dita#GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A/GUID-14A97B64-59EF-3AE0-B144-3EE66754F610"><apiname>MLbsPrivacyRequestObserver::OnPrivacyResponse()</apiname></xref> is called to complete the request. </info> <stepxmp><codeblock id="GUID-453FAE11-5351-5F8E-838B-A9C325C7AB21" xml:space="preserve">
+void CMyPrivacyRequestObserver::OnPrivacyResponse(TLbsPrivacyRequestId aRequestId, const TLbsPrivacyResponse&amp; aResponse, TInt aError)
+    {
+    // Forward privacy response to client then call CompleteRequest...
+    iPrivacy-&gt;CompleteRequest(aRequestId, KErrNone);
+    }
+
+</codeblock> </stepxmp> </step> <step id="GUID-5CEAAB5D-DF37-5503-926B-65D5DFD1CB40"><cmd>Write code to send a privacy notification request. </cmd> <info>The licensee client receives a privacy request from the network or a local application. The privacy request does not require verification. The following describes the steps the licensee client application performs for a privacy notification request: </info> <substeps id="GUID-5A0F5796-5BFC-50F9-B8A0-6F3511050EBA"><substep id="GUID-FAFF077E-9100-58C5-B025-80A31302066A"><cmd/><info>The client creates an instance of class <xref href="GUID-D6E1F012-8C98-3B10-9601-3F665CFD5F08.dita"><apiname>TLbsExternalRequestInfo</apiname></xref> as described for privacy verification in the previous section. </info> <info>The client creates an instance of an object of class <xref href="GUID-DA7E60CF-52F9-3ACF-AB12-E647AD980C81.dita"><apiname>TLbsPrivacyRequest</apiname></xref> and defines the privacy advice and privacy action. For a privacy notification request, the privacy advice is set to <codeph>TLbsPrivacyRequest::ERequestAdviceNotify</codeph>. </info> </substep> <substep id="GUID-F4E6E508-3BE1-5A44-A396-213A1B178664"><cmd/><info>The client calls <xref href="GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47.dita#GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47/GUID-456AB7A5-73D7-36E3-B455-6B9D6B8B598D"><apiname>CLbsPrivacyRequest::NewPrivacyRequest()</apiname></xref>. This method is asynchronous and non-blocking. The client can process multiple privacy requests by calling <codeph>NewPrivacyRequest()</codeph> multiple times. Each request is identified by a unique request ID which must be passed as a parameter. The LBS subsystem is started if it is not running when a request is made. </info> </substep> </substeps> <info>The following code example demonstrates how to use the Privacy Request API to notify a privacy request. </info> <stepxmp><codeblock id="GUID-E95AA02F-6D06-5765-9813-9D399E4594DB" xml:space="preserve">
+// In this example, the TLbsExternalRequestInfo object
+// is created by the client application
+void CMyPrivacyRequestObserver::NotifyPrivacyRequest(const TLbsExternalRequestInfo&amp; aInfo)
+    {
+    
+    // Example shows how to set the privacy advice to verify the request
+    // and set the privacy action to reject if there is no privacy response
+    
+    TLbsPrivacyRequest privacy;
+    privacy.SetRequestAdvice(TLbsPrivacyRequest::ERequestAdviceNotify);
+    privacy.SetRequestAction(TLbsPrivacyRequest::ERequestActionReject);
+    TInt err = iPrivacy-&gt;NewPrivacyRequest(iRequestId, privacy, aInfo);
+    if (err != KErrNone)
+        {
+        // Error could be KErrArgument if incorrect parameters passed
+        // or any other Symbian error code
+        }
+    }
+</codeblock> </stepxmp> <info> <xref href="GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A.dita#GUID-BD22CA43-FDAF-3809-8172-6403B4D7529A/GUID-14A97B64-59EF-3AE0-B144-3EE66754F610"><apiname>MLbsPrivacyRequestObserver::OnPrivacyResponse()</apiname></xref> is called to complete the request. </info> </step> <step id="GUID-DBF06C5A-5974-5A43-A4B7-18211AF527F1"><cmd>Write code to cancel a pending privacy verification request. </cmd> <info>The code example below shows how a client can cancel an outstanding request by calling <xref href="GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47.dita#GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47/GUID-65A421D0-4A31-39F2-871A-A7A3C63ACC32"><apiname>CLbsPrivacyRequest::CompleteRequest()</apiname></xref>. </info> <stepxmp><codeblock id="GUID-15C9421E-5CCA-54CE-AFE1-D8C43D2302DD" xml:space="preserve">
+void CMyPrivacyRequestObserver::CancelPrivacyRequest(TLbsPrivacyRequestId&amp; aRequestId)
+    {
+    iPrivacy-&gt;CompleteRequest(aRequestId, KErrCancel);
+    }
+</codeblock> </stepxmp> </step> <step id="GUID-6551A2BD-49D6-5867-AD20-BC9E9B929217"><cmd>Write code to send a timeout notification. </cmd> <info>The code example below shows how a request can be timed out. The timeout is sent to the LBS subsystem by calling <xref href="GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47.dita#GUID-FA2B30DF-81BC-3BCD-9EE6-01A961291D47/GUID-65A421D0-4A31-39F2-871A-A7A3C63ACC32"><apiname>CLbsPrivacyRequest::CompleteRequest()</apiname></xref>. </info> <stepxmp><codeblock id="GUID-0928FEEA-610F-54A6-9937-DA305D654634" xml:space="preserve">
+void CMyPrivacyRequestObserver::TimeoutPrivacyRequest(TLbsPrivacyRequestId&amp; aRequestId)
+    {
+        iPrivacy-&gt;CompleteRequest(aRequestId, KErrTimedOut);
+    }
+</codeblock> </stepxmp> </step> <step id="GUID-79F7D826-E965-5603-A5DD-4FEDDC1F1B61"><cmd>Define client capabilities. </cmd> <info>The following is a simple MMP file for the client. The header files for the Privacy Request API are located at <filepath>\epoc32\include\lbs</filepath> and the client links to <filepath>lbsprivacyrequest.lib</filepath>. All clients require the capabilities <codeph>Location</codeph> and <codeph>ReadDeviceData</codeph>. Clients that create network privacy requests also require the capability <codeph>NetworkServices</codeph>. </info> <stepxmp><codeblock id="GUID-250CD303-C15C-55FB-A1A1-E09E0C37180A" xml:space="preserve">
+TARGET          PrivacyRequestAPI_Example.exe
+TARGETTYPE      exe
+UID             0 0x12345678
+
+USERINCLUDE     ..\inc
+SYSTEMINCLUDE   \epoc32\include \epoc32\include\lbs
+
+SOURCEPATH      ..\src
+SOURCE          PrivacyRequestAPI_Example.cpp CMyPrivacyRequestListener.cpp
+
+LIBRARY         euser.lib lbsprivacyrequest.lib
+
+CAPABILITY Location ReadDeviceData NetworkServices</codeblock> </stepxmp> </step> </steps> </taskbody><related-links><link href="GUID-0BF06E5D-BEEF-5E15-894E-FA605FA12E33.dita"><linktext>Privacy
+                Protocol Module Overview</linktext> </link> <link href="GUID-E1710E40-B8F5-5CF8-B9FE-698869A1770F.dita"><linktext>Privacy
+                Request API</linktext> </link> </related-links></task>

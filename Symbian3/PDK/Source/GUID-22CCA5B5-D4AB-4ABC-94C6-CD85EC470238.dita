@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-22CCA5B5-D4AB-4ABC-94C6-CD85EC470238" xml:lang="en"><title>System
+Information</title><shortdesc>This topic describes various system information related to the
+device drivers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-8968BABB-32E5-4998-8E69-C8389D1E6B63">       <title>Presence
+of PDD</title>       <p>Some drivers may only require an LDD, and not provide
+a PDD. However, if the driver has a PDD, then the driver must inform the framework
+of this. The LDD should set the <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita#GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB/GUID-EB891156-94D9-323A-AB23-7B5994CD95E3"><apiname>DLogicalDevice::iParseMask</apiname></xref> bitmask
+with the <xref href="GUID-DD3574F6-5EA7-3E2E-B906-E1E320DE10CD.dita"><apiname>KDeviceAllowPhysicalDevice</apiname></xref> flag. If this flag
+is not set, then the Kernel assumes that the driver does not have a PDD. </p> <codeblock id="GUID-F4A44E78-EA90-5D75-BC1F-48EF684F7F58" xml:space="preserve">// Logical Channel Second stage constructor
+DExDriverLogicalDevice:: DExDriverLogicalDevice ()
+    {
+    iParseMask = KDeviceAllowPhysicalDevice | KDeviceAllowUnit;
+    ...
+    }</codeblock>     </section>
+<section id="GUID-EFC4AE5D-6506-4B1F-A4E4-DBA31B456593"/>
+<section id="GUID-E983D7DF-52C4-46FC-B633-BF08519D949D"><title>Capabilities</title> <p>The
+device driver framework provides a method to set and provide general information
+to the user on the capabilities of the device driver. Typically, implementations
+simply return the version number of the LDD. The device driver framework allows
+both the LDD and PDD to set the device capabilities. </p> <p>The user typically
+calls the <xref href="GUID-92BAC78E-8ACF-3952-8E77-CCF93ED3BDC9.dita#GUID-92BAC78E-8ACF-3952-8E77-CCF93ED3BDC9/GUID-9C38652A-0135-360D-A54F-A9542C45E608"><apiname>RDevice::GetCaps()</apiname></xref> function to retrieve the device
+capabilities. </p> <codeblock id="GUID-6801C06D-EEA1-505B-968A-8EF354961183" xml:space="preserve">RDevice device;
+r = device.Open(KDriverName);
+if (r==KErrNone)
+    {
+    TPckgBuf&lt;RExDriver::TUartCaps&gt; caps;
+    device.GetCaps(caps);         
+    ...
+    device.Close();
+    }</codeblock> <p> <i>Note:</i> The device capabilities in this context
+refer to the services that the driver can offer. Do not confuse this with
+the idea of platform security capabilities, which are completely different. </p></section>
+<section id="GUID-73AD1B0E-2A31-4D44-A19C-E64A78281C27"><title> HAL handlers</title> <p>Symbian
+platform provides a Hardware Abstraction Layer (HAL) interface that can be
+used by device drivers and kernel extensions to provide information on device
+specific attributes to user code. It comprises set and get interfaces used
+by the Kernel and by user code. The attributes are divided into groups of
+similar functionality, each of which is managed by a function called a HAL
+handler. </p> <p>Drivers must register any HAL handlers they provide, and
+de-register them when unloading. Kernel extensions do not remove their HAL
+handlers. </p> <codeblock id="GUID-EE9D2192-92F1-5C9D-9E9C-4CFD5D2C6304" xml:space="preserve">// Adds a HAL entry handling function for the specified group of 
+// HAL entries.
+Kern::AddHalEntry(EHalGroupDisplay, &amp;handler, this, 1);
+
+// Removes the HAL handler
+TInt Kern::RemoveHalEntry(EHalGroupDisplay);</codeblock> <p>The arguments
+to <codeph>AddHalEntry()</codeph> are the ID of a HAL group, a pointer to
+the handler function and a pointer to a data structure that will be passed
+to the handler function. The HAL handler function prototype is defined by <xref href="GUID-A65A16CA-488D-3A16-A034-F01C9C0B9D15.dita"><apiname>THalFunc</apiname></xref>. </p> <codeblock id="GUID-B3B4A844-FA9B-54CC-A02C-90BB2388AFC8" xml:space="preserve">// Implementation of the kernel extension's exported function
+EXPORT_C void TExClientInterface::MyExAPI()
+    {
+    …
+    ExController-&gt;MyExAPI();
+    …
+    }
+
+LOCAL_C TInt halFunction(TAny* aPtr, TInt aFunction, TAny* a1, 
+        TAny* a2)
+    {
+    DLcdPowerHandler* pH=(DLcdPowerHandler*)aPtr;
+    return pH-&gt;HalFunction(aFunction,a1,a2);
+    }
+
+TInt DLcdPowerHandler::HalFunction(TInt aFunction, TAny* a1, 
+TAny* a2)
+    {
+    ...
+    switch(aFunction)
+        {
+        ...
+        }
+    }</codeblock> <p>When the user calls <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> or <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref>,
+it invokes the corresponding <codeph>halFunction()</codeph> of the HAL function
+group. </p></section>
+</conbody></concept>

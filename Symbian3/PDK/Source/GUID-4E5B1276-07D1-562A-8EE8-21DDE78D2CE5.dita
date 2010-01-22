@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4E5B1276-07D1-562A-8EE8-21DDE78D2CE5" xml:lang="en"><title>System
+State Management Policy</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The System State Management (SSM) policy determines the set of permissible
+states, state transitions, and the tasks that are performed while changing
+the system state. This policy is associated with a transition in system state
+or a system-wide property. </p>
+<p>This policy is defined by a system state policy plug-in and an associated <codeph>CommandList</codeph> resource
+file. The policy in SSM is contained in policy DLLs and resource files. The
+policy DLLs are identified using the requested system state or system-wide
+property (example <codeph>SysStatePolicy&lt;stateIdentifier&gt;</codeph> and <codeph>SysPropertyPolicy&lt;propertyIdentifier&gt;</codeph>). </p>
+<p>In addition to defining an interface for this framework, some command tasks,
+such as reading <codeph>commandList</codeph> s of a resource file format into
+memory, is also provided. This is implemented as a 'C' class which provides
+implementation of this common functionality. But, it still contains some pure
+virtual functions, similar to the <xref href="GUID-067293BF-B28C-3CEC-92F4-1351A795EA7F.dita"><apiname>CActive</apiname></xref> class for active
+objects. </p>
+<p>When implementing a new policy DLL, choose to start from scratch and extend
+from the framework’s 'M' Class, or to use the 'C' class which provides the
+basic functionality and is expected to be commonly used in policy DLLs. The
+policy DLL is dynamically loaded and an object is instantiated that implements
+one of the following interfaces (M Class): </p>
+<p>The policy DLLs are customizable by licensees. The framework for the policy
+DLLs are described by the APIs detailed in the following table. </p>
+<table id="GUID-3E8474F9-9D83-5995-B98E-29CDC3B74516">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry><p><b>Interfaces (M Class) :</b> </p></entry>
+<entry><p><b>API</b></p></entry>
+<entry><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>For system state </p> </entry>
+<entry><p> <xref href="GUID-A86FEEA6-7602-34A9-A200-E2521CB66BD4.dita"><apiname>MSsmStatePolicy</apiname></xref>  </p> </entry>
+<entry><p>This is an Session Initiation Protocol (SPI) which allows customization
+of the behavior of state changes. </p> </entry>
+</row>
+<row>
+<entry><p>For system-wide property </p> </entry>
+<entry><p> <xref href="GUID-31FB0BC8-83FC-3581-A7A3-C1781CAE7187.dita"><apiname>MSsmSwpPolicy</apiname></xref>  </p> </entry>
+<entry><p>This is an SPI which allows customization of the behavior of the
+system-wide property changes. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<section><title>Transition of a system state</title> <p>The system state (and
+its sub-states) is distributed through the Domain Manager (DM). A specific
+command in a <codeph>commandList</codeph> is used to set a new value for the
+system state (that is SysCLE interfaces with the DM to change the system state).
+The new value of a system state is distributed through the DM and the appropriate
+Domain Hierarchy. For more information on SysCLE, see <xref href="GUID-1F2911DC-7D71-573D-AFD2-1EA4BBA88A57.dita#GUID-1F2911DC-7D71-573D-AFD2-1EA4BBA88A57/GUID-E2D75D7D-98A5-5419-8B0E-0A995D3EFEC9">System Command List Executer</xref>. </p> <p>When a change of a system state
+is requested: </p> <ol id="GUID-7B67F54E-91A7-52FF-91E6-93E66B7B3654">
+<li id="GUID-3DCB2900-E1DE-5A01-9C42-794E49CD0903"><p>SysStateMgr calls <codeph>TransitionAllowed(..)</codeph> to
+ascertain if the requested system state transition is allowed. </p> </li>
+<li id="GUID-C76D73C1-24D5-575E-A014-13629DAF2B3B"><p>If the requested transition
+is allowed, the SSM policy loads the policy plug-in, <codeph>GetNextCommandList(..)</codeph>. </p> </li>
+<li id="GUID-533853A3-4950-5067-B5F8-46B30E1A7AEA"><p> <codeph>GetNextCommandList(..)</codeph> obtains
+the initial <codeph>commandList</codeph> for this system state. </p> </li>
+<li id="GUID-B9D92285-0D0F-5B99-8B40-F1C66CE53593"><p>The new system sub-state
+is returned by the policy plug-in. The returned commandList object is passed
+to SysCLE. </p> </li>
+<li id="GUID-31463C2B-0531-52C7-A524-56A75A5C3280"><p>SysCLE runs the <codeph>commandList</codeph>,
+and provides a return code to indicate if the <codeph>commandList</codeph> is
+run successfully. </p> </li>
+<li id="GUID-9BBA2C2D-02C8-5059-88C8-3A7AA08C7ABD"><p>This return code and
+the system sub-state is used in a call to <codeph>GetNextCommandList(..)</codeph>.
+This returns the next <codeph>commandList</codeph> or NULL (indicating that
+there are no more <codeph>commandLists</codeph> for this system state). </p> </li>
+</ol> <p>Command lists stored in resource files can be implemented in one
+of the two ways: </p> <ul>
+<li id="GUID-FBE223B7-EA0E-579B-B3B4-EECA95B31FD0"><p>Single resource file
+containing multiple commandLists - </p> <p>This option leads to only a single
+file being opened at a system state transition. </p> <p>For example, on instantiation
+of the system state policy object, the associated resource file is opened,
+and this contains an array of commandLists which are used in specific system
+sub-states). This reduces any impact on device start-up time because of opening
+multiple resource files. </p> <p> <b>Note:</b> A single resource file containing
+multiple commandLists for a particular system state is currently the preferred
+solution. </p> </li>
+<li id="GUID-FCD34DF4-8B38-5039-A026-10DEAAFAE16B"><p>Many resource files,
+each containing a single <codeph>commandList</codeph> - </p> <p>Multiple resource
+files make distinction between different commandLists very clear. This increases
+maintainability and eases debugging of commandLists. </p> </li>
+</ul> <p><b>Example of system state transition from ‘Normal’ to ‘Shutdown’</b> </p> <p>The
+following image illustrates an example of the policy actions performed when
+the system state is transitioned from ‘Normal’ to ‘Shutdown’. </p> <fig id="GUID-C6D2D6B9-FE2D-5265-94EC-DF1D6128ACA9">
+<title>                 System state transition from 'Normal' to 'Shutdown'
+              </title>
+<image href="GUID-1686AFA7-F0FA-5B3D-9E2F-EE2D7CDC338B_d0e140761_href.png" placement="inline"/>
+</fig> <p><b>Symbian defined system state transitions</b> </p> <p>The following
+events cause transitions in Symbian defined system state: </p> <ol id="GUID-D8F4E705-1C48-5222-956E-0D74835EEDD6">
+<li id="GUID-9BFC161B-D1CE-5BB4-868A-F86E432E12BC"><p> <b>Undefined -&gt; Start-up:</b>  </p> <p>In
+this transition, <filepath>SysStateMgr</filepath> is created by <codeph>EStart()</codeph>,
+the start-up system state is assumed. The start-up policy plug-in is used
+to select the correct ‘activities list’ for start-up. For example by reading
+the start-up Mode. </p> </li>
+<li id="GUID-5F43C1F2-57F1-5341-914C-DA389037627A"><p> <b>Start-up -&gt; Normal
+:</b>  </p> <p>In this transition, when the start-up state is finished, the
+last item in the commandList indicates to <filepath>SysStateMgr</filepath> that
+the Normal state should be entered. </p> </li>
+<li id="GUID-A5E578ED-06D0-5FD5-B268-9CA7EF4E4DB1"><p> <b>Normal -&gt; Shutdown:</b>  </p> <p>This
+transition is generated by the Look and Feel (LaF) Shutdown manager or another
+component in the device responsible for handling device shutdown, after detection
+of a shutdown event. </p> </li>
+<li id="GUID-B526B171-5654-50AA-9482-D20D4D549D28"><p> <b>Start-up/Normal/Shutdown
+-&gt; Fail:</b>  </p> <p>This transition can occur at any time, and it involves
+immediate interruption of the current commandList and immediate emergency
+shutdown of the device. </p> </li>
+</ol> <p>When distributing the system state, the domains existing in the Domain
+Manager hierarchy to be traversed in different directions, based on which
+state is being handled. Components higher up in the system model requires
+shutdown notification before components below them. Similarly components lower
+down in the system model need to be notified of start-up before components
+above them. The two possible options for accomplishing this using the domain
+hierarchy is to: </p> <ul>
+<li id="GUID-C2FDB7E4-CFC0-5C5D-A473-791268AE59DC"><p> <b>Have a separate
+domain hierarchy for each system state</b> - </p> <p>This option would have
+four separate domain hierarchies, one for each of the system states. The current
+system state is defined by the domain hierarchy which is currently in a defined
+state, or by a separate system state indication. </p> </li>
+<li id="GUID-ABC31988-39BD-5F11-AD8B-87F26B89001D"><p> <b> Traverse the same
+domain hierarchy in different directions, depending on the system state</b> - </p> <p>This
+option has one domain hierarchy with the current system state that is defined
+by the state of the domain hierarchy. This is the preferred option because
+of the simplicity in changing state and registering for notification of state
+transitions. </p> </li>
+</ul> </section>
+</conbody></concept>

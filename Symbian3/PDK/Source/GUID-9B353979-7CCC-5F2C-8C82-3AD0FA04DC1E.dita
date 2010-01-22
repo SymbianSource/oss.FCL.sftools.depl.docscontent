@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9B353979-7CCC-5F2C-8C82-3AD0FA04DC1E" xml:lang="en"><title>How
+to format date and time independent of locale</title><shortdesc>Explains how to format and display universal time, current time,
+date independent of locale settings.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>In these code fragments, all output is purely numerical, date and time
+separators and formatting is fixed and locale independent.</p>
+<p>To display the <keyword>universal time</keyword> and current <keyword>local
+time</keyword> implement code as follows:</p>
+<codeblock id="GUID-CF485281-AA00-5B06-ACB8-DEC963B5FB80" xml:space="preserve">  
+TBuf&lt;256&gt; buffer;
+
+    // Time in microseconds since 0 AD nominal Gregorian
+TTime time;
+
+    // year-month-day-hour-minute-second-microsecond
+TDateTime dateTime;
+
+    // Set and print Universal date/time
+    // Get Universal time (= GMT)
+time.UniversalTime();
+
+    // Convert to fields
+dateTime=time.DateTime();
+
+    // Format universal time numerically
+formatDateTime(buffer,dateTime);
+
+    // Get current local time, taking daylight saving
+    // into account, if in effect
+time.HomeTime();
+
+    // Convert to fields
+dateTime=time.DateTime();
+
+    // Format current local date/time numerically
+formatDateTime(buffer,dateTime);</codeblock>
+<p>Here, the formatting is handled by the <codeph>formatDateTime()</codeph> function.
+This is implemented:</p>
+<codeblock id="GUID-EEFBC539-C2A4-5058-9AA4-054108553357" xml:space="preserve">LOCAL_C void formatDateTime(TDes&amp; aBuffer,TDateTime aDateTime)
+    {
+    _LIT(KFormatTxt,"%d %d %d %d:%d:%d.%d\n");
+    aBuffer.Format(KFormatTxt,
+                   aDateTime.Year(),
+                   TInt(aDateTime.Month()+1), 
+                       // Format the month as a TInt to preserve locale independence
+                   aDateTime.Day()+1, 
+                       // Day and month ranges begin at zero (0-30 and 0-11), 
+                       // so add one when formatting
+                   aDateTime.Hour(), aDateTime.Minute(), aDateTime.Second(),
+                   aDateTime.MicroSecond()
+                  );
+    {</codeblock>
+<section id="GUID-C8C819FA-3610-421E-992A-DCAF0BBA5DE0"><title>Notes</title> <ul>
+<li id="GUID-251F6052-CFE4-56DC-A136-4155DDDA4D35"><p>The <codeph>TTime</codeph> class
+is used for storing and manipulating times. As it stores a time value as a
+64 bit integer, it needs to be converted into a <codeph>TDateTime</codeph> object,
+before it can be converted into formatted text.</p> </li>
+<li id="GUID-CE3DCF35-0ACC-52E9-975D-6C07CD8E7DEA"><p><codeph>TDateTime</codeph> is
+the intermediary class for all input and output of dates and times by the
+user.</p> </li>
+<li id="GUID-5BF59173-BF74-524E-BE3E-394E69647BA2"><p>In the <codeph>TDateTime</codeph> class,
+the month is represented by a <xref href="GUID-56D0C59A-C271-33DA-820C-E3756E87CBAA.dita"><apiname>TMonth</apiname></xref> enumeration. The values
+of this enumeration are relative to zero. Similarly, the day is represented
+by a number whose value is zero for the first day in the month, one for the
+second day etc. Therefore, when formatting <codeph>TDateTime</codeph> values,
+as above, the integer representations of these fields must be incremented
+by one; they must be decremented by one when converting from human-readable
+values into <codeph>TDateTime</codeph> as the next example code fragment shows:</p> <codeblock id="GUID-3C33A2E8-0349-5DC0-B59F-C5A34BBA60F3" xml:space="preserve">
+...
+    // set date to 31st December 1996
+    // set the date as if input from a user interface
+TInt year=1996;
+TInt month=12;
+TInt day=31;
+
+TInt error=dateTime.Set(year,TMonth(month-1),day-1,9,1,5,1000);
+    // month and day values are zero-offset !
+    // check that date/time are set ok
+User::LeaveIfError(dateTime.Set(year,TMonth(month-1),day-1,9,1,5,1000));
+...</codeblock> </li>
+</ul> </section>
+</conbody></concept>

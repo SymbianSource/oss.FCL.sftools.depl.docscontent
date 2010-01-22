@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B5BA3CB6-F2B8-524B-BF99-545AAE81549A" xml:lang="en"><title>Message
+Stores</title><shortdesc>The SMS stack uses the following stores to store a complete message. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-0754BD99-4FFF-5AC2-8E33-7E3B897C03D0"><title>Segmentation
+and reassembly (SAR) stores</title> <p>The SMS messages are sent as PDUs and
+all the PDUs are required to display the message to the user. The PDUs should
+be stored until all the PDUs are received by the device. The SMS stack stores
+the incomplete message PDUs in message stores for persistence storage. The
+segmentation store and the reassembly store are both created by the GSMU DLL.
+The message stores are also used to store the WAP datagrams. </p> <p> <xref href="GUID-B9382772-FC6F-3A90-AF3B-218A299D64C3.dita"><apiname>TSAREntry</apiname></xref> provides
+information that is useful for the clients to segment and reassemble the SMS
+messages and WAP datagrams. TSAREntry provides information about the reference,
+total number of parts and the index of the parts of the complete message or
+datagram. </p> <p> <xref href="GUID-B9382772-FC6F-3A90-AF3B-218A299D64C3.dita"><apiname>TSAREntry</apiname></xref> class also provides get and
+set methods for four non generic data items in a message. </p> <p>The <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref> provides
+the methods to create the SAR stores and store the information useful for
+segmentation and reassembly. The <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref> contains a permanent
+store and a list of <xref href="GUID-B9382772-FC6F-3A90-AF3B-218A299D64C3.dita"><apiname>TSAREntry</apiname></xref> elements. The member functions
+of the <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref> allow the client applications to create
+a new store, add an entry, update an entry and delete the store. </p> </section>
+<section id="GUID-860AC34F-AD6A-5F01-86E9-B76DE3F9ADF3"><title>Segmentation
+store</title> <p>The <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref> creates the segmentation
+store as <codeph>smssegst.dat</codeph>. The SMS message is split into individual
+PDUs before sending them to the network. The segmentation store is used to
+store the PDUs. The segmentation store enables the client applications to
+receive the status report of the PDUs. </p> <p><b>Segmentation store data </b> </p> <p>The clients can implement segmentation
+store using <xref href="GUID-7907447F-BFAC-3916-AEC0-90AD5DF426DD.dita"><apiname>CSmsSegmentationStore</apiname></xref> class. <xref href="GUID-07379C99-2BE4-316F-8CE1-5AFB9C0AA23C.dita"><apiname>CSegmentationStore</apiname></xref> is
+derived from <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref>. The segmentation store is generally
+used to store <codeph>SUBMIT</codeph> and <codeph>COMMAND</codeph> PDUs. The
+PDUs are stored as additional stream ID in the store. Each stream ID contains
+the SMS address, SMS message and an array of status reference items. The segmentation
+store creates a log of all sent and unsent PDUs with a log ID. The SMS stack
+uses the log ID to resend the message PDUs which failed. </p> </section>
+<section id="GUID-C48FFB78-1C80-5ECE-A19F-DE98A1814C25"><title>Reassembly
+store</title> <p>The <xref href="GUID-349FD476-1D50-3D6A-8023-7CBB7DE4821F.dita"><apiname>CSARStore</apiname></xref> class creates the reassembly
+store as <codeph>smsreast.dat</codeph> . The reassembly store is used to individual
+PDUs when received from the network. Once all the PDUs of a message are received
+they are reassembled by the SMS stack. A complete message is then created,
+the message is ready for the client applications. </p> <p><b>Reassembly store data </b> </p> <p>The clients can implement the reassembly
+store using <xref href="GUID-1100B8E0-0006-35B4-B15C-989F3B0030B6.dita"><apiname>CSmsReassemblyStore</apiname></xref> class. The <xref href="GUID-E4E30D66-BCD0-3002-9A02-6B3EF7BF39A4.dita"><apiname>CSmsReassembly</apiname></xref> class
+is derived from CSARStore. The <xref href="GUID-1100B8E0-0006-35B4-B15C-989F3B0030B6.dita"><apiname>CSmsReassemblyStore</apiname></xref> class
+provides methods that can be used by the client applications to search for
+a PDU, update a existing PDU, clear the store and compact the store. </p> </section>
+<section id="GUID-C641C3FE-43B8-52CA-936A-5B3741C99894"><title>Class 0 reassembly
+store</title> <p>The normal SMS store are not designed to handle Class 0 SMS.
+A new class 0 reassembly store is available to handle the class 0 SMS messages
+in out of disk conditions. The class 0 reassembly store contains two stores
+1) A permanent file store and 2) Pre-allocated file store. The pre allocated
+file store is reserved exclusively for the class 0 SMS. The pre-allocated
+file store can be <xref href="GUID-266B3FD6-A414-599D-BF31-FF67ADDD4E70.dita">configured</xref> to
+reserve for pre-defined number of PDUs. The pre-allocated store can only be
+configured by the licensees of Symbian platform. In normal conditions the
+message PDUs are stored in the permanent file store. In out of disk conditions
+it is not possible to delete older PDUs in the permanent files store. The
+SMS stack uses the pre-allocated store during the out of disk conditions.
+When the number of PDUs exceed the specified level in the ESK file, the SMS
+stack deleted the older PDUs to clear up space for the new incoming PDUs.
+The pre-allocated file store cannot be used to store other class/ type of
+SMS messages. <xref href="GUID-F701D74D-6BC8-337C-AF36-971CDD8E5F7D.dita"><apiname>CClass0SmsReassemblyStore</apiname></xref> store provides
+the required methods for the clients to use the class 0 reassembly store.
+The class 0 reassembly store provides the same functionality as the reassembly
+store. The additional functionality is that the client applications are able
+to process an incomplete message and display it to the users. </p> </section>
+</conbody></concept>

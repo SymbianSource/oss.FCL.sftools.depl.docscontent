@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-0703C141-17C7-5918-9CF3-EF6CD408975B" xml:lang="en"><title>Phone
+Security Code Tutorial</title><shortdesc>This tutorial describes how to set the security code in a Symbian
+OS device. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<context><p>A security code controls access to the phone and can take a number
+of
+ forms, such as a phone password, or SIM PIN number. Phone security functions
+use an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-81A8B1D4-E771-3720-B346-AD9A79861BDD"><apiname>RMobilePhone::TMobilePhoneSecurityCode</apiname></xref> flag to
+ specify the type of the code. 
+</p></context>
+<steps-unordered>
+<step id="GUID-B969E22B-1055-5CF8-B95C-98F2486D0472"><cmd>To set a security
+code, use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::ChangeSecurityCode()</apiname></xref>. </cmd>
+<info>This takes a <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhonePasswordChangeV1</apiname></xref> object
+containing the old and new values. </info>
+</step>
+<step id="GUID-F7B814C8-F373-513D-9384-D218C0450798"><cmd>To verify an entered
+code against the specified stored security code, use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::VerifySecurityCode()</apiname></xref>. </cmd>
+</step>
+<step id="GUID-976CB6F4-D2B6-5A87-8226-B97A0A92B770"><cmd>To inform the phone
+that the user has cancelled a request for a security code to be entered, use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::AbortSecurityCode()</apiname></xref>. </cmd>
+</step>
+</steps-unordered>
+<example><title>Phone security code example</title> <p>The following code
+takes the parameters for old and new password values, and changes the phone
+password. </p> <p>The code assumes <codeph>iMobilePhone</codeph> is an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone</apiname></xref> object. </p> <codeblock id="GUID-1FFD20DF-F10D-5B13-9088-32529980E7CB" xml:space="preserve">void CClass::SetPasswordL(const TDesC&amp; aOldPassword, const TDesC&amp; aNewPassword)
+    {
+    TUint32 securityCaps;
+    User::LeaveIfError(iMobilePhone.GetSecurityCaps(securityCaps));
+
+    if (securityCaps &amp; RMobilePhone::KCapsLockPhone)
+        {
+        RMobilePhone::TMobilePhonePasswordChangeV1 passwordChange;
+        passwordChange.iOldPassword = aOldPassword;
+        passwordChange.iNewPassword = aNewPassword;
+        RMobilePhone::TMobilePhoneSecurityCode securityCode = RMobilePhone::ESecurityCodePhonePassword;
+        TRequestStatus status;
+        iMobilePhone.ChangeSecurityCode(status, securityCode, passwordChange);
+        User::WaitForRequest(status);
+        User::LeaveIfError(status.Int());
+        }
+    }
+</codeblock> </example>
+</taskbody></task>

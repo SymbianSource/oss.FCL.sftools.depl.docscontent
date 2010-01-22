@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A26A3F76-54C8-5D0C-80AF-63EC9C81C050" xml:lang="en"><title>Interrupt
+Dispatcher</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This is a list of the major differences between EKA1 and EKA2: </p>
+<ul>
+<li id="GUID-E745D0ED-DA8A-5941-B847-593CC05FAA34"><p>In EKA1, the generic
+kernel provided the code for binding and unbinding interrupts, and for maintaining
+a table of ISRs in the generic kernel. This was done through functions in
+the <codeph>TInterrupt</codeph> class, which no longer exists in EKA2. </p> <p>In
+EKA2, this is all implemented in the port </p> </li>
+<li id="GUID-777735EF-7836-52E1-8D4E-63EB8270CD2D"><p>In EKA1, is was possible
+to bind multiple interrupt service routines to a single interrupt source through
+a call to the <codeph>TInterrupt::Bind()</codeph> function and specifying
+the appropriate value of <codeph>TBindBehaviour</codeph>. </p> <p>In EKA2,
+only one ISR per interrupt source is permitted. </p> </li>
+<li id="GUID-7468FC40-E348-5DA6-AD22-84C2B5164E70"><p>In EKA1, ISRs were implementations
+of the <codeph>TInterrupt::Service()</codeph> function, defined as pure virtual
+in <codeph>TInterrupt</codeph>. </p> <p>In EKA2, an ISR is a bare function,
+not a class member. The functions for enabling, disabling and clearing interrupts
+are now defined in a single, static, class called <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref>.
+Symbian platform defines this class, but does not provide a default implementation;
+instead, the port must provide an implementation, and this is invariably in
+the ASSP layer. </p> </li>
+<li id="GUID-D7A41BEF-206B-5E50-BB26-59E204954E09"><p>In EKA1, interrupts
+were identified by a text string defined in the ASSP layer and had to be translated
+by the layer into a vector number that indexed into the interrupt vector table. </p> <p>In
+EKA2, interrupts are now identified by a simple <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> value
+defined by the port. </p> </li>
+<li id="GUID-B990CB6C-856D-5B2F-BE9E-D75D898E2E60"><p>In EKA1, it was difficult
+to implement support for chained, pseudo or external variant interrupts. </p> <p>In
+EKA2, it is much easier because you can bind an ISR that is itself a dispatcher. </p> </li>
+<li id="GUID-ED0FAE44-6396-578E-A4D4-D4B881BFB009"><p>IN EKA1, there was no
+clear policy for dealing with spurious interrupts. Any spurious interrupt
+would be consumed and an attempt made to disable it in hardware. </p> <p>In
+EKA2, all interrupt sources are, by default, bound to the spurious interrupts
+handler, which is intended to raise a panic so that spurious interrupts are
+not overlooked during testing. </p> </li>
+</ul>
+</conbody></concept>

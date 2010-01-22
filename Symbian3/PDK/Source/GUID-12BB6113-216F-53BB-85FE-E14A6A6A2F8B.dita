@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B" xml:lang="en"><title>Image
+Compatibility Use Cases</title><shortdesc>This topic explains the four use cases from which the image compatibility
+guarantees that are provided by the Graphics Resource component derive. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<p>The use cases are: </p>
+<ul>
+<li id="GUID-418ED281-C4F1-54FE-8B9A-491B88E99E5B"><xref href="GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B.dita#GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B/GUID-D8B0B3C7-5FC7-5F57-8A9C-2F261DCFCAA9">Constant images</xref></li>
+<li id="GUID-DE1565D6-2300-567A-AFD4-EAF20BCD40FC"><xref href="GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B.dita#GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B/GUID-6F77A653-5150-5515-A185-D883BCE84368">Application-level CPU rendering</xref></li>
+<li id="GUID-9B18F4F9-6ED3-5A97-B17C-6A006B6562C5"><xref href="GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B.dita#GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B/GUID-FABC1276-E9D5-567D-B283-76475D2C8359">Off-screen rendering</xref></li>
+<li id="GUID-E1C783A5-890B-5413-BC52-FC1C4FBBE559"><xref href="GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B.dita#GUID-12BB6113-216F-53BB-85FE-E14A6A6A2F8B/GUID-8EE28379-94E9-5029-9995-11CAE9D2D89A">UI surface rendering</xref></li>
+</ul>
+<section id="GUID-D8B0B3C7-5FC7-5F57-8A9C-2F261DCFCAA9"><title> Constant images </title> <p>A
+constant image is not modified after creation. A typical example of a constant
+image is an icon that is loaded from a file and does not change. </p> <p>A
+constant image has the following guaranteed set of attributes: </p> <ul>
+<li id="GUID-92AFB961-628D-5717-851B-5D15208A2219"><p>The image cannot be
+changed. </p> </li>
+<li id="GUID-86C067BD-3A1D-5CA9-9B14-3B687CDD5C50"><p>Applications cannot
+have direct access to the pixels (no CPU access). </p> </li>
+<li id="GUID-0B8693D6-1DD7-5857-ABE3-79894B7849E7"><p>The image may only be
+used as a source for DirectGDI* or <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> rendering. </p> </li>
+<li id="GUID-E9B32C32-E752-5774-A389-8A64578FB3AE"><p>The screen ID can be
+-1 or the ID of a screen on the phone. For example, on a device that has a
+single screen, it can be -1 or 0. -1 indicates "screen agnostic", which means
+that the image can be rendered on any screen. This is the only use case for
+which this is guaranteed. </p> </li>
+<li id="GUID-F8CF2787-F718-5BB0-AD85-F4FC809C28DA"><p>The pixel size can be
+any size, subject to memory available for use. </p> </li>
+<li id="GUID-01058E49-F28C-5B7A-8D87-13AA11F1D189"><p>The image may be sharable
+or non-sharable. </p> </li>
+</ul> <p>A constant image is one that is created with no request for CPU write
+access and no request for use as a rendering target. For more information,
+see <xref href="GUID-FE0BB820-00B3-3E13-907A-FAFB2D20D43B.dita"><apiname>TSgImageInfo</apiname></xref>. </p> <p>This use case covers images created
+using <codeph>RSgImage::Create()</codeph> where the user provides the initial
+data. </p> <p>The pixel formats supported for this use case are: </p> <table id="GUID-35174611-684B-5506-A511-96D5F9CB45EF">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p> <codeph>EUidPixelFormatARGB_8888_PRE</codeph></p> </entry>
+</row>
+<row>
+<entry><p><codeph>EUidPixelFormatXRGB_8888</codeph> </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EUidPixelFormatARGB_8888</codeph></p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EUidPixelFormatRGB_565</codeph></p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>* If DirectGDI is present on the platform. </p> </section>
+<section id="GUID-6F77A653-5150-5515-A185-D883BCE84368"><title> Application-level
+CPU rendering </title> <p>This use case corresponds to an image that is modified
+directly by an application, without the use of rendering functions provided
+by the platform. For example, a game that uses its own rendering functions. </p> <p>The
+set of guaranteed attributes for this type of image are: </p> <ul>
+<li id="GUID-59B85742-F5F5-5930-931B-9A3B487F2209"><p>The image can be changed
+(it is mutable). </p> </li>
+<li id="GUID-B1252595-8891-5A86-B004-D307FC518B5F"><p>The application can
+have direct read and write access to the pixel data. </p> </li>
+<li id="GUID-B2F732B6-EC1E-5D11-912B-38025979681A"><p>Support is only guaranteed
+for usage as a source for DirectGDI* or <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> rendering. </p> </li>
+<li id="GUID-444F5D1F-FE88-59E9-8844-35EC97A10B25"><p>Support is only guaranteed
+if the image is tied to one screen. The screen ID must therefore be the actual
+ID of one of the screens on the device. If the image needs to be used on multiple
+screens, multiple copies of the image may be required. </p> </li>
+<li id="GUID-A1522C8E-57F6-5A08-884F-60A3586876D8"><p>The image size (size
+in pixels) is limited only by memory availability. </p> </li>
+<li id="GUID-0746CAB1-3181-5998-B8F4-48F2A037CA71"><p>The image may be sharable
+or non-sharable. </p> </li>
+</ul> <p>To allow the CPU to access the pixel data, a developer can use the
+following functions: </p> <table id="GUID-DA69A90D-0517-569B-9B7E-3C8562AEC8FF">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C.dita#GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C/GUID-73EDBD53-DA17-32B7-9DE3-E151EAC5EDE0"><apiname>RSgImage::MapReadOnly()</apiname></xref>  </p> </entry>
+<entry><p>Makes pixel data accessible for reading by the CPU </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C.dita#GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C/GUID-7BB75B50-5EF0-3AB1-B44E-4756CDCB98C9"><apiname>RSgImage::MapWriteOnly()</apiname></xref>  </p> </entry>
+<entry><p>Makes pixel data accessible for writing by the CPU </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C.dita#GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C/GUID-9AF1743D-BB04-3F02-B5C7-2AB6FE2EA3DC"><apiname>RSgImage::MapReadWrite()</apiname></xref>  </p> </entry>
+<entry><p>Makes pixel data accessible for reading and writing by the CPU </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C.dita#GUID-EDC0E03F-37F6-3BEC-8FF3-D03C3CDB949C/GUID-A4549751-8EDE-3202-8C97-E83A5DA96B59"><apiname>RSgImage::Unmap()</apiname></xref>  </p> </entry>
+<entry><p>Makes pixel data not accessible for reading or writing by the CPU </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The pixel formats supported for this use case are: </p> <table id="GUID-6EF641DF-4E27-50AD-9944-30530E90B480">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p> <codeph>EUidPixelFormatARGB_8888_PRE</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EUidPixelFormatXRGB_8888</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EUidPixelFormatRGB_565</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>* If DirectGDI is present on the platform. </p> </section>
+<section id="GUID-FABC1276-E9D5-567D-B283-76475D2C8359"><title>Off-screen
+rendering</title> <p>This use case corresponds to images that are used to
+store the results of rendering pipelines provided by the platform; for example
+DirectGDI, OpenGLES or OpenVG. </p> <p>The set of guaranteed attributes for
+this type of image are: </p> <ul>
+<li id="GUID-033AB275-3620-5450-9197-DEB511AB05ED"><p>The image can be changed
+(it is mutable) </p> </li>
+<li id="GUID-8E34E82E-84E6-5B3D-A20E-363328248418"><p>The application cannot
+have direct access to the pixels on the image to read or write (no CPU access) </p> </li>
+<li id="GUID-94C54C9A-AC49-5043-A052-447A37A72ACB"><p>The image can be used
+as a: </p> <ul>
+<li id="GUID-56F5941B-8197-505E-B086-685DA4F0BFB0"><p>Target for DirectGDI*,
+OpenGLES** or OpenVG*** rendering. </p> </li>
+<li id="GUID-13AD417E-70FE-56E2-B708-35CDD61896F7"><p>Source for DirectGDI*
+or <xref href="GUID-FE0BB820-00B3-3E13-907A-FAFB2D20D43B.dita"><apiname>CWindowGc</apiname></xref> rendering. </p> </li>
+</ul> </li>
+<li id="GUID-96F8EF27-E215-5A23-A4B5-44CCBBF609F3"><p>Support is only guaranteed
+if the image is tied to one screen. The screen ID must therefore be the actual
+ID of one of the screens on the device. If the image needs to be used on multiple
+screens, multiple copies of the image may be required. </p> </li>
+<li id="GUID-D927209A-6913-52E2-9571-2153C74AC937"><p>The image size (in pixels)
+is limited only by memory availability </p> </li>
+<li id="GUID-EB99D1C1-7462-5A7C-9DFB-BB753C119236"><p>The image may be sharable
+or non-sharable. </p> </li>
+</ul> <p>The pixel formats supported for this use case are: </p> <table id="GUID-90B13F9C-EAFB-5BD7-80B2-6AC1C8695EBA">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p>At least one RGB format <b>with an alpha channel</b>, and a minimum
+of 8 bits per channel. Channel ordering is not specified </p> </entry>
+</row>
+<row>
+<entry><p>At least one RGB format <b>with no alpha channel</b>, and a minimum
+of 8 bits per channel. Channel ordering is not specified. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>* If DirectGDI is present on the platform. </p> <p>** If OpenGL
+ES is present on the platform. </p> <p>*** If OpenVG is present on the platform. </p> </section>
+<section id="GUID-8EE28379-94E9-5029-9995-11CAE9D2D89A"><title> UI surface
+rendering </title> <p>This use case corresponds to an image that is created
+by the Window Server to transfer UI rendering into the <xref href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita">composition
+engine</xref>. This use case only applies to the creation of <xref href="GUID-FE0BB820-00B3-3E13-907A-FAFB2D20D43B.dita"><apiname>RSgImageCollection</apiname></xref> instances. </p> <p>The
+set of guaranteed attributes for this type of image are: </p> <ul>
+<li id="GUID-B1973F49-7495-5893-B07E-8B76960112C9"><p>The image can be changed
+(it is mutable) </p> </li>
+<li id="GUID-B1BE0B2C-E47F-5362-8846-5A5336AD8554"><p>The user does not require
+direct access to the image pixels (no CPU access) </p> </li>
+<li id="GUID-4F329D2C-314D-52A9-BEE6-28B030F6E547"><p>The image can be used
+as a: </p> <ul>
+<li id="GUID-75492618-1372-51CF-8AB7-3A656FCF4A09"><p>Target for DirectGDI*,
+OpenGLES** or OpenVG*** rendering </p> </li>
+<li id="GUID-30826072-D8F2-576E-9FD0-A572EE92C429"><p>Composition source,
+which means that it is used as input to the composition engine </p> </li>
+<li id="GUID-96567159-5753-5792-BA25-E352603676D1"><p>Screen source, which
+means that the display hardware can read it directly </p> </li>
+</ul> </li>
+<li id="GUID-C0777DB4-904F-5477-90F2-E680783BF5F8"><p>Support is only guaranteed
+if the image is tied to one screen. The screen ID must therefore be the actual
+ID of one of the screens on the device. </p> </li>
+<li id="GUID-B5F4FC50-732E-546B-AFDA-9E4B787E5D51"><p>The image size must
+be supported by the specified screen. </p> </li>
+<li id="GUID-175F2884-02D9-5D27-840E-466CEBFADA1C"><p>The image is not shareable
+between processes. </p> </li>
+</ul> <p>The pixel formats supported for this use case are: </p> <table id="GUID-1B522269-38E0-5F09-8909-AF2C2AF22048">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p>At least one RGB format <b>with an alpha channel</b>, and a minimum
+of 8 bits per channel. Channel ordering is not specified. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>* If DirectGDI is present on the platform. </p> <p>** If OpenGL
+ES is present on the platform. </p> <p>*** If OpenVG is present on the platform. </p> </section>
+</conbody><related-links>
+<link href="GUID-29C7FBFB-2F33-58CA-86BE-978E3187E4D6.dita"><linktext>Image Compatibility
+Guarantees</linktext></link>
+<link href="GUID-69E426EC-CDBB-5B19-8264-050EB93B9315.dita"><linktext>Supported
+Image Formats</linktext></link>
+<link href="GUID-610C1484-112E-5442-95DC-89CF890A8310.dita"><linktext>Pixel Formats</linktext>
+</link>
+</related-links></concept>

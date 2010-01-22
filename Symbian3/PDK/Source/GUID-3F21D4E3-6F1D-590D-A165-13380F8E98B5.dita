@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-3F21D4E3-6F1D-590D-A165-13380F8E98B5"><title>Working with Multiple Calendar Instances</title><shortdesc>This task describes how a Calendar object can find instances of calendar entries across many calendar files. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Required background</title> <p>Before you start, you must be familiar with the <xref href="GUID-3A6BEF56-ADBF-543E-B70A-52195DE3E92A.dita">Calendar</xref> component. </p> </section> <section><title>Introduction</title> <p>For a Calendar session, <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalSession</apiname></xref>, to access a file (or collection) it must connect to the server. More than one file may be opened and multiple Calendar sessions (or instances) can be created. A second Calendar session can share the first session's connection to the server. This is possible because the handle to the file is separate from the session to the server. </p> <p>A calendar application uses <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalInstanceView::FindInstanceL()</apiname></xref> to find and change Calendar instances across multiple files and other data collections. When a Calendar collection changes a subscriber application is notified by the file observer. Each file has its own observer. </p> <p>A calendar entry can be stored, updated and deleted. Changes to calendar instances are committed to a calendar. </p> </section> <section><title>Procedure</title> <p>A calendar entry can be located within any one of a number of different calendar collections. An application can access entry instances across multiple calendar collections. To do this an instance view must be created using the calendar collections to be searched. These collections must share the same session. </p> <p>To find instances across multiple Calendars follow the steps below. </p> <ol id="GUID-4203AA69-8103-5FAE-B62F-13CC670F7DC8"><li id="GUID-69554902-4BF8-5168-9D75-DCA23258C05B"><p>Call <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalSession::NewL()</apiname></xref> to create a session and establish a connection to the server. </p> </li> <li id="GUID-EB618E6D-7F47-5FBA-91D3-F2ABD06D19C5"><p>Call the first session <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalSession::NewL(*session1)</apiname></xref> to create a second session with the same connection. </p> </li> <li id="GUID-1AF1E08E-56BA-57F4-A1AA-1371F52C2C62"><p>Place the sessions in an array using the declaration <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>RPointerArray&lt;CCalSession&gt;</apiname></xref>. </p> </li> <li id="GUID-091BB285-BD39-5987-8B1A-4F6B0258C88E"><p>Register the sessions with instance view <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalInstanceView</apiname></xref>. </p> </li> <li id="GUID-20A48CDE-EBFA-5632-A094-606A1A738139"><p>Use <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>CCalInstanceView</apiname></xref> to find instances of a calendar entry. </p> <p>Each instance has a collection ID which uniquely identifies its source. The unique ID enables the application to fetch the metadata associated with the source. (Example metadata includes creation time, type and filename.) </p> </li> <li id="GUID-B22BCCF3-EB39-5764-942C-BAD5C523E873"><p>To clean up the objects created earlier delete the instances by calling <xref href="GUID-E702E469-D282-3C85-9F78-6E8472EACB9C.dita"><apiname>RPointerArray::ResetAndDestroy()</apiname></xref>. </p> </li> </ol> <codeblock id="GUID-263E2DD3-C291-5112-BB66-7B64D8AD1E1F" xml:space="preserve">{
+...
+// Create a session
+CCalSession* session1 = CCalSession::NewL();
+session1-&gt;OpenL(KCalendarFilename1);
+
+// Get the collection ID
+TCalCollectionId collectionId1 = session1-&gt;CollectionId();
+
+// Create a second session
+CCalSession* session2 = CCalSession::NewL(*session1);
+session2-&gt;OpenL(KCalendarFilename2);
+TCalCollectionId collectionId2 = session2-&gt;CollectionId();
+
+RPointerArray&lt;CCalSession&gt; calSessions;
+calSessions.AppendL(session1);
+calSessions.AppendL(session2);
+
+// Find all instances within a given time range
+CCalInstanceView* instanceView = CCalInstanceView::NewL(calSessions);
+RPointerArray&lt;CCalInstance&gt; instances;
+TCalTime start;
+start.SetTimeUtcL(TCalTime::MinTime());
+TCalTime end;
+end.SetTimeUtcL(TCalTime::MaxTime());
+CalCommon::TCalTimeRange timeRange(start, end);
+instanceView-&gt;FindInstanceL(instances, CalCommon::EIncludeAll, timeRange);
+
+// An application finds which session an instance belongs to
+TCalCollectionId id = instanceArray[index]-&gt;InstanceIdL().iCollectionId;
+
+switch (id)
+    {
+    case collectionId1:
+        // Fetch meta data about session1
+        break;
+    case collectionId2:
+        // Fetch meta data about session2
+        break;
+    }
+
+...
+
+// Clean up objects
+delete instances;
+
+// Delete without closing session1 or session2
+delete instanceView;
+calSessions.ResetAndDestroy();
+
+// Close session1 but do not disconnect from the server
+delete session1;
+
+// Close session2 and disconnect from the server
+delete session2;
+}
+</codeblock> </section> </conbody><related-links><link href="GUID-CD8A3420-6C9B-5774-86FA-85CFE062C400.dita"><linktext>Calendar Views</linktext> </link> </related-links></concept>

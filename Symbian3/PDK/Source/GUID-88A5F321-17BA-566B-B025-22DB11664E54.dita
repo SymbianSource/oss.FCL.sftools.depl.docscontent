@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-88A5F321-17BA-566B-B025-22DB11664E54" xml:lang="en"><title>Public
+and Subscribe Events for Backup and Restore</title><shortdesc> This section describes the subscribe and publish flag for backup
+and restore. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Description</title><p>Applications and servers are made aware
+that a backup or restore takes place through the <xref href="GUID-A81C65CF-CF4E-571C-8080-9D387F46AAD6.dita">Publish
+and Subscribe</xref> (P&amp;S) events. The P&amp;S server maintains a list
+of subscribers expressing an interest in the backup and restore <i>status
+flag</i>. Any published changes to this flag by the Backup Engine notifies
+all the subscribers. The flag provides information on whether a backup or
+restore operation is in progress, whether a backup is base or incremental,
+and whether the operation is full or partial.</p><p> <codeph>RProperty::Subscribe()</codeph> is
+used to subscribe to a flag. The function must be used in conjunction with
+an active object to be notified when the value changes. The following category
+and key values must be used (defined in <codeph>epoc32\include\connect\sbdefs.h</codeph>):</p> <p>Category: <codeph>KUidSystemCategoryValue</codeph>  </p> <p>Key: <codeph>KUidBackupRestoreKey</codeph>  </p> </section>
+<example><codeblock id="GUID-CA14430C-AB7C-5C65-BA41-16FD5A879F9B" xml:space="preserve">#include &lt;e32property.h&gt; 
+
+RProperty iProperty;
+
+iProperty.Attach(KUidSystemCategory, KUidBackupRestoreKey);
+CActiveScheduler::Add(this);
+iStatus = KRequestPending;
+iProperty.Subscribe(iStatus);
+SetActive();
+
+// In RunL, to get the state: TInt
+backupStateValue = 0;
+iProperty.Get(backupStateValue);      </codeblock></example>
+</conbody><related-links>
+<link href="GUID-796916B2-8B23-5AD8-9DB8-8B0DA7868A62.dita"><linktext>Backup-aware
+Software (Data Owner)</linktext></link>
+<link href="GUID-743D2832-E73A-5184-A85D-306B2A6FFACC.dita"><linktext>Active Backup
+Client</linktext></link>
+</related-links></concept>

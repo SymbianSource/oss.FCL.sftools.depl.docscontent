@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0A7AB5BF-B126-4A3C-AC0D-C5443C06A82E" xml:lang="en"><title>Thread
+Priority and Delayed Cancellation</title><shortdesc>This document describes problems caused due to delayed cancellation
+of threads.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The basic problem is when Thread A has previously requested a Notification
+of some status change and now requests that the Notification be cancelled. </p>
+<p>Thread A starts Thread B to talk to the Server. Thread B sends the cancellation
+request to the Server and sends a completion message back to Thread A to say
+that the cancel request has been sent to the Server.</p>
+<p>In the past Thread B would not have returned until the Server cancellation
+had completed. But with SMP the cancellation request may be placed on a second
+CPU and delayed for various reasons, while Threads A and B continue. It is
+possible for a Notification event to occur at this point and a panic will
+occur when the Notification arrives without a process to handle it.</p>
+<p>The single core device had fewer problems with thread priority issues like
+delayed cancellation, because the Server ran with higher priority and completed
+the cancellation before returning control to Thread B. On a multiple core
+system, different threads run in parallel and this may lead to errors.</p>
+<p>You should be aware that deadlocks or panics can be caused due to delayed
+cancellation of threads and write your code to avoid it.</p>
+<section id="GUID-B5C37041-10A9-4D29-A4DC-A4B884FD23AB"><title>Example</title><p>One
+possible solution is to send the cancel completion message from the <codeph>RunL()</codeph> function
+call of the server.</p><fig id="GUID-6792304C-AE6D-450A-B4BE-60B48F981CF5">
+<title>Error in cancellation sequence</title>
+<image href="GUID-F492978A-1732-4BCD-8D3C-D2F657BAB504_d0e640474_href.png" placement="inline"/>
+</fig></section>
+<example><title>Client code</title><codeblock xml:space="preserve">// [...]
+//Whilst running
+  iNotifier.RequestNotification(iStatus);
+// [...]
+//Some part of the client is now waiting for 
+  notifications on iStatus
+
+
+// [...] at some point during exit
+  iNotifier.CancelNotification();
+  iNotifier.Close();  
+// Notifier session can be taken down now.
+</codeblock></example>
+<example><title>Server code</title><codeblock xml:space="preserve">void CCommsdatNotifierSessionHandler::RegisterNotifyL(
+	const RMessage2&amp; aMessage)
+    {
+…
+    iMessage = aMessage;
+…
+        iProperty.Subscribe(iStatus);
+        SetActive();
+ void CCommsdatNotifierSessionHandler::CancelNotify(
+		const RMessage2&amp; aMessage)
+    {
+    iProperty.Cancel();
+    …
+    aMessage.Complete(KErrCancel);
+    }
+
+void CCommsdatNotifierSessionHandler::RunL()
+    {
+…
+    iMessage.Complete(…);
+…
+    }
+</codeblock></example>
+<example><title>Solution for server code</title><codeblock xml:space="preserve">void CCommsdatNotifierSessionHandler::RegisterNotifyL(
+	const RMessage2&amp; aMessage)
+    {
+…
+    iMessage = aMessage;
+…
+        iProperty.Subscribe(iStatus);
+        SetActive();
+ Void CCommsdatNotifierSessionHandler::CancelNotify(const RMessage2 &amp;aMessage)
+{
+iProperty.Cancel();
+...
+iCancelMessage = aMessage;
+}
+
+Void CCOmmsdatNotifierSessionHandler::RunL()
+{
+...
+
+iMessage.Complete(...);
+iCancelMessage.Complete(KErrNone);
+
+...
+}</codeblock></example>
+</conbody><related-links>
+<link href="GUID-6B8B45E5-1594-455E-9FAE-0A7768305F95.dita"><linktext>Development
+Tips For Making Code SMP Safe</linktext></link>
+</related-links></concept>

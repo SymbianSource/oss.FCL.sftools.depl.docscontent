@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-5B451D6F-1F3D-5B54-BBC4-212D04F9977F"><title>Data Transfer Performance Guidelines</title><shortdesc>This section provides some information on how a client application can be optimised to improve data transfer performance.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section is not a tutorial because some performance improvements must be balanced with other goals for the application. </p>
+<section id="SECTION_6258FE7CC35C4B3A890A222B9AB9E199">
+<title>Buffer size</title> 
+<p>The larger the buffers that are used, the fewer requests required to the Serial Communications Server. Use larger buffers to reduce the application's CPU requirements. </p> 
+</section> 
+<section id="SECTION_F38ABF941586401C97F20FA66B0B3E15">
+<title>Global Buffers</title> 
+<p>To create or destroy a Descriptor requires CPU time to complete the constructor or destructor. Performance is increased by reducing the number of requests to create or destroy a Descriptor. To reduce the number of Descriptor create requests, create a global Descriptor for the data buffer. A global Descriptor is a Descriptor that is available to all functions in the application. </p> 
+<p>The <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-B0B6BC5D-4BCD-3A74-9E1C-17BA58BB7B33"><apiname>RComm::Read()</apiname></xref> and <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-27B1F841-8478-33E0-A168-11DC468183C0"><apiname>RComm::Write()</apiname></xref> functions are available in variants that take a length parameter. Use the length parameter when a global descriptor is used. If the length parameter is not used, the <codeph>RComm::Read()</codeph> and <codeph>RComm::Write()</codeph> APIs use the length of the Descriptor to define the number of characters to read or write. </p> 
+</section> 
+<section>
+<title>Indexing descriptors</title> 
+<p>Descriptors have C [] array indexing operators. Do not use the C [] array indexing operators since pointer arithmetic is faster. </p> 
+</section> 
+<section id="SECTION_D5C4517ADAF64864B5D0F82481A3B86E">
+<title>Read Requests</title> 
+<p>Configure the ports so that the Serial Communications Server manages all the processing: </p> 
+<ul id="UL_690FD6E22E7E4A80979940EBC42124A0">
+<li id="GUID-1BB9AB77-C6DB-503B-911F-D7C2580A6C04"><p>Set time-outs to trap error conditions </p> </li> 
+<li id="GUID-7A230C7F-D781-5197-BC3E-24A58A87108D"><p>Set termination characters for the protocol. See <xref href="GUID-31E9F790-8A47-588C-A515-D2C8CD367ADE.dita">How to Terminate Read Requests Early: Tutorial</xref>  </p> </li> 
+</ul> 
+</section> 
+<section id="SECTION_9BD41B8E1A8145B18F4B3A01E850C478">
+<title>Write Requests</title> 
+<p>Configure the ports so that the Serial Communications Server manages all the processing: </p> 
+<ul>
+<li id="GUID-29979D5C-776B-50E7-955A-E955E9B2E075">
+<p>Set ports to return early when no response from the remote device is expected, or where there is a lot of processing to prepare the next block of data to be sent. See <xref href="GUID-294EF1C3-E7EC-5B93-B4F4-ECA50DD6993F.dita">How to Terminate Write Requests Early: Tutorial</xref>  </p> 
+</li> 
+</ul> 
+</section> 
+<section id="SECTION_438F3E6F08D24A0EBC3B3DC6DB77EAEE">
+<title>ReadOneOrMore()</title> 
+<p>If <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-D26D6D62-72F0-313C-B3D5-2CE28FDE9BED"><apiname>RComm::ReadOneOrMore()</apiname></xref> is used in a loop, the function may cause slower performance. This slower performance is the result of the loop reading smaller and smaller blocks until on single characters are read. </p> 
+<p>The <xref href="GUID-35D49549-1F4D-583F-A45D-9B557A207DD2.dita">Glass Teletype</xref> example uses a time-out of one tenth of a second. This time-out has two purposes: </p> 
+<ul id="UL_5D1F37BA3F2B4D9FBD4423F110DBB402">
+<li id="GUID-B7069241-C624-5DBA-BCC4-6D663CF41005"><p>The time-out simulates the delay effect of a terminal </p> </li> 
+<li id="GUID-D19604EF-F835-5203-8DA6-52FB2D8653FF"><p>The time-out allows the <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-B0B6BC5D-4BCD-3A74-9E1C-17BA58BB7B33"><apiname>RComm::Read()</apiname></xref> API to be used while not causing a large load on the CPU </p> </li> 
+</ul> 
+<p>If the time-out expires, the Glass Teletype example then calls <codeph>ReadOneOrMore()</codeph>. </p> 
+<p>The trade-off is that the <codeph>RComm::Read()</codeph> call to the Serial Communications Server has to be renewed 10 times every second even when no data is being transferred. This was considered a smaller overhead than that incurred if data were coming in rapidly and as a result <codeph>ReadOneOrMore()</codeph> was called up to 2000 times every second. </p> 
+</section>
+</conbody><related-links id="UL_C6904BAEFA8449FAABA5BA76FDD51B78">
+<link href="GUID-12FF05BE-F06E-58F0-909D-05CB6F7FA03E.dita"><linktext>Code efficiency</linktext></link>
+<link href="GUID-0E6C7017-E430-51C0-A5D6-1798B0DCC6BC.dita"><linktext>Handshaking</linktext></link>
+</related-links></concept>

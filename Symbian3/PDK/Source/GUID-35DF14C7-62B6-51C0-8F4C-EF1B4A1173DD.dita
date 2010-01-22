@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-35DF14C7-62B6-51C0-8F4C-EF1B4A1173DD" xml:lang="en"><title>evalid
+Command Syntax</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p> evalid compares two files, or two trees
+of files, ignoring insignificant differences in some types of files. You can
+use it to check if the behaviour and compatibility of a build has changed,
+without having to run complex BC (Binary Compatibility) checking tools or
+regression tests. </p> <p>Typically, evalid is useful when you make changes
+in the source code or in the build environment, which do not affect the built
+files. Such source changes include adding comments, or configured code that
+should not be built in the configuration that you are testing. You can use
+evalid to compare new and old builds, and check for differences. </p> <p>Standard
+diff tools would typically flag environment information, such as time stamps,
+as differences, whereas evalid has better comparison rules that allows it
+to ignore insignificant differences. </p> <p>You can use evalid in two ways:
+to directly compare files, or to generate a hash (using the MD5 algorithm)
+of files, and then later compare the hashes. The second method can be more
+convenient, as it does not require both builds to be available when the comparison
+is done. </p> </section>
+<section id="GUID-478305DC-1A5E-5FAB-841A-5B40A4A3443A"><title>Usage</title> <p> evalid
+is a command-line tool, delivered in the <filepath>epoc32\tools</filepath> directory
+of the Symbian platform kit. You can invoke it with various options, depending
+on the task you want to perform. This section describes these options. </p> <p>The
+results from running the tool are written by default to a log file <filepath>evalid.lis</filepath>.
+You can change the log file, or choose to log to screen, using the <xref href="GUID-35DF14C7-62B6-51C0-8F4C-EF1B4A1173DD.dita#GUID-35DF14C7-62B6-51C0-8F4C-EF1B4A1173DD/GUID-B4AA5F08-7AEF-5AFC-B316-ADD972BF0A2D">Log options</xref> flags. The meanings of the log messages are described
+in the <xref href="GUID-35DF14C7-62B6-51C0-8F4C-EF1B4A1173DD.dita#GUID-35DF14C7-62B6-51C0-8F4C-EF1B4A1173DD/GUID-80209D4B-081E-5C93-ADF4-FB968558B4B3">Log
+messages</xref> section. The tool terminates with an error message if the
+files or directories specified as input arguments do not exist. </p> <p><b>Directly
+compare two files</b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <cmdname>file1</cmdname> <cmdname>file2</cmdname> </userinput> </p> <p>This compares <varname>file1</varname> against <varname>file2</varname>. </p> <p><b> Recursively
+compare two directory trees </b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <cmdname>directory1</cmdname> <cmdname>directory2</cmdname> </userinput> </p> <p>This compares each file in the directory tree <varname>directory1</varname> against
+the corresponding file in the directory tree <varname>directory2</varname>. </p> <p><b>Recursively
+create MD5 hashes for a directory tree</b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <parmname>-g</parmname> [<parmname>-x
+             regular-expression</parmname>] [<parmname>-I              regular-expression</parmname>] <cmdname>directory1</cmdname> <cmdname>file1</cmdname> </userinput> </p> <p>Option <codeph>-g</codeph> creates an MD5 hash for
+each file in <varname>directory1</varname>, and stores this data in the file <varname>file1</varname>. </p> <p>You
+can then compare two directories by passing their hash data files to evalid
+using the <codeph>-m</codeph> option, described below. </p> <p>You can limit
+the files that are processed using these filter options: </p> <table id="GUID-7364348F-D590-51A0-A5EE-D81D4877CDBD">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>-x</codeph>  <varname>regular-expression</varname>  </p> </entry>
+<entry><p>Exclude files with names that match the specified Perl regular expression.
+Syntax for Perl regular expressions can be found at <xref href="http://www.perl.com/pub/q/documentation" scope="external">http://www.perl.com</xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>-I</codeph>  <varname>regular-expression</varname>  </p> </entry>
+<entry><p>Include only files with names that match the specified Perl regular
+expression. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Inclusions take precedence over exclusions if both expressions
+match. </p> <p><b>Create MD5 hashes of specified files</b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <parmname>-f</parmname> [<parmname>-x              regular-expression</parmname>] [<parmname>-I            
+ regular-expression</parmname>] <cmdname>listfile</cmdname> <cmdname>directory1</cmdname> <cmdname>file1</cmdname> </userinput> </p> <p>Option <codeph>-f</codeph> creates an MD5 hash for each file listed in the file <varname>listfile</varname>,
+and stores this data in the file <varname>file1</varname>. </p> <p>The <varname>listfile</varname> must
+contain a list of files, one per line. File paths should be specified relative
+to <varname>directory1</varname>, and must not start with a directory separator
+(<filepath>\</filepath>). </p> <p>You can limit the files that are processed
+using the <codeph>-x</codeph> and <codeph>-I</codeph> options, as described
+above for the <codeph>-g</codeph> option. </p> <p><b>Compare two MD5 hash
+data files</b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <parmname>-m</parmname>  <cmdname>file1</cmdname> <cmdname>file2</cmdname> </userinput> </p> <p>Option <codeph>-m</codeph> compares the MD5 hashes
+in <varname>file1</varname> (created using option <codeph>-g</codeph> or <codeph>-f</codeph>)
+against those in <varname>file2</varname>. </p> <p><b>Compare two MD5 hash
+data files, and update directory</b> </p> <p><userinput>evalid <parmname>[log-options]</parmname> <parmname>-u</parmname>  <cmdname>file1</cmdname> <cmdname>file2</cmdname> </userinput> </p> <p>Option <codeph>-u</codeph> is
+an alternative to <codeph>-m</codeph>. It creates batch files that you can
+run to change the files defined by <varname>file1</varname> to be the same
+as the files defined by <varname>file2</varname>. </p> <p>The output batch
+file <filepath>del_&lt;file1&gt;_to_&lt;file2&gt;.bat</filepath> deletes files that
+are defined in <varname>file1</varname> but not in <varname>file2</varname>. </p> <p>The
+output batch file <filepath>zip_&lt;file1&gt;_to_&lt;file2&gt;.bat</filepath> creates
+a zip of the files that are defined in <varname>file2</varname> but not in <varname>file1</varname>,
+and of files that are defined in both, but are different. </p> <p><b>Create
+a dump of descriptive information required for analysis</b> </p> <p>As part
+of MD5 generation, the tool extracts descriptive information about the files
+being compared, and uses it in its comparisons. Creating a dump file of this
+descriptive information, helps in the detailed analysis of significant differences
+between the two files. It also helps in troubleshooting, if the tool fails
+to list all the significant differences between the two files. The following
+is the syntax to creating a dump file of the descriptive information: </p> <p><userinput>evalid <parmname>[log-options]</parmname>  <parmname>-f
+|              -g</parmname> [<parmname>-x              regular-expression</parmname>]
+[<parmname>-I              regular-expression</parmname>] [<parmname>-d  
+           dump-directory</parmname>] <cmdname>listfile</cmdname> <cmdname>directory1</cmdname> <cmdname>file1</cmdname> </userinput> </p> <p>Where,
+the <codeph>-d</codeph> option creates a dump file for each of those files
+listed in <varname>listfile</varname> or <varname>directory1</varname> using
+the <codeph>-f</codeph> or <codeph>-g</codeph> MD5 generation options. The
+dump files are placed in the <varname>dump              directory</varname> with
+the directory structure that is similar to the input directory structure. </p> <p>For
+example, consider the following DLLs which are two different builds of the
+same DLL, but are significantly different in content: </p> <p> <filepath>D:\epoc32\release\armv5\urel\mycomponent.dll</filepath>  </p> <p> <filepath>E:\epoc32\release\armv5\urel\mycomponent.dll</filepath>  </p> <p>Using the
+following commands to dump files and generate MD5 hash for both the DLLs: </p> <p><userinput>evalid
+-d \buildone -g epoc32 buildone.md5</userinput> </p> <p><userinput>evalid
+-d \buildtwo -g epoc32 buildtwo.md5</userinput> </p> <p>Apart from generating
+the two <filepath>.md5</filepath> files, the commands listed above also generate
+the following dump files with the directory structure: </p> <p> <filepath>D:\buildone\epoc32\release\armv5\urel\mycomponent.dll</filepath>  </p> <p> <filepath>E:\buildtwo\epoc32\release\armv5\urel\mycomponent.dll</filepath>  </p> <p>Both
+the files listed above are text files containing descriptive information about
+the two different builds of <filepath>mycomponent.dll</filepath>. A text compare
+between these two dump files would list differences between the two builds
+of <filepath>mycomponent.dll</filepath> that evalid views as significant.
+In the case of comparing two directory trees, a recursive comparison between
+the two dump directories (<filepath>buildone</filepath> and <filepath>buildtwo</filepath>)
+using Beyond Compare would list the differences between the directories. </p> <p> <b>Note:</b> If
+the evalid tool decides to examine an input file without any further processing,
+then the generated MD5 hash is based directly on the input file. Using <codeph>-d</codeph> option
+in such situations, copies the input file as it is to the dump directory.
+Comparing the two dump directories containing a copy of the input files, is
+similar to comparing the MD5 files based on the input files, using evalid. </p> <p id="GUID-B4AA5F08-7AEF-5AFC-B316-ADD972BF0A2D"><b>Log options</b> </p> <p>The <varname>log-options</varname> options
+control how the tool outputs its results: </p> <table id="GUID-1EC54E5C-85E7-5AF7-B00C-F337E29C9D57">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph> -v</codeph>  </p> </entry>
+<entry><p>Provide verbose information about failed comparisons. </p> <p>This
+has no effect on MD5 operations. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>-c</codeph>  </p> </entry>
+<entry><p>Print results to standard out (i.e. the screen). </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>-l &lt;logfile&gt;</codeph>  </p> </entry>
+<entry><p>Append results to specified file. </p> <p>This has no effect when
+used with <codeph>-u</codeph>. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>By default, output is written to the file <filepath>evalid.lis</filepath>. </p> <p><b> File
+and directory argument shorthand</b> </p> <p>Note that you can use the following
+shorthand in file and directory arguments: </p> <p> <codeph>evalid file1 dir2</codeph> is
+equivalent to <codeph>evalid file1              dir2\file1</codeph>. </p> <p> <codeph>evalid
+dir1 file1</codeph> is equivalent to <codeph>evalid              dir1\file1
+file1</codeph>. </p> </section>
+<section id="GUID-80209D4B-081E-5C93-ADF4-FB968558B4B3"><title>Log messages</title> <p> evalid
+reports the result of each file comparison that it performs. </p> <p>For example,
+in a direct comparison, the meaning of these messages are as follows: </p> <table id="GUID-4B5D8D0A-145A-5CBB-B07E-2A6B969AE071">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Message type</b>  </p> </entry>
+<entry><p> <b>Explanation</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> OK: ... (identical) </codeph>  </p> </entry>
+<entry><p>Files are exactly the same. For example: </p> <codeblock id="GUID-3458E2BF-A9AE-50B4-94D8-9B8727B39C6E" xml:space="preserve">OK: epoc32\release\armv5\urel\XMLDOM.DLL and epoc32_master\release\armv5\urel\XMLDOM.DLL (identical)</codeblock> </entry>
+</row>
+<row>
+<entry><p> <codeph> OK: ... (&lt;type&gt;)</codeph>  </p> </entry>
+<entry><p>The files are different, but the comparison rules for the file type
+indicate that the difference is not significant. For example: </p> <codeblock id="GUID-68819FCD-1FA0-52D6-8FD1-11840D302D09" xml:space="preserve">OK: epoc32\release\armv5\urel\cprov.exe and epoc32_master\release\armv5\urel\cprov.exe (E32 EXE) </codeblock> </entry>
+</row>
+<row>
+<entry><p> <codeph>MISSING:...</codeph>  </p> </entry>
+<entry><p>A file that is present in the first tree is not present in the second.
+For example: </p> <codeblock id="GUID-1542FC15-3819-56D8-A1B3-94C0035729F4" xml:space="preserve">MISSING: epoc32_master\release\armv5\urel\alink.dll </codeblock> <p>Note
+that evalid does not check to see if files in the second tree are present
+in the first. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FAILED:... </codeph>  </p> </entry>
+<entry><p>There is a significant difference between the files. If evalid does
+not know the type of the files being compared, it does a binary comparison,
+so any time stamp differences cause it to report a failure. </p> <p>For example: </p> <codeblock id="GUID-3CD93458-14F8-5A36-861C-FC6B7453FC6C" xml:space="preserve">FAILED:    epoc32\release\armv5\urel\ASN1.DLL and epoc32_master\release\armv5\urel\ASN1.DLL (Compressed E32 DLL)</codeblock> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>For an MD5 comparison, the meaning of these messages is as follows: </p> <table id="GUID-489A4DD4-38D9-5A4A-8DD0-EBC66300A203">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Message type</b>  </p> </entry>
+<entry><p> <b>Explanation</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Passed </codeph>  </p> </entry>
+<entry><p>Files have no significant differences. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Failed</codeph>  </p> </entry>
+<entry><p>There is a significant difference between the files. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Missing Left</codeph>  </p> </entry>
+<entry><p>A file listed in the first MD5 file is not present in the second. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Missing Right</codeph>  </p> </entry>
+<entry><p>A file listed in the second MD5 file is not present in the first. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-153BF974-534C-58E0-A6E7-CF9AEEFD489A"><title>Recognized
+file types</title> <p>These are the types of files for which evalid has special
+support for finding and ignoring insignificant differences: </p> <ul>
+<li id="GUID-2BCA1EC9-2C22-5FF4-90DA-AECB2B7E94FC"><p>ELF format </p> </li>
+<li id="GUID-C9C638B6-A697-5BFD-BD6F-D2DAD9EB78BE"><p>E32 Image (Symbian platform
+executables) </p> </li>
+<li id="GUID-649F98D8-01A6-53A4-A978-65FFA37ED81E"><p>EPOC Permanent File
+Store </p> </li>
+<li id="GUID-0E343A53-DF61-5F2C-961E-AB43A2F9FBCA"><p>MAP files from the GNU
+Linker, CodeWarrior and RVCT </p> </li>
+<li id="GUID-2E9B3FE7-0D67-5369-AEB7-81AED46B5F3F"><p>Microsoft Compiled HTML
+Help </p> </li>
+<li id="GUID-DD8E4C47-0E33-5366-A362-414DE54B1247"><p>Microsoft PE COFF (Windows/MS-DOS
+executables, object files, and import and static libraries) </p> <p>Note that
+comparisons of such files requires that Microsoft's DUMPBIN tool from Microsoft
+Visual Studio v6 is installed. </p> </li>
+<li id="GUID-4FA0265A-1448-52CC-9D7F-2210BC340428"><p>Pre-processor (<filepath>cpp.exe</filepath>)
+output </p> </li>
+<li id="GUID-31B3FDCF-0B55-568F-A184-2253825AA4A9"><p>SGML (including XML
+and HTML) </p> </li>
+<li id="GUID-2F3CC859-AAC1-5A32-A10D-D258A03E7EAB"><p>ZIP </p> </li>
+</ul> </section>
+</conbody></concept>

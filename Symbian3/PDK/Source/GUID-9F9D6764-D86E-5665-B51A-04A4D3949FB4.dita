@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9F9D6764-D86E-5665-B51A-04A4D3949FB4" xml:lang="en"><title>Optional
+Features Notification API</title><shortdesc>This document details linkage to the notification API and how to
+subscribe for notification of feature changes. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-55F2A846-8A70-5F4D-B297-7678F82B56DC"><title>Interface class
+and linkage</title> <p>A Notify API is provided by the <xref href="GUID-4A0F7FCB-C3ED-3F0E-AB1D-5D96D5625595.dita"><apiname>RFeatureRegistryNotify</apiname></xref> class,
+declared in <filepath>featreg.h</filepath>, supplied by <filepath>featreg.dll</filepath> and
+linked through <filepath>featreg.lib</filepath>. </p> </section>
+<section id="GUID-5C18F9BD-DA86-5DD3-8286-6B3097869BA3"><title>Subscribing
+for notification of feature changes</title> <p>The <xref href="GUID-4A0F7FCB-C3ED-3F0E-AB1D-5D96D5625595.dita"><apiname>RFeatureRegistryNotify</apiname></xref> class
+has the following member functions that allow you to subscribe for notification
+of changes in the Feature Registry: </p> <codeblock id="GUID-55B5F119-E275-5105-9B32-61ABFA3C927A" xml:space="preserve">inline RFeatureRegistryNotify();
+TInt Open();
+void Subscribe(TRequestStatus &amp;aNotifyStatus);
+void Cancel();
+void Close();
+    </codeblock> <p>To use the API requires an instance of the <codeph>RFeatureRegistryNotify</codeph> class
+to be Opened and Subscribed to. It will usually be employed in Active Objects
+in an Active Scheduler. At any time while the instance is open, call <xref href="GUID-B61994E7-B88B-38FE-86AE-1B9834F1816D.dita"><apiname>Cancel()</apiname></xref> to
+ensure the object is not subscribed for notification. If it previously was
+subscribed, the asynchronous <xref href="GUID-D7A5E7E3-5EA0-3DBC-A34A-072E4705930D.dita"><apiname>Subscribe()</apiname></xref> request is completed
+with <xref href="GUID-6F4A88DA-F54E-3848-9C32-942D6F5F4F3E.dita"><apiname>KErrCancel</apiname></xref>. </p> <p>When a <codeph>Subscribe()</codeph> request
+completes successfully, will know that the Feature Registry has changed. You
+must re-query the features you are interested in, to determine whether the
+change affected affects you. </p> <p>To ensure changes are not missed, always
+re-subscribe before querying the Feature Registry. </p> <p> <b>Note: </b>  </p> <ul>
+<li id="GUID-FF101FF0-0330-548D-9B4B-7663D8514CC7"><p>Most clients do not
+require run-time notification of feature changes. The vast majority of features
+are not removable, and most applications can be restarted if a feature needs
+to be rediscovered. The potential use of this API are long-running system
+tasks that monitor a variety of features, and applications that use software
+that becomes supported or unsupported as add-on devices are attached and detached
+(that is, plug and play devices). </p> </li>
+<li id="GUID-DC33F66D-77A1-5CC2-A8A7-F47B0E7DFE69"><p>While the class <xref href="GUID-4A0F7FCB-C3ED-3F0E-AB1D-5D96D5625595.dita"><apiname>RFeatureRegistryNotify</apiname></xref> is
+currently marked as internal to Symbian, the intention is to reclassify it
+as <b>publishedAll</b> in a later release of Symbian platform. Therefore,
+contrary to expectations, this class <i>can</i> be used as described. </p> </li>
+</ul> </section>
+<section id="GUID-AF622B78-9C99-5696-A3F5-89716A568FB5"><title>Preconditions
+for feature notification</title> <p>It is not expected that many clients will
+require run-time notification of feature changes. The vast majority of features
+are not removable, and most applications can be restarted if a feature needs
+to be rediscovered. This API is likely to be used by long-running system tasks
+that monitor a variety of features, and applications that use software that
+becomes supported or unsupported as add-on devices are attached and detached
+(that is, plug and play devices). </p> <p>Notification is for any change in
+the Feature Registry. The recipient must determine if the status of any feature
+they are interested in has changed. </p> <p>The current implementation of
+Feature Registry is a constant ROM-based configuration file. The API is provided
+for forward compatibility. Applications can be written now anticipating run-time
+feature changes in a future implementation. Alternatively, applications can
+be written in the future once run-time updates do occur, and the API will
+be present – but will never notify – on older devices so there will be no
+compatibility issues. </p> <p>It is possible for Symbian and licensees to
+force notification for testing purposes. This is a side-effect of the current
+implementation, is @internalComponent and not guaranteed to work into the
+future. Running <filepath>featregsetup.exe</filepath> (a binary included with
+the component) currently forces notification. </p> </section>
+</conbody><related-links>
+<link href="GUID-B01EDE29-0861-52B0-97BE-8B41E580817F.dita"><linktext>Identifying
+                Optional Features</linktext></link>
+<link href="GUID-747869DD-ECD1-5515-B876-0D7D753B1CD9.dita"><linktext>Optional
+Features Query                 API</linktext></link>
+<link href="GUID-F55EAA3A-5D30-5983-9053-7C3935D99802.dita"><linktext>Feature Registry
+                Overview</linktext></link>
+</related-links></concept>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FBE6E61F-5A2E-5A7A-BC59-51F072EBED7D" xml:lang="en"><title>Media
+Driver Migration Guide</title><shortdesc>Describes the issues that need to be considered, when migrating
+media drivers to a writable data demand paging environment. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AB10DA2D-B7CC-47FD-B68A-1610B6BEAAE6"><title>Purpose</title> <p>This
+document explains the points that have to be considered when migrating existing
+media drivers to a writable data paging environment. </p>  </section>
+<section id="GUID-EB26A48A-3A34-44E8-9651-C7ED658CED51"><title>Issues Involved</title> <p>The
+two main issues that have to be addressed when migrating existing media drivers
+are: </p> <ul>
+<li id="GUID-68A44C67-6D4E-5D7E-A13B-0A82154073B2"><p>A deadlock condition
+can occur between the driver and the client process, where both are trying
+to access the same page of paged memory</p> </li>
+<li><p>A deadlock condition can occur between the driver and the client process,
+where the client is allocating on the kernel heap, the paging system tries
+to page out some data and the media driver also tries to allocate on the kernel
+heap while servicing the resulting request.</p></li>
+<li id="GUID-56A3815D-E07B-5195-85C3-0B93C08745C3"><p>Unpredictable delays
+in servicing a DFC can occur, since memory might need to be paged in.</p> </li>
+</ul> <p>To address the above issues, the following points will have to be
+considered/undertaken: </p> <ul>
+<li id="GUID-A15DB387-AB22-51BB-A4AD-0353932B788C"><p>Pass data by value to
+DoRequest/DoControl </p> </li>
+<li id="GUID-0FB5B141-94FE-54E4-9915-2DD50F840879"><p>Return results by using
+a return code </p> </li>
+<li id="GUID-9B3D3D25-010E-58C3-9C48-13AF494C3E62"><p>Use of a dedicated DFC
+queue </p> </li>
+<li id="GUID-AADA0BD7-75E7-5A11-98EB-F7EF3E1B5139"><p>Determine if unpredictable
+delays in servicing DFCs are acceptable </p> </li>
+<li id="GUID-E5B45EC9-DF21-51A9-814C-17CF3C13DFAE"><p>Validate the arguments
+in the client context as far as possible </p> </li>
+<li id="GUID-E6E4F7E2-1BE4-5590-AB05-777637C9B32B"><p>Move user memory accesses
+to client context where possible </p> </li>
+<li id="GUID-F4B44B27-9AE6-5A8C-B88C-C1809DAF6B89"><p>Replace the use of small
+fixed-size structures with the use of the TClientDataRequest object </p> </li>
+<li id="GUID-990D43F2-21C3-5C55-AC13-89C7153EA83B"><p>Pin user memory accessed
+from DFCs </p><p>Do not allocate on the kernel heap while handling page out
+requests.</p> <p>The paging algorithm can be over ridden and pages of memory
+can be kept in memory (pinned). This situation can be reversed by 'unpinning'
+the page. The TClientBufferRequest API provides this functionality. </p> </li>
+<li id="GUID-67DB522A-DEB2-5FEA-ACA4-D80D09D80926"><p>Re-write the driver
+to use shared chunks </p> </li>
+<li id="GUID-A298C045-2260-55B5-89B9-595E3AF5472F"><p>No fast mutex may be
+held when calling APIs that access user memory </p> </li>
+<li id="GUID-F9F79078-0CBC-5E8F-899F-117D148C605A"><p>No kernel mutex may
+be held </p> </li>
+<li id="GUID-D378D276-CAF0-5B8B-BDA2-4D18EB87F96A"><p>Use the new APIs, (See
+the <xref href="GUID-592B6D20-4ABA-5C79-9734-D18E2CE4A86C.dita">Writable Data Paging
+Overview</xref> ). </p> </li>
+</ul> </section>
+<section id="GUID-796DBAE0-EE59-4C1D-8D4A-BC5ACC899085"><title>Device Driver
+Tutorials</title> <p>The link given below is a guide that is relevant to this
+topic: </p> <p> <xref href="GUID-91C11D80-7A62-5135-8EE0-6EC5576D1118.dita">Demand
+Paged Device Drivers Writing Guide</xref>  </p> <p>This guide describes changes
+to device drivers that have to be undertaken in order for them to work on
+a device that uses writable data paging. </p> </section>
+<section id="GUID-32E564F3-D66A-472B-A3C1-D2D61807A5F2"><title>See also</title> <ul>
+<li id="GUID-77417650-C1F4-5ABC-9E75-54D274556FCD"><p> <xref href="GUID-E7C55048-5B7A-5BF2-B7F4-4D731659B88C-GENID-1-7-1-14-1-1-7-1-7-1-11-1-7-1-4-1-9-1.dita">Device
+Driver Writing and Migration Guide</xref>  </p> <p>This document explains
+techniques for writing device drivers on data paged systems and migrating
+device drivers to data paged systems. </p> </li>
+</ul> </section>
+</conbody></concept>

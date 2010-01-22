@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0B2421FD-8431-5DDA-9FE3-046734AE495E" xml:lang="en"><title>Window
+Surface Implementation</title><shortdesc>This topic provides an introduction to implementing EGL window
+surfaces on the Symbian platform. These are used for onscreen rendering into
+windows that are provided by the Symbian platform (rather than EGL). The details
+of how to implement window surfaces depend on whether the ScreenPlay variant
+is in use. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Target audience</b>: Device creators. </p>
+<section><title>Symbian windows</title> <p>Window surfaces are created by
+the <codeph>eglCreateWindowSurface()</codeph> function, to which is passed
+a handle to a window provided by the Symbian <xref href="GUID-2C443E6F-BC3D-5252-8098-9F850AA88A35.dita">Window
+Server</xref>. Key Window Server classes include the following: </p> <ul>
+<li id="GUID-CE332026-A8BC-57D8-B845-F0C41CCBA4C2"> <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>,
+which is a handle to a standard window. </li>
+<li id="GUID-DFC36F32-71B2-5502-B4A9-B95C6548751D"><xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RWsSession</apiname></xref>,
+which is the Window Server session class. This is required to create Window
+Server objects.  </li>
+<li id="GUID-B17680DB-00AD-5B8C-8199-5E03B9CB71E8"> <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita"><apiname>CWsScreenDevice</apiname></xref>,
+which is a Window Server client-side object representing the screen. </li>
+</ul> </section>
+<section><title> Non-ScreenPlay </title> <p>In the non-ScreenPlay variant
+there is no composition engine and both Symbian API drawing (for example,
+through <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref>) and EGL client API drawing are rendered
+to a single display. The EGL implementation can achieve this in a number of
+ways, including: </p> <ul>
+<li id="GUID-332CAE78-9EBD-5DAF-A640-FEE2CBC48B73"><p>Using Direct Screen
+Access (DSA) to render the EGL client API drawing directly to the screen.
+This is done in cooperation with the Window Server, which provides clipping
+instructions. This approach is particularly suitable when graphics acceleration
+hardware is available. </p> </li>
+<li id="GUID-646EE6E5-6194-5862-8225-9D756EA55ACC"><p>Rendering the EGL client
+API drawing to an offscreen <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> and then calling
+a Window Server API to blit the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> onto the screen,
+with any necessary clipping. </p> </li>
+</ul> </section>
+<section><title>ScreenPlay</title> <p>ScreenPlay has introduced the <xref href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita">Graphics Composition Collection</xref>,
+which enables a number of <b>surfaces</b> to be arranged in layers and to
+be composed together to produce the final output on the display. In this section,
+these surfaces are called <b>composition surfaces</b> in order to distinguish
+them from EGL surfaces. Each composition surface is mapped to memory, which
+can be specialized graphics memory for faster performance. </p> <p>All
+Window Server drawing (such as the application UI) is rendered to a composition
+surface called the <b>UI surface</b>, which is usually the topmost layer and
+can be semi-transparent. </p><p>When the EGL implementation creates an EGL
+window surface for a Symbian window (represented by <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>),
+the EGL implementation must do the following: </p><ul>
+<li id="GUID-ECAF9CD5-0770-5D51-827B-9E30A1A14478"><p>Create a new composition
+surface with the same width and height as the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>. </p> </li>
+<li id="GUID-69D40D06-D691-5DC4-8AB8-7C93F74EDAE4"><p>Position the composition
+surface in a layer below the UI layer, directly below the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>. </p> </li>
+<li id="GUID-19391759-8C65-5D17-96C7-A9155303442E"><p>Make the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> transparent
+in order for the composition surface to show through. </p> </li>
+</ul><p/><p>All of the EGL client API drawing to the EGL window surface
+is then rendered to the composition surface and the application's UI appears
+as a semi-transparent layer above it. </p><p>When a window is resized, a new
+composition surface needs to be created with the new width and height, and
+positioned as a layer below the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> in place of the
+previous composition surface. </p><p>A composition surface can have more than
+one pixel buffer associated with it (each buffer has the same dimensions).
+For an EGL window surface, the composition surface should have two buffers
+for double-buffered drawing. This means, for example, that OpenVG commands
+can draw to the <b>back buffer</b>, while the <b>front buffer</b> is being
+composed to the screen. </p> </section>
+</conbody><related-links>
+<link href="GUID-DC3A8785-3ED3-5696-A5ED-AB66588A5C14.dita"><linktext>EGL Porting
+Guide</linktext></link>
+<link href="GUID-0DC3E5AA-1706-5255-ACD6-E7AB732E1095.dita"><linktext>Graphics
+Composition Collection Overview</linktext></link>
+<link href="GUID-599C9890-3AC8-46D3-A8C3-34CAAB5A61CF.dita"><linktext>Implementing
+eglCreateWindowSurface</linktext></link>
+<link href="GUID-42984078-3DEB-41C7-AC76-C769F7CDB4D0.dita"><linktext>Implementing
+eglSwapBuffers</linktext></link>
+</related-links></concept>

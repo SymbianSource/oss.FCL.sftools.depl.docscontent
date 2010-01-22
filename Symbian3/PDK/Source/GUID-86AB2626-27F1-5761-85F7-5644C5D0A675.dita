@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-86AB2626-27F1-5761-85F7-5644C5D0A675" xml:lang="en"><title>Creating
+a Control Panel Application</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>A control panel application is used
+to modify system settings. To create a control panel application a registration
+resource file is required which contains information about the application
+UID and the name of the application’s executable. </p> <p> <b>Note</b>: You
+need to create the registration resource file and specify its source and destination
+path in the <filepath>mmp</filepath> file. </p> </section>
+<section><title>Procedure</title> <p>The following procedure describes how
+to prepare the registration resource file and create a control panel application: </p> <ol id="GUID-70B60865-FC75-5A84-9FF2-F826481065AA">
+<li id="GUID-5CDEA94D-5B9A-5A93-9012-EC5DAD6A3BCE"><p>Define the attributes
+of the control panel application in the registration resource file. </p> <p>The
+attributes of the <codeph>APP_REGISTRATION_INFO</codeph> resource must have
+the <codeph>KAppIsControlPanelItem</codeph> attribute as shown in the code
+snippet: </p> <codeblock id="GUID-BF23DB83-177D-5165-87C3-E7D167E1A238" xml:space="preserve">#include &lt;appinfo.rh&gt;
+UID2 KUidAppRegistrationResourceFile
+UID3 0x23256ADE
+RESOURCE APP_REGISTRATION_INFO
+    {    
+    app_file = app_CTRL2;
+    attributes=KAppIsControlPanelItem;
+    }</codeblock> </li>
+<li id="GUID-B097566C-1F40-5218-9CCD-13D882CB646F"><p>In the source code of
+the application, create an instance of the <xref href="GUID-4FB064FC-210C-384A-BE92-35CA399B34C3.dita"><apiname>CApaSystemControlList</apiname></xref> class
+using the <xref href="GUID-4FB064FC-210C-384A-BE92-35CA399B34C3.dita#GUID-4FB064FC-210C-384A-BE92-35CA399B34C3/GUID-68F9CFBD-C7FE-3AAE-92E1-DA4677D50D31"><apiname>CApaSystemControlList::NewL()</apiname></xref> function to create
+and initialize a control panel application list as shown in the code snippet.
+The <xref href="GUID-4FB064FC-210C-384A-BE92-35CA399B34C3.dita"><apiname>CApaSystemControlList</apiname></xref> class provides a list of all
+the available control panel applications present on the device. </p> <codeblock id="GUID-1D32560F-C5B9-5198-BB05-259CC8BCEE6A" xml:space="preserve">
+// Create a file server session by creating an RFs object.
+
+RFs fs;
+fs.Connect();
+CApaSystemControlList* cControlList;
+
+TRAP(ret,cControlList=CApaSystemControlList::NewL(fs));
+if( ret==KErrNone )
+    {
+     //success scenario , implementation...
+    }</codeblock> </li>
+<li id="GUID-CDC1A815-8E88-5DE1-92CE-50A6F5CF660F"><p>Also in the application's
+source code, create a control panel application in either of the following
+ways: </p> <p>  </p><codeblock id="GUID-E842DF15-BA2B-5EDB-A624-1830C69C5557" xml:space="preserve">// <b>Using UID</b>
+const TInt KsimpleAppUidValue = 0x23256ADE;
+
+// Create the control panel application in the list using the specified UID
+
+CApaSystemControl* Control = cControlList-&gt;Control(TUid(KsimpleAppUidValue));
+</codeblock> <p>  </p> <codeblock id="GUID-4F497DF1-569A-5F8E-BCA3-705F0D846CA8" xml:space="preserve">//<b>Using Index</b>
+// Create a control panel application using the index ID
+TInt indexID = 2;
+
+CApaSystemControl* control=cControlList-&gt;Control(indexID);
+</codeblock> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita"><linktext>Application
+Architecture Overview</linktext></link>
+<link href="GUID-617A7B7E-DF91-5757-B473-D2E0B665F5E4.dita"><linktext>Application
+resource tools guide</linktext></link>
+</related-links></concept>

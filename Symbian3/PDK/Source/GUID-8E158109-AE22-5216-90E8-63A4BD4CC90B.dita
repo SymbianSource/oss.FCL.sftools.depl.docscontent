@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8E158109-AE22-5216-90E8-63A4BD4CC90B" xml:lang="en"><title> Opening
+a Socket Server connection: Tutorial</title><shortdesc>This tutorial describes how an application can open and manage
+a connection to the Socket Server. Other Socket Server tutorials build upon
+this tutorial. The Socket Server is also known as ESock. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Connecting to the Socket Server</title><p>The <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RSocketServ</apiname></xref> class
+provides the <xref href="GUID-408D4D7E-FCD1-3ECF-AD62-6DA52E9580F5.dita"><apiname>Connect()</apiname></xref> function to create a session to
+the socket server. </p></section>
+<section><title>Procedure</title><p>The steps to connect and then close a
+session with the Socket Server are: </p><ul>
+<li><p>   Call one of the <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita#GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449/GUID-C9E237C5-DCFB-3F66-87E5-63425156995C"><apiname>RSocketServ::Connect()</apiname></xref>    functions.
+ </p> </li>
+<li><p>   Perform socket operations  </p> </li>
+<li><p>   Call <codeph>Close</codeph> to end the session with the Socket Server
+   </p> </li>
+</ul></section>
+<section><title>Example</title><codeblock xml:space="preserve">RSocketServ ss;
+
+// Connect to ESOCK
+ss.Connect();
+
+// Perform operations on the socket server
+...
+
+// Close the connection
+ss.Close();
+</codeblock></section>
+<section><title>Further considerations</title><p> The <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita#GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449/GUID-C9E237C5-DCFB-3F66-87E5-63425156995C"><apiname>RSocketServ::Connect()</apiname></xref> function
+allows optional extra information to be sent to the Socket Server to change
+the performance of the connection. Two optional parameters are available:
+ </p><ol>
+<li id="GUID-A41FB7DA-2EE4-460F-9698-70A50FB682EB"><p><b>Message Slots</b> - If the client application expects to   keep
+a large number of requests open at the same time, then the client   application
+can increase the message slots available to the connection.</p></li>
+<li id="GUID-FDEF0A30-F872-49DF-A7EC-3B975040E5DC"><p><b>Protocol Preference</b> - If the client application will   use the
+connection to interact with only one protocol, then this protocol   should
+be specified. The Socket Server uses the preferred protocol to improve   the
+efficiency of the messages between the client application and the protocol</p></li>
+</ol></section>
+<section id="GUID-5AA882EF-269B-54A6-8CDB-B1E9F26BB7D5"><p>The <codeph>RSocketServ</codeph> connection
+allows a number of <xref href="GUID-D0D27AEA-FDDB-5F6F-94F6-ADDF5910DC47.dita">sub-connections</xref> that
+offer more functionality. The sub-connections available are: </p> <ul>
+<li id="GUID-8C317F12-D19A-5B61-A88E-E1BC10BBFE78"><p> <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RConnection</apiname></xref>  </p> </li>
+<li id="GUID-DA08493B-DB72-57F0-9CB9-CF4BE80A94E9"><p> <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RSubConnection</apiname></xref>  </p> </li>
+<li id="GUID-28A3F706-7A81-5F72-8E66-0D236EDE6A40"><p> <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RSocket</apiname></xref>  </p> </li>
+<li id="GUID-F0D169F8-7C22-5AC1-BF22-EAC4D07B9E21"><p> <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RHostResolver</apiname></xref>  </p> </li>
+<li id="GUID-3A4ADFEA-4FCD-54DD-8367-0A42D21A67A6"><p> <xref href="GUID-EF29C1D7-B1E5-370F-AE37-66231A6BE449.dita"><apiname>RNetDatabase</apiname></xref>  </p> </li>
+</ul> <p>The purpose of each of these sub-connections is described in the
+. </p> <p><b>Procedure</b> </p> <p>The
+procedure to attach any of these sub-connections is: </p> <ol id="GUID-E146CDDE-DE2C-579C-901F-073C63C61F6D">
+<li id="GUID-E67862A6-17E4-5F5D-8A45-F7F8BEA01E04"><p>Create or use an existing <codeph>RSocketServ</codeph> session. </p> </li>
+<li id="GUID-C2AD2B55-F247-5D27-B368-4467E05D5800"><p>Call the <codeph>Open()</codeph> function
+on the object for the sub-connection class. Pass into the <codeph>Open()</codeph> function
+a reference to the <codeph>RSocketServ</codeph> session. </p> </li>
+<li id="GUID-18FF884F-8930-5851-9ECD-6B9BA55A48B2"><p>Perform sub-connection
+operations </p> </li>
+<li id="GUID-0A21C702-5125-55D1-8313-E1E7D1949C54"><p>Call <codeph>Close</codeph> to
+end the sub-session </p> </li>
+</ol> <p id="GUID-F5AEE180-B9A9-542E-84C9-2C505FD75AA4-GENID-1-7-1-7-1-1-10-1-5-1-4-1-3-1-3-5-7"><b>Example 1: Socket (RSocket)</b> </p> <codeblock id="GUID-FB43255E-E22E-5818-B00D-9351DA7B1BFF" xml:space="preserve">RSocketServ ss;
+RSocket sock;
+
+// Connect to the Sockets Server
+ss.Connect();
+
+// open a socket
+sock.Open(ss);
+
+// Perform operations on the socket
+...
+
+// Close the socket connection
+sock.Close();
+</codeblock> <p id="GUID-F5AEE180-B9A9-542E-84C9-2C505FD75AA4-GENID-1-7-1-7-1-1-10-1-5-1-4-1-3-1-3-5-9"><b>Example 2: Connection Management
+(RConnection)</b> </p> <codeblock id="GUID-BA4575AA-B370-594C-AAE0-8D2D970CA4E0" xml:space="preserve">RSocketServ ss;
+RConnection conn;
+
+// Connect to the Sockets Server
+ss.Connect();
+
+// Open the Connection Management sub-connection
+conn.Open(ss);
+
+// Perform operations on the connection
+...
+
+// Close the sub-connection and connection
+ss.Close();
+</codeblock> <p>This example shows that you do not need to close sub-connections
+explicitly. If you close the RSocketServ connection, the Comms Framework closes
+all attached sub-connections. </p> </section>
+</conbody><related-links>
+<link href="GUID-E34D0F11-4B34-575C-BE78-8EAD13E9CD64.dita"><linktext>How to  
+              Start and Close a Management Plane session: Tutorial</linktext>
+</link>
+<link href="GUID-12C9C36B-8AD4-544E-A6A3-54A799EF0280.dita"><linktext>Socket Server
+Reference</linktext></link>
+</related-links></concept>

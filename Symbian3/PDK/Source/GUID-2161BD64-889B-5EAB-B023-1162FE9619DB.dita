@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2161BD64-889B-5EAB-B023-1162FE9619DB" xml:lang="en"><title>How
+to use multiple active objects</title><shortdesc>This document illustrates how to use one active object to control
+another.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The following example code fragments show how to construct a program with
+two active objects, where one controls the initiation and cancellation of
+the other.</p>
+<p>In these examples:</p>
+<p><codeph>CActiveConsole</codeph> is an active object and contains a pointer
+to a <codeph>CConsoleBase</codeph> object which is a service provider. Through
+this service provider, the active object provides the facility to request
+a character from the keyboard.</p>
+<p><codeph>RunL()</codeph> delegates the handling of completed requests to
+the pure virtual function <codeph>ProcessKeyPress()</codeph>, which must be
+provided by a derived class.</p>
+<p><codeph>CMessageKeyProcessor</codeph> is further derived from <codeph>CActiveConsole</codeph> and
+contains a pointer to another active object <codeph>CExampleActiveObject</codeph>,
+which requires input from the keyboard.</p>
+<p>Depending on the input character, the <codeph>CMessageKeyProcessor</codeph> active
+object does one of the following:</p>
+<ul>
+<li id="GUID-9151F698-3D4F-5C3D-A758-194018FC053C"><p>issues a request to
+the <codeph>CExampleActiveObject</codeph> active object</p> </li>
+<li id="GUID-FBF8743F-0147-502B-BBE8-824DB727F791"><p>cancels any outstanding
+request to the <codeph>CExampleActiveObject</codeph> active object</p> </li>
+<li id="GUID-2E714DE6-AAE1-5926-8026-9B6E1C09C5C7"><p>does nothing</p> </li>
+</ul>
+<p>The implementation of the <codeph>CExampleActiveObject</codeph> active
+object is not relevant to the example and is not shown.</p>
+<p>The following diagram shows the relationship between the classes.</p>
+<fig id="GUID-AF998428-D142-56F8-8967-AF66AF9119F8">
+<image href="GUID-BEDF6765-4BF4-532F-A2C7-F052FE8A9CA2_d0e324949_href.png" placement="inline"/>
+</fig>
+<section id="GUID-5E2A6378-546D-46C5-8081-6425A96FAAFF"><title>Encapsulating the service provider</title> <p>The class <codeph>CActiveConsole</codeph> encapsulates
+the provision of basic keyboard services. Its <codeph>iConsole</codeph> data
+member is a pointer to the service provider, the <codeph>CConsoleBase</codeph> object.</p> <p>The
+active object class is defined as:</p> <codeblock id="GUID-DC98E432-1927-55F5-94A3-68D2493B75E8" xml:space="preserve">class CActiveConsole : public CActive
+    {
+public:
+    CActiveConsole(CConsoleBase* aConsole);
+    void ConstructL();
+    ~CActiveConsole();
+    void RequestCharacter();
+    void RunL();
+    void DoCancel();
+    virtual void ProcessKeyPress(TChar aChar)=0;
+protected:
+    CConsoleBase* iConsole; 
+    };</codeblock> <p>The class constructor takes a pointer to a <codeph>CConsoleBase</codeph> object
+as its single argument and initializes its <codeph>iConsole</codeph> data
+member to this value:</p> <codeblock id="GUID-2C5C49DB-AE88-5F84-82D7-BA5680A286C8" xml:space="preserve">CActiveConsole::CActiveConsole(CConsoleBase* aConsole)
+    : iConsole(aConsole)
+    {}</codeblock> <p>The <codeph>ConstructL()</codeph> function adds the
+active object to the active scheduler:</p> <codeblock id="GUID-CE947B19-9664-5774-ABFB-17E79A112131" xml:space="preserve">void CActiveConsole::ConstructL()
+    {
+    CActiveScheduler::Add(this);
+    }</codeblock> <p>The destructor cancels any outstanding request before
+destroying the active object:</p> <codeblock id="GUID-0120EE92-2BD8-5B2E-841A-DC366B3BED12" xml:space="preserve">CActiveConsole::~CActiveConsole()
+    {
+    Cancel();
+    }</codeblock> <p><codeph>DoCancel()</codeph> is implemented to cancel
+the request to <codeph>iConsole</codeph>.</p> <p>The <codeph>RequestCharacter()</codeph> function
+makes a request for a key press to the service provider by calling <codeph>iConsole-&gt;Read(iStatus)</codeph> and
+setting the active request flag:</p> <codeblock id="GUID-EF731B8D-7001-503F-8167-7A10697D5202" xml:space="preserve">void CActiveConsole::RequestCharacter()
+    {
+    iConsole-&gt;Read(iStatus);
+    SetActive();
+    }</codeblock> <p>The <codeph>RunL()</codeph> function makes a call to
+the <codeph>ProcessKeyPress()</codeph> function. This is a pure virtual function
+that derived classes must implement to handle the key press and to reissue
+the request:</p> <codeblock id="GUID-DF9F07BB-2099-5310-8921-3A290580B4AF" xml:space="preserve">void CActiveConsole::RunL()
+    {
+    ProcessKeyPress(TChar(iConsole-&gt;KeyCode()));
+    }</codeblock> </section>
+<section id="GUID-FFD3321F-3A46-4C40-A779-39C142DC79C3"><title>Further deriving from the active object</title> <p>The class <codeph>CMessageKeyProcessor</codeph> is
+a concrete class, derived from <codeph>CActiveConsole</codeph>. It provides
+an implementation for the<codeph>ProcessKeyPress()</codeph> function and can
+issue or cancel requests to a<codeph>CExampleActiveObject</codeph> active
+object.</p> <p>This active object class is defined as:</p> <codeblock id="GUID-C5F51E0D-517C-523D-BADA-4B3CDCA53073" xml:space="preserve">class CMessageKeyProcessor : public CActiveConsole
+    {
+public:
+    ...
+    CMessageKeyProcessor(CConsoleBase* aConsole, CExampleActiveObject* iExampleObject);
+    void ProcessKeyPress(TChar aChar);
+private:
+    CExampleActiveObject* iExampleObject;
+    };</codeblock> <p><b>Notes</b> </p> <ul>
+<li id="GUID-2341BA65-3806-5354-9F9D-EB1A8FD3FD61"><p>The first constructor
+parameter specifies a <codeph>CConsoleBase</codeph> which will be used to
+provide asynchronous keyboard input.</p> </li>
+<li id="GUID-E9CAAF35-C404-5418-9720-F560C4CED53D"><p>the second constructor
+parameter specifies a <codeph>CExampleActiveObject</codeph> which will be
+controlled by this <codeph>CMessageKeyProcessor</codeph>.</p> </li>
+</ul> <p>The behaviour of the <codeph>ProcessKeyPress()</codeph> function
+depends on the key code value:</p> <codeblock id="GUID-8081A453-4D44-5F2B-BAF3-7A43A1417BEF" xml:space="preserve">void CMessageKeyProcessor::ProcessKeyPress(TChar aChar)
+    {
+    if (aChar == 'm' || aChar == 'M')
+        {
+        iExampleObject-&gt;Cancel();
+        iExampleObject-&gt;IssueRequest();
+        }
+    if (aChar == 'c' || aChar == 'C')
+        {
+        iExampleObject-&gt;Cancel();
+        }
+    if (aChar != EKeyEscape)
+        {
+        RequestCharacter();
+        }
+    else
+        {
+        iExampleObject-&gt;Cancel();
+        CActiveScheduler::Stop();
+        }
+    }</codeblock> </section>
+<section id="GUID-91B9EF85-A595-479D-8D57-40CC427C19E7"><title>Enhanced framework</title> <p>In the code fragment below,
+an active scheduler is created to which both a <codeph>CMessageKeyProcessor</codeph> active
+object and a<codeph>CExampleActiveObject</codeph> active object are added:</p> <codeblock id="GUID-830AA24C-7781-505A-9DD1-4A042040688D" xml:space="preserve">LOCAL_C void doExampleL()
+    {
+    CActiveScheduler* exampleScheduler=new (ELeave) CActiveScheduler;
+    CleanupStack::PushL(exampleScheduler);
+    CActiveScheduler::Install(exampleScheduler);
+
+    CExampleActiveObject* iExampleObject =
+            CExampleActiveObject::NewLC();
+    CMessageKeyProcessor* keyProcessor=
+             CMessageKeyProcessor::NewLC(console, iExampleObject);
+
+    keyProcessor-&gt;RequestCharacter();
+    CActiveScheduler::Start();
+    CleanupStack::PopAndDestroy(3);
+    }</codeblock> <p><b>Notes</b> </p> <ul>
+<li id="GUID-1FB2DB58-C282-5B21-A070-DEC020E98059"><p>An instance of the active
+scheduler, <codeph>exampleScheduler</codeph> is pushed onto the cleanup stack
+and installed as the current active scheduler.</p> </li>
+<li id="GUID-3404475D-4044-5DB4-BEDF-5A308B2521CA"><p>An instance of the <codeph>CExampleActiveObject</codeph> active
+object is created.</p> </li>
+<li id="GUID-F7C3C84D-66E5-5F8D-8213-8DC3864D659D"><p>An instance of the <codeph>CMessageKeyProcessor</codeph> active
+object is created and this is in control.</p> </li>
+<li id="GUID-DA61DFD2-B057-50C9-8FD1-C53E884A4A0E"><p><codeph>keyProcessor-&gt;RequestCharacter()</codeph> issues
+a request for keyboard input.</p> </li>
+<li id="GUID-5BFAEEED-051C-5741-BAA0-96AFC3EA5A02"><p><codeph>CActiveScheduler::Start()</codeph> starts
+the active scheduler. At least one outstanding request is necessary before
+the wait loop is started, otherwise the thread hangs. All further request
+issuing and servicing occurs within this function. The wait loop continues
+until one of the active objects’ <codeph>RunL()</codeph> calls<codeph>CActiveScheduler::Stop()</codeph>.</p> </li>
+<li id="GUID-E3FB7738-DC6C-5472-8CBF-FAAD47C440D5"><p>The active objects and
+the active scheduler are popped from the cleanup stack and destroyed.</p> </li>
+</ul> </section>
+</conbody></concept>

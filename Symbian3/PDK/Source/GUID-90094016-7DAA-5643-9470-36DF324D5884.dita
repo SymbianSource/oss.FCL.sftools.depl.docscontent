@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-90094016-7DAA-5643-9470-36DF324D5884"><title>Opening a session that uses the Network PSY</title><shortdesc>This shows how to open a session using the Network PSY. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>The Network PSY is used by the Location Server <codeph>eposserver.exe</codeph> to connect to positioning hardware using the Network Location Manager and a Network Protocol Module. </p> <p>To use the Network PSY a <xref href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita">Location Acquisition API</xref> client opens an <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita"><apiname>RPositioner</apiname></xref> subsession using one of the following methods: </p> <ul><li id="GUID-0AF70316-601E-5D6F-819E-BFC804C6EED4"><p>Explicitly using a PSY implementation UID </p> </li> <li id="GUID-AF225F22-4B3D-5D99-83FB-BE9D5949AD61"><p>Implicitly (the Location Server uses the Default PSY) </p> </li> </ul> <p>These methods are described in more detail below. </p> </context> <steps id="GUID-6076878E-2B0C-5FF8-AD0E-455A923FDBF9"><step id="GUID-C40F3000-ACC6-54DB-8C08-CFF5D1113520"><cmd>To use the Network PSY explicitly, open a session using the Network PSY implementation UID. </cmd> <info>The Network PSY has an implementation UID = 0x10285abc. </info> <info>Open a session and subsession using the Location Acquisition API as shown below: </info> <stepxmp><codeblock id="GUID-B89ECABA-CEAE-5490-A076-0BE568164046" xml:space="preserve">#include &lt;lbs.h&gt;
+#include &lt;lbserrors.h&gt;
+
+#define KNetPSYImplUid 0x10285abe
+
+...
+
+RPositionServer server;
+RPositioner positioner;
+
+/Create a session with the location server
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Create a subsession with the Location Server using the Network PSY
+User::LeaveIfError(positioner.Open(server, TUid::Uid(KNetPSYImplUid)));
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal - see API documentation for more details
+
+...
+
+// Close the session
+
+CleanupStack::PopAndDestroy(&amp;positioner);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </stepxmp> </step> <step id="GUID-D564080A-8ADD-5520-9EEF-998349030CF8"><cmd>To use the Network PSY implicitly through the Default PSY, open a session without specifying a PSY UID. </cmd> <stepxmp><codeblock id="GUID-2AE70E99-B63B-5C97-90C8-2F42E09B8D49" xml:space="preserve">
+...
+
+//Create a session with the location server
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Location Server uses the default PSY, which can use the Network PSY
+User::LeaveIfError(positioner.Open(server);
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal...
+
+...
+</codeblock> </stepxmp> <info>The Default PSY has a list of all available PSYs. If the Network PSY is installed it can be used by the Default PSY. The choice of which PSY is used is based on the priority and availability of the PSYs. </info> <info>See <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref> for more information about PSY settings. </info> <info>See <xref href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita">Default PSY</xref> for information about how a PSY is selected. </info> </step> </steps> </taskbody><related-links><link href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita"><linktext>Default
+                PSY</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita"><linktext>Location Acquisition API</linktext> </link> </related-links></task>

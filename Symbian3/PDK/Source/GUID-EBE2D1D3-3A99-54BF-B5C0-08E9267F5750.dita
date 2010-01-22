@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EBE2D1D3-3A99-54BF-B5C0-08E9267F5750" xml:lang="en"><title>Creating
+a DirectGDI Adaptation</title><shortdesc>This topic provides information about creating a DirectGDI adaptation. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators. </p>
+<note type="note">DirectGDI is deprecated in Symbian^3.</note>
+<section id="GUID-A08F6D35-01A5-4548-8134-5300ECC0AC36"><title>Required background</title> <p>This
+topic assumes an understanding of the material contained in the following: </p> <ul>
+<li id="GUID-81CDAB03-A761-5784-BC92-61248F317444"><p><xref href="GUID-CD4B8ECA-AFE7-593C-B095-5D642EA2EC61.dita">DirectGDI
+Component Overview</xref>  </p> </li>
+<li id="GUID-FAA72B71-BD87-5796-BDE2-EE739D01CC97"><p><xref href="GUID-E9C6DBBF-1910-595D-94A1-67664CF7B7A6.dita">DirectGDI
+Interface Component Overview</xref>  </p> </li>
+<li id="GUID-66E61F77-3E30-5134-8712-3AD63F9E35CC"><p><xref href="GUID-22E46647-D677-5A47-A7E0-E1E0AE736B27.dita">DirectGDI
+Adaptation Overview</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-9EA9C05C-919C-48B5-AE77-412CD316DF19"><title>Packaging the
+DLL</title> <p>When packaging the adaptation, the following rules apply: </p> <ul>
+<li id="GUID-C56B01DF-0C5E-511E-B0E6-842DC1643F4D"><p>The DirectGDI adaptation
+must be packaged as a DLL with the name <b>directgdiadapter.dll</b>. </p> </li>
+<li id="GUID-823E502D-A732-5F3D-98C8-F1AA790028FB"><p>The second and third
+UIDs must be <codeph>0x1000008D</codeph> and <codeph>0x102858E9</codeph>,
+respectively. </p> </li>
+<li id="GUID-9D1E5C7F-B9C6-5954-9B72-92D97172D977"><p>All capabilities except
+TCB (Trusted Computing Base) are required. </p> </li>
+<li id="GUID-3D0E73B9-8D09-5923-93CD-6ABED9FAE91D"><p>The <codeph>NOEXPORTLIBRARY</codeph> keyword
+must be used in the MMP file to prevent the generation of LIB/DSO files during
+the build process. </p> </li>
+</ul> <p>Here is a snippet of an example MMP file: </p> <codeblock id="GUID-01137A07-7723-5D31-ABB6-A9B86B047139" xml:space="preserve">TARGET directgdiadapter.dll
+TARGETTYPE DLL
+CAPABILITY All -Tcb
+UID 0x1000008D 0x102858E9
+VENDORID &lt;Your vendor ID in hex&gt;
+NOEXPORTLIBRARY</codeblock> <p>The reference adaptation component has several
+implementations for different configurations. These have different names and
+the one that is to be used in the device is renamed to <filepath>directgdiadapter.dll</filepath> during
+the ROM building process. You may want to use a similar approach. See <xref href="GUID-946E64D6-3E5D-5264-AD5D-29D3AD296543.dita">Selection of Adaptations</xref> for
+more information. </p> <p>Because the DirectGDI Adaptation component is optional,
+the <xref href="GUID-A2E07A3C-B3A8-50B9-BD60-F1F01795FA24.dita">DirectGDI component</xref> provides
+a <b>stub implementation</b> for platform security reasons. When a functional
+adaptation is not present, the stub implementation is compiled into a DLL
+called <filepath>directgdiadapter.dll</filepath> and is installed in the ROM
+in order to prevent a SIS file installing a rogue DLL with this name. </p> </section>
+<section id="GUID-7B23C611-51FE-47E3-8F8D-0D1696132046"><title>The exported
+function</title> <p>The DirectGDI adaptation DLL is a polymorphic interface
+DLL that must export a single function at ordinal position one. The function
+that must be exported is <xref href="GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27.dita#GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27/GUID-0E41EA26-2DF7-3AB5-AC06-20EB080A6596"><apiname>CDirectGdiDriverInternal::New()</apiname></xref>.
+Here is its definition in the stub implementation: </p> <codeblock id="GUID-C0E2A910-2B63-56BF-A745-AE6198E221DE" xml:space="preserve">EXPORT_C TInt CDirectGdiDriverInternal::New(CDirectGdiDriverInternal*&amp; aInternal, RLibrary /*aLibrary*/)
+    {
+    aInternal = NULL;
+    return KErrNotSupported;
+    }</codeblock> <p>This simply returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> to
+indicate that the DirectGDI functionality is not supported. This is because,
+as mentioned above, the stub implementation is used for platform security
+reasons when no functional DirectGDI adaptation is present. </p> <p>In a functional
+implementation, the function must create a new instance of the class that
+is derived from <xref href="GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27.dita"><apiname>CDirectGdiDriverInternal</apiname></xref> and return it
+in the pointer argument. </p> </section>
+<section id="GUID-2E9B5826-9CED-466C-8AB5-C6E386AA7744"><title>Implementing
+the interfaces</title> <p>The <xref href="GUID-E9C6DBBF-1910-595D-94A1-67664CF7B7A6.dita">DirectGDI
+Interface</xref> component provides a Hardware Adaptation Interface (HAI),
+which separates the generic and adaptation parts of the DirectGDI framework.
+The component defines a set of interfaces for which the adaptation must provide
+an implementation. As long as the implementation conforms to the interface
+specifications and contracts, you are free to write the adaptation as you
+see fit. </p> <p> <b>Driver adapter</b>. You must create a concrete driver
+adapter class that implements all the pure virtual functions of <xref href="GUID-1E407D78-0FD3-30F2-BDC5-B531F34D4A27.dita"><apiname>CDirectGdiDriverInternal</apiname></xref>.
+This driver adapter is a singleton class. A single instance can be created
+for each process or each thread that uses the DirectGDI API, depending on
+your requirements. The driver adapter is responsible for creating and destroying
+drawing engines, and creating and destroying implementations of <xref href="GUID-66A0A534-7BB6-304F-9A5E-17A125DA916F.dita"><apiname>RDirectGdiDrawableSource</apiname></xref> and <xref href="GUID-8F7C2E3C-3DF6-3C76-85C0-04922A99E9D0.dita"><apiname>RDirectGdiImageTarget</apiname></xref>. </p> <p> <b>Engine adapter</b>. You must create a concrete engine adapter
+class that implements the <xref href="GUID-97E3E8DD-A2DA-3961-96E3-41AEAFFDD275.dita"><apiname>MDirectGdiEngine</apiname></xref> interface. A
+concrete engine adapter instance is created for each instance of <xref href="GUID-09AFDE10-489E-3215-B821-DE7B2D31A007.dita"><apiname>CDirectGdiContext</apiname></xref>.
+The engine adapter performs the actual drawing and blitting routines that
+enable rendering to an <xref href="GUID-8F7C2E3C-3DF6-3C76-85C0-04922A99E9D0.dita"><apiname>RDirectGdiImageTarget</apiname></xref> instance.
+Because DirectGDI is a replacement for BitGDI, the behaviour of the engine
+adapter must match the behaviour of BitGDI as far as possible. If an exact
+match is not possible, the behaviour must be as close as possible. </p> <p>In
+addition, you must create implementations of adaptation-specific resources
+that correspond to the following handle classes: </p> <ul>
+<li id="GUID-7E672B36-9E55-5DB2-9C18-75C065B99F08"><p> <xref href="GUID-8F7C2E3C-3DF6-3C76-85C0-04922A99E9D0.dita"><apiname>RDirectGdiImageTarget</apiname></xref>  </p> </li>
+<li id="GUID-5EEF64D2-B049-56DA-8411-104B3F726C4F"><p> <xref href="GUID-66A0A534-7BB6-304F-9A5E-17A125DA916F.dita"><apiname>RDirectGdiDrawableSource</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-456AD066-04AC-42E5-853F-7C581B72402A"><title>Extension interfaces</title> <p>The <xref href="GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61.dita#GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61/GUID-B1BFB404-4778-32FD-80B6-E909FE9E5687"><apiname>CDirectGdiDriver::GetInterface()</apiname></xref> function provides an optional mechanism for DirectGDI adaptations to extend
+the HAI by defining extension interfaces. The DirectGDI client can access
+these by using the <xref href="GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61.dita#GUID-0C7CD826-95FD-3DD2-9394-3A20316C9C61/GUID-B1BFB404-4778-32FD-80B6-E909FE9E5687"><apiname>CDirectGdiDriver::GetInterface()</apiname></xref> method. </p> </section>
+<section id="GUID-AF6C6E59-16F4-4BBE-A59B-6EDF1C2748AC"><title>Performance
+considerations</title> <p>Sometimes the requirements of graphics hardware
+mean that images and glyphs must be converted from one format to another (for
+example, from <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> to <codeph>VGImage</codeph>) every
+time they are drawn. In these circumstances, you may want to consider introducing
+a caching mechanism to store the converted images and glyphs in order to reduce
+unnecessary format conversions. </p> </section>
+<section id="GUID-CD79B79F-5566-40E5-BB73-693BA8F95EBC"><title>Conformance
+testing</title> <p>DirectGDI should produce output that is comparable to BitGDI.
+You can test your DirectGDI adaptation by using the DirectGDI test suite.
+This compares test images created using all of the <xref href="GUID-40D3BA6E-24FB-34AD-99D0-1119458C1E7F.dita"><apiname>CDirectGDIContext</apiname></xref> APIs
+with those generated using BitGDI. Fine tuning the adaptation to match the
+BitGDI reference images as closely as possible ensures a continued look and
+feel. </p> </section>
+</conbody><related-links>
+<link href="GUID-CD4B8ECA-AFE7-593C-B095-5D642EA2EC61.dita"><linktext>DirectGDI
+Overview</linktext></link>
+<link href="GUID-E9C6DBBF-1910-595D-94A1-67664CF7B7A6.dita"><linktext>DirectGDI
+Interface Component                 Overview</linktext></link>
+<link href="GUID-22E46647-D677-5A47-A7E0-E1E0AE736B27.dita"><linktext>DirectGDI
+Adaptation Overview</linktext></link>
+</related-links></concept>

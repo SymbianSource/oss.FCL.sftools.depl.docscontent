@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-B31D30BF-9D55-5215-9D34-DD619D4E4D47" xml:lang="en"><title>Unlocking
+a Large File </title><shortdesc>How to unlock a section of a large file. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-641B66B8-24DE-48F0-BA92-85B8551D4A0C"><p> <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita#GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7/GUID-5955E095-D4DB-34CE-8254-D6B5C9BFC05B"><apiname>RFile64::Unlock()</apiname></xref> allows a section of data
+within a file to be unlocked. This function uses 64-bit <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> variables
+rather than 32-bit <xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref> variables. The area to unlock within
+a file is specified by the starting position and length of the area. Using
+a 64-bit variable rather than a 32-bit variable allows the specified position
+and length of the section to be greater than 2GB-1. </p> </context>
+<steps id="GUID-217627C2-06FF-5EF2-9DFE-D145FD901B36">
+<step id="GUID-32016E81-8E90-5A98-A116-43FED2AAE9B4"><cmd>Use the 64-bit <xref href="GUID-83A415A0-F417-3CA5-BA10-5AEF119AB1F7.dita"><apiname>RFile64</apiname></xref> class
+instead of the 32-bit <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref> class. </cmd>
+<stepxmp><codeblock id="GUID-0201BA15-B253-52E1-9B15-C4D0F5C5024B" xml:space="preserve">//RFile file;
+RFile64 file;</codeblock> </stepxmp>
+</step>
+<step id="GUID-A7ADFF86-86B9-5C79-B0CD-D6DA0B502279"><cmd>Use a <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref> variable
+to specify the position and length of the file to unlock. </cmd>
+<stepxmp><codeblock id="GUID-56183384-E96D-5A02-82A4-C6AAA056ACB2" xml:space="preserve">TInt r;
+// TInt lockPosition, lockLength;
+TInt64 lockPosition, lockLength;
+...
+r = file.UnLock(lockPosition, lockLength);</codeblock> </stepxmp>
+</step>
+</steps>
+<example><title>Unlock example</title><codeblock id="GUID-F1AEB6D8-12F2-5302-9DBF-60C31FABD72F" xml:space="preserve">    // Replace RFile with RFile64
+    RFile64 file;
+    TInt err = file.Open(TheFs, _L(“BIGFILE.BIG”), EFileWrite);
+    if(err != KErrNone)
+        {
+        // handle unrelated error
+        return err;
+        }
+
+    // Change the TInt type to TInt64
+    TInt64 lockPosition, lockLength;
+    err = file.UnLock(lockPosition,lockLength);
+    if(err != KErrNone)
+        {
+        //could return with KErrArgument if lockPosition + lockLength &gt; 63Bytes   
+        return err;
+        }</codeblock> </example>
+</taskbody></task>

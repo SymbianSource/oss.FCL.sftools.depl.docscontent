@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-BCF6FEF0-1792-5DEA-A2D7-896E47163547"><title>Deriving from COpenFontFile</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Overview</title> <p>Write a class derived from <codeph>COpenFontFile</codeph> to manage a file of the font format supported by the DLL. An object of this type is created by <codeph>COpenFontRasterizer::NewFontFile()</codeph>. </p> <p>To derive from <codeph>COpenFontFile</codeph>: </p> <ul><li id="GUID-C27C30FC-9E0B-5033-9C34-2BDF008D5BE1"><p>Provide implementations for <codeph>COpenFontFile</codeph>'s two pure virtual functions: <codeph>GetNearestFontInPixelsL()</codeph> and <codeph>HasUnicodeCharacterL()</codeph>. These are discussed further in the following sections. </p> </li> <li id="GUID-FBD8C9FB-8F2F-5235-80E1-12ECF77CD86C"><p>During construction call the base class constructor, passing it the arguments <codeph>aUid</codeph> and <codeph>aFileName</codeph> supplied to <codeph>COpenFontRasterizer::NewFontFileL()</codeph>. </p> </li> <li id="GUID-12B0A396-10DC-5369-BF10-52EFD862BBBC"><p>During construction, extract the attributes of each font in the font file into a <codeph>TOpenFontFaceAttrib</codeph>. Then add the attributes for each typeface to the typeface array — using <codeph>COpenFontFile::AddFaceL()</codeph>. </p> </li> </ul> </section> <section><title>Implementing GetNearestFontInPixelsL()</title> <p>This function is called by the Font and Bitmap server to retrieve the font (from the font file) which most closely matches a given font specification. The freetype implementation is given below: </p> <codeblock id="GUID-D87B9618-C570-5A48-9F12-75D19C24F9C2" xml:space="preserve">void CFreeTypeFontFile::GetNearestFontInPixelsL(RHeap* aHeap,
+          COpenFontSessionCacheList* aSessionCacheList,
+          const TOpenFontSpec&amp; aFontSpec,
+          TInt aPixelWidth,
+          TInt aPixelHeight, COpenFont*&amp; aFont,
+          TOpenFontSpec&amp; aActualFontSpec)
+    {
+    // Use the standard matcher.
+    TInt face_index = 0;
+    if (GetNearestFontHelper(aFontSpec,aPixelWidth,aPixelHeight,face_index,aActualFontSpec))
+        {
+        aFont = CFreeTypeFont::NewL(aHeap,aSessionCacheList,this,face_index,
+                                    aActualFontSpec.Height(),
+                                    aActualFontSpec.WidthFactor(),
+                                    aActualFontSpec.SlantFactor());
+        }
+    }
+</codeblock> <p>To implement this function: </p> <ul><li id="GUID-9FE18079-8FED-5850-9FE3-022AE20C6794"><p>Call the helper function <xref href="GUID-FC62EDD7-A3F7-3611-A899-CA5F17BB2EEE.dita#GUID-FC62EDD7-A3F7-3611-A899-CA5F17BB2EEE/GUID-FA4C5FC6-8F49-3E11-8982-685C5E0AF6F0"><apiname>COpenFontFile::GetNearestFontHelper()</apiname></xref>, passing it <codeph>aDesiredFontSpec</codeph>, <codeph>aPixelWidth</codeph>, <codeph>aPixelHeight</codeph>, <codeph>aActualFontSpec</codeph>, and the index of the typeface to search for a match. Note that a font file may contain several typefaces, which are accessed by this index. </p> <p>This helper function searches the typeface array for the closest matching font and returns <codeph>ETrue</codeph> if a match is found. It also retrieves the matching font's specification into <codeph>aActualFontSpec</codeph>. </p> <p>Note that the typeface array must be populated from the font file during construction of the <codeph>COpenFontFile</codeph> derived object. </p> </li> <li id="GUID-7FFE0B31-4625-53FB-80FA-0A56CD318FD0"><p>If a valid match was obtained from the helper function (i.e. if it returned <codeph>ETrue</codeph>) create a new <codeph>COpenFont</codeph> object using the specification <codeph>aActualFontSpec</codeph>. Pass the two arguments, <codeph>aHeap</codeph> and <codeph>aSessionCacheList</codeph> to the <codeph>COpenFont</codeph> constructor. </p> <p>The new object should be returned in <codeph>aFont</codeph>. </p> </li> <li id="GUID-CEEDEC6A-8F1A-5FB6-A2DE-2A657810C437"><p>If no match is found, <codeph>aFont</codeph> should be set to NULL. </p> </li> </ul> </section> <section><title>Implementing HasUnicodeCharacterL()</title> <p> <codeph>HasUnicodeCharacterL()</codeph> is called by the Font and Bitmap Server to test whether a font contains a particular Unicode character. The prototype is: </p> <codeblock id="GUID-DEB16CCF-0E1C-59CA-8EC8-4A0F38ADDF31" xml:space="preserve">virtual TBool HasUnicodeCharacterL(TInt aFaceIndex,TInt aCode) const = 0; </codeblock> <p>Implementations must return <codeph>ETrue</codeph> if the character <codeph>aCode</codeph>, which is always a Unicode value, exists in the typeface. There are no other constraints on the way this function is implemented. </p> </section> </conbody><related-links><link href="GUID-F477E82D-2929-5C69-BF6D-A69A61AC9EA5.dita"><linktext>Creating a
+                Font Rasterizer Plug-in</linktext> </link> <link href="GUID-1CF78E25-8C83-5812-AE6F-8612B3F9CDA9.dita"><linktext>Deriving from
+                COpenFontRasterizer</linktext> </link> <link href="GUID-5A89E3C4-DEE7-5823-A109-92ED0D87B58C.dita"><linktext>Deriving from
+                COpenFont</linktext> </link> <link href="GUID-F44D974F-AADE-5E6C-8D69-8D3EEE4BD395.dita"><linktext>Deriving from
+                COpenFontRasterizerContext</linktext> </link> </related-links></concept>

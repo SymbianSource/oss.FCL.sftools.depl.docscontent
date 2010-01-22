@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9BB4A44E-6870-5A25-8EA8-0B0F1565213F"><title>Including the GPS/A-GPS PSY in ROM</title><shortdesc>This shows how to include the GPS/A-GPS PSY in a device ROM. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>To use the GPS/A-GPS PSY in a device it must be installed in the device ROM. This document explains how to include the PSY in ROM using <codeph>buildrom</codeph> macros. </p> <section><title>Introduction</title> <p>The GPS/A-GPS PSY can be used to obtain position fixes using either autonomous GPS or assisted GPS (A-GPS). The GPS/A-GPS PSY ECom plug-in contains two PSY implementations: one that supports only autonomous GPS and one that supports assisted GPS. </p> <p>The PSY is packaged in a single library <filepath>lbsgpsagpspsy.dll</filepath> that includes the PSY as a single ECom plug-in that contains two implementations of the PSY interface. </p> <p>The ROM build macros described in this document control which versions of the GPS/A-GPS ECom resource <codeph>.rsc</codeph> files are copied to the ECom repository and which Central Repository <codeph>.cre</codeph> initialisation files that define the PSY properties (as specified by the Positioning Plug-in Information API) are included. </p> </section> <section><title>Procedure</title> <ol id="GUID-62FFEB74-1850-5262-91CD-7C0632702FED"><li id="GUID-676DD09E-6243-5A6E-94D5-33EEDA92CD3B"><p>To install and configure the GPS/A-GPS PSY to support both autonomous GPS and assisted GPS </p> <p>Use both macros <codeph>SYMBIAN_INCLUDE_LOCATION_GPS_PM</codeph> and <codeph>SYMBIAN_INCLUDE_LOCATION_AGPS_PM</codeph> when you build the LBS ROM. </p> <p>The example below shows how to configure the GPS/A-GPS PSY for autonomous and assisted GPS. You may need to specify additional macros depending on which other optional LBS components you also want to install. </p> <p><codeblock id="GUID-63C7CB8B-EB08-5B91-A4BB-C5AE79FEF111" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_LOCATION_AGPS_PM
+-DSYMBIAN_INCLUDE_LOCATION_GPS_PM
+</codeblock> </p> <p>The file <codeph>lbs.oby</codeph> includes the .iby files necessary to build the LBS ROM (see <xref href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita">LBS ROM macros</xref> for more information about the LBS .iby files). The LBS .iby file <codeph>lbsgpsagpspsy.iby</codeph> contains the commands to copy the GPS/A-GPS PSY DLL and all supporting files to the target build location: </p> <p><codeblock id="GUID-4EF4B440-093C-56C7-AEFA-F735CA4EC64A" xml:space="preserve">
+#ifndef __LBS_GPS_AGPS_ADAPTATION_PSY_IBY__
+#define __LBS_GPS_AGPS_ADAPTATION_PSY_IBY__
+
+#if !defined(SYMBIAN_EXCLUDE_LOCATION)
+#if defined(SYMBIAN_INCLUDE_LOCATION_API_VARIANT2)
+
+
+#if defined (SYMBIAN_INCLUDE_LOCATION_GPS_PM) &amp;&amp; defined(SYMBIAN_INCLUDE_LOCATION_AGPS_PM)
+ECOM_PLUGIN(lbsgpsagpspsy.dll,lbsgpsagpspsy.rsc)
+//__ECOM_PLUGIN(ABI_DIR\BUILD_DIR,ECOM_BIN_DIR,DATAZ_,ECOM_RSC_DIR,lbsgpsagpspsy.dll,lbsgpsagpspsy.dll)
+#endif
+
+#if defined(SYMBIAN_INCLUDE_LOCATION_GPS_PM) &amp;&amp; !defined(SYMBIAN_INCLUDE_LOCATION_AGPS_PM)
+__ECOM_PLUGIN(ABI_DIR\BUILD_DIR,  ECOM_BIN_DIR,   DATAZ_\resource\gps, ECOM_RSC_DIR,     lbsgpsagpspsy.dll, 
+    lbsgpsagpspsy.dll)
+#endif
+
+#if !defined(SYMBIAN_INCLUDE_LOCATION_GPS_PM) &amp;&amp; defined(SYMBIAN_INCLUDE_LOCATION_AGPS_PM)
+__ECOM_PLUGIN(ABI_DIR\BUILD_DIR,  ECOM_BIN_DIR,   DATAZ_\resource\agps, ECOM_RSC_DIR,     lbsgpsagpspsy.dll,
+     lbsgpsagpspsy.dll)
+#endif
+
+// GPS PSY resource and centrep
+#if defined(SYMBIAN_INCLUDE_LOCATION_GPS_PM)
+data=ZRESOURCE\lbsgpspsy_name.rsc                            resource\lbsgpspsy_name.rsc
+data=EPOCROOT##epoc32\data\z\private\10202BE9\102869C7.cre    private\10202be9\102869C7.cre
+#endif // SYMBIAN_INCLUDE_LOCATION_GPS_PM
+
+// AGPS PSY resource and centrep
+#if defined(SYMBIAN_INCLUDE_LOCATION_AGPS_PM)
+data=ZRESOURCE\lbsagpspsy_name.rsc                            resource\lbsagpspsy_name.rsc
+data=EPOCROOT##epoc32\data\z\private\10202BE9\10285abc.cre    private\10202be9\10285abc.cre
+#endif // SYMBIAN_INCLUDE_LOCATION_AGPS_PM
+
+
+#endif // SYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+
+#endif // SYMBIAN_EXCLUDE_LOCATION
+
+#endif // __LBS_GPS_AGPS_ADAPTATION_PSY_IBY__
+</codeblock> </p> <p>The macros are used to copy one of three different ECom resource file to the ECom registry. The file that is copied can specify that the DLL contains two PSY implementations for A-GPS and autonomous GPS, or only one implementation for either A-GPS or autonomous GPS. </p> <p>The files <codeph>102869C7.cre</codeph> and <codeph>10285abc.cre</codeph> are Central Repository initialisation files that define the values specified by the <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref> to register the PSY implementations with the LBS subsystem. File <codeph>102869C7.cre</codeph> contains values for the GPS PSY implementation. File <codeph>10285abc.cre</codeph> contains values for the A-GPS PSY implementation. See <xref href="GUID-3319E01A-F500-5F5C-9798-351C6F3EC583.dita">Updating the GPS/A-GPS Central Repository Initialisation File</xref> for an explanation of values you may have to change in these files. </p> </li> <li id="GUID-C59B1242-38C5-5404-9D68-065E80085BED"><p>To install and configure the GPS/A-GPS PSY to support assisted GPS </p> <p>Use the macro <codeph>SYMBIAN_INCLUDE_LOCATION_AGPS_PM</codeph> when you build the ROM. </p> <p>The example below shows how to configure the GPS/A-GPS PSY for assisted GPS. Note that you may need to specify additional macros depending on which other optional LBS components you also want to install. </p> <p><codeblock id="GUID-4A98B688-13CA-5A04-AE90-916CA49BC442" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_LOCATION_AGPS_PM
+</codeblock> </p> </li> <li id="GUID-BF14E3C5-C8DC-5607-B37E-6554C841A4DF"><p>To install and configure the GPS/A-GPS PSY to support only autonomous GPS </p> <p>Use the macro <codeph>SYMBIAN_INCLUDE_LOCATION_GPS_PM</codeph> when you build the ROM. </p> <p>The example below shows how to configure the GPS/A-GPS PSY for autonomous GPS only. Note that you may need to specify additional macros depending on which other optional LBS components you also want to install. </p> <p><codeblock id="GUID-2A666A38-6A2E-55CE-8F25-6AE98E7EE53E" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_LOCATION_GPS_PM
+</codeblock> </p> </li> </ol> </section> <section><title> To use the GPS/A-GPS PSY in an emulator </title> <p>The LBS code build process uses the project file <codeph>lbsgpsagpspsy.mmp</codeph> to build the GPS/A-GPS code. This MMP file contains the following commands to copy ECom registration information to the winscw directory: </p> <codeblock id="GUID-B3F4E248-320B-5C73-8002-4B052AAB9058" xml:space="preserve">
+START RESOURCE  ../data/10285abb.rss
+TARGETPATH /resource/plugins
+TARGET lbsgpsagpspsy.rsc
+</codeblock> <p>These commands compile and copy the ECom registration information from the resource source file <codeph>10285abb.rss</codeph>, which specifies both the A-GPS and GPS implementations in the library. Therefore on an emulator, the GPS/A-GPS PSY can be used for both A-GPS and autonomous GPS position fixes. </p> </section> </conbody><related-links><link href="GUID-D0C20045-FCC5-53CB-BBDB-7AA058C9139E.dita"><linktext>GPS/A-GPS PSY Overview</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-7-1-15-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita"><linktext>LBS ROM
+                macros</linktext> </link> <link href="GUID-D18B4715-3942-52EA-9D2F-E145037FA47A.dita"><linktext>LBS
+                Integration and Configuration guide</linktext> </link> </related-links></concept>

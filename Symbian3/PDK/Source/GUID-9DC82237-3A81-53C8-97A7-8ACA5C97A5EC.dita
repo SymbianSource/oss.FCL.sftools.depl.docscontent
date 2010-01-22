@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9DC82237-3A81-53C8-97A7-8ACA5C97A5EC" xml:lang="en"><title>Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Purpose</title> <p>The AMR payload formatter provides APIs
+to pack and unpack AMR encoded data as per <xref href="http://www.faqs.org/rfcs/rfc3267.html" scope="external">RFC 3267</xref>, giving common APIs for future formatter
+implementations. This overview shows the usage of APIs included in the AMR
+payload formatter component. This component is implemented as an ECOM plug-in
+and has a common interface that can be used by other formatter implementations
+for codecs like MPEG. </p> </section>
+<section><title>Required background</title> <p>It is assumed the user has
+an understanding of the AMR codec, IF1 and IF2 header formats. The user must
+know the valid AMR stream property values and bit rates supported for AMR
+wide and narrow band respectively. </p> </section>
+<section><title>Key concepts</title> <dl>
+<dlentry>
+<dt>Adaptive Multi-Rate (AMR)</dt>
+<dd><p>The AMR codec is a multi-mode codec that supports 8 narrow band speech
+encoding modes with bit rates between 4.75 kbps and 12.2 kbps. The sampling
+frequency used in AMR is 8000 Hz and the speech encoding is performed
+on 20 ms speech frames. So, each encoded AMR speech frame represents 160 samples
+of the original speech. </p> </dd>
+</dlentry>
+</dl> <dl>
+<dlentry>
+<dt>Codec</dt>
+<dd><p>A codec is a device or a program capable of encoding and decoding a
+digital data stream or signal. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>API summary </title> <table id="GUID-14F0C0C3-7D1C-5054-95EA-3BB783A1D117">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Class Name</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-F885E957-C375-3CF9-82B7-2611B0974675"><apiname>CStreamFormatter::Pack()</apiname></xref>  </p> </entry>
+<entry><p>An API that is used to pack the encoded AMR data. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-B2F9AE75-87B9-3331-91DA-8FDA72E317F2"><apiname>CStreamFormatter::Unpack()</apiname></xref>  </p> </entry>
+<entry><p>An API that is used to extract the AMR payload header from the data
+and gives it back to the application. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-801B3E2A-2B63-35A9-A871-7519D4869326"><apiname>CStreamFormatter::SetStreamProperty()</apiname></xref>  </p> </entry>
+<entry><p>An API that is used to set the identified AMR stream properties
+if the session has already started. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-447345B5-1F60-3273-A320-B313D388748B"><apiname>CStreamFormatter::GetStreamProperty()</apiname></xref>  </p> </entry>
+<entry><p>An API that is used to get the current AMR stream properties for
+the session in progress. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Typical uses</title> <p>An application using the AMR plug-in
+component must include <filepath>streamformatter.h</filepath>, <filepath>amrproperty.h</filepath>, <filepath>ecom.h</filepath> and<filepath> ECOM.lib</filepath> files, and it uses the DLL that is provided to write the application code.
+Here we support both AMR narrow band and AMR wide band. </p> <p>The user has
+a choice to either use the AMR payload formatter or provide the UID of the
+implementation that the user wants to use in the <codeph>CStreamFormatter::NewL()</codeph> function.
+This function is overloaded, that is, it takes as default the AMR payload
+formatter or any formatter the user has. </p> <p><b>Creating the interface</b> </p> <p>A
+user must first create the interface to use the AMR payload formatter. For
+more information on creating the interface see, <xref href="GUID-F5D2C8DF-58B5-5620-824B-86BE72341DF7.dita">How
+to Create the Interface</xref>. </p> <p><b>Packing and unpacking the AMR encoded
+data</b> </p> <p>The application user uses the <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-F885E957-C375-3CF9-82B7-2611B0974675"><apiname>CStreamFormatter::Pack()</apiname></xref> and <xref href="GUID-2283C5F3-9237-38BE-933C-353ADF676B42.dita#GUID-2283C5F3-9237-38BE-933C-353ADF676B42/GUID-B2F9AE75-87B9-3331-91DA-8FDA72E317F2"><apiname>CStreamFormatter::Unpack()</apiname></xref> APIs
+to pack and unpack the AMR encoded data. For more information on packing and
+unpacking the AMR encoded data see, <xref href="GUID-42665F58-7E04-5375-A039-7BBDE218DDE4.dita">How
+to Pack and Unpack the AMR Encoded Data</xref>. </p> <p><b>Setting and getting
+the AMR stream property</b> </p> <p>A user has an option to set and get the
+AMR stream properties if the user wants to change any of the AMR stream properties.
+If a user does not want to change any of the AMR stream properties then it
+takes the default values assigned to the respective properties. </p> <p>For
+more information see, <xref href="GUID-CCFFFE06-1FB8-56C8-874C-C4C1B936FAA4.dita">How
+to Set and Get the AMR Stream Property</xref>. </p> </section>
+</conbody></concept>

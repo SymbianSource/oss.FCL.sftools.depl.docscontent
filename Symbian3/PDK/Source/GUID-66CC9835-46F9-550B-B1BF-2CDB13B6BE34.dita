@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-66CC9835-46F9-550B-B1BF-2CDB13B6BE34"><title>Install PSY Tester on a phone </title><shortdesc>This section describes how to install PSY Tester on a phone. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>To install PSY Tester on a phone it is necessary to create a SIS file. With Platform Security the software installer checks for the existence of a valid certificate along with the SIS file. Since PSY Tester is an application used by device creators to validate their own PSYs, it is the responsibility of device creators to generate their own certificate and associate it with the SIS file. </p> <p>For more information about the process of creating SIS files and package files see <xref href="GUID-0D88BB18-AF8C-5071-9B84-724073E53D21.dita">Software installlation toolkit</xref>. </p> </context> <steps id="GUID-20502337-54D0-5934-93D4-7171BF0A4836"><step id="GUID-BE8EF793-4F66-5B65-A20A-10295267391C"><cmd>Create a package file that is used by the <codeph>makesis</codeph> tool. </cmd> <info>The following shows an example package file that contains details for installing PSY Tester on a device supporting the S60 platform. The line beginning <codeph>(0x101F6F88)</codeph> indicates that the PSY Tester can be installed on phones supporting the S60 platform. Device creators who want to install PSY Tester on other platforms must change this line to include their own unique platform IDs. </info> <stepxmp><codeblock id="GUID-D1923E72-9922-5B9A-925F-85F8FE3B7E6C" xml:space="preserve">
+; Languages
+; none -  English only by default
+&amp;EN
+; Installation header
+; Only one component name as we only support English
+; UID is the main app's UID
+
+#{"PSY Tester Application"},(0x101fdf7e),1,0,24,TYPE=SA
+
+; Platform dependency 
+;Supports Series 60 v 0.9
+;This line indicates that this installation is for the Series 60 platform v0.9
+;This line must appear _exactly_ as shown below in the sis file
+;If this line is missing or incorrect, the sis file will not be able
+;to be installed on Series 60 v0.9 platforms
+(0x101F6F88), 0, 0, 0, 
+{"Series60ProductID"}
+
+; License agreement
+;"License.txt"-"",FILETEXT,TEXTABORT
+
+; Localised Vendor name
+%{"Symbian"}
+
+; Unique Vendor name
+:"Symbian"
+
+
+; EXEs
+"\epoc32\release\armv5\urel\psytester.exe"-"!:\sys\bin\psytester.exe"
+"\epoc32\release\armv5\urel\PSYCRTester.exe"-"!:\sys\bin\PSYCRTester.exe"
+
+; Resource files
+"\epoc32\data\z\resource\psytester.rsc"-"!:\resource\psytester.rsc"
+
+; Required files:
+; none
+
+; Embedded SIS-files
+; none
+
+; End of File
+</codeblock> </stepxmp> </step> <step id="GUID-CB1ED776-D3A8-5BC6-92D5-A5448AE4F860"><cmd>Create a SIS file called <codeph>PSYTester.sis</codeph> using the <codeph>makesis</codeph> tool. </cmd> <info>The <codeph>makesis</codeph> tool available in <filepath>\epoc32\tools</filepath>. To create the SIS file, specify the filename of the package file and the name of the SIS file to be created. </info> <stepxmp><codeblock id="GUID-916B5979-F561-51CB-B347-54AAEBE43844" xml:space="preserve">makesis.exe &lt;package file filename&gt; PSYTester.sis</codeblock> </stepxmp> </step> <step id="GUID-95761BFA-0046-5C52-80D6-2496E53C4299"><cmd>Sign the SIS file using the <codeph>signsis</codeph> tool. </cmd> <info>The <codeph>signsis</codeph> tool is available in <filepath>\epoc32\tools</filepath>. To sign the SIS file, specify the input SIS file, the output SISX file, the certificate file used for signing and the certificate's private key file. </info> <stepxmp><codeblock id="GUID-E1B3FA0C-0CE9-5852-8060-0A4C1DCF4478" xml:space="preserve">signsis.exe PSYTester.sis PSYTester.sisx
+                &lt;path&gt;\&lt;certificate file&gt; &lt;path&gt;\&lt;RSA Key file&gt; </codeblock> </stepxmp> </step> </steps> <result><p>The generated signed SIS file can be installed on a phone together with the PSY to be tested. </p> </result> <postreq><p>After installing the SIS file, PSY Tester can be run and a PSY can be tested. </p> <p>See <xref href="GUID-96975165-9194-5FDF-8160-3A020522263A.dita">Run PSY Tester</xref> for more information. </p> <p> </p> </postreq> </taskbody><related-links><link href="GUID-0D88BB18-AF8C-5071-9B84-724073E53D21.dita"><linktext>Software installlation
+                toolkit</linktext> </link> <link href="GUID-5EED00FE-F39D-5942-BA22-1F286EFF38AA.dita"><linktext>PSY
+                Tutorial</linktext> </link> </related-links></task>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E10A3336-9C4C-59A5-B94F-6CECA92FFB9F" xml:lang="en"><title>Providing
+a Custom Resolver </title><shortdesc>The plug-in framework has a default resolver that selects an appropriate
+implementation to suit the client requests. If the algorithm used by the custom
+resolver is inappropriate, an interface definition can provide its own custom
+resolver. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>Custom resolvers are interface implementations that implement
+the <xref href="GUID-38D97F70-383E-3950-B052-CB56965B0B48.dita"><apiname>CResolver</apiname></xref> interface. They are instantiated by the framework
+in response to the <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-C7F147AC-6D77-3169-AAB4-B27262B4333B"><apiname>REComSession::CreateImplementationL()</apiname></xref> calls
+that specify to use a particular custom resolver. Custom resolvers must confirm
+to other aspects of interface implementations, including providing registration
+resource information, and publishing its UID and factory function in an implementation
+proxy table. </p><note> Additionally, in order to be trusted by ECom, the
+plug-in must have the ProtServ capability set in the project file. </note><p>A
+custom resolver class must derive from <xref href="GUID-38D97F70-383E-3950-B052-CB56965B0B48.dita"><apiname>CResolver</apiname></xref>.
+The derived class must implement the following inherited functions: </p> </context>
+<steps id="GUID-B8CC6618-FF31-5E9E-9C74-EE029F6A4A6F">
+<step id="GUID-81A902BA-C325-556A-ACE4-1E945DD82731"><cmd/>
+<info>Implement a factory function that takes an <xref href="GUID-C6201A47-85A9-365C-9B28-48243FA6ACD0.dita"><apiname>MPublicRegistry</apiname></xref> object
+as input. <xref href="GUID-C6201A47-85A9-365C-9B28-48243FA6ACD0.dita"><apiname>MPublicRegistry</apiname></xref> provides the resolver with the
+list of the implementations registered with the plug-in framework that meet
+the requirements of the specified interface. </info>
+</step>
+<step id="GUID-39F2C21F-C917-5D40-B6AE-61CF1C8852E7"><cmd/>
+<info>Implement the <xref href="GUID-38D97F70-383E-3950-B052-CB56965B0B48.dita#GUID-38D97F70-383E-3950-B052-CB56965B0B48/GUID-948455C3-D565-3D6E-ABD0-18E23C4D2C40"><apiname>CResolver::IdentifyImplementationL()</apiname></xref> function
+that takes the UID of the interface for which an implementation is requested.
+The resolver uses the resolution parameters and returns the UID of the best-fit
+implementation. The best-fit algorithm is specific to each custom resolver. </info>
+<info> <xref href="GUID-38D97F70-383E-3950-B052-CB56965B0B48.dita#GUID-38D97F70-383E-3950-B052-CB56965B0B48/GUID-948455C3-D565-3D6E-ABD0-18E23C4D2C40"><apiname>CResolver::IdentifyImplementationL()</apiname></xref> returns a list
+of all matching implementations. </info>
+</step>
+<step id="GUID-3642618B-17BD-594F-8C0B-0985AC3B087F"><cmd/>
+<info>Implement the <xref href="GUID-38D97F70-383E-3950-B052-CB56965B0B48.dita#GUID-38D97F70-383E-3950-B052-CB56965B0B48/GUID-5FDD82E1-9538-3393-A892-44D577EC4090"><apiname>CResolver::ListAllL()</apiname></xref> function. </info>
+</step>
+</steps>
+<example id="GUID-E1354F45-99FB-5509-B9E4-9E0B9E44C6F3"><title>Custom resolver
+example</title> <p>The following code depicts a sample customer resolver. </p> <codeblock id="GUID-552AC3FB-730E-54A6-91EC-EB5A6A65C0B1" xml:space="preserve">class CExampleResolver : public CResolver
+    {
+public:
+    // Factory function: 
+    static CExampleResolver* NewL(MPublicRegistry&amp; aRegistry);
+    ~CExampleResolver();
+
+    // Implement IdentifyImplementationL()
+    TUid IdentifyImplementationL(TUid aInterfaceUid, 
+    const TEComResolverParams&amp; aParameters) const;
+
+// Implement ListAllL
+
+    RImplInfoArray* ListAllL(TUid aInterfaceUid, 
+    const TEComResolverParams&amp; aParameters) const;</codeblock> <p>The
+following code shows a sample standard registration resource required by a
+custom resolver. </p> <codeblock id="GUID-D4072E8E-DB0A-5B3B-ACC5-078F1C3FD83A" xml:space="preserve">RESOURCE REGISTRY_INFO theInfo
+    {
+    dll_uid = 0x10009DB3;
+    interfaces = 
+        {
+        INTERFACE_INFO
+ // interface_uid value is always 0x10009D90. 
+            {
+            interface_uid = 0x10009D90;
+            implementations = 
+                {
+                IMPLEMENTATION_INFO
+                    {
+// uid value is specific to individual resolvers
+                    implementation_uid = 0x10009DB4;
+
+                    version_no = 1;
+// unused fields
+                    display_name = "";
+                    default_data = "";
+                    opaque_data = "";
+                    }
+                };
+            }
+        };
+    }</codeblock> </example>
+</taskbody></task>

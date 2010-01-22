@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5C1E776D-5AEF-5326-BEA6-F2108F42CB71" xml:lang="en"><title>condvar:
+Using Condition Variables</title><shortdesc>Examples that explains how to use condition variables. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p/>
+<ul>
+<li id="GUID-7CD8220E-2844-5FCB-A9B4-9B188F95C6EE"><p><xref href="GUID-5C1E776D-5AEF-5326-BEA6-F2108F42CB71.dita#GUID-5C1E776D-5AEF-5326-BEA6-F2108F42CB71/GUID-8209AA7E-0DFB-512D-9BEB-9063BA617BC5">condvarglobal</xref>  </p> </li>
+<li id="GUID-74DAFE22-039F-5647-B56E-6BB83B876DED"><p><xref href="GUID-5C1E776D-5AEF-5326-BEA6-F2108F42CB71.dita#GUID-5C1E776D-5AEF-5326-BEA6-F2108F42CB71/GUID-8CF8C4E2-4D74-54C8-9601-97CC44B9C943">condvarlocal</xref>  </p> </li>
+</ul>
+<section id="GUID-8209AA7E-0DFB-512D-9BEB-9063BA617BC5"><title>condvarglobal</title> <p>This
+example shows the use of the global condition variable IPC mechanism. The
+scope of a global condition variable is inter-process. It can be shared by
+threads of any process in the system. </p> <p><b>Download</b> </p> <p>Click
+on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-ddcb07c8-2646-4414-b33f-086f5758cbfe.zip" scope="external">condvarglobal .zip</xref></p><p>Click <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-ddcb07c8-2646-4414-b33f-086f5758cbfe.html" scope="peer"> browse </xref> to view the example code</p><p><b>Class summary</b></p><p> <xref href="GUID-D16EF740-78E6-3D08-AE2F-AFA5E812FF2B.dita"><apiname>RCondVar </apiname></xref> <xref href="GUID-C0FEA3A0-7DD3-3B87-A919-CB973BC05766.dita"><apiname>RMutex </apiname></xref> <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk </apiname></xref> <xref href="GUID-3CECC9FC-58C1-3117-AAF2-FDF88341F56F.dita"><apiname>CPeriodic</apiname></xref> </p> <p><b>Description</b> </p> <p>This
+example uses an adder and subtractor pattern to show the use of a global condition
+variable. Two processes, the adder and the subtractor, modify a shared variable
+by adding and subtracting random amounts. The condition variable ensures that
+the value remains within given limits, <codeph>KMaxValue</codeph> and <codeph>KMinValue</codeph>,
+by blocking one of the processes if the value crosses a warning threshold. </p> <p>The
+adder program creates a global shared memory chunk. It also creates a global
+mutex to control access to the chunk and a global condition variable to signal
+that the value in the chunk is '<codeph>ready for use</codeph>'. It then initialises
+the value in the chunk to zero and periodically tries to add a random value
+between 1 and 10 . If, having added a value, it finds that the value of the
+chunk is greater than <codeph>KUpperThreshold</codeph>, it waits for a signal
+from the condition variable before adding another value. </p> <p>The subtractor
+program periodically tries to subtract a random value between 1 and 10 from
+the global shared memory chunk. If, having subtracted a value, it finds that
+the value of the chunk is less than <codeph>KLowerThreshold</codeph>, it waits
+for a signal from the condition variable before subtracting another value. </p> <p><b>Design
+and implementation</b> </p> <fig id="GUID-1FAFB189-D2E4-5A05-8D8B-B3F7D28467FC">
+<image href="GUID-857A523E-E660-5AFA-98B1-3A5440A8372F_d0e341840_href.jpg" placement="inline"/>
+</fig> <p><b>Build</b> </p> <p><xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">The
+Symbian OS build process</xref> describes how to build this example. The ConditionVariable
+example builds the following binary files in the standard location (<filepath>\epoc32\release\winscw\
+             &lt;build_variant&gt;</filepath>) for Carbide.c++. </p> <ul>
+<li id="GUID-A699F4AF-3A5F-5C24-83CB-1762348AA1D2"><p> <b>adder.exe:</b> Demonstrates
+the use of the global condition variable. It creates a global shared memory
+chunk and periodically adds random values to the chunk. </p> </li>
+<li id="GUID-30A5BE77-8F99-5206-AD42-51E843D0D3C2"><p> <b>subtractor.exe:</b> Demonstrates
+the use of the global condition variable. It periodically subtracts random
+values from the chunk created by <filepath>adder.exe</filepath>. </p> </li>
+</ul> <p><b>How to run the Example</b> </p> <p>To run the example, perform
+the following steps: </p> <ol id="GUID-312A1E16-C92B-5C33-9D80-83080412E657">
+<li id="GUID-E8E12006-8AAC-503D-B59A-F171092293F4"><p>Run <filepath>adder.exe</filepath>. </p> </li>
+<li id="GUID-C9F80A69-218F-5467-9DDE-FC5849753E95"><p>Run eshell. </p> </li>
+<li id="GUID-457E6D8F-A383-5CF6-BA6E-D98C8FAC20F4"><p>Run <filepath>subtract.exe</filepath> in
+your new eshell. </p> </li>
+<li id="GUID-122618AE-028B-5BF9-BB4B-4F95099EE839"><p>Switch between eshells
+by pressing <b>CTRL+ALT+SHIFT+T</b>. </p> </li>
+<li id="GUID-24CCA548-D350-53A7-9919-270EA0C71EC1"><p>To finish, stop each
+application by pressing any key. </p> </li>
+</ol> </section>
+<section id="GUID-8CF8C4E2-4D74-54C8-9601-97CC44B9C943"><title>condvarlocal</title> <p>This
+example shows the use of the local condition variable IPC mechanism. The scope
+of a local condition variable is intra-process. It can be shared by threads
+of the process that creates the condition variable. </p> <p><b>Download</b> </p> <p>Click
+on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-527239ad-3eff-4d62-a7fe-b7e43658dd2f.zip" scope="external">condvarlocal .zip </xref></p><p>Click <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-527239ad-3eff-4d62-a7fe-b7e43658dd2f.html" scope="peer"> browse </xref> to view the example.</p> <p><b>Class summary</b></p><p> <xref href="GUID-C0FEA3A0-7DD3-3B87-A919-CB973BC05766.dita"><apiname>RMutex </apiname></xref><xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita"><apiname>RThread </apiname></xref>  <xref href="GUID-3CECC9FC-58C1-3117-AAF2-FDF88341F56F.dita"><apiname>CPeriodic </apiname></xref> <xref href="GUID-D16EF740-78E6-3D08-AE2F-AFA5E812FF2B.dita"><apiname>RCondVar</apiname></xref></p> <p><b>Description</b> </p> <p>This
+example uses the producer and the consumer model to show the use of the local
+condition variable. </p> <p>The example creates two local threads: a producer
+and a consumer. The two threads share a buffer, which is an object of the <codeph>CQueue</codeph> class.
+The CQueue object creates a local condition variable using the <codeph>RCondVar::CreateLocal()</codeph> function.
+It also defines the methods to insert and remove a token from the queue. The <codeph>CQueue::Insert()</codeph> function
+inserts a token into the queue and signals the condition variable. The <codeph>CQueue::Remove()</codeph> function
+tries to remove a token from the queue. If the queue is empty, it must wait
+for a signal from the condition variable. </p> <p>An object of the <codeph>CProducer</codeph> class
+creates and calls the producer thread. The producer thread is called once
+every two seconds using an object of the <xref href="GUID-3CECC9FC-58C1-3117-AAF2-FDF88341F56F.dita"><apiname>CPeriodic</apiname></xref> class.
+This thread inserts a token into the queue when it is called. It calls the <codeph>CQueue::Insert()</codeph> function
+on the shared <codeph>CQueue</codeph> object. </p> <p>An object of the <codeph>CConsumer</codeph> class
+creates and calls the consumer thread. The consumer thread is called once
+a second using an object of the <xref href="GUID-3CECC9FC-58C1-3117-AAF2-FDF88341F56F.dita"><apiname>CPeriodic</apiname></xref> class. This thread
+removes a token from the queue when it is called. It calls the <codeph>CQueue::Remove()</codeph> function
+on the shared <codeph>CQueue</codeph> object. </p> <p>For more information,
+refer to <xref href="http://support.entegrity.com/private/doclib/docs/osfhtm/develop/appdev/Appde179.htm" scope="external">Condition Variables</xref>. </p> <p> <note> Symbian is not
+responsible for the content of external websites.</note>  </p> <p><b>Design
+and implementation</b> </p> <fig id="GUID-CA344322-0982-59C3-B93A-7A1F175728F3">
+<image href="GUID-CAB30473-7829-5F2E-9F45-A2344DEDFC35_d0e342040_href.jpg" placement="inline"/>
+</fig> <p><b>Build</b> </p> <p><xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">The
+Symbian OS build process</xref> describes how to build this example. The ConditionVariable
+example builds the following binary files in the standard location (<filepath>\epoc32\release\winscw\
+             &lt;build_variant&gt;</filepath>) for Carbide.c++. </p> <p> <filepath>condvarlocal.exe</filepath>:
+Demonstrates the use of the local condition variable. </p> <p><b>How to run
+the Example</b> </p> <p>To run the example, perform the following steps: </p> <ol id="GUID-D07D5782-6A32-5552-B42B-7D2672F1C94F">
+<li id="GUID-CD0F5EAF-780F-5BC7-A216-2FE9CA3B284D"><p>Run <filepath>condvarlocal.exe</filepath>.
+The program calls the producer and the consumer threads periodically as shown
+in the description section. It also displays a menu. </p> </li>
+<li id="GUID-106E7D1D-4ECB-5FA2-A42C-CB1549F4811F"><p>Press <b>‘d’</b> to
+display the contents of the queue. </p> </li>
+<li id="GUID-AA9ABD22-E280-5F21-A1A1-F47FFAAC58F2"><p>Press <b>‘p’</b> to
+insert a token into the queue. </p> </li>
+<li id="GUID-96C5D556-0700-5632-80A1-E728C97A62C1"><p>Press any key to stop
+the program. </p> </li>
+</ol> </section>
+</conbody></concept>

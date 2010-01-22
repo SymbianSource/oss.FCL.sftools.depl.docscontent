@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A5E4A8AD-8A40-5567-AE97-8CC6B496093E"><title>Implementing Services in a Server Application</title><shortdesc>An application must do the following steps to become a server application and to implement a service. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Implementing the server</title> <p>To enable an application support instantiation as a new server application instance, do the following steps: </p> <ol id="GUID-7004405D-E5C6-57BE-924B-4F60ABA4AC51"><li id="GUID-C3DB8C52-739A-5B3D-82E2-1570C527D88E"><p>Use the <filepath>EikServerApp.h</filepath> header file, or a suitable System-GUI specialisation of this class. </p> </li> <li id="GUID-9330C4BC-63A1-584B-9E21-4C029F88F1CF"><p>Derive a server class from <xref href="GUID-F51AEC8F-2D7B-34AB-B2DE-E151D10263D1.dita"><apiname>CEikAppServer</apiname></xref>, or suitable System-GUI specialisation of this class </p> </li> <li id="GUID-60949E45-C617-58D5-9C84-74AA422B0CBA"><p>Override the <codeph>CApaApplication::NewAppServerL()</codeph> function to create a new server instance. </p> </li> </ol> <p>The following example code shows how an application can become a server application. </p> <codeblock id="GUID-7B025F6E-6E3F-51CC-AC5E-0F4165BC8228" xml:space="preserve">class CServer1Server : public CEikAppServer
+    {
+    public:
+        CApaAppServiceBase* CreateServiceL(TUid aServiceType) const;
+    };
+
+class CServer1Application : public CEikApplication
+    {
+    private:
+        // from CApaApplication
+        CApaDocument* CreateDocumentL();
+        TUid AppDllUid() const;
+        void NewAppServerL(CApaAppServer*&amp; aAppServer);
+    };
+
+void CServer1Application::NewAppServerL(CApaAppServer*&amp; aAppServer)
+    {
+    aAppServer = new(ELeave) CServer1Server;
+    }</codeblock> <p> <b>Note</b>: The application must only complete first stage construction of the new application and the framework will handle the rest of the construction. </p> </section> <section><title>Implementing services</title> <p>To implement a service in a server application, do the following steps: </p> <ol id="GUID-8FE0A3EF-398E-5FB1-BF83-3008EB34A6C1"><li id="GUID-7F5D666B-B3F3-58D9-B0D2-5A25DD344294"><p>Identify the service support provided for the service in the platform. </p> </li> <li id="GUID-4E1FA003-E32F-5A77-95EE-2071228097AF"><p>Include the service support's server support header and link to the service support DLL. </p> </li> <li id="GUID-CC3DF3FD-528E-5144-81D1-81A90581DCF7"><p>Derive an implementation class from the services abstract base class. </p> </li> <li id="GUID-F6BFBBA3-BD1F-5BF3-A015-836476776A13"><p>Implement the virtual functions to handle requests from the client. </p> </li> <li id="GUID-C20AE45B-C03A-5AE8-B583-6D3564A28AF4"><p>Define the security policy for the service. </p> </li> <li id="GUID-0EF82078-75EF-5F61-98FF-AC96E99D11AA"><p>Override the <codeph>CApaAppServer::CreateServiceL()</codeph> function to create new instances of the service. </p> </li> </ol> <p>The following example code shows how a server application may implement a chat service. </p> <codeblock id="GUID-FA59BD21-4B07-5646-A5AF-460906B0CD6B" xml:space="preserve">class CMyAppChatterSession : public CChatService
+    {
+    public:
+        void Receive(TDes&amp; aMessage);
+    };
+
+void CMyAppChatterSession::Receive(TDes&amp; aMessage)
+    {
+    // very crude case shift
+    for (TInt ii=0; ii&lt;aMessage.Length(); ii++)
+        {
+        TText&amp; c = aMessage[ii];
+        if ('A' &lt;= c &amp;&amp; c &lt;= 'z')
+            c = c ^ 0x20;
+        }
+    Send(aMessage);
+    }
+
+CApaAppServiceBase* CServer1Server::CreateServiceL(TUid aType) const
+    {
+    if (aType == KInterAppChatType)
+        return new(ELeave) CMyAppChatterSession();
+    else
+        return CEikAppServer::CreateServiceL(aType);
+    }
+</codeblock> </section> <section><title>Implementing a security policy</title> <p>The server application framework allows server to check the capabilities of a client. </p> <codeblock id="GUID-7891DD68-2E79-51CF-B27D-78F436A3F1BE" xml:space="preserve">CPolicyServer::TCustomResult CApaAppServer::CreateServiceSecurityCheckL(TUid aServiceType, const RMessage2&amp; aMsg, TInt&amp; aAction, TSecurityInfo&amp; aMissing);</codeblock> <p>A server application may override this to check that the client has sufficient capabilities to use this service. </p> <p>For example, this server application checks that the client has <codeph>NetworkServices</codeph> capability (see <codeph>TCapability::ECapabilityNetworkServices</codeph>) before it can connect to this service implementation: </p> <codeblock id="GUID-F99255A3-4AED-570D-8B2A-89033C2C6F87" xml:space="preserve">static _LIT_SECURITY_POLICY_C1(KServiceAppChatPolicy, ECapabilityNetworkServices);
+
+CPolicyServer::TCustomResult CServer1Server::CreateServiceSecurityCheckL(TUid aServiceType, const    RMessage2&amp; aMsg, TInt&amp; aAction, TSecurityInfo&amp; aMissing)
+    {
+        if (aServiceType == KInterAppChatType &amp;&amp; KServiceAppChatPolicy().CheckPolicy(aMsg, aMissing, __PLATSEC_DIAGNOSTIC_STRING("KServiceAppChatPolicy"))
+            return CPolicyServer::EPass;
+        else
+            return CPolicyServer::EFail;
+    }</codeblock> <p>Service implementations can also check capabilities for individual service messages by overriding the <codeph>CApaAppServiceBase::SecurityCheckL()</codeph> function. </p> <codeblock id="GUID-CF94FBCC-8B2F-5FD7-9F07-8B7F185E4984" xml:space="preserve">CPolicyServer::TCustomResult CApaAppServiceBase::SecurityCheckL(const RMessage2&amp; aMsg, TInt&amp; aAction, TSecurityInfo&amp; aMissing);</codeblock> <p>For example, the following code checks that the client has <codeph>ReadUserData</codeph> capability (see <codeph>TCapability::ECapabilityReadUserData</codeph>) before allowing it to receive messages: </p> <codeblock id="GUID-2D76D699-A3FA-55B3-926D-85F5F353476A" xml:space="preserve">static _LIT_SECURITY_POLICY_C1(KServiceAppChatReceivePolicy, ECapabilityReadUserData);
+
+CPolicyServer::TCustomResult CMyAppChatterSession::SecurityCheckL(const RMessage2&amp; aMsg, TInt&amp; aAction, TSecurityInfo&amp; aMissing)
+    {
+        if (aMsg.Function() == EInterAppChatReceive &amp;&amp; KServiceAppChatReceivePolicy().CheckPolicy(aMsg, aMissing, __PLATSEC_DIAGNOSTIC_STRING("KServiceAppChatReceivePolicy"))
+            return CPolicyServer::EPass;
+        else
+            return CPolicyServer::EFail;
+    }</codeblock> <p> <b>Note</b>: If a client fails a security check then it returns an error code to the client. </p> </section> </conbody><related-links><link href="GUID-2AE2256B-A749-5634-80FE-EC4BDABB28C9.dita"><linktext>Server
+                Applications</linktext> </link> <link href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita"><linktext>Application
+                Architecture Overview</linktext> </link> </related-links></concept>

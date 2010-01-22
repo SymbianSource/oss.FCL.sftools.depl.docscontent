@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4AEF7595-17C0-513E-9568-B212E6194388" xml:lang="en"><title>Record
+operation</title><shortdesc>Describes the operation of the Sound Driver for sound recording.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-0722033C-4BC0-45D0-B980-C1FC680BBF70"><title>Client functions</title> <p>Many aspects regarding the way
+that the Sound Driver recording operates are similar to the way it handles
+playback. One difference is how the memory location in the <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita">Shared
+Chunks</xref> for the transfer is determined. In play requests, the client
+specifies the source location in the chunk for the transfer having arranged
+for the data to be loaded there prior to the request. For record requests,
+the client just requests a buffers worth of record data and allows the driver
+to decide which buffer to use for the request. </p> <p>The driver commences
+recording when the client issues the first <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-D96D7433-6CB5-3368-8B51-C19731C474AF"><apiname>RSoundSc::RecordData()</apiname></xref> request.
+However, unlike playback operation, once recording has commenced, the driver
+continues to record data into its available record buffers until it is told
+to stop. To stop the driver capturing record data, the client must either
+issue <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-16C40CF6-C84D-3901-8527-EA66842E0AAC"><apiname>RSoundSc::Pause()</apiname></xref> to temporarily suspend recording, <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-4B53ED55-EC95-35B3-B9D6-A24EF70D81F9"><apiname>RSoundSc::CancelRecordData()</apiname></xref> to
+terminate record operation, or close the driver channel altogether. </p> <p>The
+client specifies the number and size of the record buffers available to the
+driver within the shared chunk by calling either <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-1978D84C-6E2A-39C0-AF5F-17C85E5B25B4"><apiname>RSoundSc::SetBufferChunkCreate()</apiname></xref>,
+to create a buffer, or <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-46096E39-A530-3644-91F0-0B97AC3C6580"><apiname>RSoundSc::SetBufferChunkOpen()</apiname></xref> to
+open an existing buffer. </p> <p>When the driver starts recording, all the
+buffers in the shared chunk are empty, and the driver can use all of these
+available buffers. They are filled one by one, and if the client is slow to
+request the recorded data, then once the driver has filled all of the available
+empty buffers, it is forced to discard the earliest one filled and re-use
+this to continue recording data. </p> <p>Each time the client requests a buffers
+worth of recorded data with <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-D96D7433-6CB5-3368-8B51-C19731C474AF"><apiname>RSoundSc::RecordData()</apiname></xref>, it
+is given the earliest one filled. This buffer is now said to be in-use and
+unavailable to the driver for capturing. This buffer remains in-use until
+it is freed by the client with a call of <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-26F7C97B-D06A-32BE-90B3-2E6918BF3F4D"><apiname>RSoundSc::ReleaseBuffer()</apiname></xref>. </p> <p>When
+buffers are in use by the client the number of buffers available to the driver
+for capture is reduced. If the client is slow to release buffers and the number
+of available buffers falls to two then further <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-D96D7433-6CB5-3368-8B51-C19731C474AF"><apiname>RSoundSc::RecordData()</apiname></xref> requests
+fail with <codeph>KErrInUse</codeph> until the client has freed some buffers.
+The driver always needs a working set of at least two buffers in order to
+achieve uninterrupted data capture. The driver always has a current buffer
+which is actively being filled and another queued in advance. If the client
+fails to take buffers at full speed then they are discarded by the driver. </p><p><note> The
+driver does not slow down if it runs out of empty buffers. </note></p> <p><b>Buffers</b> </p> <p>The driver maintains three buffer lists: </p> <ul>
+<li id="GUID-D0B884B5-3687-5CB9-B732-1B028F0008A8"><p>free list </p> </li>
+<li id="GUID-3A3FAAA7-72C2-5A35-9F4D-3824966D3D52"><p>completed list </p> </li>
+<li id="GUID-E571D299-99C5-51D1-832E-55A88533B365"><p>in-use list. </p> </li>
+</ul> <p>A record buffer can only exist in one of these lists at any time.
+The free list contains buffers that are empty and not in use by the client.
+Once a buffer has been filled with record data it is moved into the completed
+buffer list. Here the buffer remains until it is passed back to the client
+in response to a record request. When a client is using the buffer it is deemed
+as in-use and is moved to the <i>in-use</i> list. Each time the client successfully
+calls <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-26F7C97B-D06A-32BE-90B3-2E6918BF3F4D"><apiname>RSoundSc::ReleaseBuffer()</apiname></xref> to free up a buffer then
+the driver moves this from the in-use list to the free list. </p> <p>The driver
+also maintains two record buffers which are excluded from any of the three
+lists. </p> <ul>
+<li id="GUID-3EB509DB-F35F-51E7-AAD9-8A25EEDAE604"><p>the current buffer,
+the one actively being filled with record data </p> </li>
+<li id="GUID-E109F4E5-998D-5B19-AE82-A913BBF4CED3"><p>the next buffer which
+becomes the active buffer once the current buffer is filled </p> </li>
+</ul> <p>During recording there may be DMA requests pending for both the current
+buffer and the next buffers. </p> <fig id="GUID-FBF47E94-8334-55D3-9AC0-FDAF1F9960B1">
+<title>                 The record buffer cycle               </title>
+<desc><p>The numbers one to five show the buffer cycle under normal operation,
+while the letters A to C show error induced operation. </p> </desc>
+<image href="GUID-1A92047A-3C1D-5B4C-949B-98D770F5F530_d0e398658_href.png" placement="inline"/>
+</fig> <p>When recording commences, the driver removes two buffers from the
+free list making one the current buffer and the other the next buffer (4 and
+5). </p> <p>When the current buffer is set as filled, the LDD normally adds
+this to the completed list (1). If a record error has occurred while recording
+to this buffer and it is only partially filled, or even empty then the buffer
+is still added to the completed list, as the client needs to be informed of
+the error (1). The only exception is in handling record pause, where a record
+buffer ends up being completed with no error and with no data added. In this
+case the buffer is added straight into the free list (A). </p> <p>Having added
+the current buffer to one of these lists, the driver moves the next buffer
+to the current buffer (5) and then obtains a new next buffer (4). In normal
+operation this comes from the free list but if the client is slow, this list
+may be empty and the buffer is taken from the completed list (B). This is
+a buffer overflow situation which is reported to the client as a response
+to its next <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-D96D7433-6CB5-3368-8B51-C19731C474AF"><apiname>RSoundSc::RecordData()</apiname></xref> request as <codeph>KErrOverFlow</codeph>. </p> <p>Whenever
+a buffer is filled, the driver checks if there is a record request pending
+(1). Similarly, when the driver processes a new record request it checks if
+a filled buffer is already available. In either case, if a request can be
+completed to the client then the earliest buffer completed is returned. If
+this buffer was filled successfully then it added to the in-use list (2).
+However, if an error occurred whilst filling the buffer then it is returned
+straight to the free list instead (C). </p> <p>Each time the client successfully
+calls <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-26F7C97B-D06A-32BE-90B3-2E6918BF3F4D"><apiname>RSoundSc::ReleaseBuffer()</apiname></xref> to free up a buffer then
+the driver moves this from the in-use list to the free list (3). </p> </section>
+<section id="GUID-548515F6-403D-4C99-AAA3-027C7D303C73"><title>Audio recording</title> <p><b>RecordData()</b> </p> <p>If
+the driver is not already recording data then the first <xref href="GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3.dita#GUID-B0118EDD-2B08-353E-BE92-2DC75E5622B3/GUID-D96D7433-6CB5-3368-8B51-C19731C474AF"><apiname>RSoundSc::RecordData()</apiname></xref> request
+is handled in the context of the driver DFC thread, as access to the audio
+hardware is required to enable record operation. However, for efficiency,
+subsequent record requests from the client are handled entirely in the context
+of the calling thread, as access to the audio hardware is not required to
+handle the request. The driver only has to check whether there is a filled
+record buffer already available. If there is then the driver completes the
+request straight away. If not, the driver saves the details of the request
+until a filled buffer does become available. </p> <p>Returning to the case
+of a record request where the driver is not already in the process of recording
+data, the LDD first checks whether the client has specified or supplied a
+shared chunk to the driver channel and has set the audio configuration and
+record level. If the buffer configuration has not been specified then the
+driver cannot proceed and returns <codeph>KErrNotReady</codeph>. If the audio
+configuration or record level has not been specified then the LDD applies
+default settings to the audio hardware device for each instead by calling
+the functions <xref href="GUID-E1C67F8D-1A83-36B3-A451-22F496A659C6.dita#GUID-E1C67F8D-1A83-36B3-A451-22F496A659C6/GUID-23CEDA72-E161-30C4-B8D7-DBDCBC5B9C63"><apiname>DSoundSc::SetConfig()</apiname></xref> and <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-D893A29B-1A4B-35AF-876B-84D74B7E783C"><apiname>DSoundScPdd::SetVolume()</apiname></xref> on
+the PDD. </p> <p><b>StartTransfer()</b> </p> <p>Depending
+on the mapping attributes of the shared chunk, the LDD may now need to purge
+the region of the record chunk concerned. Next the LDD calls <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-54D3CC19-0C00-3FFA-BD1A-62618D36EB20"><apiname>DSoundScPdd::StartTransfer()</apiname></xref> on
+the PDD to allow it to prepare the audio hardware device for record data transfer. </p> <p><b>TransferData()</b> </p> <p>The LDD may need to break down the record buffer
+into memory fragments. These specify a physically contiguous region and are
+manageable by the PDD as a single transfer. The LDD queues as many transfer
+fragments of the current buffer on the PDD as it can accept with a call to <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> for
+each fragment. If all fragments from the current buffer are accepted by the
+PDD then the LDD tries to queue fragments from the next buffer. As with playback,
+to support uninterrupted transfer of audio data the PDD must be able to accept
+multiple fragments simultaneously. As long as the LDD has transfer fragments
+still to queue, it continues to call <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> until
+the PDD signals that it has temporarily reached its capacity by returning <codeph>KErrNotReady</codeph>. </p> <p><b>RecordCallBack()</b> </p> <p>Each time the PDD completes the transfer
+of a fragment from a record buffer, it must signal this event back to the
+LDD by calling the function <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-9112E399-DC3C-334F-BE16-B5F42216F903"><apiname>DSoundScLdd::RecordCallBack()</apiname></xref>.
+This must always be called in the context of the driver DFC thread. In executing <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-434E378F-0C48-39D9-8FB8-9831A1F704C0"><apiname>DSoundScLdd::RecordCallback()</apiname></xref>,
+the LDD checks whether the entire transfer for the current buffer is now complete.
+If so, depending on the mapping attributes of the shared chunk, the LDD may
+need to purge the region of the record client. The LDD attempts to queue further
+fragments on the PDD, by calling <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref>,
+which should now have the capability to accept more transfers. So, the PDD
+should be written to handle calls to <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> within
+its call back to <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-434E378F-0C48-39D9-8FB8-9831A1F704C0"><apiname>DSoundScLdd::RecordCallback()</apiname></xref>. </p> </section>
+<section id="GUID-7B5CF9A4-8527-4C76-96CD-C03F861AF3BF"><title>Pause and resume audio recording</title> <p>The client can
+temporarily halt the progress of audio record at any time by issuing <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-D912620F-9C51-3AFC-8A59-31AF9455AC4A"><apiname>DSoundScLdd::Pause()</apiname></xref>.
+To configure the audio hardware device to halt recording, the LDD calls <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-0608766F-2645-3E28-B804-BD4B953DB5FF"><apiname>DSoundScPdd::PauseTransfer()</apiname></xref> on
+the PDD. This time, any active transfer should be aborted by the PDD. If a
+recording is halted the PDD must signal this event with a single call of the
+LDD function <xref href="GUID-3731902C-9C34-3FAE-8F82-9F9493C2C2E7.dita#GUID-3731902C-9C34-3FAE-8F82-9F9493C2C2E7/GUID-73F74080-6219-3D9A-BA56-735A17A9ABA0"><apiname>DSOundScLdd::RecordCallback()</apiname></xref>, which reports
+back any partial data already received. In this case, if transfer is resumed
+later, the LDD issues a new <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> request
+to commence data transfer after calling <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-C692BF61-FA3D-3B85-BCC6-1248C9C7D9BF"><apiname>DSoundScPdd::ResumeTransfer()</apiname></xref>.
+As access to the hardware is required in both cases, pause and resume are
+handled in the context of the driver DFC thread. </p> </section>
+<section id="GUID-BA951968-290F-4DA5-842A-2004664B1139"><title>Error handling during recording</title> <p>If the PDD reports
+an error when setting up the audio hardware device for recording then the
+LDD immediately completes the first record request back to the client returning
+the error value as the result. It will not restart record data transfer unless
+it receives a further record request from the client. </p> <p>If the PDD reports
+an error when commencing the transfer of a record fragment or as the result
+of the transfer of a record fragment, then the LDD ceases transfer to that
+record buffer and instead reports the error back to the client. The error
+is returned in response to the record request which corresponds with that
+buffer. </p> <p>Unexpected errors from the PDD are returned to the LDD via
+the functions <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-8C79D09B-317A-3D8E-B9C2-474812F17529"><apiname>DSoundScPdd::TransferData()</apiname></xref> and <xref href="GUID-5807543D-A30F-3EB9-8F28-91A623B0D484.dita#GUID-5807543D-A30F-3EB9-8F28-91A623B0D484/GUID-434E378F-0C48-39D9-8FB8-9831A1F704C0"><apiname>DSoundScLdd::RecordCallback()</apiname></xref>. </p> <p>The
+LDD does not try to cancel the transfer of other fragments for the same buffer
+that are already queued on the PDD, but it ignores their outcome. However,
+the LDD does try to carry on with the transfer to other available record buffers. </p> </section>
+</conbody></concept>

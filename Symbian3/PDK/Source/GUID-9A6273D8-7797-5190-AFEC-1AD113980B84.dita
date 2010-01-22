@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9A6273D8-7797-5190-AFEC-1AD113980B84"><title>Backup Registration Files</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Backup registration files save the data and data owner information for backup and restore. This section describes the contents of a backup registration file. </p> <section><title>Introduction</title> <p>Backup registration files are stored in the root of the private directory of the corresponding process. They have the standard name <codeph>backup_registration.xml</codeph>. These files are protected on the phone by placing them in the private data areas. </p> <p>The backup registration file is searched on the specific drive that is being backed up. If the search does not fetch any backup registration file the corresponding private directory of the Z: is searched. If a backup registration file is found in the drive to be backed up, the Z: drive will not be searched. This allows the backup registration file on the Z: drive to be masked where necessary. </p> </section> <section id="GUID-E3386D4E-D825-536B-AAEB-9648393DE265"><title>Backup registration file DTD </title> <p>The DTD for the backup registration file is as follows: </p> <codeblock id="GUID-320A15AF-A34D-50C8-A0C7-999FF8B6518C" xml:space="preserve">&lt;?xml version=”1.0” standalone=”yes”?&gt; 
+&lt;!DOCTYPE backup_registration [ 
+     &lt;!ELEMENT backup_registration  
+       (passive_backup?, system_backup?, public_backup?, active_backup?, 
+       cenrep_backup*, proxy_data_manager*, dbms_backup*, restore?) &gt; 
+       &lt;!ATTLIST backup_registration version CDATA #FIXED "1.0" &gt; 
+     &lt;!-- Include file or directory name should include path relative to private directory 
+          for private data. To include all private data use “\”. 
+          Include file or directory name should include path relative to root of drive
+       for public data. This may or may not include the drive letter. Inclusions with 
+          drive letter will be excluded from backups of other drives. Inclusions without 
+          drive letter will be assumed to apply to all drives. 
+  --&gt; 
+     &lt;!ELEMENT include_file EMPTY &gt; 
+       &lt;!ATTLIST include_file name CDATA #REQUIRED &gt; 
+     &lt;!-- Exclude file or directory name should be of the same form as the owning 
+          &lt;include_directory&gt; and is not treated as relative to the &lt;include_directory&gt; 
+     --&gt; 
+     &lt;!ELEMENT exclude EMPTY &gt; 
+       &lt;!ATTLIST exclude  name CDATA #REQUIRED &gt; 
+     &lt;!ELEMENT include_directory (exclude*) &gt; 
+       &lt;!ATTLIST include_directory  name CDATA #REQUIRED &gt; 
+     &lt;!ELEMENT passive_backup (include_directory|include_file)* &gt; 
+       &lt;!ATTLIST passive_backup  
+         supports_selective (yes|no) "no" 
+         delete_before_restore (yes|no) "no" 
+         base_backup_only (yes|no) "no"   &gt; 
+     &lt;!ELEMENT public_backup (include_directory|include_file)* &gt; 
+       &lt;!ATTLIST public_backup  delete_before_restore (yes|no) "no" &gt; 
+     &lt;!-- If the &lt;system_backup&gt; element is present then all executables 
+          and resource files that were included in SIS files will be backed up. 
+          The set of files does not need to be specified as it can be found from 
+          package data. They can only be restored after checking against signed hashes. 
+     --&gt; 
+     &lt;!ELEMENT system_backup &gt; 
+     &lt;!-- &lt;proxy_data_manager&gt; indicates that the data owner represented by this backup registration file has data that is accessed through a proxy which is itself an active data owner. 
+     --&gt; 
+     &lt;!ELEMENT proxy_data_manager EMPTY &gt; 
+       &lt;!ATTLIST proxy_data_manager SID CDATA #REQUIRED &gt; 
+     &lt;!ELEMENT dbms_backup EMPTY &gt; 
+       &lt;!ATTLIST dbms_backup policy CDATA #REQUIRED &gt; 
+     &lt;!ELEMENT active_backup EMPTY &gt; 
+       &lt;!ATTLIST active_backup 
+         process_name CDATA #REQUIRED 
+         requires_delay_to_prepare_data (yes|no) "no" 
+         supports_selective (yes|no) "no" 
+         supports_incremental (yes|no) "yes" 
+         active_type (activeonly|activeandproxy|proxyonly) “activeonly” &gt; 
+     &lt;!ELEMENT restore EMPTY &gt; 
+       &lt;!ATTLIST restore     requires_reboot (yes|no) "no" &gt; 
+]&gt;</codeblock> <p> <b>Note</b>: The <codeph>requires_reboot</codeph> attribute for restore is currently reserved. It only supports "NO". </p> </section> <section id="GUID-1E569B34-9211-5EB5-A549-DD335F4A3ACB"><title>Content of the backup registration file</title> <p>A backup registration file contains the following information: </p> <ul><li id="GUID-CE08640D-8FA2-57B9-AC2D-9C6CDB240782"><p>For a passive data backups, a list of private directories and files to be backed up. </p> <p>It is possible to list a directory for backup and then list sub-directories or files for exclusion. These directories and files are defined relative to the process private area, and it is not possible to refer to private files owned by another process. </p> <p>If files or directories do not exist, no error is raised. In such a scenario, base backups are usually specified rather than incremental backups. For example, if a data owner stores all of its data in one database file, any increment is the whole database file. It is more efficient to always do a base backup. </p> </li> <li id="GUID-6B596FBF-8457-50F1-8312-F6787EB12E30"><p>A list of public files and directories to be backed up. </p> <p>The same syntax is used as for private files. System files or private files are ignored from this section. For files listed for passive backup, directories can be listed that do not yet exist. </p> </li> <li id="GUID-2B1F84D6-B91D-52A4-98D8-905BFAE3042D"><p>A tag for system files (executables and resource files) backup. It is not necessary to list all of the files. If any of the data owners specify that system files are to be backed up, <i>all</i> of the system files for the package are backed up and restored as a unit. </p> </li> <li id="GUID-F382B159-DBF7-51AB-A921-EA224C95AF12"><p>For passive backup and partial backup of public files, an option to specify whether the target directories are cleared before a restore operation. </p> </li> <li id="GUID-3AA054DE-2037-512C-A5E7-4DCBAA291F80"><p>An option to specify active backup or passive backup. </p> <p>For active backup, the tags to specify the data owner application or server. It is possible to invoke active backup and also request private and/or public files to be backed up. Active data is requested before passive for backup, and active is supplied before passive for restore. There is no guarantee which data owner’s data is backed up or restored first. </p> </li> <li id="GUID-90B0C78F-9228-5B89-AABD-279C41DD678A"><p>To back up or restore a shared database passively, an attribute to specify the security policy ID of the database. </p> </li> <li id="GUID-707633EE-A3F3-5EED-99ED-9A5CEEB7E4AF"><p>For a proxy backup, an attribute in the proxy data manager tag to specify the secure ID of the proxy. </p> </li> <li id="GUID-5A1CEC17-CA61-5EA6-B434-00F4315F5610"><p>An option to allow some time for data preparation before for backup or restore. </p> </li> </ul> </section> <section id="GUID-EC5C504C-6901-5E05-A4B8-6304B2E39539"><title>Example backup registration files</title> <p>The following is an example of a backup registration file for a data owner that requires only passive backup of files in a sub-directory named ‘preserve’: </p> <codeblock id="GUID-21C08E5A-7C0E-579C-AEA1-456B3B80F301" xml:space="preserve">&lt;?xml version="1.0" standalone="yes"?&gt; 
+&lt;backup_registration&gt; 
+        &lt;passive_backup&gt; 
+        &lt;include_directory name = "preserve"/&gt; 
+        &lt;/passive_backup&gt; 
+        &lt;restore requires_reboot = "no"/&gt; 
+&lt;/backup_registration&gt;</codeblock> <p>The following is an example of a backup registration file for a data owner that requires passive backup of all its files and also wants its system files to be backed up: </p> <codeblock id="GUID-B6F8BA95-7607-542F-B8D8-D0210450B027" xml:space="preserve">&lt;?xml version="1.0" standalone="yes"?&gt; 
+&lt;backup_registration&gt; 
+        &lt;passive_backup&gt; 
+        &lt;include_directory name = "\" /&gt; 
+        &lt;/passive_backup&gt; 
+        &lt;system_backup/&gt; 
+        &lt;restore requires_reboot = "no"/&gt; 
+&lt;/backup_registration&gt;</codeblock> <p>The following is an example of a backup registration file for a data owner that has only central repository data: </p> <codeblock id="GUID-E7974999-A3A4-5247-92B0-705B3646572D" xml:space="preserve">&lt;?xml version="1.0" standalone="yes"?&gt; 
+&lt;backup_registration&gt; 
+        &lt;proxy_data_manager SID="0x10202BE9" /&gt; 
+&lt;/backup_registration&gt;</codeblock> <p>The following is an example of backup registration file for an data owner that requires an active backup only: </p> <codeblock id="GUID-471CE966-2256-5D2C-9968-3F874914D2A4" xml:space="preserve">&lt;?xml version="1.0" encoding="UTF-16" standalone="yes" ?&gt; 
+&lt;backup_registration version="1.0"&gt; 
+        &lt;active_backup process_name="processname.exe"
+         requires_delay_to_prepare_data="yes" 
+         active_type="activeonly" /&gt; 
+&lt;/backup_registration&gt;</codeblock> <p>The following is an example of backup registration file for data owner which implements a proxy: </p> <codeblock id="GUID-3A87BE92-373A-5FBD-8D4E-991EE7D2B083" xml:space="preserve">&lt;?xml version="1.0" encoding="UTF-16" standalone="yes" ?&gt; 
+&lt;backup_registration version="1.0"&gt; 
+        &lt;active_backup process_name="processname.exe" 
+         active_type="proxyonly" /&gt; 
+&lt;/backup_registration&gt;</codeblock> <p>The following is an example of backup registration file for a data owner who wishes to back up its DBMS databases: </p> <codeblock id="GUID-7E84CF1E-8C5A-5A44-8746-DB586BFEDF40" xml:space="preserve">&lt;?xml version="1.0" standalone="yes" ?&gt; 
+&lt;backup_registration&gt; 
+        &lt;dbms_backup policy="AABBCCDD" /&gt; 
+&lt;/backup_registration&gt;</codeblock> </section> <section id="GUID-4F287E5F-D74A-5E72-A1AA-908DAA2CDAE8"><title>Additional backup registration files</title> <p>Application developers and device creators can provide additional plug-in executables after the ROM is built. To back up such files, additional backup registration files can be provided with the following requirements: </p> <ul><li id="GUID-634D781D-EF25-5818-901D-E53334C82417"><p>The additional registration files must have a name of the form <filepath>backup_registration*.xml</filepath> and be located in the root of the relevant private directory. They are distinguished from the principal backup registration file by the file names. The principal backup registration file has the name <filepath>backup_registration.xml</filepath>. </p> </li> <li id="GUID-E1AB68F4-82D2-53BA-9C15-2932FCDAA3E4"><p>The additional registration files must only contain a subset of the principal backup registration file elements. They must not include an additional type of backup. For example, if the principal backup registration file uses active backup, additional must not specify passive backup. </p> </li> </ul> <p>All drives will be searched for additional backup registration files including the Z: drive. Additional backup registration files cannot be created or modified at runtime. </p> </section> </conbody><related-links><link href="GUID-796916B2-8B23-5AD8-9DB8-8B0DA7868A62.dita"><linktext>Backup-aware Software (Data Owner)</linktext> </link> </related-links></concept>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5CA933B9-7987-5DDE-AE12-B0D5AFD31451" xml:lang="en"><title> Backup
+Engine Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Backup Engine contains the logic related to backing up and restoring
+data, including base and incremental backup. It also contains the data transfer
+mechanism. </p>
+<section><title>Architecture</title> <p>The following diagram shows the Backup
+Engine and its associated components. The components provided by the Symbian
+platform are in green. The components that a device creator must implement
+are in blue. The architecture supports two methods of connecting to the host
+PC: <xref href="GUID-3F40DB93-6C60-56E2-8728-00370DF9AFB8.dita">Media Transfer
+Protocol (MTP)</xref> and OBEX. </p> <fig id="GUID-0E15DBE8-59F7-52F7-A423-FB4789B39C66">
+<title>              Backup and Restore Architecture            </title>
+<image href="GUID-CD350815-1387-5C46-9D80-905022A90D8A_d0e596285_href.jpg" placement="inline"/>
+</fig> <p> <b>Backup and restore using the MTP Backup and Restore Data Provider</b>  </p> <p>The
+Symbian platform includes a Backup and Restore Data Provider plug-in for data
+backup and restore over MTP. The plug-in is loaded by the MTP Framework when
+a host PC requests a backup or restore. The plug-in is a client of the Backup
+Engine, which interacts with backup-aware client applications. </p> <p>For
+more information on the MTP Backup and Restore Data Provider, refer to <xref href="GUID-5FB7BB16-F69C-58D6-B117-8875686A85B6.dita">Implementing Backup and Restore
+over MTP</xref>. </p> <p> <b>Backup and restore using OBEX</b>  </p> <p>The
+Symbian platform includes a basic backup server which uses OBEX. Device creators
+may replace this component with their own. The backup server is a client of
+the Backup Engine and must handle PC requests for backup and restore. </p> </section>
+<section><title>APIs</title> <p>The Backup Engine exports <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref> and
+its utility APIs for writing a backup server. </p> <table id="GUID-87ABDA85-82F2-5D55-8152-0C7C98F12D36">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref>  </p> </entry>
+<entry><p>Provides data to a host PC for backup and receives data from a host
+PC for restore. It also encapsulates state information for backup and restore
+operations. Device creators can call this interface class to write a backup
+server with their transport protocols. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-1DA5919D-C083-32DB-A8CD-D3A74E59A615"><apiname>conn::CSBGenericDataType</apiname></xref>  </p> </entry>
+<entry><p>Is a generic parent class to be passed through a common interface.
+It represents any type of data structure used by <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-FB671D02-0F15-396F-9FB7-EE3E9372093C"><apiname>conn::CSBEClient</apiname></xref>.
+For example, the derived class <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-BAA48208-D9BF-3EAC-95B8-F336788EFB73"><apiname>conn::CSBSecureId</apiname></xref> represents
+the Security ID of a data owning process. Derived classes are defined in the <filepath>epoc32/include/connect/sbtypes.h</filepath> header
+file. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-16D655BB-5F25-35F1-8A0F-3F66F32BAC2C"><apiname>conn::CDataOwnerInfo</apiname></xref>  </p> </entry>
+<entry><p>Encapsulates the data owner information. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-BE770F6B-A899-36AD-A336-978D7D0CFAD8"><apiname>conn::RFileArray</apiname></xref>  </p> <p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-5316D44E-E542-3DAD-B45C-4DE25E3594DA"><apiname>conn::RRestoreFileFilterArray</apiname></xref>  </p> <p> <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-ABD84B7A-A92E-38BC-A76F-719D40B5EABE"><apiname>conn::RSIDStatusArray</apiname></xref>  </p> </entry>
+<entry><p>Are derived from <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-2C1597FD-8F42-308C-A0C4-9969388538E8"><apiname>conn::RExternalisableArray</apiname></xref> to
+store different backup and restore data. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p> <b>Note</b>: <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-17E48B80-2421-3256-B8B4-A0FED424D54A"><apiname>conn::CActiveBackupClient</apiname></xref> and <xref href="GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2.dita#GUID-169BB4E2-5B0E-3719-A7B8-A3C0AAA602E2/GUID-DB245BC3-2ADA-311D-8024-B40335D22822"><apiname>conn::MActiveBackupDataClient</apiname></xref> are
+also Backup Engine APIs . They are used to write data owner applications for
+active backup and restore. For further information see <xref href="GUID-743D2832-E73A-5184-A85D-306B2A6FFACC.dita">Active
+Backup Client</xref> under the OS layer. </p> </section>
+<section><title>Typical uses</title><p>The Backup Engine can
+be used to write a backup server to communicate with a host PC for data backup
+and restore. </p> </section>
+</conbody></concept>

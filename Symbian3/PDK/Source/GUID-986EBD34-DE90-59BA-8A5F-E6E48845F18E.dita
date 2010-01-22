@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-986EBD34-DE90-59BA-8A5F-E6E48845F18E" xml:lang="en"><title>CAF
+Recogniser Config Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <i>CAF Recogniser Config</i> component includes a configuration file,
+which contains the list of MIME types for the CAF Recogniser. Device creators
+must configure this file to include all MIME types supported by CAF. </p>
+<section><title>Purpose</title> <p>The <i>CAF Recogniser Config</i> component
+includes a configuration file for the CAF Recogniser. The CAF Recogniser is
+a plug-in for the Apparc recogniser framework. It indicates to Apparc which
+MIME types must be associated with CAF. The CAF Recogniser config file contains
+the list of MIME types for the recogniser. </p> </section>
+<section id="GUID-6C1532E9-A711-51CD-895D-C8AAF194D581"><title>Key concepts</title> <dl>
+<dlentry>
+<dt>Recogniser</dt>
+<dd><p>A recogniser is an <xref href="GUID-9E92EE30-F2E2-5F28-BB2A-391C09EC69D2.dita">ECom</xref> plug-in
+located under <filepath>\sys\bin\</filepath> and loaded by the Application
+Architecture (Apparc) server. It identifies the data type of a file or a stream
+and associates it with an application that can handle the data. A data type
+is known as a <i>MIME type</i>. For more information about MIME and recognisers,
+see <xref href="GUID-F18D0E06-2FB8-5339-AF31-02CC7D5A8010.dita">MIME Recognition
+Framework</xref>. </p> <p>The CAF recogniser (<filepath>reccaf.dll</filepath>)
+determines whether data in a file or stream can be handled by CAF. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Apparc</dt>
+<dd><p>Apparc contains a plug-in recogniser framework which locates all installed
+applications and associates them with the correct document and MIME types.
+Each application is stored in its own directory under <codeph>\system\apps\</codeph> along
+with its associated icon, language-dependent binary resource file and application
+information file (<filepath>.AIF</filepath>). The <filepath>.AIF</filepath> file
+describes the application's capabilities and its UIDs. For more information,
+see <xref href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita">Apparc Overview</xref>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Open Mobile Alliance (OMA) DRM</dt>
+<dd><p>The OMA DRM is a specification for Digital Rights Management. The OMA
+2.0 standards define formats for storing DRM protected content in archive
+files. For more information, see <xref href="http://www.openmobilealliance.org/" scope="external">http://www.openmobilealliance.org/</xref>  </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Description</title> <p>The <i>CAF Recogniser Config</i> is
+a component which contains a single configuration file (<filepath>RecCafMimeTypes.txt</filepath>)
+for use by the CAF Recogniser (<filepath>reccaf.dll</filepath>). The recogniser
+uses this file and returns only MIME types listed in the file, when <xref href="GUID-20935B91-B495-31F4-BD07-B91F442308BD.dita#GUID-20935B91-B495-31F4-BD07-B91F442308BD/GUID-3DF0D6F3-BF82-319A-B3CA-61B86975FC4A"><apiname>CApaCafRecognizer::SupportedDataTypeL()</apiname></xref> is
+called. </p> <p><b>CAF Recogniser </b> </p> <p>The CAF Recogniser determines
+whether a file is recognized by CAF and if so, retrieves the file and content
+MIME types. The mapping of these two MIME types returned by CAF to a single
+APPARC MIME type is based on the following rules: </p> <table id="GUID-C8A57904-F34E-5EBC-920C-2F80BF28BF83">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b> Apparc MIME type</b>  </p> </entry>
+<entry><p> <b> File MIME type</b>  </p> </entry>
+<entry><p> <b> Content MIME type</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> x-caf-ContentMimeType</codeph>  </p> </entry>
+<entry><p>Present </p> </entry>
+<entry><p>Present </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FileMimeType</codeph>  </p> </entry>
+<entry><p>Present </p> </entry>
+<entry><p>Not Present </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>application/x-caf</codeph>  </p> </entry>
+<entry><p>Present </p> </entry>
+<entry><p> <codeph>application/x-caf</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>For more information about determining the MIME type of files
+used in Symbian platform, see <xref href="GUID-9993D750-9116-55B2-812A-7A92C50F467F.dita">Apparc
+Recognizer for CAF</xref>. </p> <p><b>Application Registration Files</b> </p> <p>Applications
+must update their registration resource files (for example <filepath>AppName_reg.rss</filepath>)
+to include the new CAF MIME types. </p> <p>For example, an image viewer may
+have only included <codeph>image/jpeg</codeph> in the list of MIME types it
+could open. If the application is updated to use CAF, it must support <codeph>image/jpeg</codeph> and <codeph>x-caf-image/jpeg</codeph> to
+support both unprotected and protected content respectively. </p> <p><i>Registration
+file that uses CAF</i></p> <codeblock id="GUID-F4EE47A4-D22F-56C5-9CF1-E302BBF65556" xml:space="preserve">...
+    datatype_list =     
+    {           
+    DATATYPE { priority= EDataTypePriorityHigh ; type="image/jpeg"; },         
+    DATATYPE { priority= EDataTypePriorityHigh ; type="x-caf-image/jpeg"; },     
+    }
+...</codeblock> <p> <i>Registration file that does not use CAF</i></p> <codeblock id="GUID-6A721EC9-8761-5014-A6A1-EE9C17D9CE39" xml:space="preserve">...
+    datatype_list =     
+    {           
+    DATATYPE { priority= EDataTypePriorityHigh ; type="image/jpeg"; },         
+    }
+...</codeblock> <p>For more information see, <xref href="GUID-9993D750-9116-55B2-812A-7A92C50F467F.dita">Application
+Registration Files</xref>. </p> <p><b>Configuration file</b> </p> <p>The configuration
+file is stored as <filepath>\private\10003a3f\RecCaf\RecCafMimeTypes.txt</filepath> in
+the Apparc server. The default implementation looks like this: </p> <codeblock id="GUID-E21645DB-CED8-5507-ACA7-DBA6F9BB7592" xml:space="preserve">text/plain
+text/html
+image/jpeg
+application/java-archive</codeblock> <p>Device creators must do the following
+during ROM build time and also see <xref href="GUID-2071FA59-36AE-5779-BFF2-2A5DAED915EE.dita">Considerations
+for Device Creators using CAF</xref>. </p> <ul>
+<li id="GUID-0ECE86A8-39A6-55EC-BC59-F6DC4C8D6034"><p>Customize the configuration
+file to include all MIME types supported by CAF. </p> </li>
+<li id="GUID-170E6650-C8D7-50B3-9519-D3533CB3BC4E"><p>Ensure all supported
+MIME types are included in the file, when post-production agent plug-ins are
+added in the CAF recogniser. </p> <p>By default, CAF loads all agents in the
+ROM drive. If post-production agent plug-ins are to be included, configure
+a macro <codeph>CAF_LOAD_POST_PRODUCTION_AGENTS</codeph> at ROM build time.
+This enables CAF to load all agents visible to ECom. For more information,
+see <xref href="GUID-5BD60B1B-CEB7-557A-A9DC-1BB64575F3E2.dita">Content Access
+Agent ECom Resource File</xref>. </p> </li>
+</ul> </section>
+<section><title>Typical uses</title> <p>CAF recogniser (<filepath>reccaf.dll</filepath>)
+for DRM-protected content uses this configuration file to get the list of
+supported content MIME types. </p> </section>
+</conbody><related-links>
+<link href="GUID-9993D750-9116-55B2-812A-7A92C50F467F.dita"><linktext>APPARC Recognizer
+for CAF</linktext></link>
+<link href="GUID-77578F7E-E6E0-5177-99B2-E586DD6DD0C6.dita"><linktext>Implementation
+Guidelines</linktext></link>
+</related-links></concept>

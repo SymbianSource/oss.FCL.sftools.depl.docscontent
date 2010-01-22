@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-59D2B677-63D7-5FE7-98F4-549D9C235E56" xml:lang="en"><title>Alarm
+Play Tutorials</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial assists the device creators in customizing the Alarm Server
+behavior for playing an alarm continuously. </p>
+<p>The <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>RASCliSession</apiname></xref> class provides
+functions to set and get the continuous state for a previously created alarm. </p>
+<section><title>Introduction</title> <p>It is possible to customize or disable
+the UI application’s control of alarm sound intervals and durations. In certain
+scenarios, it may be preferable for the alarm sound to have an infinite duration.
+For more information on intervals and durations, refer to <xref href="GUID-A5F65344-BE05-5295-85BB-E8114505FB82.dita">Sound
+Control</xref>. </p> </section>
+<section><title>Procedure</title> <p>To play an alarm continuously, or to
+disable alarm play control, refer the following respective sections: </p> <ul>
+<li id="GUID-31AA12C8-38AE-5735-985B-40CB58A0D459"><p><b>Playing an alarm
+continuously</b> - A continuous alarm is one that does not follow the pattern
+of sound play defined as a series of intervals and durations in the <filepath>alarmserver.rsc</filepath> file.
+Instead, the alarm sound is played once and has an infinite interval and duration.
+ </p> <p>Follow the steps given below to create a continuous alarm: </p><ol id="GUID-87FE2F8F-7181-5162-A312-AC0F0021640A">
+<li id="GUID-4B696D1D-F852-5609-BEA1-C31AE072AC2F"><p>Connect to the Alarm
+Server using <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>RASCliSession</apiname></xref>. </p> </li>
+<li id="GUID-44DC069A-FB71-566B-8B2A-22D84D02C85F"><p>Add a new <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>TASShdAlarm</apiname></xref> alarm. </p> </li>
+<li id="GUID-1014B745-72A6-52E8-8C19-F9667DB7E895"><p>Use the <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>SetContinuous()</apiname></xref> function
+to set the alarm as a continuous alarm. </p> <p>The <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>EAlarmRepeatDefintionRepeatDaily</apiname></xref> value
+makes the alarm repeat daily. </p> </li>
+<li id="GUID-F57517DA-9C66-5276-A7B3-882F9F7C1DD0"><p>Add the alarm to the
+Alarm Server by using the <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>AlarmAdd()</apiname></xref> function. </p> </li>
+</ol> <p>The following code snippet explains how to play an alarm continuously: </p> <codeblock id="GUID-CA419D6F-5918-5565-B51E-C71203F18C8F" xml:space="preserve">#include &lt;ASCliSession.h&gt; // For RASCliSession.
+#include &lt;ASShdAlarm.h&gt;   // For TASShdAlarm.
+
+…
+
+// Connect to Alarm Server.
+RASCliSession alarmSession;
+User::LeaveIfError( alarmSession.Connect() );
+CleanupClosePushL( alarmSession );
+
+// Create a daily alarm that once activated is continuous.
+TASShdAlarm alarm;
+alarm.RepeatDefinition() = EAlarmRepeatDefintionRepeatDaily; 
+alarm.SetContinuous( ETrue );
+
+// Add the alarm to Alarm Server.
+User::LeaveIfError( alarmSession.AlarmAdd( alarm ) );
+
+CleanupStack::PopAndDestroy();
+</codeblock><p/></li>
+<li id="GUID-3795991B-7CCD-57A9-B9D4-7ACE26A5CC06"><p><b>Disable alarm play
+control</b> - This is a special case of Alarm Play Interval configuration
+described in <xref href="GUID-A5F65344-BE05-5295-85BB-E8114505FB82.dita">Sound
+Control</xref> section. Disabling the Alarm Play control requires an empty
+interval list as shown in the following code snippet:</p> <codeblock id="GUID-FB21B72C-4A20-5509-BB49-1851A37F60B6" xml:space="preserve">RESOURCE sound_controller
+    {
+    // disable alarm server control of alarm intervals
+    intervals = {};
+    }</codeblock> <p>This configuration cannot be overridden at runtime. <xref href="GUID-8FAC10FB-BCD1-3373-9440-EF2EED70A861.dita"><apiname>RASCliSession::SetAlarmPlayIntervalsL()</apiname></xref> cannot
+be used to change this option, that is, the function can neither turn OFF
+the alarm sound control by specifying an empty sequence, nor turn ON the alarm
+sound control by overriding an empty sequence in the resource file. </p> <p>Durations
+that extend into the next interval cause the whole sequence to revert to the
+default hard-coded values. </p></li>
+</ul> </section>
+</conbody></concept>

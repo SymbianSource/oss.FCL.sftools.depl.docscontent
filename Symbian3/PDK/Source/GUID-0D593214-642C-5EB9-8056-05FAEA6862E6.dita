@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0D593214-642C-5EB9-8056-05FAEA6862E6" xml:lang="en"><title>How
+to use the SIP NAT Traversal Controller API</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The SIP NAT Traversal Controller API provides interfaces to the SIP stack
+to perform the following tasks: </p>
+<ul>
+<li id="GUID-7350340A-EE7F-5481-AEBC-B12FFCA7E0CE"><p>To retrieve the address-port
+pairs allocated by NAT, use the <xref href="GUID-45AF7026-B7FB-3974-BF0B-6BF2DC945F2D.dita#GUID-45AF7026-B7FB-3974-BF0B-6BF2DC945F2D/GUID-268B8EFB-FD39-3CE2-96F1-DF721E2E7C1D"><apiname>CSIPNATTraversalController::ResolvePublicAddrL </apiname></xref> and <xref href="GUID-165676AA-AB3E-3051-98FF-0EAC2E44B6AC.dita#GUID-165676AA-AB3E-3051-98FF-0EAC2E44B6AC/GUID-B502745D-C401-3179-99D6-F0E4FD800905"><apiname>MSIPNATTraversalRequestObserver::PublicAddrResolved</apiname></xref> function. </p> </li>
+<li id="GUID-F166667B-97F1-5C63-9E5E-02C95057C2EB"><p>To start sending regular
+keepalive messages after receiving the 200 OK response for REGISTER request,
+use <xref href="GUID-45AF7026-B7FB-3974-BF0B-6BF2DC945F2D.dita#GUID-45AF7026-B7FB-3974-BF0B-6BF2DC945F2D/GUID-066574E6-56B6-32A4-8A42-219D25007308"><apiname>CSIPNATTraversalController::RefreshNATBindingL</apiname></xref>. </p> <p> <b>Note</b>:
+It is assumed that NAT Traversal Controller plug-in sends the keepalive messages
+in regular intervals after SIP stack calls this method. </p> </li>
+</ul>
+<p>The SIP stack and NAT Traversal Controller plug-in share a socket for sending
+messages over UDP or TCP. It uses the same source IP address and UDP/TCP port
+for sending SIP and UNSAF protocol messages over UDP or TCP. SIP stack manages
+the shared socket when you use the following interfaces: </p>
+<ul>
+<li id="GUID-77BB8B26-D096-5D0A-8929-D0474F53093F"><p>The SIP stack notifies
+NAT Traversal Controller plug-in when the next move for NAT binding keepalives
+changes by calling <codeph>CSIPNATTraversalController::UpdateNextHop</codeph>. </p> </li>
+<li id="GUID-64CD3A22-D2AF-5C6D-AAB2-11D8C912182B"><p>If the SIP stack receives
+data from the shared socket that it does not identify, it passes the data
+to the external NAT Traversal Controller plug-in when you call <codeph>CSIPNATTraversalController::DataReceivedL</codeph>. </p> </li>
+<li id="GUID-12DB47EA-D15B-57C9-AACA-AD210E25D0A4"><p>Before the SIP stack
+releases the resources used by the NAT Traversal Controller plug-in, the SIP
+stack calls <codeph>CSIPNATTraversalController::FreeResources</codeph>. </p> </li>
+<li id="GUID-5DA56992-3C1F-5482-B44F-41BD8DDD0601"><p>Synchronize the control
+to the shared socket to prevent NAT Traversal Controller plug-in and SIP stack
+that try to send the data using the same socket at the same time. SIP stack
+can allow or deny the NAT Traversal Controller plug-in permission to use the
+shared socket by calling <codeph>CSIPNATTraversalController::SocketIdle</codeph>. </p> </li>
+</ul>
+</conbody></concept>

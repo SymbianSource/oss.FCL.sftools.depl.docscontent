@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-2A69B0EE-FA13-49C3-B4FE-50D0910FA37D" xml:lang="en"><title>Processing
+Key Stream</title><shortdesc>The <apiname>CKeyStreamDecoder</apiname> class provides an interface
+for initializing key stream decoders and process a key stream.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>Follow the steps below to process a Key stream:</p>   
+ </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-7-1-24-1-1-6-1-6-1-5-1-3-1-4-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-7-1-24-1-1-6-1-6-1-5-1-3-1-4-1-3-2-1"><cmd>Initialize a key
+stream decoder using <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita#GUID-EE67D14D-1011-3B27-ADEC-C6C192339903/GUID-F8F59778-6554-35A0-A2AD-DD689A89664D"><apiname>CKeyStreamDecoder::NewLC()</apiname></xref> to launch
+a streaming agent. </cmd>
+<info>           <p>When a key stream decoder is initialized, a streaming
+agent that can handle the requested stream data is identified and launched.
+Get the required parameters as input for integrating with the with Session
+Description Protocol (SDP) definition.</p>         </info>
+</step>
+<step id="GUID-FC110D39-02A7-4E47-8766-3C98619DA560"><cmd>Query attributes from the server using <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita#GUID-EE67D14D-1011-3B27-ADEC-C6C192339903/GUID-9F2F3999-FC78-3489-9A6A-FFE01F73E608"><apiname>CKeyStreamDecoder::GetStringAttributeL()</apiname></xref> and <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita#GUID-EE67D14D-1011-3B27-ADEC-C6C192339903/GUID-4E8A180B-EF34-3714-A58B-4CC7906D4BA3"><apiname>CKeyStreamDecoder::GetAttributeL()</apiname></xref>. </cmd>
+<info><p>These methods provides information about a broadcaster or content
+provider and recording right indicating whether a stream can be recorded.</p></info>
+</step>
+<step id="GUID-81A63AB2-E777-43F9-AA61-40BA91253484"><cmd>Record the stream data using <xref href="GUID-EE67D14D-1011-3B27-ADEC-C6C192339903.dita#GUID-EE67D14D-1011-3B27-ADEC-C6C192339903/GUID-676470BD-41BC-3958-874D-40161B3895E1"><apiname>CKeyStreamDecoder::CreateImportSessionLC()</apiname></xref> to
+check for post-acquisition rights. </cmd>
+<info><p>If the rights object does not match with the recording rights, the
+request fails and returns an error. </p></info>
+</step>
+</steps>
+<example><p><b>Initializing key stream decoder</b></p><p>The following code
+segment shows initializing a key stream decoder and querying attributes from
+the server. </p><p> <b>Note</b>: The key stream decoder needs to remain active,
+to process a key stream. </p><codeblock id="GUID-45178C59-4E22-5D1F-BAFF-61F7AED55D48" xml:space="preserve">
+/* In this code sample, a key stream decoder is created to decode a key stream which 
+   is protected by IPSec. Create a protected stream descriptor for IPSec.
+   serverAddr =&gt; source connection address (content distributor in real case). 
+   This address can be extracted from the SDP (Session Description Protocol).
+   It is assumed that the client has already received this object.
+   clientAddr =&gt; target connection address (device in real case).
+ 
+*/
+
+CProtectedStreamDesc *protectedStreamDesc = CIpSecProtectedStreamDesc::NewLC(serverAddr, clientAddr);
+
+/* The relevant media field for the key stream (CSdpMediaField* keyStreamSDPDesc) is 
+  extracted from the SDP (CSdpDocument* sdpDocument).
+   ......
+   Now create the key stream decoder by using the protected stream descriptor, the key stream media 
+   field, and the whole SDP object. 
+*/
+
+CKeyStreamDecoder *keyStreamDecoder = CKeyStreamDecoder::NewLC(protectedStreamDesc, keyStreamSDPDesc, 
+ sdpDocument);
+Cleanupstack::PopAndDestroy(protectedStreamDesc);
+
+/*If this section of code is reached, the key stream decoder is initialized correctly. If the user has rights to view the stream, the content 
+            will be decrypted.
+*/</codeblock><p>The following sequence of events occur in the back-end: </p><ul>
+<li><p>In case of an authenticated user of the service, the streaming agent
+loads the key stream. This creates a key stream decoder object. </p></li>
+<li><p>The streaming agent starts a new processing task to decrypt the protected
+stream data. For example, the key processing task for IPSec is to decrypt
+Short Term Key Message (STKM) received as the key stream, and extract the
+corresponding cryptographic context. </p></li>
+</ul><note>s<ul>
+<li id="GUID-08F29A6F-B8ED-5D19-A8B1-D2F25FDD82E5"><p>The key stream object
+must be kept alive while receiving the key stream and decrypting the protected
+streamed data. </p> </li>
+<li id="GUID-B6FE0479-9679-536A-ADF7-1C7861E8EE4B"><p>If the user is not authenticated,
+(for example, no rights for a specific pay-per-view program), cryptographic
+context will not be set. </p> </li>
+</ul></note><p><b>Querying for protected stream content</b></p><p>Query the
+streaming agent to get information about the protected stream content, using
+the created key stream decoder object. </p> <p>The following code snippet
+shows an example for querying the playability of the content: </p> <codeblock id="GUID-8F515267-8EC1-55E6-B571-C25EFEDB66CC" xml:space="preserve">TBool playable = EFalse;
+keyStreamDecoder-&gt;GetAttributeL(ECanPlay, playable);
+
+// When the protected key stream receiving has finished or stopped, the key decoder object is destroyed.
+Cleanupstack::PopAndDestroy(keyStreamDecoder);</codeblock><p><b>Recording
+protected stream content</b> </p> <p>The following code snippet shows an example
+of recording protected streamed content with post-acquisition rights. </p> <codeblock id="GUID-17747B2A-4E98-5999-94ED-53225D6717B7" xml:space="preserve">// Generate a protected key stream description for IPSec
+CProtectedStreamDesc *protectedStreamDesc = CIpSecProtectedStreamDesc::NewLC(serverAddr, clientAddr);
+
+// Create a key stream decoder 
+CKeyStreamDecoder *keyStreamDecoder = CKeyStreamDecoder::NewLC(protectedStreamDesc, keyStreamSDPDesc,
+ sdpDocument);
+
+//Check whether the content is recordable
+TBool value = EFalse;
+keyStreamDecoder-&gt;GetAttributeL(ECanExport, value);
+if(!value)
+    {
+    User::Leave(KErrCANotSupported);
+    }
+
+/* Get an import handle to record the protected streamed data in 3GPP video format
+   By using the import handle, the streamed content will be recorded as protected together
+   with its post-acquisition Rights Object. After importing, the recorded content is reached
+   according to the restrictions defined in the post-acquisition Rights Object.
+*/
+CImportFile* import = keyStreamDecoder-&gt;CreateImportSessionLC(_L8("video/3gpp")); 
+
+TPtr8 decryptedContent;
+ do
+    {
+    
+    // Decrypt the protected streamed content and assign to decryptedContent pointer.
+    
+    import-&gt;WriteData(decryptedContent);
+    } while (decryptedContent);
+
+// Import has been completed.
+TFileName fileName;
+TInt err = import-&gt;WriteDataComplete();
+while (err == KErrCANewFileHandleRequired)              
+     {
+     err = ProvideNewOutputFileL(*import, fileName);
+     if(err == KErrNone)
+         {
+         err = import-&gt;WriteDataComplete();
+         }
+     }
+User::LeaveIfError(err);
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-6AEA1BCF-EF19-5F6A-9452-E1149C949727.dita"><linktext>Using Streaming
+CAF</linktext></link>
+</related-links></task>

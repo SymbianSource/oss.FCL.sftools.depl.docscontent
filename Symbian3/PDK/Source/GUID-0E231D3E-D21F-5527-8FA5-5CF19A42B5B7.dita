@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-0E231D3E-D21F-5527-8FA5-5CF19A42B5B7" xml:lang="en"><title> Swicertstore
+Tool Reference</title><shortdesc>Swicertstore tool takes a text file as input to create the <filepath>swicertstore.dat</filepath> file. </shortdesc><prolog><metadata><keywords/></metadata></prolog><refbody>
+<example><title>Example Input File</title> <p>Swicertstore tool takes a text
+file as input that contains one or more certificates and its details that
+must be included in the Swicertstore. Each certificate can have a metadata
+associated with it. </p> <p>This text file contains one or more sections.
+Each section contains attributes related to that section. A section starts
+with its name in square brackets. The section name is also used as the certificate
+label. Attributes are specified as <codeph>attribute_name = attribute_value</codeph> pairs. </p> <p>Swicertstore
+tool takes the following example as input file consisting of two sections
+[Root5CA] and [SymbianTestDSACA] and creates <filepath>swiCertStore.dat</filepath> file
+as explained in the <xref href="GUID-CF0D81FC-B28C-5AB1-BF99-A1247E31ACBF.dita#GUID-CF0D81FC-B28C-5AB1-BF99-A1247E31ACBF/GUID-77BA2D7F-D21C-5C95-A98B-DEC3B246DBFD">procedure</xref>. </p> <codeblock id="GUID-CFE5688E-6FEB-50B2-8C9E-2EEA5C236E35" xml:space="preserve">
+# SWICertStoreToolInput.txt
+# An example input file for the Swicertstore tool
+
+[SymbianTestRSACA]
+ 
+ file = c:\tswi\certstore\Symbian-Test-RSA.der
+ capability = DRM
+ capability = NetworkServices
+ application = SWInstall
+ application = SWInstallOCSP
+ Mandatory = 0
+ SystemUpgrade = 0
+ 
+ [sucert]
+ 
+ file = c:\tswi\certstore\sucert.der
+ capability = ReadDeviceData
+ capability = WriteDeviceData
+ capability = DRM
+ capability = AllFiles
+ application = SWInstall
+ SystemUpgrade = 1
+</codeblock> <p>The attributes in the example input file are described in
+the following table: </p> <table id="GUID-FB16F6E2-29A7-55EE-9D53-FC31268EF8AA">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Attribute</b>  </p> </entry>
+<entry><p> <b>Description</b>  </p> </entry>
+</row>
+<row>
+<entry><p>file </p> </entry>
+<entry><p>Specifies the path and name of the file containing the certificate. </p> <p> <b>Note</b>:
+As Swicertstore tool runs in the emulator, the path name is relative to the
+Epoc32 directory root. Therefore, the actual location of the two certificate
+files in the example would be <i>\Epoc32\winscw\c</i>. The certificate must
+be DER encoded. OpenSSL can be used to convert a certificate from PEM format
+to DER format as mentioned below: </p> <p> <codeph>openssl x509 –inform pem
+–outform der –in mycert.pem –out                   mycert.der</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>mandatory </p> </entry>
+<entry><p>Indicates whether the certificate is marked as mandatory for software
+installation. The value <b>1</b> indicates it is mandatory while <b>0</b> indicates
+it is not mandatory. The attribute is optional; the default value is <b>0</b>. </p> </entry>
+</row>
+<row>
+<entry><p>System Upgrade </p> </entry>
+<entry><p>Indicates that the root certificate is enabled as System Upgrade
+[SU]. The packages signed by this certificate allow licensees to solve system
+software problems that were not anticipated at device build time. </p> </entry>
+</row>
+<row>
+<entry><p>capability </p> </entry>
+<entry><p>Specifies a Platform Security capability that the certificate can <i>sign
+for</i>. This attribute can be repeated to allow multiple capabilities to
+be specified. </p> <p> <b>Note</b>: The following are the capabilities that
+the certificate can <i>sign for</i>: TCB, CommDD, PowerMgmt, MultimediaDD,
+ReadDeviceData, WriteDeviceData, DRM, TrustedUI, ProtServ, DiskAdmin, NetworkControl,
+AllFiles, SwEvent, NetworkServices, LocalServices, ReadUserData, WriteUserData,
+Location, SurroundingsDD, UserEnvironment. </p> </entry>
+</row>
+<row>
+<entry><p>application </p> </entry>
+<entry><p>Specifies the name of an application that the certificate can be
+used for. The allowed values are: </p> <ul>
+<li id="GUID-BA0A0389-814B-5843-9F81-D6171FD83E7E"><p>SWInstall - for the
+software installation application, SWI. </p> </li>
+<li id="GUID-DAA8F722-ECE9-5F2C-BF59-DC46B4A03285"><p>SWInstallOCSP - for
+the OCSP check during software installation. </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </example>
+
+<section id="GUID-221EC596-E062-5BE0-8D3A-EDA1F403919D"><title>Writable Swicertstore</title> <p>Writable
+Swicertstore is a <filepath>C:</filepath> based data file that can be created
+and installed on the device and it is placed at <b>c:\resource\swicertstore\</b> location.
+In the absence of the Writeable Swicertstore, the <filepath>SwiCertstore.dll</filepath> uses
+the ROM Swicertstore. </p> </section>
+</refbody><related-links>
+<link href="GUID-CF0D81FC-B28C-5AB1-BF99-A1247E31ACBF.dita"><linktext>Creating
+Swicertstore.dat File</linktext></link>
+<link href="GUID-AB08BEE8-BCD8-511F-B89D-13A0638C05A7.dita"><linktext>Overview</linktext>
+</link>
+</related-links></reference>

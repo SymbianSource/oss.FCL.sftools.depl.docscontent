@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-6E5E74E6-4476-5ACE-8A37-93DB0E7999C6" xml:lang="en"><title>LTSY
+for Dispatcher Tutorial </title><shortdesc>This topic describes how to implement a Licensee TSY for the Common
+TSY with the Dispatch layer. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-B04720B3-C019-5FFF-B143-3CB1A9B46D68"><p>Developers implementing
+the LTSY can start from the skeleton code at <codeph>../ctsydispatcher/ltsyskeleton_using_dispatcher/...</codeph>  </p> <p>The
+skeleton is a list of source files with empty implementations. The skeleton
+is for guidance and the implementation depends on the requirements of the
+handset manufacturer. The skeleton code contains mock test code for testing
+purpose. The skeleton code can be conditionally recompiled to remove the calls
+into the Mock test component, thus allowing the developer to run the existing
+tests against the actual LTSY implementation they are creating with minimal
+changes. Check the header file comments for mock test code. The request handlers
+that must be implemented by the LTSY are declared in <filepath>mltsydispatchcallcontrolinterface.h</filepath>. </p> </context>
+<steps id="GUID-05E6FEB9-0731-5199-9B88-5CBF82857625">
+<step id="GUID-862CAAA6-EA50-5DA3-BEEE-AF80C4510612"><cmd/>
+<info>Start developing the LTSY from the skeleton code </info>
+</step>
+<step id="GUID-29027A80-B4D3-5CD2-806E-05BAB9A8BAA6"><cmd/>
+<info>Implement the different interfaces based on functional units. </info>
+<info>The required interface implementations depend the baseband. </info>
+</step>
+<step id="GUID-54807B77-4A9A-560D-A6F8-82E4F5CA6381"><cmd/>
+<info>The interfaces are split into different functional units. Implement
+a call-back function for every asynchronous dispatcher call. </info>
+</step>
+<step id="GUID-764255E4-2344-5BA5-B75A-388AFB768BA2"><cmd/>
+<info>If the methods used to receive the baseband notification use blocking
+API calls, create a new thread to receive the notification information in
+the LTSY. </info>
+</step>
+<step id="GUID-53537F6A-2E84-5AB3-89E3-C0DDC92BAAA4"><cmd/>
+<info>Remove the Symbian test macros </info>
+</step>
+<step id="GUID-C51A26CC-5D50-5C18-A6F5-93354C9BB1DA"><cmd/>
+<info>The LTSY must map the baseband error codes to Symbian error codes defined
+in the header files <filepath>exterror.h</filepath> and <filepath>gsmerror.h</filepath>. </info>
+</step>
+</steps>
+<example id="GUID-4A2F5CA7-6571-5B53-86B7-FB77F3AB6CDA-GENID-1-7-1-5-1-1-9-1-7-1-3-3"><title>LTSY example</title> <p>A
+sample LTSY implementation to dial a voice call is given below. </p> <p><b> </b> </p> <p>Implementing <xref href="GUID-6CEF46D4-0477-3F45-9D79-852BBE03893D.dita#GUID-6CEF46D4-0477-3F45-9D79-852BBE03893D/GUID-D71AC640-56B0-30A6-9321-5074D5104664"><apiname>MLtsyDispatchCallControlDialVoice::HandleDialVoiceReqL()</apiname></xref> interface: </p> <codeblock id="GUID-CD7ABC5B-A7A4-53D9-9424-DB819A2A3C51" xml:space="preserve">
+virtual TInt HandleDialVoiceReqL(RMobilePhone::TMobilePhoneALSLine aCallLine,
+RMobilePhone::TMobileAddress&amp;amp, aDialledParty, 
+RMobileCall::TMobileCallParamsV1&amp;amp, aCallParamsV1, TBool aIsIsvCall, 
+RMobileCall::TCallParamOrigin aCallOrigin) = 0;
+
+/**
+     * The CTSY Dispatcher shall invoke this function on receiving the EEtelCallDial
+     * request from the CTSY for dialling a voice call.
+     * 
+     * It is a request call that is completed by invoking
+     * CCtsyDispatcherCallback::CallbackCallControlDialVoiceComp
+     * 
+     * Implementation of this interface should 
+     * dial the requested voice call and complete the callback to indicate
+     * that an attempt to dial the call has been made.  The callback function is used
+     * to indicate the outcome of this attempt to initiate the dialling process.
+     * 
+     * @param aCallLine The line to use to dial the call. This parameter can have
+     * one of two possible values RMobilePhone::EAlternateLinePrimary to use the 
+     * primary voice line or RMobilePhone::EAlternateLineAuxiliary to use the 
+     * auxiliary voice line. 
+     *  
+     * @param aDialledParty Details about the dialled party including the phone
+     * number to dial.
+     * @param aCallParamsV1 The call parameters of the call to dial. If aIsIsvCall 
+     * is set to ETrue, only the field RMobileCall::TMobileCallParamsV1::iIdRestrict 
+     * and RMobileCall::TMobileCallParamsV1::iAutoRedial fields are valid.  
+     * 
+     * @param aIsIsvCall Indicates whether the call originated from a third party
+     * application which would have used the CTelephony class to dial the call. 
+     * This information is provided in case the LTSY wishes to do special handling
+     * for third party calls, for example, not allow third party applications to
+     * place emergency calls. See also 
+     * MLtsyDispatchCallControlQueryIsEmergencyNumber::HandleQueryIsEmergencyNumberSyncL
+     * See also: CTelephony::DialNewCall and RMobileCall::DialISV
+     * 
+     * @param aCallOrigin The origin of the dial request.  For example, whether the dial  came from an Etel client or the SIM or another source. 
+     * 
+     * @return KErrNone on success; KErrNotSupported if the LTSY does not  support handling of this request or another error code 
+     *indicating the failure otherwise.
+     */
+</codeblock> <p>Call back function to complete the call dial request: </p> <codeblock id="GUID-76C72F4D-17F7-5D12-B06A-B651BEA925B5" xml:space="preserve">EXPORT_C void CCtsyDispatcherCallback::CallbackCallControlDialVoiceComp(
+    TInt aError, TInt aCallId)
+
+/**
+ * Callback function to be used by the Licensee LTSY to complete a pending
+ * MLtsyDispatchCallControlDialVoice::HandleDialVoiceReqL
+ * 
+ * When a dial attempt is made via the above mentioned interface, the LTSY has the 
+ * responsibility of allocating a unique Call ID to the call.  For more 
+ * information, see the documentation on aCallId below.  
+ * 
+ * @param aError The error code to be returned to the CTSY Dispatcher by the LTSY
+ * indicating the outcome of the attempt to dial the requested call.  This should
+ * be KErrNone if the dialling process could be started successfully.  Otherwise
+ * another error code to indicate the failure should be returned.
+ * 
+ * @param aCallId The call ID of the call that the dial attempt refers to which
+ * has been allocated by the LTSY.  This should be a number between 1 and 
+ * KMaxCallIdValue and should be unique across all call modes (voice, data etc.).  
+ * For example, if a request for a voice call is made and the LTSY allocates 
+ * this call an ID of 1 and a request for a data call is requested, the LTSY 
+ * should allocate a Call ID which is not the same as that already allocated for 
+ * the first voice call.
+ * 
+ */
+</codeblock> <p>To indicate call status change notifications, use the following
+callback: </p> <codeblock id="GUID-F0D16167-6F67-51DA-8BD9-56D0036D25B4" xml:space="preserve">EXPORT_C void CCtsyDispatcherCallback::CallbackCallControlNotifyCallStatusChangeInd(
+    TInt aCauseCode, TInt aCallId, RMobileCall::TMobileCallStatus aMobileCallStatus)
+
+/**
+ * Used by an LTSY to indicate to the CTSY that there has been a change in the 
+ * status of a call. For example, if the CTSY has previously made a dial request 
+ * to make a voice call, the LTSY can call this API to notify the CTSY 
+ * of progress of the call through the dialling, connecting and connected states.
+ * 
+ * The aCauseCode parameter should be used to indicate the reason for the change 
+ * in status of a call.
+ * 
+ * In the case of a call going idle (aMobileCallStatus = RMobileCall::EStatusIdle)
+ * specific cause codes need to be returned to the Common TSY to indicate
+ * specific causes of status changes:
+ * 
+ * To indicate that an active call has been released normally by either party,
+ * set aCauseCode = KErrGsmCCNormalCallClearing.
+ *  
+ * To indicate that a mobile originated call that is being dialled has gone
+ * idle because the remote party has rejected the call, set
+ * aCauseCode = KErrGsmCCCallRejected or another error code (which is != KErrNone)
+ * to indicate the reason for rejection.
+ *  
+ * If a mobile originated call is being dialled and the user cancels dialling,
+ * causing the call to go idle, set aCauseCode = KErrGsmCCNormalCallClearing.
+ *  
+ * When an incoming call goes idle because the client has rejected it
+ * (done using RCall::HangUp on the ringing call), set
+ * aCauseCode = KErrGsmCCUserBusy.
+ * 
+ * @param aCauseCode The cause of the change in call status. 
+ * 
+ * @param aCallId The Call ID of the call whose status has changed.
+ * 
+ * @param aMobileCallStatus The new status of the call refered to by aCallId.
+ * 
+ * @see RMobileCall::NotifyMobileCallStatusChange
+ */
+
+</codeblock> <p>Implement other functions supported by the baseband and it
+is the responsibility of the LTSY to return appropriate error code in the
+call back function if it fails to establish a call. </p> </example>
+<postreq id="GUID-C9CB0DBD-09F8-5BD1-BA3F-D5CC450D2963"><p>Build and run the
+components. </p> <ol id="GUID-AFE5C356-133F-5068-B692-19F1D3C71568">
+<li id="GUID-BB7AE604-54EB-5356-B5F6-EBF928043FDB"><p>Unzip code to your target
+disk for example M:\. </p> </li>
+<li id="GUID-3BB0AF07-72D8-5092-87A6-AADF214CDCF1"><p>To build the CTSY, in
+the command prompt window, change directory to M:\ \ctsy\group </p> </li>
+<li id="GUID-F0E1A100-D8C9-5409-A5C0-4030093D1324"><p>This directory should
+contain a file called “bld.inf” </p> </li>
+<li id="GUID-38BF8BFD-271E-50EC-9796-E2C7166D8433"><p>Type </p> <p><userinput>bldmake
+bldfiles </userinput> </p> <p>If there are no errors, the command should give
+no output and the user is returned to the command prompt. </p> </li>
+<li id="GUID-37C5E417-5462-55F7-A4FF-EF83E41AB7F4"><p>Build the Mock SY, type </p> <p><userinput>abld
+test build winscw udeb</userinput> </p> <p>This builds the CTSY with and without
+Dispatcher. The build tools are invoked and output scrolls up the screen.
+There should be no build errors. </p> <p>To build the CTSYDispatcher, in the
+command prompt window, change directory to M:\ \ctsydispatcher\group\ </p> <p>and
+repeat the above. </p> </li>
+<li id="GUID-ECC5D810-B731-5B3C-9944-07846F605B1C"><p>Testing the components </p> <ol id="GUID-E1D4129E-D497-5EC0-9E0B-498FB931295D">
+<li id="GUID-9E852ABF-887E-5DBF-B914-B2086D14CBB0"><p>Return to the CTSY directory,
+build the test components which consists of the LTSY Stub by typing </p> <p><userinput>abld
+test build winscw udeb</userinput> </p> <p>This command builds the test components
+associated with the project for the WINSCW debug target. Output scrolls up
+the screen and the user will be returned to the command prompt with no errors. </p> </li>
+<li id="GUID-1703F6C5-5FB4-5AC1-9134-9C61F8497FAB"><p>To build the CommonstkTSY,
+in the command prompt window, change directory to M:\ \commonstkTSY\group
+and repeat the above command </p> </li>
+<li id="GUID-9A7CC1FA-34E3-5D78-93EC-1BE55DEC71AF"><p>To build the CTSYDispatcher,
+in the command prompt window, change directory to M:\ \ctsydispatcher\group\
+and repeat the above command </p> </li>
+</ol> </li>
+<li id="GUID-B14A6161-2FC1-5722-90DE-4E996448C15E"><p>To confirm that the
+production and test components have been built correctly, look inside the
+directory containing the WINSCW debug binaries: </p> <codeblock id="GUID-F4AB89A7-DA5E-5EC6-8104-ADD6D04D7300" xml:space="preserve">M:\epoc32\release\winscw\udeb </codeblock> <p>where M:\ is the drive containing the CBR environment), sort the files
+by most recently modified date first and check that the following binaries
+have been created </p> <ul>
+<li id="GUID-8754A230-482F-5B50-8B9D-BD47B96FA100"><p> <codeph>customapi.dll</codeph> –
+CTSY Custom API (with or without Dispatcher) </p> </li>
+<li id="GUID-F95F2DCC-CB0E-5323-A2D7-9D1FF218446D"><p> <codeph> commontsy.dll</codeph> –
+common TSY without Dispatcher. </p> </li>
+<li id="GUID-E4BE46D8-E4EC-5685-A39D-B8E6BAC6064B"><p> <codeph> commontsyfordispatcher.dll</codeph> –
+common TSY with Dispatcher </p> </li>
+<li id="GUID-C1A4C14B-72BA-521A-9EB6-9D5DC6C630C6"><p> <codeph> phonetsy.tsy</codeph> –
+phone TSY without Dispatcher </p> </li>
+<li id="GUID-0AF23D55-B90E-598B-8DD9-1828468A9379"><p> <codeph>phonetsywithdispatcher.tsy</codeph> –
+phone TSY with Dispatcher </p> </li>
+<li id="GUID-0E6D8D52-F64D-5326-BE0C-C645B4706CDE"><p> <codeph>licenseetsy.dll</codeph> –
+licensee TSY for testing common TSY without Dispatcher </p> </li>
+<li id="GUID-3DC3625B-8AB9-5D27-AD15-ABADAF8F3FE2"><p> <codeph> licenseeskeletontsy.dll</codeph> –
+licensee TSY for test common TSY with Dispatcher </p> </li>
+</ul> </li>
+<li id="GUID-82DD171F-BA68-55DB-9D68-1B0BBF7961AA"><p>Running the tests application </p> <ol id="GUID-E33438A5-7245-50D0-91B5-E4038FC2E81A">
+<li id="GUID-B2BEC15B-4430-5B37-9A89-F202897B516A"><p>Edit the file M:\epoc32\data\epoc.ini
+with a text editor and add the following line </p> <codeblock id="GUID-1410F709-69D8-53CB-BAF7-F74D5D1B89C0" xml:space="preserve">startupmode 1</codeblock> </li>
+<li id="GUID-1F710941-CDDA-5F71-B208-95A6A0D85919"><p>Enable logging of the
+CTSY and the LTSY Stub by copying the file </p> <codeblock id="GUID-BAB97F48-CA4B-5021-B729-93DDE9171E10" xml:space="preserve">commsdbg.ini to M:\epoc32\winscw\c\logs
+
+</codeblock> </li>
+<li id="GUID-537B174C-C24A-54CC-88E7-278FABB1E80B"><p>run the test framework </p> </li>
+</ol> </li>
+</ol> </postreq>
+</taskbody><related-links>
+<link href="GUID-38549504-90D1-51D4-9290-E3E92E814DE7.dita"><linktext>LTSY Interfaces
+for CTSY with                 Dispatcher</linktext></link>
+</related-links></task>

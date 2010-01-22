@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E9FAE433-BDBE-5ABD-B168-6562D29112B1" xml:lang="en"><title>Creating
+a Static CommandList</title><shortdesc>SCLs contain a list of commands that are run by the SSM. The SysCLE
+runs these commands as per the policy. The policy for deciding which commandLists
+are run by the SysCLE is included within the system state Manager component
+(<filepath>SysStateMgr.exe</filepath>). </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>When there is a system state or a property transition, SysState
+goes through a series of policy steps to find which <codeph>commandList</codeph> must
+be run by SysCLE. SysCLE responds with a result code which is passed back
+to the state policy plug-in. The next action returned by the state policy
+plug-in depends on this result code. SCLs contains a list of commands that
+are run by the SSM and SysCLE runs the commands as per the policy. SysCLE
+is based on SysStart, but it is converted into a DLL. After GSA is migrated
+to SSMA, the current Static Startup Configuration (SSC) commands are maintained.
+The following table lists the new commands and functions that are introduced
+into SysCLE. </p><p>Follow the steps given below to create a static <codeph>commandList</codeph>:</p> </context>
+<steps id="GUID-C7D94CA1-0A62-5CAC-B2DB-118A4DAD2A64">
+<step id="GUID-E70E0840-0EFA-559A-9B92-A51E30276DC2"><cmd/>
+<info>Include <filepath>ssmcmd.rh</filepath> to write a <codeph>commandList</codeph>. </info>
+</step>
+<step id="GUID-8D4518E2-C284-57E8-BA72-6DC96C16FC6C"><cmd/>
+<info>Include <filepath>ssmsubstates.hrh</filepath> to write a <codeph>commandList</codeph> for
+the system-wide property. </info>
+</step>
+<step id="GUID-9A7DB580-C196-51D8-A55C-2FA1B7D74153"><cmd/>
+<info>Include a constant, UID2 <codeph>KUidSsmCommandListResourceFile</codeph> to
+identify the startup list. </info>
+</step>
+<step id="GUID-E1AB45ED-9D6B-5DA6-AD6F-04654621E1C0"><cmd/>
+<info>Include <codeph>RESOURCE SSM_COMMAND_LIST_ROOT</codeph>. This is the
+first resource in a <codeph>commandList</codeph> resource file that needs
+to be included. </info>
+<info> <codeph>RESOURCE SSM_COMMAND_LIST_ROOT</codeph> has <codeph>RESOURCE
+                SSM_COMMAND_LIST_MAPPING</codeph> and <codeph>RESOURCE SSM_COMMAND_LIST</codeph>. <note> Resource <codeph>STRUCT
+SSM_START_AMA_STARTER</codeph> is a resource structure in the command list
+resource file that needs to be included to launch After Market Components
+(AMCs) at phone boot time. This structure contains the UID of the DSC to execute.
+The DSC can be created using the After Market Application (AMA) Starter component.</note></info>
+</step>
+</steps>
+<result><p>The static command list is created. </p> </result>
+<example><title>Example</title> <p>The following example code shows how a
+static <codeph>commandList</codeph> is created: </p> <codeblock id="GUID-08C73A05-C6CE-52C9-AD54-EACA2D297AEF" xml:space="preserve">
+#include &lt;ssmcmd.rh&gt;
+#include &lt;ssmsubstates.hrh&gt;
+UID2 KUidSsmCommandListResourceFile
+// SSM_COMMAND_LIST_ROOT must be the first resource in a command list resource file.
+// The SSM relies on this having a resource ID of 1.
+RESOURCE SSM_COMMAND_LIST_ROOT
+    {
+    command_list_mapping = r_command_list_mapping;
+    }
+
+RESOURCE SSM_COMMAND_LIST_MAPPING r_command_list_mapping
+    {
+    mappings =
+        {
+        SSM_COMMANDLISTID_TO_RESOURCEID
+            {
+            command_list_1 = ESsm_1;
+            resource_id_1 = r_commands_1;
+            },
+        };
+    }
+
+RESOURCE SSM_COMMAND_LIST r_command_1
+    {
+    commands =
+        {
+        r_command_1, 
+        r_command_2, 
+        r_command_3, 
+        r_command_4
+        };
+    }
+
+RESOURCE SSM_COMMAND_LIST r_ command_2
+    {
+    commands =
+        {
+        r_command_1, 
+        r_command_2, 
+        r_command_3
+    };
+}
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-F8C42900-CA69-5F5B-914A-B085EBB45815.dita"><linktext>After Market
+Application (AMA) Starter</linktext></link>
+<link href="GUID-623B375B-6EAD-53A2-AB4E-CCDF1BDB5057.dita"><linktext>Creating
+a Dynamic start-up Configuration</linktext></link>
+</related-links></task>

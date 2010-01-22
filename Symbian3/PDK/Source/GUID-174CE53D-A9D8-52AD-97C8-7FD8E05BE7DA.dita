@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA" xml:lang="en"><title>The
+PDD Factory</title><shortdesc>The PDD factory implements a factory for physical channel objects.
+The PDD factory base class is <apiname>DPhysicalDevice</apiname>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The class provides a framework in the standard way, where some of the functions
+are virtual and can be overridden, and others are pure virtual and an implementation
+is obligatory. In addition, a derived class can add data members and functions,
+including C++ constructors and a destructor. </p>
+<p>The PDD factory class is built as part of the PDD DLL. User side code calls <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-A0F4BF4A-9C58-3E5E-88E1-6D98597DDA18"><apiname>User::LoadPhysicalDevice()</apiname></xref> to
+load the PDD DLL and create the PDD factory object on the Kernel heap. </p>
+<p>The class, with its publicly accessible functions and member data, is defined
+as: </p>
+<codeblock id="GUID-A9BFDE39-7449-5D03-B2C1-D85B85E067A9" xml:space="preserve">class DPhysicalDevice : public DObject
+    {
+public:
+    enum TInfoFunction
+        {
+        EPriority=0,
+        };
+public: 
+    IMPORT_C virtual ~DPhysicalDevice();
+    IMPORT_C virtual TBool QueryVersionSupported(const TVersion&amp; aVer) const;
+    IMPORT_C virtual TBool IsAvailable(TInt aUnit, const TDesC8* aInfo) const;
+    virtual TInt Install() =0;
+    virtual void GetCaps(TDes8&amp; aDes) const =0;
+    virtual TInt Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer) =0;
+    virtual TInt Validate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer) =0;
+    IMPORT_C virtual TInt Info(TInt aFunction, TAny* a1);
+public:
+    TVersion iVersion;
+    TUint iUnitsMask;
+    DCodeSeg* iCodeSeg;
+    };</codeblock>
+<p>The LDD factory object is responsible for finding a suitable matching PDD
+factory object. See <xref href="GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89.dita#GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89/GUID-98AA2B5E-A970-55D6-AE85-5322F550C177">The
+PDD entry point and factory</xref> in the <xref href="GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89.dita">Device
+Driver Concepts</xref>. </p>
+<p>Note that the terms <i>PDD</i>, <i>PDD factory</i>, and <i>physical device</i> tend
+to be used as synonyms for each other. </p>
+<ul>
+<li id="GUID-1A89A3F6-E291-5C71-A2AE-33AFCF591745"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-8DBA0F4F-CC15-5C5C-84F8-E0A302623BEC">Requirements</xref>  </p> <ul>
+<li id="GUID-34ACB5A6-CB14-5DE2-8812-F5A9E3EA991B"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-0D2FF84A-F36D-580E-A3C5-FE26A8430868">The entry point and creation of the factory object</xref>  </p> </li>
+<li id="GUID-7C60B379-A83D-516A-8A30-5AF8E41D0528"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-9B6053AA-E699-57D6-93B8-5FB259AE1992">Constructor</xref> </p> </li>
+<li id="GUID-4FA84962-496D-5F9B-A161-E5CAA740DC63"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-1A1E7EC9-EC2D-5AEE-9DA8-551E9AC2BC88">Implementing Install()</xref>  </p> </li>
+<li id="GUID-0CADEAE3-8485-5ECA-9D43-FEC957DF7AF3"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-88D2EEDD-8B51-5165-8335-90EBF4B3E8B3">Implementing GetCaps()</xref>  </p> </li>
+<li id="GUID-90FFB0B5-68EF-51B6-A184-5540D23B5F80"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-2A5D3E52-EDE6-57C4-A1D0-D4056F8D1193">Implementing Create()</xref>  </p> </li>
+<li id="GUID-608F52F2-B095-52F6-92A0-622FEEC33CA8"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-BB0BDE33-A73E-5BCB-9338-039215BE8851">Implementing Validate()</xref>  </p> </li>
+<li id="GUID-56470096-A417-5729-8307-2F33F0F86371"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-379D4AFF-0C34-590D-B049-08D54889B9FE">Optional changes</xref>  </p> <ul>
+<li id="GUID-7480D58C-B148-5910-9207-81E094EDA880"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-1C8B7CF4-0862-5549-BA35-0B51FD139D8F">Re-implementing QueryVersionSupported()</xref>  </p> </li>
+<li id="GUID-D203829B-0B70-5D4B-9FA5-B4E25D48C20C"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-A77BBD7B-F27E-5DEB-ADA4-AEF6EDDF63D2">Re-implementing IsAvailable()</xref>  </p> </li>
+<li id="GUID-5E579003-CFD9-57C3-A75A-C20C5E5C88E9"><p> <xref href="GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA.dita#GUID-174CE53D-A9D8-52AD-97C8-7FD8E05BE7DA/GUID-7DAE6FEA-13E3-5BB6-9B24-0D6E81CF66D7">Re-implementing Info()</xref>  </p> </li>
+</ul> </li>
+</ul> </li>
+</ul>
+<section id="GUID-8DBA0F4F-CC15-5C5C-84F8-E0A302623BEC"><title>Requirements</title> <p id="GUID-0D2FF84A-F36D-580E-A3C5-FE26A8430868"><b>The entry point and creation
+of the factory object</b> </p> <p>You need to provide an entry point for your
+PDD DLL. There is a standard macro for this: <codeph>DECLARE_STANDARD_PDD()</codeph>.
+You code this as: </p> <codeblock id="GUID-1A5C8E5F-86EC-5BAD-8BBD-54876C8D9AF1" xml:space="preserve">DECLARE_STANDARD_PDD()
+    {
+    // code to be run on entry to the PDD DLL
+    }</codeblock> <p>If your PDD is also a kernel extension, then use <codeph>DECLARE_EXTENSION_PDD()</codeph> instead. </p> <p>The
+macro declares a function that is exported at ordinal 1, and your implementation
+should create an instance of your class derived from <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref>.
+The following is standard: </p> <codeblock id="GUID-3F968827-E627-5998-8C6A-C4919F1DBE01" xml:space="preserve">DECLARE_STANDARD_PDD()
+    {
+    return new DerivedPhysicalDevice;
+    }</codeblock> <p>where <codeph>DerivedPhysicalDevice</codeph> is your
+derived class. </p> <p id="GUID-9B6053AA-E699-57D6-93B8-5FB259AE1992"><b>Constructor</b> </p> <p>The
+default constructor is called as part of the process of creating the factory
+object. </p> <p>A derived class usually provides a default constructor to
+initialise member data, and in particular to initialise the data member <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-A1CA0AF5-AA74-36A7-8B56-DAAA3FA78336"><apiname>DPhysicalDevice::iVersion</apiname></xref> of
+the <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> base class. </p> <p>The device driver
+makes no other specific requirements on your constructor. </p> <p id="GUID-1A1E7EC9-EC2D-5AEE-9DA8-551E9AC2BC88"><b>Implementing
+Install()</b> </p> <p>This function is called after the PDD DLL has been successfully
+loaded, and the factory object has been successfully created on the kernel
+heap. </p> <p>The function is a second stage constructor for the factory object,
+and allows any further initialisation of the factory object to be done. </p> <p>The
+only requirement for this function is that it must define and set the name
+of the factory object. The name is important as it is the way in which these
+objects are subsequently found. Note that this name is <i>not</i> the same
+as the name of the file containing the PDD DLL itself. If the user side is
+not intended to explicitly specify a PDD name, then make sure that you give
+this PDD a name of the form <codeph>x.y</codeph>, where <codeph>x</codeph> is
+the name of an associated LDD factory object. </p> <p>This is the <codeph>Install()</codeph> function
+from the example driver's PDD factory class: </p> <codeblock id="GUID-7EC8A76B-8F2D-5158-85AD-7292BEBD1C2F" xml:space="preserve">_LIT(KDriver1PddName,"DRIVER1.template");
+</codeblock> <codeblock id="GUID-25A77AE6-4DFF-5E78-96BC-09ADE996B4F4" xml:space="preserve">TInt DDevice1PddFactory::Install()
+    {
+    return SetName(&amp;KDriver1PddName);
+    }
+</codeblock> <p>The factory class is ultimately derived from <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>,
+and means that it is a reference counting object. Names are properties of
+reference counting objects and <codeph>SetName()</codeph> is called on this <codeph>DObject</codeph> base
+class. </p> <p id="GUID-88D2EEDD-8B51-5165-8335-90EBF4B3E8B3"><b>Implementing
+GetCaps()</b> </p> <p>The function should fill the descriptor passed in by
+reference with device capabilities. </p> <p>The function is not used by the
+device driver framework but may be used by the LDD. The function is pure virtual
+and an implementation must be provided. There is no definition for encoding
+capabilities, and this is a matter of convention between the LDD and the PDD. </p> <p>This
+is the <codeph>GetCaps()</codeph> function from the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref>'s PDD factory class: </p> <codeblock id="GUID-3FA3EF24-B8EE-5CD4-8BAA-BD336F6AAC62" xml:space="preserve">void DDevice1PddFactory::GetCaps(TDes8&amp; aDes) const
+    {
+    // Create a capabilities object
+    DDriver1::TCaps caps;
+    caps.iVersion = iVersion;
+    
+    // Zero the buffer
+    TInt maxLen = aDes.MaxLength();
+    aDes.FillZ(maxLen);
+
+    // Copy cpabilities
+    TInt size=sizeof(caps);
+    if(size&gt;maxLen)
+        size=maxLen;
+    aDes.Copy((TUint8*)&amp;caps,size);
+    }
+    </codeblock> <p id="GUID-2A5D3E52-EDE6-57C4-A1D0-D4056F8D1193"><b>Implementing
+Create()</b> </p> <p>This is called by the device driver framework to create
+a physical channel. </p> <p>It is called in the context of the client user-side
+thread that requested the creation of the logical channel. This is a result
+of a user-side call to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref>. </p> <p>The
+function has the signature: </p> <codeblock id="GUID-B8A5D35E-7C4C-55AE-8496-E2EA7A600ED2" xml:space="preserve">virtual TInt Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer) =0;</codeblock> <p>A physical channel has no mandated structure, which is why the device
+driver framework only requires that the class representing the physical channel
+be derived from <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref>. </p> <p>The function should create
+a physical channel object, and return its pointer through the supplied <codeph>DBase*</codeph> reference.
+Unlike the LDD factory equivalent, this function takes the unit, additional
+information and version information as originally passed from the user-side
+call to <codeph>RBusLogicalChannel::DoCreate()</codeph>. </p> <p>The implementation
+is straightforward. This is the <codeph>Create()</codeph> function from the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple Example Device Driver</xref>'s
+PDD factory class: </p> <codeblock id="GUID-5052F633-B87D-54EC-9056-EC843E44D2B5" xml:space="preserve">TInt DDevice1PddFactory::Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer)
+    {
+    // Ignore the parameters we aren't interested in...
+    (void)aUnit;
+    (void)aInfo;
+    (void)aVer;
+
+    // Create a new physical channel
+    DDriver1Device* device=new DDriver1Device;
+    aChannel=device;
+    if (!device)
+        return KErrNoMemory;
+    return device-&gt;DoCreate();
+    }</codeblock> <p>Note that unlike the LDD equivalent, the device driver
+framework does not create a physical channel. It is the responsibility of
+the PDD factory's implementation to do this. In the example driver, it defines
+and implements a function called <codeph>DoCreate()</codeph> in its physical
+channel class. This mirrors the equivalent function in the logical channel
+class. </p> <fig id="GUID-A1C1B515-66CA-5143-9351-FC46B5DAF2B5">
+<title>PDD Factory Implementation</title>
+<image href="GUID-E5041CC3-E30B-54EC-853C-9504BFEA34A4_d0e269626_href.png" placement="inline"/>
+</fig> <p id="GUID-BB0BDE33-A73E-5BCB-9338-039215BE8851"><b>Implementing Validate()</b> </p> <p>This
+function is called by the device driver framework to check that the PDD that
+this PDD factory object represents is suitable for use with a logical channel. </p> <p>The
+function is called in the context of the user-side client thread that requested
+the creation of the logical channel. The thread is in a critical section at
+this time. </p> <p>The function has the signature: </p> <codeblock id="GUID-59C68859-DA07-5E2D-95BA-7ABC47CB9CD2" xml:space="preserve">TInt Validate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer);</codeblock> <p>It takes the unit, additional information and version information as
+originally passed from the user-side call to <codeph>RBusLogicalChannel::DoCreate()</codeph>,
+and can use this information in its decision making process. The device driver
+framework accepts that this PDD is valid if the function returns <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>,
+but rejects the PDD if it returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p> <p>In
+the device driver framework, the function is called in two situations: </p> <ul>
+<li id="GUID-C4D0D28E-816E-5EFE-BE53-234A171BC4AB"><p>where an explicit PDD
+name is passed through the user-side call to <codeph>RBusLogicalChannel::DoCreate()</codeph>. </p> <p>The
+device driver framework searches for the PDD factory object using that name,
+and if found, calls <codeph>Validate()</codeph> on that object to confirm
+that the PDD is indeed suitable. </p> </li>
+<li id="GUID-D92821AA-10DE-5C78-B988-AFB8FAE6735A"><p>where no PDD name is
+passed through the user-side call to <codeph>RBusLogicalChannel::DoCreate()</codeph>. </p> <p>The
+device driver framework searches for all PDD factory objects with names of
+the form <codeph>x.y</codeph>, where <codeph>x</codeph> is the name of the
+LDD factory object. It accepts the first one to return <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>. </p> </li>
+</ul> <p>The <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref>'s implementation is as follows: </p> <codeblock id="GUID-FB905B9F-CBCD-505D-A3E8-51E4F9904A2E" xml:space="preserve">TInt DDevice1PddFactory::Validate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer)
+    {
+    // Check version numbers
+    if ((!Kern::QueryVersionSupported(iVersion,aVer)) || (!Kern::QueryVersionSupported(aVer,TVersion(EMinimumLddMajorVersion,EMinimumLddMinorVersion,EMinimumLddBuild))))
+        return KErrNotSupported;
+
+    // We don't support units
+    if (aUnit != -1)
+        return KErrNotSupported;
+
+    // Ignore extra info, (this could be used for validation purposes)
+    // Note, aInof is a pointer to a descriptor in user memory, therefore safe methods should
+    // be used for reading its contents. E.g. using Kern::KUDesGet()
+    (void)aInfo;
+
+    // OK
+    return KErrNone;
+    }
+    </codeblock> </section>
+<section id="GUID-379D4AFF-0C34-590D-B049-08D54889B9FE"><title>Optional changes</title> <p id="GUID-1C8B7CF4-0862-5549-BA35-0B51FD139D8F"><b>Re-implementing QueryVersionSupported()</b> </p> <p>Any
+implementation should decide whether this PDD can support the client's requirements,
+as represented by the supplied version. </p> <p>The default implementation
+just calls <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A28757CC-B89B-3F63-AD39-9955FBE7533B"><apiname>Kern::QueryVersionSupported()</apiname></xref> and compares the
+supplied version information with the version information in this LDD factory
+object. </p> <p>It should rarely, if ever, be necessary to change the default
+implementation. </p> <p>Note that the function is not called by the device
+driver framework but is available to be called by the LDD. </p> <p id="GUID-A77BBD7B-F27E-5DEB-ADA4-AEF6EDDF63D2"><b>Re-implementing
+IsAvailable()</b> </p> <p>An implementation should decide whether the combination
+of: specified unit, the additional information, and the name of the PDD, is
+supported by the driver, and return true or false as appropriate. The default
+implementation always returns true. </p> <p id="GUID-7DAE6FEA-13E3-5BB6-9B24-0D6E81CF66D7"><b>Re-implementing
+Info()</b> </p> <p>The function gets additional device specific, or device
+class specific information about this driver. It is currently used only for
+getting driver priorities in conjunction with the <xref href="GUID-71E5D75F-9641-3CC3-AEA1-F63CEF863CDD.dita"><apiname>RPhysicalDeviceArray</apiname></xref> class,
+which is used to find media drivers. </p> <p>It should rarely, if ever, be
+necessary to change the default implementation. </p> </section>
+</conbody></concept>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B5A2D9BF-E4D0-52CB-AD19-1EC8B00F8F44" xml:lang="en"><title>I2S Design
+Considerations</title><shortdesc>This document discusses general design considerations involved
+in implementing the Symbian platform <apiname>I2S</apiname> class. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-93347889-B75A-58A1-9CE8-FECEAA1CFD11"><title>Input and output
+registers</title> <p>The I2S standard does not specify how data is written
+to and read from the bus. The Symbian platform I2S interface supports three
+architectures to do this. All three involve the use of receive and transmit
+registers, status registers and interrupts (however, under certain circumstances
+it is possible to implement the specification with polling instead of interrupts). </p> <p><b>PIO</b> </p> <p>The
+simplest input/output architecture is PIO (peripheral input/output). </p> <p>PIO
+specifies a receive register and a transmit register for each frame phase.
+If full duplex is not supported, the receive and transmit registers may be
+combined into a single read-write register. In some architectures a single
+register may be used for both frame phases. Receive registers are specified
+to be read-only and transmit registers are specified to be read-write. </p> <p>Control
+is maintained by a separate status register indicating whether the read register
+is full and the write register is empty and also to signal overrun and underrun. </p> <p>If
+read and write operations are triggered by interrupts there is also a read-write
+interrupt masking register. It contains bits to enable and disable interrupts
+conditional on full read register, empty write register, receive overrun and
+transmit underrun. </p> <p>PIO may also be controlled by polling instead of
+interrupts. </p> <p><b>FIFO</b> </p> <p>PIO may be combined with a hardware
+FIFO (first in first out). In this architecture you read from and write to
+registers as specified for PIO. However, behind the scenes there is a FIFO
+in which input and output data is queued. The FIFO is invisible to software
+but generates new interrupts. </p> <p>A FIFO has a parameter called the watermark,
+a threshold set by the programmer or implementer. If the amount of receive
+data goes over the watermark or the amount of transmit data goes under it,
+a notification is generated, usually as an interrupt. </p> <p>FIFO may also
+be controlled by polling instead of interrupts. </p> <p><b>DMA</b> </p> <p>DMA
+(direct memory access) can only be used in conjunction with FIFO. If the interface
+is implemented using DMA you simply monitor interrupts and read from or write
+to a DMA register. </p> <p>DMA input-output can only be controlled using interrupts:
+polling is not possible. </p> </section>
+<section id="GUID-7739A883-B7CC-576C-8753-0AD3ED879732"><title>Roles</title> <p>An
+I2S interface takes either the Master role or the Slave role. The I2S standard
+specifies that exactly one device on a bus shall act as bus Master, providing
+timing and synchronisation to all the other devices, which act as Slaves.
+In some bus configurations, all devices both Master and Slave have one of
+the types Transmitter, Receiver or Bidirectional depending on the flow of
+data. In other bus configurations the Master is neither a Transmitter nor
+a receiver but has the type Controller and determines whether the other devices
+are Transmitters or Receivers. The I2S interface supports Controllers but
+does not implement them: implementation is reserved to a different interface. </p> </section>
+<section id="GUID-3CC82E8A-B503-56C2-ADDA-2DD9C152A7DD"><title>Data structures</title> <p>The
+I2S standard assumes that audio data is stereo by default but it can also
+support mono and TDM. </p> <p>Audio data is transmitted and received in data
+structures of predetermined size called frames. Frames are divided into two
+parts called frame phases: they are called Left and Right and are intended
+to hold data from two stereo channels. They can also be used to carry mono
+audio data either by holding the same sample in each phase or by holding the
+sample in the left phase and leaving the right phase empty. </p> <p>The left
+frame phase and the right frame phase are not necessarily of equal length.
+The Symbian platform I2S implementation specifies the length of the whole
+frame and the length of the left frame phase as parameters: the length of
+the right frame phase is defined to be the difference between the two. The
+unit of length is bits or clock cycles: one bit is transmitted per clock cycle.
+The length of a frame is typically one of: 16, 24, 32, 48, 64, 96 or 128 bits. </p> </section>
+<section id="GUID-781649DF-74E4-5813-94A0-8050E9DA15C7"><title>Transfer rates</title> <p>Digitised
+audio data is transmitted in discrete quantities called samples. A frame phase
+transmits one sample: however a sample may be shorter than its frame phase
+because of compression. When this is so, the end of the frame phase is padded
+with dummy data, usually 0s. Sampling is performed at various different resolutions,
+and the higher the resolution the greater the number of frames exchanged per
+unit of time. This means that the sampling rate is equivalent to the frame
+rate: the I2S standard defines them both in terms of sampling rate. A number
+of sampling rates are supported in the Symbian platform I2S interface, from
+8KHz for telephony to 96KHz for Blu-Ray and HD-DVD. If the implementation
+supports full duplex the sampling rate is specified to be the same for data
+flow in both directions. </p> </section>
+<section id="GUID-AB674FF0-BAC4-5021-B302-DF81FC37ECD0"><title>Timing and
+synchronisation</title> <p>A frame is transmitted immediately after the frame
+synchronisation signal is sent (both are latched to the falling edge of the
+bit clock). By default the first bit of the frame is the first bit transmitted
+after the signal. However, the hardware may require more time than that to
+respond to the signal. In this case, delay cycles are inserted into the data
+flow: one delay cycle has the same duration as a bit clock period. The Symbian
+platform I2S interface supports the ability to specify a number of delay cycles
+per frame phase. When delay cycles are inserted, the length of the frame must
+be correspondingly reduced, if necessary by truncating the sample. The currently
+specified number of delay cycles applies to all frames until a new number
+is specified. </p> </section>
+</conbody><related-links>
+<link href="GUID-046E5E45-ADB1-54B7-8242-2B1DC5741640.dita"><linktext>I2S Implementation
+Guide</linktext></link>
+</related-links></concept>

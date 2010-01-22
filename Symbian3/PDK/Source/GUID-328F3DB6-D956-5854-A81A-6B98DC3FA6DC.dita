@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-328F3DB6-D956-5854-A81A-6B98DC3FA6DC"><title>Create an MMP file for the PSY </title><shortdesc>This section describes how to create the MMP file for a PSY. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>The MMP file for the PSY must declare it as an ECOM plugin and specify the resources it requires. </p> </context> <steps-unordered><step id="GUID-F5907612-5E43-501F-99CF-402DEFE88642"><cmd>Create an MMP file for the PSY </cmd> <info>The MMP file has the format shown in the example below. </info> <stepxmp><codeblock id="GUID-5AA30AE6-270C-5C68-A36B-1A30C1A99625" xml:space="preserve">TARGET          examplepsy.dll 
+TARGETTYPE      PLUGIN
+UID             0x10009d8d 0x10001234
+
+CAPABILITY      CAP_ECOM_PLUGIN
+SOURCEPATH      ..\src
+SOURCE          EPos_ExampleMain.cpp
+SOURCE          EPos_CPosExamplePositioner.cpp
+
+USERINCLUDE     ..\src
+USERINCLUDE     ..\resource
+
+SYSTEMINCLUDE   \Epoc32\Include
+SYSTEMINCLUDE   \Epoc32\Include\oem
+SYSTEMINCLUDE   \Epoc32\Include\ecom
+
+SOURCEPATH      ..\resource
+
+START RESOURCE  exampleresource.rss   // uid of dll
+TARGET          examplepsy.rsc
+TARGETPATH      \resource
+END
+
+LIBRARY         euser.lib
+LIBRARY         lbs.lib
+LIBRARY         eposservercommon.lib
+</codeblock> </stepxmp> <info>The second UID must be <codeph>0x10009d8d </codeph> and the third UID is the PSY DLL UID (allocated from Symbian). The PSY ECOM implementation must have a trust level of <codeph>CAP_ECOM_PLUGIN</codeph> to be loaded by the Location Framework. If the trust level is less than <codeph>CAP_ECOM_PLUGIN</codeph> then the PSY cannnot be used by Location Framework. </info> <info>The MMP file must specify \epoc32\include, \epoc32\include\oem, and \epoc32\include\ecom as system includes and <filepath>euser.lib</filepath>, <filepath>lbs.lib</filepath> and <filepath>eposservercommon.lib</filepath> as libraries. </info> </step> </steps-unordered> <postreq><p>A developer must create a subclass of <xref href="GUID-0CA8AEC1-FF5E-3556-ACBD-0D4277CF1350.dita"><apiname>CPositioner</apiname></xref> to implement a PSY. </p> <p>See <xref href="GUID-0B4D4675-2CFB-5964-A869-7275202AC71D.dita">Implement a subclass of CPositioner</xref> for more information. </p> </postreq> </taskbody><related-links><link href="GUID-86AD79A5-E18D-56C6-997A-5E2B24FEE80D.dita"><linktext>Positioning
+                Plug-in API Tutorial</linktext> </link> </related-links></task>

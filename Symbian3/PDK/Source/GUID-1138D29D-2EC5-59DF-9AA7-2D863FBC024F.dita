@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F" xml:lang="en"><title>Factory
+Implementation</title><shortdesc>Describes how to implement a factory. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Sound Driver PDD must provide a factory class to create channels. All
+PDD factory classes are derived from <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref>. The
+template PDD factory class <xref href="GUID-CA70CE3A-ACD8-39C7-8F27-D73EA9E6C2E1.dita"><apiname>TemplateSoundScPddFactory</apiname></xref> creates
+the appropriate PDD object when a driver channel is opened on the device.
+As well as the configurations supporting both record and playback, this class
+implements control of those aspects of the audio hardware device that are
+shared between the two channels. </p>
+<p> <xref href="GUID-8720456A-173A-3801-BECB-736ABFA7912A.dita"><apiname>DTemplateSoundScPddFactory</apiname></xref> is defined as: </p>
+<codeblock id="GUID-A66766B6-6953-59AC-9520-A686A8216E0F" xml:space="preserve">class DTemplateSoundScPddFactory : public DPhysicalDevice
+    {
+public:
+    DTemplateSoundScPddFactory();
+    ~DTemplateSoundScPddFactory();
+    virtual TInt Install();
+    virtual void GetCaps(TDes8&amp; aDes) const;
+    virtual TInt Create(DBase*&amp; aChannel, TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer);
+    virtual TInt Validate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer);
+private:
+    /** The DFC queue (used also by the LDD). */ 
+    TDynamicDfcQue* iDfcQ;
+    friend class DTemplateSoundScTxPdd;
+    friend class DTemplateSoundScRxPdd; 
+    };</codeblock>
+<p>The PDD factory class provided by the template Sound Driver creates a new
+DFC queue and associated kernel thread, <codeph>iDfcQ</codeph>, for exclusive
+use by this pair of Sound Driver channels. This is created within the second
+stage constructor function <xref href="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F.dita#GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F/GUID-48FD1134-253A-56E6-8152-C95260E4CB21">Install()</xref>.
+A pointer to the DFC queue is returned by the PDD function <xref href="GUID-71190437-912E-3E23-8E68-4FA8FF913D7A.dita"><apiname>DfcQ()</apiname></xref>.
+See the <xref href="GUID-AC560324-798C-5D0A-B23D-2419A7688A5B.dita#GUID-AC560324-798C-5D0A-B23D-2419A7688A5B/GUID-61725EEB-5114-5A85-9C28-57A47F14000C">PDD
+class constructor</xref> section. </p>
+<p>The class <xref href="GUID-8720456A-173A-3801-BECB-736ABFA7912A.dita"><apiname>DTemplateSoundScPddFactory</apiname></xref> contains four virtual
+functions, including the constructor, that must be implemented by the PDD
+for both driver channels. The template Sound Driver contains default implementations
+together with a constructor and destructor and, typically, need little or
+no modification: </p>
+<ul>
+<li id="GUID-896078FE-06EF-5AAC-ABDD-4B8AC7B0B72C"><p> <xref href="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F.dita#GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F/GUID-CE921DE4-77A2-580F-8415-749DBA2782B8">DTemplateSoundScPddFactory constructor</xref>  </p> </li>
+<li id="GUID-A3959AB1-9B25-5892-ADDE-4C79995A611B"><p> <xref href="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F.dita#GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F/GUID-48FD1134-253A-56E6-8152-C95260E4CB21">Install()</xref> </p> </li>
+<li id="GUID-2D388367-517C-526A-B385-DE86FBB59A5E"><p> <xref href="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F.dita#GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F/GUID-FFDCBC89-FC11-57AA-A43E-689355B48E5A">Validate()</xref> </p> </li>
+<li id="GUID-06C058F0-5CE7-56F6-A34C-C1CAF67D1E95"><p> <xref href="GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F.dita#GUID-1138D29D-2EC5-59DF-9AA7-2D863FBC024F/GUID-B28B533E-1630-52F6-9589-F71E3FAFEBBB">Create()</xref>  </p> </li>
+</ul>
+<section id="GUID-CE921DE4-77A2-580F-8415-749DBA2782B8"><title>DTemplateSoundScPddFactory
+constructor</title> <p>Ensure that the inherited data member <codeph>iUnitsMask</codeph> is
+setup correctly according to the unit numbers to be supported. The default
+version enables the PDD to open both the first playback driver channel number <codeph>KSoundScTxUnit0</codeph> and
+the first record driver channel number <codeph>KSoundScRxUnit0</codeph>: </p> <codeblock id="GUID-F294EA90-83AD-557C-8EC7-675062FB768C" xml:space="preserve">// Support units KSoundScTxUnit0 &amp; KSoundScRxUnit0
+iUnitsMask=(1&lt;&lt;KSoundScRxUnit0)|(1&lt;&lt;KSoundScTxUnit0);</codeblock> </section>
+<section id="GUID-48FD1134-253A-56E6-8152-C95260E4CB21"><title>Install()</title> <p>This
+is the second stage constructor for the PDD factory class. The template version
+creates the DFC queue and sets the driver name. </p> <codeblock id="GUID-1A94099F-B0AB-55D4-9D43-E63E7C92482E" xml:space="preserve">_LIT(KSoundScPddName,"SoundSc.Template");
+
+// Definitions for the kernel thread created for this sound driver.
+_LIT(KSoundScDriverThreadName,"SoundDriverThread");
+const TInt KSoundScDriverThreadPriority=26; // One less than DFC thread 0
+
+TInt DTemplateSoundScPddFactory::Install()
+{
+    TInt r=KErrNone;
+    if (iDfcQ==NULL)
+        {
+        // Create a new sound driver DFC queue (and associated kernel thread). 
+        r=Kern::DynamicDfcQCreate(iDfcQ, KSoundScDriverThreadPriority, KSoundScDriverThreadName);
+        }
+    
+    if (r==KErrNone)
+        {
+        r=SetName(&amp;KSoundScPddName); // Set the name of the driver object
+        }
+    return(r);
+    }</codeblock> <p>The physical device is identified by the driver name,
+alter this to reflect your device. The driver name is the same as the LDD
+name, but followed by a dot and a short string to represent the physical device.
+For example, the name used for template is "<codeph>SoundSc.Template</codeph> ". </p> </section>
+<section id="GUID-FFDCBC89-FC11-57AA-A43E-689355B48E5A"><title>Validate()</title> <p>This
+function is called by the kernel device driver framework to see whether this
+PDD is suitable for use with a particular driver channel. Ensure that the
+unit number checking code is correct for the unit numbers that are to be supported.
+The default version enables the PDD to open both the first playback driver
+channel number <codeph>KSoundScTxUnit0</codeph> and the first record driver
+channel number <codeph>KSoundScRxUnit0</codeph>. </p> <codeblock id="GUID-21542AAA-48FA-5D9E-A1EA-5F8363F3FE84" xml:space="preserve">// Check the unit number is compatible
+if (aUnit!=KSoundScTxUnit0 &amp;&amp; aUnit!=KSoundScRxUnit0)
+    return(KErrNotSupported);</codeblock> </section>
+<section id="GUID-B28B533E-1630-52F6-9589-F71E3FAFEBBB"><title>Create()</title> <p>This
+function is called by the kernel device driver framework to create a PDD object.
+Ensure that the unit number checking code is correct for the unit numbers
+that are to be supported. For configurations supporting both playback and
+record, it must be capable of creating either a playback or record PDD object
+according to the channel number specified. The template version is implemented
+as follows: </p> <codeblock id="GUID-B1625466-4560-56C2-A7BF-8700FFAEAAD8" xml:space="preserve">TInt DTemplateSoundScPddFactory::Create(DBase*&amp; aChannel, 
+                                        TInt aUnit,
+                                        const TDesC8* /*anInfo*/, 
+                                        const TVersion&amp; /*aVer*/)
+    {
+    // Create the appropriate PDD channel object.
+    TInt r=KErrNoMemory;
+    if (aUnit==KSoundScRxUnit0)
+        {
+        // Create a record PDD channel object
+        DTemplateSoundScRxPdd* pD=new DTemplateSoundScRxPdd;
+        aChannel=pD;
+        if (pD)
+            {
+            pD-&gt;iPhysicalDevice=this;
+            r=pD-&gt;DoCreate();
+            }
+        }
+       else
+        {
+        // Create a playback PDD channel object
+        DTemplateSoundScTxPdd* pD=new DTemplateSoundScTxPdd;
+        aChannel=pD;
+        if (pD)
+            {
+            pD-&gt;iPhysicalDevice=this;
+            r=pD-&gt;DoCreate();
+            }
+        }
+    return(r);
+    } </codeblock> </section>
+</conbody></concept>

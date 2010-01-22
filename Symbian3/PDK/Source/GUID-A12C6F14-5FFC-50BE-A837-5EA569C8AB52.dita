@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-A12C6F14-5FFC-50BE-A837-5EA569C8AB52" xml:lang="en"><title>Telephony
+Watcher Tutorial </title><shortdesc>This tutorial describes how to use the telephony watchers in Symbian
+platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-1BFC0D23-48B9-51EB-9AAD-B6CB285AFABD"><p>The telephony watchers
+provide the signal strength and the call indicator information to all the
+registered clients applications. The client application must register with
+the <xref href="GUID-FE910347-7CC1-5241-B443-88AD3F5A96EF.dita">Publish and Subscribe</xref> framework
+to receive the information. The telephony watchers enable the clients to retrieve
+information about network signal strength and call status. </p> </context>
+<steps id="GUID-B24B6C77-2F08-5250-8B60-3E30E6318EE6">
+<step id="GUID-5A0A8EED-700A-5B5C-955C-7130C6B736DE"><cmd>Create an instance
+of watchers </cmd>
+<info>If the watcher was started earlier, re-start them to reset the values. </info>
+</step>
+<step id="GUID-03A10CA1-D4D9-5690-AB0E-7AF972590F1C"><cmd>Create a handle
+to the publish and subscribe with RProperty::Attach(). </cmd>
+<info>Input the system category and the property key as the argument. The
+keys are defined in the system agent header <codeph>sacls.h</codeph>. Use <codeph>KUidCurrentCall</codeph> for
+call status and <codeph>KUidNetworkStatus</codeph> for network status information. </info>
+</step>
+<step id="GUID-D93E2115-84AE-5253-9C87-640E471A10BE"><cmd>Use <xref href="GUID-3791FC66-0A5E-3A55-96BB-E725EF3B96D5.dita#GUID-3791FC66-0A5E-3A55-96BB-E725EF3B96D5/GUID-8211769E-8E51-3F23-847E-DDDA3055A205"><apiname>RPropety::Subscribe()</apiname></xref> to
+subscribe to the property and use <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-79308052-0AAC-3E6F-9597-5D1890572666"><apiname>RProperty::Get()</apiname></xref> to retrieve
+the updated information. </cmd>
+</step>
+<step id="GUID-6DCF841E-7CDB-5904-BD75-D7D7C74255F7"><cmd>The retrieved information
+can be displayed to the user. </cmd>
+</step>
+<step id="GUID-BB6E5967-CC50-5324-8EFA-E22558AE80D8"><cmd/>
+<info>Follow the steps 1 - 4 to retrieve the other value. </info>
+</step>
+</steps>
+<example id="GUID-13058B4E-5AA3-5C21-AD74-0B10215CF14B"><title>Watcher example</title> <p>The
+example code below describes how to retrieve the network signal status with
+the telephony watcher. </p> <codeblock id="GUID-71C4B1E3-5887-5A57-8498-211A6D915F00" xml:space="preserve">
+//assume that the watcher is stopped 
+
+StartWatcher();
+
+TInt state;
+TRequestStatus    status;
+RProperty property;
+
+
+//initial network status
+
+TInt ret = RProperty.Get(KUidSystemCategory, KUidChargerStatus.iUid, state);
+
+// display the value
+...
+
+//attach to the network status property
+
+ret = property.Attach(KUidSystemCategory,KUidNetworkStatus.iUid);
+
+
+//subscripe to the property
+
+property.Subscribe(status);
+
+User::WaitForRequest(status);
+
+property.Subscribe(status);
+propertty.Get(state);
+
+//display the value
+...
+
+</codeblock> </example>
+</taskbody></task>

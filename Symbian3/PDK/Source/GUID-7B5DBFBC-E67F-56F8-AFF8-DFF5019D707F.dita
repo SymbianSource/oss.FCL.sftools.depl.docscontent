@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7B5DBFBC-E67F-56F8-AFF8-DFF5019D707F" xml:lang="en"><title>Managing
+Files</title><shortdesc>Applications can use the <apiname>ContentAccess::CManager</apiname> class
+to manage files. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>Some agents may choose to store content
+files inside their server private directories. In the file system the private
+directories have the following format: </p> <p> <filepath>\private\&lt;process
+SID&gt;\protectedfile.ext</filepath>  </p> <p>If an agent want to publish the
+existence of its private directory, it specify the name of the private directory
+(the SecureID of the process) in the <codeph>opaque_data</codeph> section
+of the agent's ECom resource file. See <xref href="GUID-5BD60B1B-CEB7-557A-A9DC-1BB64575F3E2.dita">Content
+Access Agent ECOM Resource File</xref>. </p> <p>CAF maps the path to the agent
+name, so that it is human-readable. For example: </p> <p> <filepath>\private\&lt;agent_name&gt;\protectedfile.ext</filepath>  </p> <p>The
+agents can advertise the existence of files to applications through their
+implementation of the <xref href="GUID-D7457871-5361-3684-9A95-FBDB9C2689DD.dita#GUID-D7457871-5361-3684-9A95-FBDB9C2689DD/GUID-0306A1CE-9EAA-3008-A9D7-1AACA95A6081"><apiname>ContentAccess::CAgentManager::GetDir()</apiname></xref> function.
+When an application opens a file stored in the private directory, CAF selects
+the agent which handles that content based upon the name in the path. If the
+file is not stored in a private directory, CAF checks each of the agents whether
+they support the file. If no agent supports the file, it reads as plaintext
+using F32Agent. </p> </section>
+<section><title>Required background</title> <p>Before you start, you must
+understand: </p> <ul>
+<li id="GUID-E7B3F1D9-8642-5DC2-911F-C1AB89B02C46"><p><xref href="GUID-84B6389A-55CC-53EB-8725-65F753FD7217.dita">Content
+Access Framework for DRM</xref>  </p> </li>
+<li id="GUID-BDCB532C-22AB-5CF0-9499-363480AB8E4A"><p><xref href="GUID-B6912FE7-4C2A-5FC7-BDA8-702CA2C0214A.dita">Content
+Object Attributes</xref>  </p> </li>
+</ul> </section>
+<section><title>Procedure</title> <ol id="GUID-0E77D596-02DA-5024-A607-4DD96FDC9AD1">
+<li id="GUID-6AE6D7DF-B2A2-5B10-BE92-4A268FA7E74E"><p>Create a manager object
+using the <xref href="GUID-7F3D9E35-A8FC-35A6-8036-23396BAADFDC.dita#GUID-7F3D9E35-A8FC-35A6-8036-23396BAADFDC/GUID-2F4CB027-777F-3F16-AE9A-8902F4AE87E7"><apiname>CManager::NewL()</apiname></xref> function. </p> </li>
+<li id="GUID-CBBF33EB-EFB8-5996-9DE6-914F705C36E0"><p>Perform one or more
+of the following tasks as per your requirement: </p> <ul>
+<li id="GUID-A3827F88-086A-52F6-8053-BA4CD185D354"><p>Copy a file </p> </li>
+<li id="GUID-AE03CB29-84BE-59B6-8A0B-047DCC580C69"><p>Move or rename a file </p> </li>
+<li id="GUID-EC87FDE9-0DAF-5903-B303-24A863C348DE"><p>Delete a file </p> </li>
+<li id="GUID-8F1E1E88-546E-5F40-B039-510994E5A2D8"><p>Create a directory </p> </li>
+<li id="GUID-82C5252F-863D-5AF9-8922-C14F76D48642"><p>List the contents of
+a directory </p> </li>
+<li id="GUID-69695624-CE3A-5569-AD36-5413B11BBE55"><p>Find the real MIME type
+of the file </p> </li>
+<li id="GUID-B073B5BE-D492-5A07-A02F-E744B90303A2"><p>Get the attributes of
+the content object</p> </li>
+<li id="GUID-A643A08C-98F8-5BC4-BA0E-A5E6E946CE8C"><p>Remove a directory </p> </li>
+</ul> </li>
+</ol> </section>
+<section><title>Copy a file</title><p> <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-61AA708F-8EE5-3D54-AD7A-2E4E7A253877"><apiname>ContentAccess::CManager::CopyFile()</apiname></xref> allows
+a user to make a copy of the file. For example, the user may wish to make
+a copy of the file onto removable media. When copying content managed by a
+DRM agent, the agent only copies the content, it does not copy the rights.
+ <codeblock id="GUID-63550964-EEDD-51A2-8316-4B33F794E060" xml:space="preserve">// create a manager object
+CManager *manager = CManager::NewL();
+
+// Use the manager to copy a file
+TInt result = manager-&gt;CopyFile(source, destination);</codeblock></p></section>
+<section><title>Move or rename a file</title><p><xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-234C24A5-5C9E-3575-9FF3-8BC6F1C09902"><apiname>ContentAccess::CManager::RenameFile()</apiname></xref> allows
+a user to move or rename a file. For example, the user may wish to move the
+file to removable media.  <codeblock id="GUID-25D923DF-CA66-5E8F-87D8-44AFCE75E04E" xml:space="preserve">TInt result = manager-&gt;RenameFile(oldFilename, newFilename);</codeblock></p></section>
+<section><title>Delete a file</title><p> <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-CCE97FF8-FE23-3A16-A093-B2C9388EABDC"><apiname>ContentAccess::CManager::DeleteFileL()</apiname></xref> allows
+a client to delete a specified file managed by a DRM agent. </p> <p>The agent
+responsible for the content can display a dialog to confirm that the user
+wants to delete the file. This is particularly important if the content still
+has valid rights. </p> <p>The agent implementation must decide whether to
+delete the rights or only the content. </p> <codeblock id="GUID-BBEBA78E-6BBD-5179-9C1E-7329BCCAED73" xml:space="preserve">TFileName filename;
+
+// Use the manager to delete a file
+// CAF asks the agent which actually owns the file to delete it.
+TInt result = manager-&gt;DeleteFile(filename);</codeblock></section>
+<section><title>Create a directory</title><p> <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-218ADCB8-25BA-31E0-83D2-8E2315CAD3C3"><apiname>ContentAccess::CManager::MkDir()</apiname></xref> allows
+a user to create a directory. </p> <codeblock id="GUID-886A4120-8A50-5740-98EA-B389C590F226" xml:space="preserve">TInt result = manager-&gt;MkDir(fullpath);</codeblock> <p>If one or more of the sub-directories do not exist they are created too using
+the <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-83D7D7A2-3046-381F-A856-04FA661F37CD"><apiname> ContentAccess::CManager::MkDirAll()</apiname></xref> function. </p> <codeblock id="GUID-E83DD3C2-6816-5834-8561-565EAC7FEE26" xml:space="preserve">TInt result = manager-&gt;MkDirAll(fullpath);</codeblock></section>
+<section><title>List the contents of a directory</title><p>There are three
+variations of the <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-BAA97FAB-5DEA-3FCB-93AD-8157D1AF6AC7"><apiname>ContentAccess::CManager::GetDir()</apiname></xref> function.
+They each allow a client to list the contents of an agent's private directory. </p> <p>As
+mentioned earlier, it is optional for agents to provide this information. </p> <codeblock id="GUID-5AB17FAF-83A1-518B-9D1D-B00C8818BFC2" xml:space="preserve">CDir *aDir;
+TInt result = manager-&gt;GetDir (aName, aEntryAttMask, aEntrySortKey, aDir);</codeblock></section>
+<section><title>Find the real MIME type of the file</title><p>The CAF Apparc
+recognizer provides a MIME type that is a combination of the file MIME type
+and the content within the file. In some cases, such as forwarding DRM content
+to another device, it is important to make sure the content is sent with the
+correct MIME type. </p> <p>Using the <codeph>""</codeph> empty string <codeph>UniqueId</codeph> allows
+an application to determine the MIME type of the file. </p> <codeblock id="GUID-CF389440-3AE5-5AC2-97E1-57E0D30901D6" xml:space="preserve">TBuf &lt;256&gt; mimeType;
+TInt result = manager-&gt;GetStringAttribute(EMimeType, mimeType, TVirtualPathPtr(aURI,KNullDesC16()));</codeblock></section>
+<section><title>Get the attributes of the content object</title><p>The <xref href="GUID-7F3D9E35-A8FC-35A6-8036-23396BAADFDC.dita"><apiname>CManager</apiname></xref> API
+allows applications to retrieve attributes or string attributes from a content
+object as described in <xref href="GUID-B6912FE7-4C2A-5FC7-BDA8-702CA2C0214A.dita">Content
+Object Attributes</xref>. </p></section>
+<section><title>Remove a directory</title><p> <xref href="GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8.dita#GUID-671191B1-B249-3DD3-A5E8-6F1A41A371C8/GUID-BB1AE25D-11DD-3599-902D-BE5B2D414C26"><apiname> ContentAccess::CManager::RmDir()</apiname></xref> allows
+a user to remove a directory. </p> <codeblock id="GUID-9350BEDB-5767-5CD2-9456-8AC1B9DF374F" xml:space="preserve">TInt result = manager-&gt;RmDir(fullpath);</codeblock></section>
+<section><title>See also</title> <p><xref href="GUID-E99E0092-5F1D-5715-945E-E83C307357C3.dita">Managing
+CAF Agents</xref>  </p> </section>
+</conbody></concept>

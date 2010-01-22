@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-87AB9B3F-9EE1-5D49-8FE9-FDF55F8953D5"><title>Multicall Service Settings Tutorial</title><shortdesc>This tutorial describes how to get and set the WCDMA multicall service settings. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <context><p>The Multicall service is a 3G-WCDMA service that allows the user to set up multiple simultaneous circuit-switched calls. </p> </context> <steps id="GUID-9C86A8C2-2FE1-50C9-B2F3-3C7D5106E214"> <step id="GUID-BF57112A-FC8D-5FD8-97E6-BAD6EC31BA66"><cmd>Get the maximum number of simultaneous calls allowed by the handset, service provider, user or from the network using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::GetMulticallParams()</apiname></xref>. </cmd> <info>Settings are returned in an <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::TMobilePhoneMulticallSettingsV1</apiname></xref> object. </info> </step> <step id="GUID-79242F4F-A774-50DB-9548-DB4715E95CB4"><cmd>Set the maximum number of simultaneous calls allowed by the user using <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::SetMulticallParams()</apiname></xref>  </cmd> </step> <step id="GUID-EAAE157D-C728-540C-BEC2-2E909084F9ED"><cmd>Use <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita"><apiname>RMobilePhone::NotifyMulticallParamsChange()</apiname></xref> to get the notifications of any changes to the multicall settings. </cmd> </step> </steps> <example><title>Multicall example</title> <p>The following code gets the maximum number of simultaneous bearers allowed by the service provider. </p> <codeblock id="GUID-C73E0253-8831-5D53-B7B6-61025DE1BC70" xml:space="preserve">TInt CClientApp::ServiceProviderMaxBearersL()
+    {
+    RMobilePhone::TMobilePhoneMulticallSettingsV1 multicallSettings;
+    RMobilePhone::TMobilePhoneMulticallSettingsV1Pckg multicallSettingsPckg(multicallSettings);
+    TRequestStatus status;
+
+    iMobilePhone.GetMulticallParams(status,multicallSettingsPckg);
+    User::WaitForRequest(status);
+    User::LeaveIfError(status.Int());
+
+    return multicallSettings.iServiceProviderMaxBearers;
+    }</codeblock> </example> </taskbody></task>

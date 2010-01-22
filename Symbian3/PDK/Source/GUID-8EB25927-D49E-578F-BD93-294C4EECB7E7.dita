@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7" xml:lang="en"><title>Basic
+APIs</title><shortdesc>Accessing APIs and basic functions in kernel-side programs.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Device drivers, like user-side programs, need to use APIs for basic tasks
+such as managing buffers and arrays. However, the EKA2 architecture does not
+allow kernel-side programs such as drivers to link and use the User Library
+(<filepath>euser.dll</filepath>) that provides these APIs to user-side programs.
+This means kernel side code <i>cannot use the majority</i> of classes and
+functions that are available to user side code. </p>
+<p>However, some classes are available for use on both the user side and the
+kernel side. The first section of this document, <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-2CE47F55-D160-50A3-B05E-318569FDEF1F">Available EUSER functionality</xref>, explains what these are. In other cases,
+there are alternative Kernel-specific APIs or techniques that you can use.
+The second section, <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-6AE21206-A29D-5CB6-83E9-69C2E7DA566A">Coding
+techniques to replace EUSER functionality</xref>, describes these. </p>
+<p>The detailed contents are given below: </p>
+<p><b>Contents </b> </p>
+<ul>
+<li id="GUID-F2669D60-00E3-520C-BACA-E363BFEDD487"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-2CE47F55-D160-50A3-B05E-318569FDEF1F">Available EUSER functionality</xref>  </p> <ul>
+<li id="GUID-AB9D2617-556C-556B-81F2-A9E0E3CA2A60"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-1A26C8D7-E915-5280-BA1E-0B837E296EE4">8-bit descriptors</xref>  </p> </li>
+<li id="GUID-2D0B05B0-BEBB-5A71-A6CA-1FFC5848D80B"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-F8164DF1-8875-5C83-9165-9902EB51A97C">Arrays</xref> </p> </li>
+<li id="GUID-962C0A1C-5A7B-5201-956D-F38BDF59C836"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-0BC2B8B1-F797-5B65-9EE7-36A2EC5C9BC5">Character representation</xref>  </p> </li>
+<li id="GUID-36D2B096-181D-51E5-B502-E385565E7693"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-682EF1C2-4756-5E5A-B4E9-00AABD5D4CE2">Basic utility functions and classes</xref>  </p> </li>
+<li id="GUID-F9264F5E-2D3D-551D-B9DD-DCECC027021D"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-331E0310-69A3-58A6-B932-F2B44201530D">The Package Buffers API</xref>  </p> </li>
+<li id="GUID-293A58CA-F57E-5323-9B1B-A8F51D351AA2"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-5707529F-6145-58C3-A0A9-8789FF8F1C93">The UID manipulation APIs</xref>  </p> </li>
+<li id="GUID-022766DC-6F40-55BE-B02A-6544A213141B"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-E9F32C01-5C4F-5706-B992-A4F8B01171FD">Version handling API</xref>  </p> </li>
+<li id="GUID-5CA1160C-8EEC-5795-853D-C568D519534F"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-E67B4238-3CFF-5448-B711-FCD14D8D3C10">TRequestStatus</xref> </p> </li>
+<li id="GUID-AE09C566-0664-5341-9D8D-386D9CE3DFBA"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-0CA35DBF-C10D-5C35-90CD-24C53AEA41BF">TIpcArgs</xref> </p> </li>
+<li id="GUID-EE77EAFA-50E6-58E4-B64E-4E7AB5FCAEF2"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-111081C5-5BDA-516B-9B3D-9D24FAD31E5D">Basic graphic classes</xref>  </p> </li>
+</ul> </li>
+<li id="GUID-7772333C-EB62-58E1-B1FD-64B500567C9D"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-6AE21206-A29D-5CB6-83E9-69C2E7DA566A">Coding techniques to replace EUSER functionality</xref> </p> <ul>
+<li id="GUID-EF0FA499-7F16-54D6-B1BA-A0AB3071CFB5"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-CA520DD3-3601-5774-87F2-D5BA4DA2BF8E">Buffers: replacing HBufC8 with HBuf</xref>  </p> </li>
+<li id="GUID-6CAA6B7F-7F07-5047-82CE-CCAF960880AF"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-310ADB7F-A03C-5994-A918-634B7BAB7DD8">Buffers: replacing HBufC8 with C style pointers</xref>  </p> </li>
+<li id="GUID-8858CFAA-EF27-54B0-8083-74A990C5E614"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-586DD3B4-69DB-564B-AB8D-B3A02607CE02">Handling 16-bit data items</xref>  </p> </li>
+<li id="GUID-AA63211F-E5AD-554A-AAFC-3FB1336553D5"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-77C88D19-50C3-5D69-8084-BE750F100BA0">Replacing CBase with DBase</xref>  </p> </li>
+<li id="GUID-E264271B-64F3-59A3-AD65-56C9ACEB5ABF"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-585EE1D8-6080-5B37-A3BD-278B8731B7F9">Replacing User::QueryVersionSupported() with Kern::QueryVersionSupported()</xref>  </p> </li>
+</ul> </li>
+</ul>
+<section id="GUID-2CE47F55-D160-50A3-B05E-318569FDEF1F"><title>Available EUSER
+functionality</title> <p>This is a list of USER side classes, types and APIs
+that can still be used on the kernel side. However, a subset of the class
+member functions may not be available. </p> <ul>
+<li id="GUID-81D6F170-FAB0-5DE6-93BC-0027CF8E382F"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-1A26C8D7-E915-5280-BA1E-0B837E296EE4">8-bit descriptors</xref>  </p> </li>
+<li id="GUID-BF477CD1-6079-5C60-A658-0DD64111081F"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-F8164DF1-8875-5C83-9165-9902EB51A97C">Arrays</xref> </p> </li>
+<li id="GUID-63E56F9D-B261-58E7-B9F9-ED9726C7F16F"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-0BC2B8B1-F797-5B65-9EE7-36A2EC5C9BC5">Character representation (TChar)</xref>  </p> </li>
+<li id="GUID-6F9BC926-0367-57DC-8356-29A2D29D60B8"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-682EF1C2-4756-5E5A-B4E9-00AABD5D4CE2">Basic utility functions and classes</xref>  </p> </li>
+<li id="GUID-17051C1E-21DE-567C-ADB4-11D18314B0FC"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-331E0310-69A3-58A6-B932-F2B44201530D">The Package Buffers API</xref>  </p> </li>
+<li id="GUID-3BCFE3A4-9B93-5D2D-BA1E-71F2544028AC"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-5707529F-6145-58C3-A0A9-8789FF8F1C93">The UID manipulation APIs</xref>  </p> </li>
+<li id="GUID-4C2730C0-D22F-5855-9D11-8049B1BDEF5E"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-E9F32C01-5C4F-5706-B992-A4F8B01171FD">Version handling API</xref>  </p> </li>
+<li id="GUID-44CEA8AD-36B9-59DF-9469-9A905A600ED4"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-E67B4238-3CFF-5448-B711-FCD14D8D3C10">TRequestStatus</xref> </p> </li>
+<li id="GUID-A867EDC0-DD2E-5E6D-ABC8-E57CECDA6158"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-0CA35DBF-C10D-5C35-90CD-24C53AEA41BF">TIpcArgs</xref> </p> </li>
+<li id="GUID-D0E83441-2258-5660-99F1-5BCBB799DEA8"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-111081C5-5BDA-516B-9B3D-9D24FAD31E5D">Basic graphic classes</xref>  </p> </li>
+</ul> <p id="GUID-1A26C8D7-E915-5280-BA1E-0B837E296EE4"><b>8-bit descriptors</b> </p> <p>The
+following classes, defined in <filepath>e32des8.h</filepath>, <i>can</i> be
+used on the kernel side. </p> <p>For some classes, the kernel side can use
+the same member functions that are available to the user side. However, for
+other classes, the kernel side is restricted to using a subset of functions;
+where this is the case, the functions are listed </p> <table id="GUID-CCC5A82F-8A1B-52F2-8B0A-036801F68C68">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Classes available </b>  </p> </entry>
+<entry><p> <b>Public member functions that are available to kernel side code</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref>  </p> </entry>
+<entry><p> <codeph>TInt operator&lt;(const TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt
+operator&lt;=(const TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt
+operator&gt;(const TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt operator&gt;=(const
+TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt operator==(const
+TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt operator!=(const
+TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph> const TUint8 &amp;operator[](TInt
+anIndex) const;</codeph> </p> <p> <codeph>TInt Length() const;</codeph>  </p> <p> <codeph>TInt
+Size() const;</codeph>  </p> <p> <codeph>const TUint8 *Ptr() const;</codeph>  </p> <p> <codeph>TInt
+Compare(const TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt Match(const
+TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt MatchF(const TDesC8
+&amp;aDes) const;</codeph>  </p> <p> <codeph>TInt MatchC(const TDesC8 &amp;aDes)
+const;</codeph>  </p> <p> <codeph>TInt Locate(TChar aChar) const;</codeph>  </p> <p> <codeph>TInt
+LocateReverse(TChar aChar) const;</codeph>  </p> <p> <codeph>TInt Find(const
+TDesC8 &amp;aDes) const;</codeph>  </p> <p> <codeph>TInt Find(const TUint8
+*pS,TInt aLenS) const;</codeph>  </p> <p> <codeph>TPtrC8 Left(TInt aLength)
+const;</codeph>  </p> <p> <codeph>TPtrC8 Right(TInt aLength) const;</codeph>  </p> <p> <codeph>TPtrC8
+Mid(TInt aPos) const;</codeph>  </p> <p> <codeph>TPtrC8 Mid(TInt aPos,TInt
+aLength) const;</codeph>  </p> <p> <codeph>TInt CompareF(const TDesC8 &amp;aDes)
+const;</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref>  </p> </entry>
+<entry><p> <codeph>TDes8&amp; operator=(const TUint8 *aString);</codeph>  </p> <p> <codeph>TDes8&amp;
+operator=(const TDesC8 &amp;aDes);</codeph>  </p> <p> <codeph>TDes8&amp; operator=(const
+TDes8 &amp;aDes);</codeph>  </p> <p> <codeph>TInt MaxLength() const;</codeph>  </p> <p> <codeph>TInt
+MaxSize() const;</codeph>  </p> <p> <codeph>const TUint8 &amp;operator[](TInt
+anIndex) const;</codeph>  </p> <p> <codeph>TUint8 &amp;operator[](TInt anIndex);</codeph>  </p> <p> <codeph>TDes8
+&amp;operator+=(const TDesC8 &amp;aDes);</codeph>  </p> <p> <codeph>void Zero();</codeph>  </p> <p> <codeph>void
+SetLength(TInt aLength);</codeph>  </p> <p> <codeph>void SetMax();</codeph>  </p> <p> <codeph>void
+Copy(const TDesC8 &amp;aDes);</codeph>  </p> <p> <codeph>void Copy(const TUint8
+*aBuf,TInt aLength);</codeph>  </p> <p> <codeph>void Copy(const TUint8 *aString);</codeph>  </p> <p> <codeph>void
+Copy(const TDesC16 &amp;aDes);</codeph>  </p> <p> <codeph>void Append(TChar
+aChar);</codeph>  </p> <p> <codeph>void Append(const TDesC8 &amp;aDes);</codeph>  </p> <p> <codeph>void
+Append(const TDesC16 &amp;aDes);</codeph>  </p> <p> <codeph>void Append(const
+TUint8 *aBuf,TInt aLength);</codeph>  </p> <p> <codeph>void Fill(TChar aChar);</codeph>  </p> <p> <codeph>void
+Fill(TChar aChar,TInt aLength);</codeph>  </p> <p> <codeph>void FillZ();</codeph>  </p> <p> <codeph>void
+FillZ(TInt aLength);</codeph>  </p> <p> <codeph>void Num(TInt64 aVal);</codeph>  </p> <p> <codeph> void
+Num(TUint64 aVal, TRadix aRadix);</codeph>  </p> <p> <codeph>void NumFixedWidth(TUint
+aVal,TRadix aRadix,TInt                      aWidth);</codeph>  </p> <p> <codeph>void
+AppendNum(TInt64 aVal);</codeph>  </p> <p> <codeph>void AppendNum(TUint64
+aVal, TRadix aRadix);</codeph>  </p> <p> <codeph>void AppendNumFixedWidth(TUint
+aVal,TRadix aRadix,TInt                      aWidth);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-6DF731E4-5691-31C4-BEE0-03A3873F15EC.dita"><apiname>TPtrC8</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-C0D29B11-1535-3D11-B318-B18D30A6120B.dita"><apiname>TPtr8</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-5B1CA2E7-E3A7-3AF8-9EB0-662E130C45DA.dita"><apiname>TBufC8</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-78E993D5-A845-32B4-B41A-947ABEF16AA0.dita"><apiname>TBuf8</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-6A13E649-D15A-3BD7-B5C2-4DC23211F276.dita"><apiname>TDes8Overflow</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-A188447C-9DAA-3963-B6F2-893910450FC7.dita"><apiname>TLitC8</apiname></xref>  </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-F8164DF1-8875-5C83-9165-9902EB51A97C"><b>Arrays</b> </p> <p>The
+following classes, defined in <filepath>e32cmn.h</filepath>, <i>can</i> be
+used on the kernel side. </p> <p>For some classes, the kernel side can use
+the same member functions that are available to the user side. However, for
+other classes, the kernel side is restricted to using a subset of functions;
+where this is the case, the functions are listed </p> <table id="GUID-858768C2-7159-5AF9-9704-C95F6FB14204">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Classes available </b>  </p> </entry>
+<entry><p> <b>Public member functions that are available to kernel side code</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-FAEBF321-6B08-3041-A01F-B1E7282D0707.dita"><apiname> RArray</apiname></xref> &lt;class T&gt; </p> </entry>
+<entry><p> <codeph>RArray();</codeph>  </p> <p> <codeph>RArray(TInt aGranularity);</codeph>  </p> <p> <codeph>RArray(TInt
+aGranularity, TInt aKeyOffset);</codeph>  </p> <p> <codeph>RArray(TInt aMinGrowBy,
+TInt aKeyOffset, TInt                      aFactor);</codeph>  </p> <p> <codeph>void
+Close(); inline TInt Count() const;</codeph>  </p> <p> <codeph>const T&amp;
+operator[](TInt anIndex) const;</codeph>  </p> <p> <codeph>T&amp; operator[](TInt
+anIndex);</codeph>  </p> <p> <codeph>TInt Append(const T&amp; anEntry);</codeph>  </p> <p> <codeph>TInt
+Insert(const T&amp; anEntry, TInt aPos);</codeph>  </p> <p> <codeph>void Remove(TInt
+anIndex);</codeph>  </p> <p> <codeph>void Compress();</codeph>  </p> <p> <codeph>void
+Reset();</codeph>  </p> <p> <codeph>TInt Find(const T&amp; anEntry) const;</codeph>  </p> <p> <codeph>TInt
+Find(const T&amp; anEntry,                      TIdentityRelation&lt;T&gt; anIdentity)
+const;</codeph>  </p> <p> <codeph>TInt FindInSignedKeyOrder(const T&amp; anEntry)
+                     const;</codeph>  </p> <p> <codeph> TInt FindInUnsignedKeyOrder(const
+T&amp; anEntry)                      const;</codeph>  </p> <p> <codeph>TInt
+FindInOrder(const T&amp; anEntry,                      TLinearOrder&lt;T&gt;
+anOrder) const;</codeph>  </p> <p> <codeph>TInt FindInSignedKeyOrder(const
+T&amp; anEntry, TInt&amp;                      anIndex) const;</codeph>  </p> <p> <codeph>TInt
+FindInUnsignedKeyOrder(const T&amp; anEntry,                      TInt&amp;
+anIndex) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(const T&amp; anEntry,
+TInt&amp; anIndex,                      TLinearOrder&lt;T&gt; anOrder) const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInSignedKeyOrder(const T&amp; anEntry,                      TInt
+aMode) const;</codeph>  </p> <p> <codeph>TInt SpecificFindInUnsignedKeyOrder(const
+T&amp; anEntry,                      TInt aMode) const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInOrder(const T&amp; anEntry,                      TLinearOrder&lt;T&gt;
+anOrder, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt SpecificFindInSignedKeyOrder(const
+T&amp; anEntry,                      TInt&amp; anIndex, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInUnsignedKeyOrder(const T&amp; anEntry,                     
+TInt&amp; anIndex, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt SpecificFindInOrder(const
+T&amp; anEntry, TInt&amp;                      anIndex, TLinearOrder&lt;T&gt;
+anOrder, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt InsertInSignedKeyOrder(const
+T&amp; anEntry);</codeph> </p> <p> <codeph>TInt InsertInUnsignedKeyOrder(const
+T&amp;                      anEntry);</codeph>  </p> <p> <codeph>TInt InsertInOrder(const
+T&amp; anEntry,                      TLinearOrder&lt;T&gt; anOrder);</codeph>  </p> <p> <codeph>TInt
+InsertInSignedKeyOrderAllowRepeats(const T&amp;                      anEntry);</codeph>  </p> <p> <codeph>TInt
+InsertInUnsignedKeyOrderAllowRepeats(const T&amp;                      anEntry);</codeph>  </p> <p> <codeph>TInt
+InsertInOrderAllowRepeats(const T&amp; anEntry,                      TLinearOrder&lt;T&gt;
+anOrder);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-FAEBF321-6B08-3041-A01F-B1E7282D0707.dita"><apiname>RArray</apiname></xref> &lt;TInt&gt; </p> </entry>
+<entry><p> <codeph>RArray();</codeph>  </p> <p> <codeph>RArray(TInt aGranularity);</codeph>  </p> <p> <codeph>RArray(TInt
+aMinGrowBy, TInt aFactor);</codeph>  </p> <p> <codeph>void Close();</codeph>  </p> <p> <codeph>TInt
+Count() const;</codeph>  </p> <p> <codeph>const TInt&amp; operator[](TInt
+anIndex) const;</codeph>  </p> <p> <codeph>TInt&amp; operator[](TInt anIndex);</codeph>  </p> <p> <codeph>TInt
+Append(TInt anEntry);</codeph>  </p> <p> <codeph>TInt Insert(TInt anEntry,
+TInt aPos);</codeph>  </p> <p> <codeph>void Remove(TInt anIndex);</codeph>  </p> <p> <codeph>void
+Compress();</codeph>  </p> <p> <codeph>void Reset();</codeph>  </p> <p> <codeph>TInt
+Find(TInt anEntry) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(TInt
+anEntry) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(TInt anEntry,
+TInt&amp; anIndex) const;                      </codeph>  </p> <p> <codeph>TInt
+SpecificFindInOrder(TInt anEntry, TInt aMode)                      const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInOrder(TInt anEntry, TInt&amp; anIndex,                     
+TInt aMode) const;</codeph>  </p> <p> <codeph>TInt InsertInOrder(TInt anEntry);</codeph>  </p> <p> <codeph>TInt
+InsertInOrderAllowRepeats(TInt anEntry);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-FAEBF321-6B08-3041-A01F-B1E7282D0707.dita"><apiname>RArray</apiname></xref> &lt;TUint&gt; </p> </entry>
+<entry><p> <codeph>RArray();</codeph>  </p> <p> <codeph>RArray(TInt aGranularity);</codeph>  </p> <p> <codeph>RArray(TInt
+aMinGrowBy, TInt aFactor);</codeph>  </p> <p> <codeph>void Close();</codeph>  </p> <p> <codeph>TInt
+Count() const;</codeph>  </p> <p> <codeph>const TUint&amp; operator[](TInt
+anIndex) const;</codeph>  </p> <p> <codeph>TUint&amp; operator[](TInt anIndex);</codeph>  </p> <p> <codeph>TInt
+Append(TUint anEntry);</codeph>  </p> <p> <codeph>TInt Insert(TUint anEntry,
+TInt aPos);</codeph>  </p> <p> <codeph>void Remove(TInt anIndex);</codeph>  </p> <p> <codeph>void
+Compress();</codeph>  </p> <p> <codeph>void Reset();</codeph>  </p> <p> <codeph>TInt
+Find(TUint anEntry) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(TUint
+anEntry) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(TUint anEntry,
+TInt&amp; anIndex) const;                      </codeph>  </p> <p> <codeph>TInt
+SpecificFindInOrder(TUint anEntry, TInt aMode)                      const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInOrder(TUint anEntry, TInt&amp;                      anIndex,
+TInt aMode) const;</codeph>  </p> <p> <codeph>TInt InsertInOrder(TUint anEntry);</codeph>  </p> <p> <codeph>TInt
+InsertInOrderAllowRepeats(TUint anEntry);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-AAA13D1F-1BD7-3331-BB8C-11FA2795B53F.dita"><apiname>RPointerArray</apiname></xref> &lt;class T&gt; </p> </entry>
+<entry><p> <codeph>RPointerArray();</codeph>  </p> <p> <codeph>RPointerArray(TInt
+aGranularity);</codeph>  </p> <p> <codeph>RPointerArray(TInt aMinGrowBy, TInt
+aFactor);</codeph>  </p> <p> <codeph>void Close();</codeph>  </p> <p> <codeph>TInt
+Count() const;</codeph>  </p> <p> <codeph>T* const&amp; operator[](TInt anIndex)
+const;</codeph>  </p> <p> <codeph>T*&amp; operator[](TInt anIndex);</codeph>  </p> <p> <codeph>TInt
+Append(const T* anEntry);</codeph>  </p> <p> <codeph>TInt Insert(const T*
+anEntry, TInt aPos);</codeph>  </p> <p> <codeph>void Remove(TInt anIndex);</codeph>  </p> <p> <codeph>void
+Compress();</codeph>  </p> <p> <codeph>void Reset();</codeph>  </p> <p> <codeph>void
+ResetAndDestroy();</codeph>  </p> <p> <codeph>TInt Find(const T* anEntry)
+const;</codeph>  </p> <p> <codeph>TInt Find(const T* anEntry, TIdentityRelation&lt;T&gt;
+                     anIdentity) const;</codeph>  </p> <p> <codeph>TInt FindInAddressOrder(const
+T* anEntry) const;</codeph>  </p> <p> <codeph>TInt FindInOrder(const T* anEntry,
+TLinearOrder&lt;T&gt;                      anOrder) const;</codeph>  </p> <p> <codeph>TInt
+FindInAddressOrder(const T* anEntry, TInt&amp;                      anIndex)
+const;</codeph>  </p> <p> <codeph>TInt FindInOrder(const T* anEntry, TInt&amp;
+anIndex,                      TLinearOrder&lt;T&gt; anOrder) const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInAddressOrder(const T* anEntry, TInt                      aMode)
+const;);</codeph>  </p> <p> <codeph>TInt SpecificFindInOrder(const T* anEntry,
+                     TLinearOrder&lt;T&gt; anOrder, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt
+SpecificFindInAddressOrder(const T* anEntry,                      TInt&amp;
+anIndex, TInt aMode) const;</codeph>  </p> <p> <codeph>TInt SpecificFindInOrder(const
+T* anEntry, TInt&amp;                      anIndex, TLinearOrder&lt;T&gt; anOrder,
+TInt aMode) const;</codeph>  </p> <p> <codeph>TInt InsertInAddressOrder(const
+T* anEntry);</codeph>  </p> <p> <codeph>TInt InsertInOrder(const T* anEntry,
+                     TLinearOrder&lt;T&gt; anOrder);</codeph>  </p> <p> <codeph>TInt
+InsertInAddressOrderAllowRepeats(const T*                      anEntry);</codeph>  </p> <p> <codeph>TInt
+InsertInOrderAllowRepeats(const T* anEntry,                      TLinearOrder&lt;T&gt;
+anOrder);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-E75F040A-CEC6-3751-8F96-F16AEDC209A3.dita"><apiname>TIdentityRelation </apiname></xref> &lt;class T&gt; </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-C028C373-CE25-3832-855E-17FB738721CF.dita"><apiname>TLinearOrder</apiname></xref> &lt;class T&gt; </p> </entry>
+<entry><p>Same as for user side code. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-0BC2B8B1-F797-5B65-9EE7-36A2EC5C9BC5"><b>Character representation</b> </p> <p>The
+following class, defined in <filepath>e32cmn.h</filepath>, <i>can</i> be used
+on the kernel side. </p> <p>For some classes, the kernel side can use the
+same member functions that are available to the user side. However, for other
+classes, the kernel side is restricted to using a subset of functions; where
+this is the case, the functions are listed </p> <table id="GUID-F24ABED3-1122-5FE2-8E00-87B610F7E2A6">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Classes available </b>  </p> </entry>
+<entry><p> <b>Public member functions that are available to kernel side code</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-CDCFA2A5-EA8A-3B39-B90F-77AC41571E2D.dita"><apiname>TChar</apiname></xref>  </p> </entry>
+<entry><p> <codeph>TChar();</codeph>  </p> <p> <codeph>TChar(TUint aChar);</codeph>  </p> <p> <codeph>TChar&amp;
+operator-=(TUint aChar);</codeph>  </p> <p> <codeph>TChar&amp; operator+=(TUint
+aChar);</codeph>  </p> <p> <codeph>TChar operator-(TUint aChar);</codeph>  </p> <p> <codeph>TChar
+operator+(TUint aChar);</codeph>  </p> <p> <codeph>operator TUint() const;</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-682EF1C2-4756-5E5A-B4E9-00AABD5D4CE2"><b>Basic utility
+functions and classes</b> </p> <p>The following global utility functions and
+classes, defined in <filepath>e32cmn.h</filepath>, <i>can</i> be used on the
+kernel side. </p> <table id="GUID-1754BDC5-BFB7-5E32-A956-2289FDB1C172">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-5391E485-A019-358F-85D2-3B55BA439BD1.dita"><apiname>TRefByValue</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>TInt Lim(TInt aVal,TUint aLimit);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>TInt LimX(TInt aVal,TUint aLimit);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Min(T aLeft,T aRight);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Min(T aLeft,TUint              
+       aRight);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Max(T aLeft,T aRight);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Max(T aLeft,TUint              
+       aRight);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Abs(T aVal);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>TBool Rng(T aMin,T aVal,T        
+             aMax);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T,class S&gt; <codeph>T* PtrAdd(T* aPtr,S      
+               aVal);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T,class S&gt; <codeph>T* PtrSub(T* aPtr,S      
+               aVal);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Align2(T aValue);</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p>template &lt;class T&gt; <codeph>T Align4(T aValue);</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-331E0310-69A3-58A6-B932-F2B44201530D"><b>The Package
+Buffers API</b> </p> <p>The package buffers API, represented by classes defined
+in <filepath>e32cmn.h</filepath>, <i>can</i> be used on the kernel side. </p> <table id="GUID-CE1782C9-E59A-567C-8F6F-DA5AE7C50476">
+<tgroup cols="1"><colspec colname="col0"/>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-C7A094BD-846F-3ED2-8CCE-C0743DB3712A.dita"><apiname>TPckgBuf</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-36B29964-420D-38D0-AF08-4DA70BED8B6E.dita"><apiname>TPckgC</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-4DFB8E64-81FF-3D3B-9694-CE51B11DA69A.dita"><apiname>TPckg</apiname></xref>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-5707529F-6145-58C3-A0A9-8789FF8F1C93"><b>The UID manipulation
+APIs</b> </p> <p>The UID manipulation APIs, represented by classes defined
+in <filepath>e32cmn.h</filepath> can be used on the kernel side. However,
+only a <i>subset</i> of functions are available. See the detailed notes in
+the following table. </p> <table id="GUID-4E17CB02-80F9-5D3A-A3F0-0C6208D759F5">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-530281E6-29FC-33F2-BC9B-610FBA389444.dita"><apiname>TUid</apiname></xref>  </p> </entry>
+<entry><p>Only the two inline functions can be used: </p> <ul>
+<li id="GUID-1FA84853-4983-500F-B38E-AA82BB5456D6"><p> <xref href="GUID-530281E6-29FC-33F2-BC9B-610FBA389444.dita#GUID-530281E6-29FC-33F2-BC9B-610FBA389444/GUID-65B526E7-8629-3DEC-970B-1D48263D7AFD"><apiname>TUid::Uid</apiname></xref>  </p> </li>
+<li id="GUID-B588EEC3-4DB9-51D3-9DCA-DAF822006C4B"><p> <xref href="GUID-530281E6-29FC-33F2-BC9B-610FBA389444.dita#GUID-530281E6-29FC-33F2-BC9B-610FBA389444/GUID-B7F5CA42-157B-3D74-BA2E-00B290F71345"><apiname>TUid::Null()</apiname></xref>  </p> </li>
+</ul> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-B6D6B0AD-B15C-339A-8540-40540885089A.dita"><apiname>TUidType</apiname></xref>  </p> </entry>
+<entry><p>None of the member functions can be used; however, the <codeph>iUid</codeph> data
+member is declared as public on the kernel side. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-1FB6F0D5-96F9-3D31-8508-9CE731A2E8E4.dita"><apiname>TUidName</apiname></xref>  </p> </entry>
+<entry><p>This will only ever be an 8-bit type descriptor. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-E9F32C01-5C4F-5706-B992-A4F8B01171FD"><b>Version handling
+API</b> </p> <p>The version handling API, represented by the <xref href="GUID-D82DEC7A-71C2-3004-BFC2-C82C009A2715.dita"><apiname>TVersion</apiname></xref> class
+defined in <filepath>e32cmn.h</filepath> can be used on the kernel side. </p> <p id="GUID-E67B4238-3CFF-5448-B711-FCD14D8D3C10"><b>TRequestStatus</b> </p> <p>The <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> class
+representing the completion status of an asynchronous request, and defined
+in <filepath>e32cmn.h</filepath> can be used on the kernel side. </p> <p id="GUID-0CA35DBF-C10D-5C35-90CD-24C53AEA41BF"><b>TIpcArgs</b> </p> <p>The <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> class, which is part of the Version2 client/server APIs,
+and defined in <filepath>e32cmn.h</filepath>, can be used on the kernel side.
+However, the <codeph>Set()</codeph> and <codeph>Type()</codeph> member functions
+that take 16-bit descriptors are not available. </p> <p id="GUID-111081C5-5BDA-516B-9B3D-9D24FAD31E5D"><b>Basic
+graphic classes</b> </p> <p>The basic graphic classes <xref href="GUID-339EC4C5-89DC-3972-9579-6DD38D418317.dita"><apiname>TPoint</apiname></xref> and <xref href="GUID-938244B2-5E1A-39F7-8ACA-E6DE4C44A313.dita"><apiname>TSize</apiname></xref> are
+defined on the kernel side. However, only the public data members are defined
+- the member functions are not defined, and are not available for use. </p> </section>
+<section id="GUID-6AE21206-A29D-5CB6-83E9-69C2E7DA566A"><title>Coding techniques
+to replace EUSER functionality</title> <ul>
+<li id="GUID-19997154-7682-5FA8-85EA-2E24683398D5"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-CA520DD3-3601-5774-87F2-D5BA4DA2BF8E">Buffers: replacing HBufC8 with HBuf</xref>  </p> </li>
+<li id="GUID-DBAA1CE6-9A00-5A97-8954-C2B3E4DC8B3C"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-310ADB7F-A03C-5994-A918-634B7BAB7DD8">Buffers: replacing HBufC8 with C style pointers</xref>  </p> </li>
+<li id="GUID-44A25AD2-1970-5D1E-8B51-B92232F14E6F"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-586DD3B4-69DB-564B-AB8D-B3A02607CE02">Handling 16-bit data items</xref>  </p> </li>
+<li id="GUID-E9549A58-6921-5521-ACCA-E74DD962FFBC"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-77C88D19-50C3-5D69-8084-BE750F100BA0">Replacing CBase with DBase</xref>  </p> </li>
+<li id="GUID-BC1219A8-4F8F-5E91-ABE9-E8D89F904D58"><p> <xref href="GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7.dita#GUID-8EB25927-D49E-578F-BD93-294C4EECB7E7/GUID-585EE1D8-6080-5B37-A3BD-278B8731B7F9">Replacing User::QueryVersionSupported() with Kern::QueryVersionSupported()</xref>  </p> </li>
+</ul> <p id="GUID-CA520DD3-3601-5774-87F2-D5BA4DA2BF8E"><b>Buffers: replacing
+HBufC8 with HBuf</b> </p> <p>In EKA2, the heap descriptor buffer, <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref> is
+not available. However, the kernel side defines and implements an equivalent
+(kernel) heap descriptor buffer: <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref>. <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref> is
+behaves in a similar way to <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref>, so nearly all of your
+code can be reused, but note the following points: </p> <ul>
+<li id="GUID-409FC5CB-F502-54ED-972E-D00AF311180C"><p>If your code uses the
+typedef <xref href="GUID-A103FB19-60B3-3E45-97A5-1F295934ACA1.dita"><apiname>HBufC</apiname></xref>, then you need to change it to <xref href="GUID-5BEA9976-B969-3949-B855-E657FFF38EE2.dita"><apiname>HBuf</apiname></xref>. </p> </li>
+<li id="GUID-889793AE-1F58-5FAE-9C58-04E3549526F9"><p>On the kernel side,
+there is no explicit support for 16-bit buffers, which means that there is
+no class called HBuf16. In practice, this means that, <xref href="GUID-5BEA9976-B969-3949-B855-E657FFF38EE2.dita"><apiname>HBuf</apiname></xref> is
+always the same as <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref>. </p> </li>
+<li id="GUID-58F6F261-69EA-5D2E-BAF1-9EF844F13B5A"><p>Unlike <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref>, <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref> is
+a modifiable type descriptor. It has <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> in its derivation
+hierarchy, and this means that you can manipulate the descriptor's data (using
+the <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> member functions). </p> </li>
+<li id="GUID-3D649264-94C6-598A-9F90-5ED6988A3B66"><p>The number of functions
+available to create an <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref> object is more limited than
+for <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref> - there are only three variants - although in
+practice this is not a problem: </p> <ul>
+<li id="GUID-3B3B2A9D-13E0-57D4-A9F9-F308580B8F28"><p> <codeph>HBuf8::New(TInt
+aMaxLength)</codeph> to allocate a heap descriptor buffer (on the kernel heap)
+and set its length to zero; this behaves the same as the user side <codeph>HBufC8::New(TInt
+aMaxLength)</codeph>  </p> </li>
+<li id="GUID-213F8721-16E5-5E64-9D0A-E84E75831FB5"><p> <codeph>HBuf8::New(const
+TDesC8&amp; aDes)</codeph> to allocate a heap descriptor buffer (on the kernel
+heap) and initialise it by copying an existing descriptor's data into it. </p> </li>
+<li id="GUID-EBC5B863-9671-52C8-B22A-D303AA963697"><p> <codeph>HBuf8::ReAlloc(TInt
+aNewMax)</codeph> to re-allocate (i.e. to resize) a heap descriptor buffer
+(on the kernel heap); this behaves the same as the user side <codeph>HBufC8::New(TInt
+aMaxLength)</codeph>  </p> </li>
+</ul> </li>
+<li id="GUID-67068834-2B86-5901-9BB7-C8E0158BBDA5"><p>There are no "leaving"
+variants of these functions - if you have NewL(), NewLC(), and other "leaving"
+variants, then you will need to change your code to explicitly check the return
+code to make sure that the creation, or the reallocation of the heap descriptor
+buffer has worked. </p> </li>
+<li id="GUID-D6FE65EF-A142-5B19-9F6E-718C9844B04B"><p>As the descriptor is
+modifiable, there is no need for, and there is no equivalent of the function <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita#GUID-2A528453-0279-3E47-838C-F8A8D29B88F1/GUID-155C7682-B1C4-38D0-9542-3829DF383050"><apiname>HBufC8::Des()</apiname></xref>;
+you just use the base class <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> functions. </p> </li>
+<li id="GUID-28F7E8E5-4E78-5175-93B2-CA8365978A10"><p>If your code uses the
+assignment operators (i.e. the <codeph>=</codeph> operator), you don't need
+to change your code; the compiler will use the operators implemented in the <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> base
+class, which will do the right thing. </p> </li>
+<li id="GUID-2909D8CE-D267-5EB7-9870-5253438F7E98"><p>The descriptor function <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita#GUID-FB97E0A3-352A-316F-97C6-69E4741A8120/GUID-FF9F5F8C-A240-354E-BBD3-44772AE5C4A4"><apiname>TDesC8::Alloc()</apiname></xref> is
+no longer available on the kernel side, so you cannot create a heap descriptor
+buffer from a general descriptor. </p> </li>
+</ul> <p>The following code fragments show code that is approximately equivalent
+between EKA1 and EKA2. The fragments are a little artificial, and make assumptions
+that would not necessarily be made in real code, but nevertheless still show
+the essential differences. </p> <table id="GUID-C5338045-8A9C-5605-AB94-04D2770183E0">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>EKA1</b>  </p> </entry>
+<entry><p> <b>EKA2</b>  </p> </entry>
+</row>
+<row>
+<entry><p>This is a function that allocates a heap descriptor buffer (<xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref>),
+puts data into it, changes its size, replaces the data, deletes a part of
+the data, and then deletes it. </p> <codeblock id="GUID-DEA8F91F-DE46-5DCF-BF06-9F4E89C5F366" xml:space="preserve">_LIT8(KTxSmall,"abcdef");
+_LIT8(KTxBig,"ghijklmnopqrstuvwxyz");
+
+void X::FunctionL()
+    {
+    // Create a buffer big enough to contain
+    // the text "abcdef".
+    // This uses the "leaving" variant, and leaves
+    // if there is insufficient memory.
+    HBufC8* pBuf = HBufC8::NewL(KTxSmall().Length());
+
+    // Copy the text "abcdedf" into it
+    *pBUf = KTxSmall;
+        
+    // Make the buffer bigger...
+    // ... and check that it worked OK
+    // Note that we are using the non-leaving version.
+    // We could use the leaving version, but we would
+    // need to handle the cleanup of pBuf 
+    HBuf8* pNewBuf = pBuf-&gt;ReAlloc(KTxBig().Length());;
+
+    if (pNewBuf)
+        {
+        pBuf = pNewBuf;
+        }
+     else
+        {
+        delete pBuf;
+        User::Leave(KErrNoMemory);
+        }
+
+    // Replace content of the descriptor with 
+    // the text "ghijkl......"
+    *pBuf = KTxBig;
+
+    // Need to use the Des() function to create 
+    // a modifiable descriptor before we can make
+    // changes to the text in the descriptor.
+    TPtr8 pDesPtr;
+    pDesPtr = pBuf-&gt;Des();
+
+    // Delete the 1st two characters.
+    PDesPtr.Delete(0,2)
+     
+    delete pBUf;
+
+    return;
+    }</codeblock> </entry>
+<entry><p>A similar function, but it uses <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref> instead. </p> <codeblock id="GUID-927B0A0C-D65B-5E5C-811D-285437C473BE" xml:space="preserve">_LIT8(KTxSmall,"abcdef");
+_LIT8(KTxBig,"ghijklmnopqrstuvwxyz");
+
+TInt X::Function()
+    {
+    // Create a buffer big enough to contain
+    // the text "abcdef", and copy the text
+    // from its source into the buffer.
+    //
+    // You need to check explicitly that this
+    // has worked.
+    HBuf8* pBuf = HBuf8::New(KTxSmall);
+    if (!pBuf)
+        {
+        return KErrNoMemory;
+        }
+        
+    // Make the buffer bigger...
+    // .. and check that it worked OK
+    HBuf8* pNewBuf = pBuf-&gt;ReAlloc(KTxBig().Length());
+
+    if (pNewBuf)
+        {
+        pBuf = pNewBuf;
+        }
+     else
+        {
+        delete pBuf;
+        return KErrNoMemory;
+        }
+
+    // You can still use the =operator to replace 
+    // the content of the heap descriptor !
+    // Replace content with 
+    // the text "ghijkl......"
+    *pBuf = KTxBig;
+
+
+    // Can now use use the TDes8 functions
+    // directly.
+    // This deletes the 1st two characters.
+    pBuf-&gt;Delete(0,2);
+
+    // delete the heap descriptor
+    delete pBUf;
+
+    return KErrNone;
+    }</codeblock> </entry>
+</row>
+<row>
+<entry><p>A small code fragment that uses <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita#GUID-FB97E0A3-352A-316F-97C6-69E4741A8120/GUID-FF9F5F8C-A240-354E-BBD3-44772AE5C4A4"><apiname>TDesC8::Alloc()</apiname></xref> to
+create an <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref> heap descriptor buffer from an existing
+descriptor. </p> <codeblock id="GUID-7545CD6E-8849-5CE0-88A8-975F141A7877" xml:space="preserve">HBufC8* X::Function(const TDesC8&amp; aDes)
+    {
+    // Returns NULL if creation
+    // of the heap descriptor buffer fails.
+
+    return aDes.Alloc();
+    }</codeblock> <p>or possibly: </p> <codeblock id="GUID-0E01D617-B83F-558A-8C6B-BF9BD8B2E449" xml:space="preserve">HBufC8* X::FunctionL(const TDesC8&amp; aDes)
+    {
+    // Leaves if creation of the heap
+    // descriptor buffer fails, otherwise it 
+    // returns a valid pointer.
+
+    return(aDes.AllocL());
+    }</codeblock> </entry>
+<entry><p>An equivalent code fragment that creates an <xref href="GUID-1E0F353F-2532-3FF2-9992-06EC687C3998.dita"><apiname>HBuf8</apiname></xref> heap
+descriptor buffer. </p> <codeblock id="GUID-EA7187B6-8365-5F77-941A-CCCC359BF5D0" xml:space="preserve">HBuf8* X::Function(const TDesC8&amp; aDes)
+    {
+    // Returns NULL if creation
+    // of the heap descriptor buffer fails.
+   
+    return (HBuf8::New(aDes));
+    }</codeblock> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-310ADB7F-A03C-5994-A918-634B7BAB7DD8"><b>Buffers: replacing
+HBufC8 with C style pointers</b> </p> <p>Instead of replacing <xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref> with <xref href="GUID-5BEA9976-B969-3949-B855-E657FFF38EE2.dita"><apiname>HBuf</apiname></xref>,
+it may be more suitable to replace your heap descriptor buffers with C style
+pointers - effectively managing your buffers in open code or as part of the
+implementation of your own purpose written classes. </p> <p>You allocate memory
+from the kernel heap using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DCB1C323-54D4-3C43-849A-503C19075C18"><apiname>Kern::Alloc()</apiname></xref> or <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-25A2BC43-08AB-34E8-93B4-AD4B82A98666"><apiname>Kern::AllocZ()</apiname></xref> and
+track the pointers to that memory. The following code fragments show how the
+use of HBufC8 translates to the direct use of these functions. </p> <p>Although
+the EKA2 code here uses <xref href="GUID-E2C25A1E-46B4-3697-A939-613CA366D87A.dita"><apiname>memcpy()</apiname></xref>, and <xref href="GUID-AC5005AE-EDC0-36EE-B877-2F91B09B0068.dita"><apiname>memmove()</apiname></xref>,
+you will also find the functions <xref href="GUID-5F6B1E3D-4F68-3870-96E2-8EA88D70C888.dita"><apiname>memclr()</apiname></xref>, <xref href="GUID-5A95E126-A82F-3F29-9810-FA1CD35E8B19.dita"><apiname>memset()</apiname></xref>, <xref href="GUID-9A49DF44-1742-32CF-8C13-AF732C3971A6.dita"><apiname>wordmove()</apiname></xref> and <xref href="GUID-57B71C3A-3F1E-3304-AA6C-EF53CD6682AD.dita"><apiname>memcompare()</apiname></xref> useful in your code. </p> <table id="GUID-A6F83848-EEE6-5656-BBD9-6CA8CC986AAD">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>EKA1</b>  </p> </entry>
+<entry><p> <b>EKA2</b>  </p> </entry>
+</row>
+<row>
+<entry><p>This is a function that allocates a heap descriptor buffer (<xref href="GUID-2A528453-0279-3E47-838C-F8A8D29B88F1.dita"><apiname>HBufC8</apiname></xref>),
+puts data into it, changes its size, replaces the data, deletes a part of
+the data, and then deletes the whole buffer. </p> <codeblock id="GUID-7541F426-A84A-5496-A75D-A5235DD0B45E" xml:space="preserve">_LIT8(KTxSmall,"abcdef");
+_LIT8(KTxBig,"ghijklmnopqrstuvwxyz");
+
+void X::FunctionL()
+    {
+    // Create a buffer big enough to contain
+    // the text "abcdef".
+    // This uses the "leaving" variant, and leaves
+    // if there is insufficient memory.
+    HBufC8* pBuf = HBufC8::NewL(KTxSmall().Length());
+
+    // Copy the text "abcdedf" into it
+    *pBUf = KTxSmall;
+        
+    // Make the buffer bigger...
+    // ... and check that it worked OK
+    // Note that we are using the non-leaving version.
+    // We could use the leaving version, but we would
+    // need to handle the cleanup of pBuf 
+    HBuf8* pNewBuf = pBuf-&gt;ReAlloc(KTxBig().Length());;
+
+    if (pNewBuf)
+        {
+        pBuf = pNewBuf;
+        }
+     else
+        {
+        delete pBuf;
+        User::Leave(KErrNoMemory);
+        }
+
+    // Replace content of the descriptor with 
+    // the text "ghijkl......"
+    *pBuf = KTxBig;
+
+    // Need to use the Des() function to create 
+    // a modifiable descriptor before we can make
+    // changes to the text in the descriptor.
+    TPtr8 pDesPtr;
+    pDesPtr = pBuf-&gt;Des();
+
+    // Delete the 1st two characters.
+    PDesPtr.Delete(0,2)
+     
+    delete pBUf;
+
+    return;
+    }</codeblock> </entry>
+<entry><p>A similar function, but allocates memory on the kernel heap explicitly,
+and manages its own pointers instead. Note the use of the nanokernel utility
+function: <xref href="GUID-E2C25A1E-46B4-3697-A939-613CA366D87A.dita"><apiname>memcpy()</apiname></xref>, and <xref href="GUID-AC5005AE-EDC0-36EE-B877-2F91B09B0068.dita"><apiname>memmove()</apiname></xref>  </p> <codeblock id="GUID-DB644074-0F80-58CE-9FE9-D5C5AF521849" xml:space="preserve">_LIT8(KTxSmall,"abcdef");
+_LIT8(KTxBig,"ghijklmnopqrstuvwxyz");
+
+TInt X::Function()
+    {
+    // Create a buffer big enough to contain
+    // the text "abcdef", and copy the text
+    // from its source into the buffer.
+    //
+    // Steps.
+    // 1. work out the size of buffer needed
+    // 2. Get the buffer.
+    // 3. Copy the source.
+
+    TInt lengthInBuffer = 0;
+     
+    // 1.
+    TInt Smallsize;
+    SmallSize = KTxSmall().Length();
+    lengthInBuffer = SmallSize;
+
+    // 2.
+    TUint8* pBuf;
+    pBuf = Kern::Alloc(SmallSize);
+    if (!pBuf)
+        {
+        return KErrNoMemory;
+        }
+
+    // 3.
+    memcpy(pBuf,KTxSmall().Ptr(),SmallSize));
+
+
+    // Make the buffer bigger.
+    // If it works ok, then copy the data
+    // to the new buffer, delete the old buffer
+    TInt BiggerSize;
+    TUint8* pNewBuf;
+
+    BiggerSize = KTxBig().Length();
+    pNewBuf = Kern::Alloc(BiggerSize);
+    if (pNewBuf)
+        {
+        memcpy(pNewBuf, pBuf, SmallSize);
+        Kern::Free(pBuf);
+        pBuf = pNewBuf;       
+        }
+     else
+        {
+        Kern::Free(pBuf);
+        return KErrNoMemory;
+        }
+     lengthInBuffer = BiggerSize;
+
+    // Replace content with 
+    // the text "ghijkl......"
+    memcpy(pNewBuf, KTxBig().Ptr(), BiggerSize);
+   
+
+    // Delete 1st two characters 
+    memmove(pNewBuf, pNewBuf+2, lengthInBuffer;
+    lengthInBuffer -= 2;
+   
+    Kern::Free(pBuf);
+
+    return KErrNone;
+    }</codeblock> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-586DD3B4-69DB-564B-AB8D-B3A02607CE02"><b>Handling 16-bit
+data items</b> </p> <p>If you need to handle 16-bit items on the kernel side,
+then you can still use 8-bit heap descriptor buffers. You just need to be
+aware that the data is 16 bit and cast accordingly. The following code fragments
+are simplistic, but show you the basic idea. </p> <table id="GUID-65BA6847-9FC7-53B2-B9F6-2D649D4B75AE">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>EKA1</b>  </p> </entry>
+<entry><p> <b>EKA2</b>  </p> </entry>
+</row>
+<row>
+<entry><p>This is a function which is passed a 16-bit descriptor containing
+16-bit wide characters. </p> <codeblock id="GUID-52B25979-B624-5D89-8D38-ADEDF3F27BED" xml:space="preserve">void X::FunctionL(const TDes16&amp; aDes)
+    {
+    HBuf16* pBuf = aDes.AllocL();
+
+    TInt     noOfCharacters;
+    TUint16* pointerToData;
+
+    noOfCharacters = pBuf-&gt;Length();
+    pointerToData  = pBuf-&gt;Ptr();
+
+    ...
+    }</codeblock> </entry>
+<entry><p>This is a similar function which is also passed 16-bit wide characters.
+The function needs slight changes as it can only receive data through an 8-bit
+descriptor. </p> <codeblock id="GUID-DD5720C2-1132-5991-B2E1-71B1BECAC15C" xml:space="preserve">TInt X::Function(const TDes8&amp; aDes)
+    {
+    HBuf8* pBuf = HBuf8::New(aDes);
+    if (!pBuf)
+       {
+       return KErrNoMemory;
+       }
+
+    TInt     noOfCharacters;
+    TUint16* pointerToData;
+     
+    noOfCharacters = ((pBuf-&gt;Length()) &gt;&gt; 1);
+    pointerToData  = (TUint16*)(pBuf-&gt;Ptr());
+
+    ...
+
+    return KErrNone;
+    }</codeblock> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-77C88D19-50C3-5D69-8084-BE750F100BA0"><b>Replacing CBase
+with DBase</b> </p> <p>The <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> class is the kernel-side
+equivalent of the user-side <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> class. It provides zero-filling
+of memory prior to object construction and a virtual destructor in a similar
+way to <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref>. </p> <p>If you have a class derived from <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref>,
+then all you need to do is: </p> <ul>
+<li id="GUID-B5ABF979-A6E0-5733-AFB2-DAC8FC132BA0"><p>change your class definition
+so that it is derived from <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref>. </p> </li>
+<li id="GUID-03B04EF1-32FE-5B37-A67C-AE57F8902F8E"><p>Remember to include
+the <filepath>klib.h</filepath> header file. </p> </li>
+</ul> <p>you should not need to do anything else. </p> <p>One additional feature
+provided by <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> that is not available in <xref href="GUID-8F6FE089-E2A8-30F4-B67E-10F286347681.dita"><apiname>CBase</apiname></xref> is
+the function <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita#GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3/GUID-40C0DEE0-7E6F-3D28-9B33-77A3CCC4E66E"><apiname>DBase::AsyncDelete()</apiname></xref>. This allows you to delete
+an instance of a <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> derived class asynchronously, and
+is useful if you need to delete a <xref href="GUID-4FCB6127-84F3-38F6-8AD2-FC3B94D67DA3.dita"><apiname>DBase</apiname></xref> derived object
+in time-critical code. </p> <p>Internally, asynchronous deletion works by
+placing the object to be deleted onto a queue, and then triggering a DFC,
+which runs in the context of the supervisor thread. This means that only a
+small amount of code is executed by your (the calling) thread, and the actual
+deletion is done by the supervisor thread. </p> <p>Its use is straightforward. </p> <codeblock id="GUID-1C283AE2-391A-5687-BA56-D8C1DD4E7745" xml:space="preserve">class DMyObject : public DBase
+    {
+    ...
+    }</codeblock> <codeblock id="GUID-20E2CA1A-06EE-5ADE-8B5B-14A3CE47ABDB" xml:space="preserve">DMyObject pPtr;
+    ...
+    pPtr = new DMyObject;
+    ...
+    pPtr-&gt;AsyncDelete();
+    ...</codeblock> <p id="GUID-585EE1D8-6080-5B37-A3BD-278B8731B7F9"><b>Replacing
+User::QueryVersionSupported() with Kern::QueryVersionSupported()</b> </p> <p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-B68B3E85-D58E-31FD-8BD2-A4F346BF416F"><apiname>User::QueryVersionSupported()</apiname></xref> is
+replaced by <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A28757CC-B89B-3F63-AD39-9955FBE7533B"><apiname>Kern::QueryVersionSupported()</apiname></xref> on the kernel
+side. </p> <p>The parameters passed to these functions are the same, both
+in type and meaning. The behaviour of both functions is also the same. This
+means that all you need to do is replace <codeph>User::</codeph> with <codeph>Kern::</codeph> in
+your code. </p> </section>
+</conbody></concept>

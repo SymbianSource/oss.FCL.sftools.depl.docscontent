@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1" xml:lang="en"><title>The
+Logical Channel</title><shortdesc>The logical channel is the kernel side object that deals with user-side
+requests. The logical channel base class is either <apiname>DLogicalChannel</apiname> or <apiname>DLogicalChannelBase</apiname>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The logical channel is created by the LDD factory object's <codeph>Create()</codeph> function
+as <xref href="GUID-B47C22DA-D1E6-5D89-87E7-7E4A5FD5A8D4.dita#GUID-B47C22DA-D1E6-5D89-87E7-7E4A5FD5A8D4/GUID-4E2880B7-C20D-546F-B57E-43112EE90E1D">Implementing
+Create()</xref> describes. </p>
+<p>There are two running models: </p>
+<ol id="GUID-B510C180-F784-51A7-B2A9-D59CD85C7A3C">
+<li id="GUID-6E7DD826-E177-584D-ABD3-9B924365AB08"><p>where a logical channel
+is an instance of a class derived from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>. </p> <p>In
+this model, a ready-made framework executes a request from a user-side client
+thread in the context of a single kernel-side thread. This is the easier model
+to use if porting an existing driver from EKA1 or to get a new driver up and
+working quickly. </p> </li>
+<li id="GUID-666C259B-3DFD-5D00-95E4-A6FD49673A88"><p>where a logical channel
+is an instance of a class derived directly from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>. </p> <p>In
+this model, it is up to the implementor to decide how a request is to be handled.
+The model allows you to build your own thread model for running DFCs to handle
+requests and to handle request completion. This requires that you manage inter-thread
+conflicts. </p> </li>
+</ol>
+<codeblock id="GUID-A996D4F0-2643-5CDD-B644-453984815487" xml:space="preserve">class DLogicalChannelBase : public DObject
+    {
+public:
+    IMPORT_C virtual ~DLogicalChannelBase();
+public:
+    virtual TInt Request(TInt aReqNo, TAny* a1, TAny* a2)=0;
+    IMPORT_C virtual TInt DoCreate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer);
+public:
+    DLogicalDevice* iDevice;
+    DPhysicalDevice* iPhysicalDevice;
+    DBase* iPdd;
+    };</codeblock>
+<codeblock id="GUID-87277EBB-97F8-512A-8311-5DBF945789A0" xml:space="preserve">class DLogicalChannel : public DLogicalChannelBase
+    {
+public:
+    enum {EMinRequestId=0xc0000000, ECloseMsg=0x80000000};
+public:
+    IMPORT_C DLogicalChannel();
+    IMPORT_C virtual ~DLogicalChannel();
+    IMPORT_C virtual TInt Close(TAny*);
+    IMPORT_C virtual TInt Request(TInt aReqNo, TAny* a1, TAny* a2);
+    IMPORT_C virtual void HandleMsg(TMessageBase* aMsg)=0;
+    IMPORT_C void SetDfcQ(TDfcQue* aDfcQ);
+public:
+    static void MsgQFunc(TAny* aPtr);
+public:
+    TDfcQue* iDfcQ;
+    TMessageQue iMsgQ;
+    };
+    </codeblock>
+<fig id="GUID-DC19E0C1-CC59-504C-A988-2EA6D1C5CA43">
+<title><apiname>DLogicalChannel</apiname> and <apiname>DLogicalChannelBase</apiname></title>
+<image href="GUID-41F3AFEA-DCDE-58E7-A0DE-BB6317A76021_d0e268033_href.png" placement="inline"/>
+</fig>
+<p>What you need to provide depends on the running model you intend to use.
+However, there are aspects of device driver behaviour that are the same regardless
+of the running model. </p>
+<ul>
+<li id="GUID-2CC57978-F6AB-5D29-85AF-DAAEE881D117"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-AB757BD9-80A4-53DE-82D8-D9BE8A252C9F">Passing requests from user-side to kernel-side</xref>  </p> </li>
+<li id="GUID-6F4AA3DE-A11C-59E0-A7A5-024871D1F6C6"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-AD414C65-44E6-54AA-827E-92B50BFD7097">Requests handled by the DLogicalChannel framework</xref>  </p> <ul>
+<li id="GUID-F7170B95-6B59-59A1-8C94-0DC43D342239"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-1D408223-FCDD-5BD7-81EE-A22BEC85EC9C">Handling requests and the message queue mechanism</xref>  </p> </li>
+<li id="GUID-EE40BBC6-8FF3-59D2-83F2-D7DAF9E85DFA"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-E4F776C1-3476-5BF3-81F3-FF926191BF47">What Request() does in this model</xref>  </p> </li>
+<li id="GUID-3320B315-ADC0-51F2-9BD7-60B6FA9D2D7A"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-922A9BB7-E246-579A-8A14-E002A272CBC8">What the framework does in this model (1)</xref>  </p> </li>
+<li id="GUID-A0939444-D845-52BC-BE8A-C6C651CF1A0C"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-45336FB1-062D-50B0-BAE4-58DD0769F2D0">What you need to provide - HandleMsg() </xref>  </p> </li>
+<li id="GUID-4D90D1D9-4420-520A-8DCF-54030F03AEF2"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-74E30809-C09A-545D-8E11-8416AA8044EB">What the framework does in this model (2)</xref>  </p> </li>
+<li id="GUID-873144BA-B7C9-5BE9-914B-0A4ADFF35420"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-5F5AD02E-7CB6-5282-92CB-7203E6ECCCC5">What you need to provide - DoCreate() </xref>  </p> </li>
+<li id="GUID-BC259E00-F987-5162-B931-C0A452E92B45"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-C24D9995-E100-5C7F-866B-4D2A155C496B">What you need to provide - default constructor</xref>  </p> </li>
+<li id="GUID-3CEA0FFB-C4D2-531F-80A4-3B52CB397303"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-2838503F-003C-54D4-8D70-2C1AF6B8E00C">What you need to provide - destructor</xref>  </p> </li>
+<li id="GUID-383F94D2-7438-5247-99CD-32354E6C1444"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-A839E0FD-F3AF-56B2-A321-8F38CF231F8D">Who sets up the public data members</xref>  </p> </li>
+</ul> </li>
+<li id="GUID-10BFA5F2-4265-5E27-9A49-EED75DCC0671"><p> <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-B86B2CBD-7620-56D0-8B6F-14B018F6B073">Multi-threaded Clients</xref>  </p> </li>
+</ul>
+<section id="GUID-AB757BD9-80A4-53DE-82D8-D9BE8A252C9F"><title>Passing requests
+from user-side to kernel-side</title> <p>From the user-side there are three
+types of request that can be made: </p> <ul>
+<li id="GUID-71C83261-7F75-5A39-915B-C8A578B83696"><p>Synchronous - where
+the client waits until the kernel-side driver has completed its operation.
+The user-side client thread is blocked until the kernel-side has dealt with
+the request. </p> </li>
+<li id="GUID-F7FFE4A7-5AD6-58C9-82EF-C7DDEC5ECFEC"><p>Asynchronous - where
+the request starts some activity in the kernel-side driver, which is expected
+to complete at some later time, with completion notified typically by an interrupt.
+The user-side client thread is blocked until the kernel-side has initiated
+the request. Synchronisation between the user-side client thread and the kernel-side
+thread uses request status (<xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref>) objects and
+the signalling of the user-side client thread's semaphore in the usual way.
+More than one asynchronous request can be outstanding at any one time if this
+makes sense for the hardware. However, the management of request status objects,
+and waiting on, and signalling the user side thread's semaphore is the responsibility
+of the driver. </p> </li>
+<li id="GUID-A1D2167B-BE1E-5E7E-B2D1-C4A0E15EC723"><p>Cancel - cancel outstanding
+asynchronous request(s). </p> </li>
+</ul> <p>On the user-side, you provide a class derived from <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita"><apiname>RBusLogicalChannel</apiname></xref>,
+and define and implement request type functions relevant to your driver. These
+will normally be implemented as calls to: </p> <ul>
+<li id="GUID-D2718B1F-42FE-5790-8866-5B9ADC558A21"><p> <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-D774DE92-6431-374A-A1F6-1C7045BD4FE5"><apiname>RBusLogicalChannel::DoControl()</apiname></xref> for
+synchronous requests </p> </li>
+<li id="GUID-9C54065F-F5A2-5CEF-A6FA-9B2F1968393D"><p> <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-FCC4A3A9-69F5-3947-8D0F-2AD12086F1E2"><apiname>RBusLogicalChannel::DoRequest()</apiname></xref> for
+asynchronous requests </p> </li>
+<li id="GUID-46AE5610-A9CF-58CB-A294-F6506A9788AE"><p> <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-16E139F5-4473-33C0-BCDD-A92152D4E8E6"><apiname>RBusLogicalChannel::DoCancel()</apiname></xref> to
+cancel outstanding asynchronous requests. </p> </li>
+</ul> <fig id="GUID-3B67428A-C356-5768-B4CC-1C99C7025AAB">
+<title>User side requests</title>
+<image href="GUID-3909D25F-46A5-5448-87F6-372ABFB581F9_d0e268212_href.png" placement="inline"/>
+</fig> <p>Note that <codeph>RBusLogicalChannel</codeph> also provides a set
+of three <codeph>DoSvControl()</codeph> functions. These are provided to maintain
+compatibility with EKA1. However, in EKA2 they behave exactly the same as
+the <codeph>DoControl()</codeph> functions. </p> <p>The three <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita"><apiname>RBusLogicalChannel</apiname></xref> functions
+result in a call to the single function <codeph>Request()</codeph> in the
+logical channel. Note that it is called in the context of the user-side client
+thread, but in supervisor mode. <codeph>Request()</codeph> acts as the main
+entry point for all client requests to the driver. </p> <p>The function <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-FD4DA73F-45E7-37BE-9380-1D8ED36114F7"><apiname>DLogicalChannelBase::Request()</apiname></xref> has
+the signature: </p> <codeblock id="GUID-EDB010BD-6C8F-5EE7-8C55-C90A7205A612" xml:space="preserve">TInt DLogicalChannelBase::Request(TInt aReqNo, TAny* a1, TAny* a2)</codeblock> <p>Because the three user-side functions map to a single kernel-side function,
+they each encode their parameter sets so that <codeph>Request()</codeph> can
+correctly interpret the request type. </p> <ul>
+<li id="GUID-072D67EC-F720-5865-90F0-7223AA822A6E"><p> <codeph>RBusLogicalChannel::DoControl()</codeph> has
+three variants corresponding to whether zero, one or two additional 32-bit
+parameters are to be passed to the driver: </p> <codeblock id="GUID-F8118863-EB9A-5A48-B398-D97BB7CC823F" xml:space="preserve">TInt DoControl(TInt aFunction);
+TInt DoControl(TInt aFunction,TAny* a1);
+TInt DoControl(TInt aFunction,TAny* a1,TAny* a2);</codeblock> <p> <codeph>aFunction</codeph> identifies
+the request and is a positive number; a1 and a2 are the optional additional
+32-bit parameters. These functions translate into the single kernel-side call: </p> <codeblock id="GUID-14800931-A4FE-569A-8C1D-2E17F9FD5693" xml:space="preserve">DLogicalChannelBase::Request(f,a1,a2);</codeblock> <p>where <codeph>f</codeph> is
+the same positive value as <codeph>aFunction</codeph>, <codeph>a1</codeph> and <codeph>a2</codeph> are
+the passed additional 32-bit parameter values; one or other or both may be
+NULL. </p> </li>
+<li id="GUID-527777C4-66FA-5754-BF14-C860411DA794"><p> <codeph>RBusLogicalChannel::DoRequest()</codeph> has
+three variants corresponding to whether zero, one or two additional 32-bit
+parameters are to be passed to the driver: </p> <codeblock id="GUID-894A8797-3EC5-540C-A82E-249071B38C4B" xml:space="preserve">void DoRequest(TInt aReqNo,TRequestStatus&amp; aStatus);
+void DoRequest(TInt aReqNo,TRequestStatus&amp; aStatus,TAny* a1);
+void DoRequest(TInt aReqNo,TRequestStatus&amp; aStatus,TAny* a1,TAny* a2);</codeblock> <p> <codeph>aReqNo</codeph> identifies
+the request and is a positive number; <codeph>a1</codeph> and <codeph>a2</codeph> are
+the optional additional parameters, and <codeph>aStatus</codeph> is the <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object
+that the kernel-side driver will use to report the completion status of the
+request. These functions translate into the single kernel-side call: </p> <codeblock id="GUID-A0BF9291-520F-5E38-A168-5E2132FD490E" xml:space="preserve">DLogicalChannelBase::Request(~f,&amp;s,&amp;A);</codeblock> <p>where: </p> <ul>
+<li id="GUID-2BF783B1-86EB-5D92-9A9A-A6E5F1AA0D35"><p>the first parameter
+is the bitwise NOT value of <codeph>aReqNo</codeph>  </p> </li>
+<li id="GUID-0CDFCEAC-4363-5464-A664-AFD7F3864643"><p>the second parameter
+is the address of the user side <codeph>TRequestStatus</codeph> object </p> </li>
+<li id="GUID-9C5B3C33-E7F1-5C94-AB10-2E3D4630BFA0"><p>the third parameter
+is the address of a <i>user-side stack based</i> array, where the array is
+defined as <codeph>TAny* a[2]</codeph> containing the first and second passed
+additional parameters, respectively. </p> </li>
+</ul> <p>This means that asynchronous requests are indicated on the kernel-side
+by negative request numbers. </p> <p>Note that the <codeph>TRequestObject</codeph> itself
+is <i>not</i> passed to the kernel-side. </p> </li>
+<li id="GUID-89E8438A-0A17-59BF-B69C-222CEE151D04"><p> <codeph>RBusLogicalChannel::DoCancel()</codeph> has
+the signature: </p> <codeblock id="GUID-C00DB01B-FD89-5278-84CA-75758C3C487E" xml:space="preserve">void DoCancel(TUint aReqMask);</codeblock> <p>where <codeph>aReqMask</codeph> is a bitmap that identifies all the asynchronous requests to be cancelled.
+This function translates into the single kernel-side call: </p> <codeblock id="GUID-38204E2C-20CF-5279-B8AE-2245368CD523" xml:space="preserve">DLogicalChannelBase::Request(0x7FFFFFFF, m, 0);</codeblock> <p>where
+the first parameter is the maximum signed integer value, and the second parameter
+is the value of the bitmask; the third parameter is unused and just set to
+zero. </p> </li>
+</ul> </section>
+<section id="GUID-AD414C65-44E6-54AA-827E-92B50BFD7097"><title>Requests handled
+by the DLogicalChannel framework</title> <p>In this model, a ready-made framework
+executes a request from a user-side client thread in the context of a single
+kernel-side thread. </p> <p>The framework is provided by the <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> class,
+derived from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>, and does this by providing
+an implementation for the <codeph>DLogicalChannelBase::Request()</codeph> function.
+Note that the driver writer still needs to provide an implementation for other
+functions. </p> <p>Requests are queued using the kernel-side messaging mechanism.
+It is, however, up to the implementor to decide which kernel-side thread to
+use to handle requests; DFC queue thread 0 is a general purpose thread that
+is normally used to process requests. Drivers can, if they wish, create their
+own thread(s) to queue and run their DFCs. This would be more appropriate
+if a DFC were likely to be long running, or likely to block, as no other DFC
+on the same queue can run at the same time. This might also be done if a DFC
+were required to run at a priority different to that of the standard DFC queue
+threads. </p> <p>The <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref> that uses this framework provides six functions,
+as shown below. In a real driver there could be many more. All requests are
+funnelled to the <codeph>Request()</codeph> function implemented by <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>,
+with parameter values following the convention outlined in <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-AB757BD9-80A4-53DE-82D8-D9BE8A252C9F">Passing requests from user-side to kernel-side</xref>: </p> <fig id="GUID-F4082CEC-EA9F-5BEE-82B5-64E40BBA7D35">
+<title>Simple Example Device Driver</title>
+<image href="GUID-CDEB5306-32D4-52E0-86AF-C3D56621554D_d0e268441_href.png" placement="inline"/>
+</fig> <p id="GUID-1D408223-FCDD-5BD7-81EE-A22BEC85EC9C"><b>Handling requests and the
+message queue mechanism</b> </p> <p>Requests are handled by a single DFC that
+runs in a kernel-side thread. This DFC is managed by a message queue. This
+is a mechanism that allows requests from the client-thread to be queued (as
+messages), and handled by a DFC running in the kernel-side thread. </p> <p>The
+following figure shows the general idea. A message queue is represented by
+a <xref href="GUID-382DD935-E9D7-3E00-88B2-B28A89CAD4FB.dita"><apiname>TMessageQue</apiname></xref> object, which consists of a DFC plus a doubly-linked
+list of received messages. The DFC is attached to the receiving kernel-side
+thread’s DFC-queue, and it runs whenever a message becomes available for processing. </p> <p>Messages
+are <xref href="GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551.dita"><apiname>TThreadMessage</apiname></xref> objects, and each thread has precisely
+one of these. The information supplied by a request is put into the <codeph>TThreadMessage</codeph> object
+and this is sent to the message queue by calling <codeph>SendReceive()</codeph> on
+that <codeph>TThreadMessage</codeph> object, and specifying the message queue.
+This function will not return until the message has been processed, and means
+that requests to the driver are effectively serialised. </p> <fig id="GUID-EF014FA2-CB2D-56B3-9A8A-0B22496F2560">
+<title>The Message Queue Mechanism</title>
+<image href="GUID-402B9035-BAD9-5C00-B1AC-DD580E157B8B_d0e268480_href.png" placement="inline"/>
+</fig> <p>This also shows that any number of user-side client threads can
+use an instance of a logical channel concurrently. </p> <p id="GUID-E4F776C1-3476-5BF3-81F3-FF926191BF47"><b>What does Request() do in
+this model?</b> </p> <p>The <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>'s <codeph>Request()</codeph> function
+is called in the context of the client-side thread. No mutexes or fast mutexes
+are held and the calling thread is not in a critical section. It encodes the
+information supplied on the request into the client thread's <xref href="GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551.dita"><apiname>TThreadMessage</apiname></xref> object.
+The request number, the first parameter in <codeph>Request()</codeph>'s parameter
+list, is put into <codeph>TThreadMessage</codeph>'s <codeph>iValue</codeph> member;
+the other two parameters are put into <codeph>iArg[0]</codeph> and <codeph>iArg[1]</codeph>. </p> <p>The
+message is then sent to the message queue by calling <codeph>SendReceive()</codeph> on <codeph>TThreadMessage</codeph>. </p> <fig id="GUID-4F42A6AC-E983-56C7-A0A9-494783AA591D">
+<title>Request() Handling</title>
+<image href="GUID-D66BC53D-0E05-5A5A-BFA1-C9303EF799BD_d0e268534_href.png" placement="inline"/>
+</fig> <p id="GUID-922A9BB7-E246-579A-8A14-E002A272CBC8"><b>What the framework does
+in this model(1)</b> </p> <p>The <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> object
+has a message queue as one if its data members, a <xref href="GUID-382DD935-E9D7-3E00-88B2-B28A89CAD4FB.dita"><apiname>TMessageQue</apiname></xref> type,
+and a pointer to a DFC queue, a <xref href="GUID-24B2FEDB-9273-351F-A1C6-6F5F91BF83B7.dita"><apiname>TDfcQue</apiname></xref> type. </p> <p>The <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> constructor
+initialises the message queue object so that the static function <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-E54BCCF2-4BF3-3AB7-AF77-0C1719D88C09"><apiname>DLogicalChannel::MsgQFunc()</apiname></xref> is
+assigned as the function that is called to deal with a message (request) after
+being received by the logical channel. </p> <p>When called, <codeph>MsgQFunc()</codeph> is
+always passed a pointer to the logical channel object; it then calls <codeph>HandleMessage()</codeph> on
+that logical channel object in the context of the DFC thread. </p> <p>The
+constructor does not set up the DFC queue. See <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-5F5AD02E-7CB6-5282-92CB-7203E6ECCCC5">What
+you need to provide - DoCreate()</xref>  </p> <fig id="GUID-2DB21541-2339-5001-9518-E77AEF5CB7CB">
+<title>DLogicalChannel</title>
+<image href="GUID-8045978D-B554-57F3-9716-E4189021C5E3_d0e268588_href.png" placement="inline"/>
+</fig> <p id="GUID-45336FB1-062D-50B0-BAE4-58DD0769F2D0"><b>What you need to provide
+- HandleMsg()</b> </p> <p>In your <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> derived
+class, you need to provide an implementation for <codeph>HandleMsg()</codeph> to
+deal with a message (request) received from the client. Remember that in this
+model, this is called in the context of the kernel-side DFC thread. </p> <p>The
+function has the signature: </p> <codeblock id="GUID-D4948869-00C4-56E6-8A13-5EF4F4659100" xml:space="preserve">void HandleMsg(TMessageBase* aMsg);</codeblock> <p>The
+message object passed into this function is a <codeph>TThreadMessage</codeph> type,
+which is derived from <codeph>TMessageBase</codeph>. It contains the request
+information originally passed into <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-8F504350-7FD4-348D-9264-62993FF8FF48"><apiname>DLogicalChannel::Request()</apiname></xref>.
+Member <codeph>iValue</codeph> contains the function identifying the request
+type, and the members <codeph>iArg[0]</codeph> and <codeph>iArg[1]</codeph> contain
+the additional 32-bit parameter values. These may be retrieved from the message
+using the <codeph>Int0()</codeph>, <codeph>Int1()</codeph> functions, or the <codeph>Ptr0()</codeph>, <codeph>Ptr1()</codeph> functions
+depending on the expected type of the 32-bit parameter. </p> <p>The type of
+request depends on the value of <codeph>iValue</codeph> as summarised below: </p> <ul>
+<li id="GUID-5556FB37-412C-5739-A123-DDD5DC45E22D"><p>ECloseMsg - The logical
+channel is being closed. </p> <p>The request is issued by the framework by <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-CF1F6A0E-342A-3EDD-953C-3176D7D7F0A0"><apiname>DLogicalChannel::Close()</apiname></xref>,
+which is itself called as a result of attempting to unload the driver DLL. </p> </li>
+<li id="GUID-C2750E69-03B9-5C24-A6D6-1CBD17BE7516"><p>KMaxTInt - The message
+is a result of user-side <codeph>DoCancel()</codeph> request. </p> <p>You
+need to cancel the asynchronous requests identified by the bit mask passed
+in <codeph>iArg[0]</codeph>. </p> </li>
+<li id="GUID-37C8AFE0-AB82-53B4-837C-A6735CCA45E7"><p>&gt;0 - The message is
+a result of a user-side <codeph>DoControl()</codeph> request with function
+number equal to <codeph>iValue</codeph>. </p> </li>
+<li id="GUID-771526B7-1710-5759-B7A0-908834412C42"><p>&lt;0 - The message
+is a result of a user-side <codeph>DoRequest()</codeph> request with function
+number equal to <codeph>~iValue</codeph>. </p> <p> <codeph>iArg[0]</codeph> contains
+a pointer to the <codeph>TRequestStatus</codeph> object supplied by the user-side,
+and <codeph>iArg[2]</codeph> points to the pair of additional 32-bit parameters
+on the user-side thread's stack. When the request is complete, successfully
+or otherwise, it is important that you call <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-D720BB4C-5E31-3213-BB16-859AA325FE98"><apiname>Kern::RequestComplete()</apiname></xref> to
+set the completion status, and to signal the user-side thread's semaphore. </p> </li>
+</ul> <p>Note that in all cases, your implementation of <codeph>HandleMsg()</codeph> must
+end with a call to <codeph>Complete()</codeph> on the passed <xref href="GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551.dita"><apiname>TThreadMessage</apiname></xref>.
+This unblocks the user-side thread. </p> <p>While the structure of your implementation
+of <codeph>HandleMsg()</codeph> is up to you, there is a common pattern that
+is used by almost all LDDs. It calls separate functions, usually named: </p> <ul>
+<li id="GUID-D8423023-6562-5AAF-A46C-586F170B4546"><p> <codeph>DoCancel()</codeph>  </p> </li>
+<li id="GUID-32D6008E-ABE4-5132-8C97-CC551A0D303D"><p> <codeph>DoControl()</codeph>  </p> </li>
+<li id="GUID-5A967575-FAF8-57C3-9C38-D9889A9D6B21"><p> <codeph>DoRequest()</codeph>  </p> </li>
+</ul> <p>to deal with the request types outlined above; they correspond to
+the similarly named user-side requests. You can copy and paste this into your
+own LDDs. In this code, the class <codeph>DDriver1Channel</codeph> is a class
+derived from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref>: </p> <codeblock id="GUID-107C8CF3-3971-5434-A194-55F3E3A4CBF6" xml:space="preserve">void DDriver1Channel::HandleMsg(TMessageBase* aMsg)
+    {
+    TThreadMessage&amp; m=*(TThreadMessage*)aMsg;
+
+    // Get message type
+    TInt id=m.iValue;
+
+    // Decode the message type and dispatch it to the relevent handler function...
+    
+    // A logical channel can be closed either explicitly by its user-side client,
+    // or implicitly if the client thread dies. In the latter case, the channel
+    // is closed in the context of the kernel supervisor thread. 
+
+    if (id==(TInt)ECloseMsg)
+        {
+        // Channel Close
+        DoCancel(RDriver1::EAllRequests);
+        m.Complete(KErrNone, EFalse);
+        return;
+        }
+
+    // For all other message types, we check that the message is from the thread
+    // that created us.
+
+    if(m.Client()!=iClient)
+        {
+        Kern::ThreadKill(m.Client(),EExitPanic,ERequestFromWrongThread,KDriver1PanicCategory);
+        m.Complete(KErrNone,ETrue);
+        return;
+        }
+
+    if (id==KMaxTInt)
+        {
+        // DoCancel
+        DoCancel(m.Int0());
+        m.Complete(KErrNone,ETrue);
+        return;
+        }
+
+    if (id&lt;0)
+        {
+        // DoRequest
+        TRequestStatus* pS=(TRequestStatus*)m.Ptr0();
+        TInt r=DoRequest(~id,pS,m.Ptr1(),m.Ptr2());
+        if (r!=KErrNone)
+            Kern::RequestComplete(iClient,pS,r);
+        m.Complete(KErrNone,ETrue);
+        }
+    else
+        {
+        // DoControl
+        TInt r=DoControl(id,m.Ptr0(),m.Ptr1());
+        m.Complete(r,ETrue);
+        }
+    }
+</codeblock> <p id="GUID-74E30809-C09A-545D-8E11-8416AA8044EB"><b>What the
+framework does in this model(2)</b> </p> <p>Once the logical channel object
+has been created, the device driver framework calls <codeph>DoCreate()</codeph> on
+the <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> base class. It is called in the
+context of the user-side client thread that requested the creation of the
+logical channel. The thread is in a critical section. </p> <fig id="GUID-19E25921-E50C-54AD-9900-870A4B5C9579">
+<title>DLogicalChannelBase DoCreate()</title>
+<image href="GUID-7448C9CB-D02B-55B5-B244-F06B93043827_d0e268798_href.png" placement="inline"/>
+</fig> <p id="GUID-5F5AD02E-7CB6-5282-92CB-7203E6ECCCC5"><b>What you need to provide
+- DoCreate()</b> </p> <p>In your <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> derived
+class, you need to provide an implementation for <codeph>DoCreate()</codeph> to
+do driver specific construction or initialisation processing, and prepare
+the hardware for use. After creating the logical channel object, the framework
+makes the call to <codeph>DoCreate()</codeph>. </p> <p>Note that by the time
+this function is called, the PDD factory object has been created and <codeph>Create()</codeph> called
+on that object. </p> <p> <codeph> DoCreate()</codeph> has the signature: </p> <codeblock id="GUID-D548702F-99C6-5667-81DD-101176D04096" xml:space="preserve">TInt DoCreate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer);</codeblock> <ul>
+<li id="GUID-F5D6E2C2-2CBB-5C6B-94C3-556E77058AF9"><p>The <codeph>aUnit</codeph> argument
+is the value supplied by the client to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref> and
+represents a unit of the device. This argument only has meaning if the <codeph>KDeviceAllowUnit</codeph> flag
+is set in the <codeph>iParseMask</codeph> data member of the LDD factory object.
+The device driver framework does not define the meaning of a unit. </p> </li>
+<li id="GUID-9FBF9AD8-6CFC-545D-B941-98D16E8C39C4"><p>The <codeph>aInfo</codeph> argument
+is a pointer to an explicit 8 bit descriptor containing extra information
+for the device, and is the value supplied by the client to <codeph>RBusLogicalChannel::DoCreate()</codeph>.
+This argument only has meaning if the <codeph>KDeviceAllowInfo</codeph> flag
+is set in the <codeph>iParseMask</codeph> data member of the LDD factory object.
+The device driver framework does not define the meaning of this information. </p> </li>
+<li id="GUID-7B221B1D-1A5B-5EEF-AEF8-85FB06A53739"><p>The <codeph>aVer</codeph> argument
+contains the version information supplied by the client to <codeph>RBusLogicalChannel::DoCreate()</codeph>  </p> </li>
+</ul> <p>The following is always done in a typical implementation: </p> <ul>
+<li id="GUID-5A40E835-6E56-5215-8D7C-D07F45D90A92"><p>Do the security check
+- <b>note that security issues are only relevant to Symbian platform release
+9.1, and later</b>. </p> <p>As a general rule, it is at this point in the
+creation of the logical channel that a driver checks that its client has sufficient
+capability to use the driver. This is the standard "policing point" for most
+device drivers. </p> <p>The following code is typical; it is taken from the
+sound driver's <codeph>DoCreate()</codeph> function, and can be found in <filepath>.../drivers/esound/esound.cpp</filepath>  </p> <codeblock id="GUID-63ABF685-8A0B-531C-9F9C-7A603831CBF9" xml:space="preserve">...
+if(!Kern::CurrentThreadHasCapability(ECapabilityMultimediaDD,__PLATSEC_DIAGNOSTIC_STRING("Checked by ESOUND.LDD (Sound Driver)")))
+    {
+    return KErrPermissionDenied;
+    }
+...
+</codeblock> <p>It is simply a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-E34E27F2-921A-3F78-9DE3-C5B16F37CF8B"><apiname>Kern::CurrentThreadHasCapability()</apiname></xref>,
+which tests whether the current thread's process has the specified capability;
+it returns <xref href="GUID-213DE05E-24F7-3E94-9B35-F4A72B3EBFD8.dita"><apiname>KErrPermissionDenied</apiname></xref> if the thread's process
+does not have the capability, which prevents the opening of the driver. Remember
+that <codeph>DoCreate()</codeph> is called in the context of the user-side
+client thread. In this example, the driver requires that the client has the <xref href="GUID-48AA1686-C619-3C36-B4B5-6C5DE1F50B0A.dita"><apiname>ECapabilityMultimediaDD</apiname></xref> capability,
+otherwise the client request is failed. The 'C' style string in the second
+parameter is an optional diagnostic message. The diagnostic message is intended
+to be used in debug builds. Wrapping this string in the <xref href="GUID-0406EB1E-F981-3217-BDA4-B01953E81EE8.dita"><apiname>__PLATSEC_DIAGNOSTIC_STRING</apiname></xref> macro
+is a simple device that allows the string to be removed in release builds
+without changing the code. </p> <p>If you require the client process to have
+more than one capability, then simply add another call to your code specifying
+the other capability. For example, if you require the caller to have <i>both</i> capabilities: <xref href="GUID-48AA1686-C619-3C36-B4B5-6C5DE1F50B0A.dita"><apiname>ECapabilityMultimediaDD</apiname></xref> and <xref href="GUID-76F4383B-4EA5-391A-A271-A8F65ED77EC0.dita"><apiname>ECapabilityPowerMgmt</apiname></xref> then you might code the following, which is
+equivalent to a simple AND operation: </p> <codeblock id="GUID-BC138462-D757-54E6-9AF9-09EB86183AF0" xml:space="preserve">...
+if(!Kern::CurrentThreadHasCapability(ECapabilityMultimediaDD,__PLATSEC_DIAGNOSTIC_STRING("Checked by ESOUND.LDD (Sound Driver) Multimedia")))
+    {
+    return KErrPermissionDenied;
+    }
+if(!Kern::CurrentThreadHasCapability(ECapabilityPowerMgmt,__PLATSEC_DIAGNOSTIC_STRING("Checked by ESOUND.LDD (Sound Driver) Power Mgt")))
+    {
+    return KErrPermissionDenied;
+    }
+...</codeblock> <p>This can be extended to as many capabilities as required. </p> <p>See <xref href="GUID-C8615948-0CCB-5C4C-BB74-FA66D7028788.dita">Platform Security Issues</xref> for
+more detail on platform security issues for device drivers. </p> <p>Note that
+Symbian written drivers may use the <codeph>__KERNEL_CAPABILITY_CHECK</codeph> macro.
+This is a convenience macro that is only intended to have a limited lifetime
+within Symbian platform code. <i>Your code does not need to use it</i>. </p> </li>
+<li id="GUID-DABCE7CE-18C3-51E0-925C-4E0EF174D19E"><p>Check the version. </p> <p>The
+version of the driver required by the user side is passed through the <codeph>aVer</codeph> argument;
+the implementation will normally check this against the version of the logical
+channel, and return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the logical channel
+is not compatible. </p> </li>
+<li id="GUID-0820FA58-C9B5-521B-9CA1-FBDA1076C934"><p>Set up the DFC queue. </p> <p>This
+needs to be done before you can start to receive requests (messages). You
+can choose an existing DFC queue or set up a new one. The majority of drivers
+will use DFC queue thread 0, and will call: </p> <codeblock id="GUID-99DF59D4-4F2F-5C09-BF03-C634FBDB7078" xml:space="preserve">SetDfcQ(Kern::DfcQue0());</codeblock> <p>However, if really necessary, you can create a new DFC queue, by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-078155DB-588F-35D8-838D-4856B7181DE9"><apiname>Kern::DfcQCreate()</apiname></xref> and
+then call <codeph>SetDfcQ()</codeph> on this new queue. Note that this also
+creates a new thread to be associated with the queue, which you will need
+to close before closing the driver. </p> </li>
+<li id="GUID-DA0E4864-6710-5BD4-8ECB-A1DC49968005"><p>Enable the receipt of
+requests (messages) by calling: </p> <codeblock id="GUID-6E352A43-FF52-5183-856B-7F4FAD508AF4" xml:space="preserve">iMsgQ.Receive();</codeblock> </li>
+<li id="GUID-F6C42E77-2282-5D2A-947F-77E11893921D"><p>Set a pointer to this
+logical channel object into the physical channel object. If your driver makes
+use of a physical channel, then it will already exist at this time, and the
+assignment will be safe. However, you will need to cast it to the actual type
+of your physical channel class. The code from the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref> looks like: </p> <codeblock id="GUID-FD6E811D-C15A-5316-8C11-45F14DF84633" xml:space="preserve">(DDriver1*)iPdd-&gt;iLdd=this;</codeblock> </li>
+</ul> <p>This is not an exhaustive list; the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref> has other DFCs to handle request completion,
+which it associates with the same DFC queue as that used to receive requests. </p> <p id="GUID-C24D9995-E100-5C7F-866B-4D2A155C496B"><b>What you need to provide
+- default constructor</b> </p> <p>You will need to provide a default constructor
+for your <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> derived class to initialise your
+class. </p> <p>A useful safeguard is to call <codeph>Open()</codeph> on the
+client thread, the current thread at this point, to prevent it from being
+destroyed. The <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">Simple
+Example Device Driver</xref>'s class defines the member <codeph>iClient</codeph> to
+hold a pointer to the <xref href="GUID-38D1534C-AA01-33AF-9937-CDD818A85F97.dita"><apiname>DThread</apiname></xref> object, and implements this
+functionality: </p> <codeblock id="GUID-77916F31-65D0-592A-9C20-3F71EF8600B9" xml:space="preserve">// Get pointer to client threads DThread object
+iClient=&amp;Kern::CurrentThread();
+
+// Open a reference on client thread so it's control block can't disappear until
+// this driver has finished with it.
+// Note, this call to Open can't fail since its the thread we are currently running in
+((DObject*)iClient)-&gt;Open();</codeblock> <p>This will be matched by a corresponding
+close operation in the destructor. </p> <p id="GUID-2838503F-003C-54D4-8D70-2C1AF6B8E00C"><b>What
+you need to provide - destructor</b> </p> <p>You will almost certainly need
+to provide a destructor for your <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> derived
+class. It gives you the opportunity to clean up before the logical channel
+object is destroyed. </p> <p>An almost universal requirement for a destructor
+is to cancel any asynchronous requests that may be outstanding. The implementation
+depends on the driver. </p> <p>If you opened a reference to the client thread,
+then you will need to close it. The following code is taken from the <xref href="GUID-9496B02E-D698-5C74-A8BE-3600AD56BBB3.dita">example driver</xref>. </p> <codeblock id="GUID-E4475BFB-7B83-50AC-AF38-DF0A9746ACC3" xml:space="preserve">// Close our reference on the client thread
+    Kern::SafeClose((DObject*&amp;)iClient,NULL);
+</codeblock> <p>where <codeph>iThread</codeph> was set up in the constructor. </p> <p id="GUID-A839E0FD-F3AF-56B2-A321-8F38CF231F8D"><b>Who sets up the public data
+members</b> </p> <p>The <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> and <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> classes
+have public data members that are initialised at various stages. This section
+summarises responsibilities. </p> <ul>
+<li id="GUID-9AD65B7B-A6E2-597F-8995-0DB260EA55AB"><p> <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-81B1E541-0B60-3512-BEB0-878FC8887C71"><apiname>DLogicalChannelBase::iDevice</apiname></xref> is
+a pointer to the LDD factory object, and is set up by the device driver framework.
+It is set up after the call to the LDD factory <codeph>Create()</codeph> function
+has created the logical channel and returned successfully. </p> </li>
+<li id="GUID-C0979057-A96A-53FE-83AF-A1DFB30EC2A4"><p> <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-1160B41D-ADA1-30D9-B90A-F5F8772D3834"><apiname>DLogicalChannelBase::iPhysicaldevice</apiname></xref> is
+a pointer to the PDD factory object, and is set up by the device driver framework,
+if the logical device is flagged as needing a physical device, and a suitable
+PDD factory object is found. Note that it is set up before the call to the
+logical channel <codeph>DoCreate()</codeph>. </p> </li>
+<li id="GUID-36754C6B-3AD0-52E6-AC12-54C634057246"><p> <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-CF58D3F1-8185-3A91-A7E8-338B43D329A5"><apiname>DLogicalChannelBase::iPdd</apiname></xref> is
+a pointer to the physical channel object, and is set up if the logical device
+is flagged as needing a physical device, and a suitable PDD factory object
+has been found. A reference to the pointer is passed to the PDD factory object's <codeph>Create()</codeph> function
+which creates the physical channel object and sets the pointer to point to
+this object. It is set after <codeph>iPhysicalDevice</codeph> has been set
+but before the call to the logical channel <codeph>DoCreate()</codeph>. </p> </li>
+<li id="GUID-A9CE6574-86A4-51BB-9050-1FF28759B516"><p> <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-6E905814-92EA-3186-BF7A-32193580CBF7"><apiname>DLogicalChannel::iDfcQ</apiname></xref> is
+a pointer to the DFC queue object, and is typically set up in your implementation
+of <codeph>DLogicalChannel::DoCreate()</codeph>. </p> </li>
+<li id="GUID-59C7173C-AE03-517E-8A93-2D1D39C6F037"><p> <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-1FD35BDA-265C-3421-86C1-4E3D48C8C727"><apiname>DLogicalChannel::iMsgQ</apiname></xref> is
+the message queue object and is initialised by the <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> constructor. </p> </li>
+</ul> <fig id="GUID-78C80572-B6A6-5C26-B3B5-3613976EAEE0">
+<title>Public Data Members</title>
+<image href="GUID-038928F5-B223-59E9-BFED-6D481400F12F_d0e269185_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-B86B2CBD-7620-56D0-8B6F-14B018F6B073"><title>Multi-threaded
+Clients</title> <p>If you have a device driver that services multi-threaded
+clients, where each thread is associated with its own <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> (or <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>)
+object, you can ensure that each logical channel is only used by the thread
+that created it. </p> <p>To do this, override the <codeph>DObject::RequestUserHandle()</codeph> virtual
+function. As your logical channel is an instance of a class derived from <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> (or
+from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> directly), and both of these classes
+are ultimately derived from <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>. </p> <p> <codeph> DObject::RequestUserHandle()</codeph> is
+a function that allows an instance of a <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref> -derived
+class to control access to itself from user threads. For example it might
+wish to restrict its use to a single thread or to a single user process. </p> <p>The
+default implementation is as follows: </p> <codeblock id="GUID-D995A917-17B4-5CA4-AA2B-B4C2D9BAB76C" xml:space="preserve">EXPORT_C TInt DObject::RequestUserHandle(DThread* aThread, TOwnerType aType)
+    {
+    (void)aThread;
+    (void)aType;
+    return KErrNone;
+    }
+</codeblock> <p>where: </p> <ul>
+<li id="GUID-78AC8DDB-919A-5A76-84CE-7D544B93EBB8"><p> <codeph> aThread</codeph> is
+a pointer to the thread that is requesting the handle </p> </li>
+<li id="GUID-AA1DFAA5-78C6-59B3-8A09-70B584955623"><p> <codeph>aType</codeph> indicates
+whether the requested handle is thread or process relative </p> </li>
+<li id="GUID-CA6C0400-0FFF-51B2-AFCF-92AB2F13C0E0"><p>The return value can
+be: <codeph>KErrNone</codeph>, which is interpreted to mean that it is acceptable
+for the handle to be created; <codeph>KErrAccessDenied</codeph>, which is
+interpreted to mean that it is not acceptable for the handle to be created. </p> </li>
+</ul> <p>To ensure that a channel can only be used by a single thread, override
+the default implementation with the follwing: </p> <codeblock id="GUID-1702C920-38EC-5C00-A9A2-F04FB5AA0821" xml:space="preserve">TInt DMyChannel::RequestUserHandle(DThread* aThread, TOwnerType aType)
+    {
+    if (aType!=EOwnerThread || aThread!=iClient)
+        {
+        return KErrAccessDenied;
+        }
+    return KErrNone;
+    }</codeblock> <p>where <codeph>iClient</codeph> is a member variable initialised
+during construction of <codeph>DMyChannel</codeph> to point to the thread
+that performed the construction process. </p> </section>
+</conbody></concept>
