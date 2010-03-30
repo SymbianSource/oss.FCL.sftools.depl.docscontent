@@ -83,7 +83,7 @@ that region is less than or equal to to the threshold value, then only the
 region is purged. </p> <p>The threshold values are platform specific, and
 you need to choose your values based on your own performance measurements.
 Symbian cannot make recommendations. If you choose not to set your own values,
-Symbian OS supplies a set of default values, which are set by <codeph>Cache::Init1()</codeph>. </p> <p>Note
+Symbian platform supplies a set of default values, which are set by <codeph>Cache::Init1()</codeph>. </p> <p>Note
 that there is also a <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-2DBD79A7-2061-3B89-89FA-B0DFC7AFFCF9"><apiname>Cache::GetThresholds()</apiname></xref> interface that
 you may find useful. </p> </li>
 <li id="GUID-DA94E963-6AA5-5084-8C19-77B7AD484A44"><p>set up the RAM zones.
@@ -276,23 +276,23 @@ replace the default implementation, you need to: </p> <ul>
 This has the same signature as <codeph>Kern::NanoWait()</codeph>: </p> <codeblock id="GUID-0AC0DC75-38C7-58A8-8A4F-4C5AA8F23A80" xml:space="preserve">void AsicImpl::DoNanoWait(TUint32 aInterval)
     {
     // Wait for aInterval nanoseconds
-    }</codeblock> <p>where <codeph>AsicImpl</codeph> is the class that is
-ultimately derived from <codeph>Asic</codeph>. </p> </li>
+    }</codeblock> <p>where <codeph>AsicImpl</codeph> is the
+class that is ultimately derived from <codeph>Asic</codeph>. </p> </li>
 <li id="GUID-BDE8C5D6-6E6C-5B2E-9219-A8D5DC114EA2"><p>register this implementation
 by adding the following call into your <codeph>Asic::Init3()</codeph> function: </p> <codeblock id="GUID-1A99C7D2-A550-5B39-9AE7-559AE7B13C3E" xml:space="preserve">Kern::SetNanoWaitHandler(AsicImpl::DoNanoWait);</codeblock> </li>
 </ul> <p>You can see where this goes by looking at the template port at: <filepath>...\base\cedar\template\template_assp\template_assp.cpp</filepath>  </p> </section>
-<section id="GUID-1028F2D0-BA8B-4880-9565-50C89EBD1685"><title>Asic::DebugOutput() implementation</title> <p>It is worth
-implementing this early so that it is possible to get trace output to see
-what the kernel is doing. This function is passed one character at a time.
-Normally this is sent to a UART, though it can be output through any convenient
-communications channel. </p> <p>On the template port, this is implemented
-in the Variant layer, by <codeph>Template::DebugOutput()</codeph> in <filepath>...\template_variant\specific\variant.cpp</filepath>. </p> </section>
-<section id="GUID-EEC48040-B7D7-406B-8138-4A1F646ED990"><title>Asic::Idle() implementation</title> <p>If no power management
-has been implemented, then this function is called when the system is to idle
-to allow power saving. This function can just return, until power management
-is implemented. Once power management has been implemented, then idling behaviour
-will be handled by the power controller, i.e. the Variant's implementation
-of the <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita"><apiname>DPowerController</apiname></xref> class </p> </section>
+<section id="GUID-1028F2D0-BA8B-4880-9565-50C89EBD1685"><title>Asic::DebugOutput()
+implementation</title> <p>It is worth implementing this early so that it is
+possible to get trace output to see what the kernel is doing. This function
+is passed one character at a time. Normally this is sent to a UART, though
+it can be output through any convenient communications channel. </p> <p>On
+the template port, this is implemented in the Variant layer, by <codeph>Template::DebugOutput()</codeph> in <filepath>...\template_variant\specific\variant.cpp</filepath>. </p> </section>
+<section id="GUID-EEC48040-B7D7-406B-8138-4A1F646ED990"><title>Asic::Idle()
+implementation</title> <p>If no power management has been implemented, then
+this function is called when the system is to idle to allow power saving.
+This function can just return, until power management is implemented. Once
+power management has been implemented, then idling behaviour will be handled
+by the power controller, i.e. the Variant's implementation of the <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita"><apiname>DPowerController</apiname></xref> class </p> </section>
 <section id="GUID-917B420D-5F10-5190-97D2-9D2DAFD4FB76"><title>Asic::MsTickPeriod()
 implementation</title> <p>This function is used to return the number of microseconds
 per tick. To avoid timing drift, a tick frequency should be chosen that gives
@@ -309,11 +309,11 @@ It is a simple function that just returns the value. </p> <codeblock id="GUID-C0
      return 1000;   // EXAMPLE ONLY
     }
 </codeblock> <p>See also <xref href="GUID-F84E18B8-5883-5A3A-A9DB-EC25BB86149F.dita">Timers</xref>. </p> </section>
-<section id="GUID-1C8A7F79-8CD5-442E-A9A5-925C94E80773"><title>Asic::SystemTimeInSecondsFrom2000()           implementation</title> <p>This
-is a function that the kernel uses to get the system time. Its signature is </p> <codeblock id="GUID-A1FF9777-D627-5409-B6CD-02F20F7A1889" xml:space="preserve">Tint SystemTimeInSecondsFrom2000(Tint&amp; aTime);</codeblock> <p>An
-implementation must set the <codeph>aTime</codeph> reference to the number
-of seconds that have elapsed since the start of the year 2000. This is a positive
-number; a negative number is interpreted as time before 2000. </p> <p>For
+<section id="GUID-1C8A7F79-8CD5-442E-A9A5-925C94E80773"><title>Asic::SystemTimeInSecondsFrom2000()
+          implementation</title> <p>This is a function that the kernel uses
+to get the system time. Its signature is </p> <codeblock id="GUID-A1FF9777-D627-5409-B6CD-02F20F7A1889" xml:space="preserve">Tint SystemTimeInSecondsFrom2000(Tint&amp; aTime);</codeblock> <p>An implementation must set the <codeph>aTime</codeph> reference to the
+number of seconds that have elapsed since the start of the year 2000. This
+is a positive number; a negative number is interpreted as time before 2000. </p> <p>For
 the template reference board, the implementation is as follows: </p> <codeblock id="GUID-C4812A82-C069-564B-972A-0922EAC00AAB" xml:space="preserve">EXPORT_C TInt TemplateAssp::SystemTimeInSecondsFrom2000(TInt&amp; aTime)
      {
       aTime=(TInt)TTemplate::RtcData();
@@ -325,11 +325,11 @@ just return <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname
 access functions in the <codeph>TTemplate</codeph> class. See <filepath>...\template_assp\template_assp.cpp</filepath> for
 implementation details. </p> <p>Note that tracing output is provided when
 the KHARDWARE bit in the kerneltrace flags is set for the debug build. </p> </section>
-<section id="GUID-F0AC3E98-345F-4491-9957-51B127437181"><title>Asic::SetSystemTimeInSecondsFrom2000() implementation</title> <p>This
-is a function that the kernel uses to set the system time. Its signature is </p> <codeblock id="GUID-B965C38C-A65E-5E54-BE09-C81300B59EDC" xml:space="preserve">Tint SetSystemTimeInSecondsFrom2000(Tint aTime);</codeblock> <p>This
-sets the real time clock to the number of seconds that have elapsed since
-the start of the year 2000. This is a positive number; a negative number is
-interpreted as time before 2000. </p> <p>For the template reference board,
+<section id="GUID-F0AC3E98-345F-4491-9957-51B127437181"><title>Asic::SetSystemTimeInSecondsFrom2000()
+implementation</title> <p>This is a function that the kernel uses to set the
+system time. Its signature is </p> <codeblock id="GUID-B965C38C-A65E-5E54-BE09-C81300B59EDC" xml:space="preserve">Tint SetSystemTimeInSecondsFrom2000(Tint aTime);</codeblock> <p>This sets the real time clock to the number of seconds that have elapsed
+since the start of the year 2000. This is a positive number; a negative number
+is interpreted as time before 2000. </p> <p>For the template reference board,
 the implementation is as follows: </p> <codeblock id="GUID-89BFC844-B053-51B7-9ACA-81B19E63414B" xml:space="preserve">EXPORT_C TInt TemplateAssp::SetSystemTimeInSecondsFrom2000(TInt aTime)
     {
      //
@@ -346,13 +346,13 @@ the implementation is as follows: </p> <codeblock id="GUID-89BFC844-B053-51B7-9A
 in the kerneltrace flags is set for the debug build. In this function, the
 trace output shows the value passed in from the kernel and then shows the
 value read back from the real time clock for verification. </p> </section>
-<section id="GUID-50BB6924-899F-4385-879E-19A2FC68657C"><title>Asic::NanoWaitCalibration()  implementation</title> <p>The
-function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-0EEAFE45-5C0D-32A9-AD64-CE3AB0AEE6B3"><apiname>Kern::NanoWait()</apiname></xref> can be called if you want to
-wait for very short periods of time within the kernel. You call this function
-and specify the number of nanoseconds. You can either use the default implementation
-of this function, or you can provide your own. </p> <p>The default implementation
-provided by Symbian OS that <codeph>Kern::NanoWait()</codeph> uses is a busy
-loop that is calibrated by calling <codeph>Asic::NanoWaitCalibration()</codeph>. <codeph>NanoWaitCalibration()</codeph> should
+<section id="GUID-50BB6924-899F-4385-879E-19A2FC68657C"><title>Asic::NanoWaitCalibration()
+ implementation</title> <p>The function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-0EEAFE45-5C0D-32A9-AD64-CE3AB0AEE6B3"><apiname>Kern::NanoWait()</apiname></xref> can
+be called if you want to wait for very short periods of time within the kernel.
+You call this function and specify the number of nanoseconds. You can either
+use the default implementation of this function, or you can provide your own. </p> <p>The
+default implementation provided by Symbian platform that <codeph>Kern::NanoWait()</codeph> uses
+is a busy loop that is calibrated by calling <codeph>Asic::NanoWaitCalibration()</codeph>. <codeph>NanoWaitCalibration()</codeph> should
 return the number of nanoseconds taken to execute 2 machine cycles. This is
 obviously dependent on the CPU clock speed, so if variants are likely to run
 at different speeds, then this should be implemented in the Variant layer. </p> <p>This
@@ -381,17 +381,17 @@ a simple function that just returns the value. </p> <codeblock id="GUID-68298BF1
      return 0;   // EXAMPLE ONLY
     }
 </codeblock> </section>
-<section id="GUID-15F344C5-A1CC-45FC-AC94-27022A1DF448"><title>Asic::VariantHal() implementation</title> <p>You might find
-it useful to review <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita">User-Side
+<section id="GUID-15F344C5-A1CC-45FC-AC94-27022A1DF448"><title>Asic::VariantHal()
+implementation</title> <p>You might find it useful to review <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita">User-Side
 Hardware Abstraction Technology</xref> first. </p> <p>This is the HAL handler
 for the HAL group <xref href="GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7.dita#GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7/GUID-3FA061DE-68F8-3948-96B3-5AFC989DBDE1"><apiname>THalFunctionGroup::EHalGroupVariant</apiname></xref>. </p> </section>
-<section id="GUID-2EEA143D-612C-47C5-B16C-22DAD1BC179E"><title>Asic::MachineConfiguration()           implementation</title> <p>This
-returns a <xref href="GUID-C0D29B11-1535-3D11-B318-B18D30A6120B.dita"><apiname>TPtr8</apiname></xref> descriptor representing an area containing
-machine configuration information. </p> <p>The address of this object is obtained
-by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-4DAE5199-1EB0-31D1-BA06-8F47E96EEADE"><apiname>Kern::MachineConfig()</apiname></xref>. However, the Variant
-(either the ASSP layer or the Variant layer or both) is responsible for the
-content. </p> <p>In the template port, the function is implemented in the
-Variant layer: </p> <codeblock id="GUID-B75F631E-03DB-5C98-911F-1161842AA17F" xml:space="preserve">TPtr8 Template::MachineConfiguration()
+<section id="GUID-2EEA143D-612C-47C5-B16C-22DAD1BC179E"><title>Asic::MachineConfiguration()
+          implementation</title> <p>This returns a <xref href="GUID-C0D29B11-1535-3D11-B318-B18D30A6120B.dita"><apiname>TPtr8</apiname></xref> descriptor
+representing an area containing machine configuration information. </p> <p>The
+address of this object is obtained by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-4DAE5199-1EB0-31D1-BA06-8F47E96EEADE"><apiname>Kern::MachineConfig()</apiname></xref>.
+However, the Variant (either the ASSP layer or the Variant layer or both)
+is responsible for the content. </p> <p>In the template port, the function
+is implemented in the Variant layer: </p> <codeblock id="GUID-B75F631E-03DB-5C98-911F-1161842AA17F" xml:space="preserve">TPtr8 Template::MachineConfiguration()
     {
      return TPtr8((TUint8*)&amp;Kern::MachineConfig(),sizeof(TActualMachineConfig),sizeof(TActualMachineConfig));
     }
@@ -401,10 +401,11 @@ from <codeph>TMachineConfig</codeph>. In effect, <codeph>TMachineConfig</codeph>
 information that is common to all, while the Variant can extend this to contain
 whatever information is appropriate. </p> <p>Note that <codeph>TActualMachineConfig</codeph> is
 a typedef for <codeph>TTemplateMachineConfig</codeph>. </p> </section>
-<section id="GUID-B1E39D8C-1562-4464-A316-144ED89935C9"><title>Asic::StartupReason() implementation</title> <p>If a startup
-reason is available from hardware or a preserved RAM location, it should be
-returned by the function. The default is to return <codeph>EStartupColdReset</codeph>. </p> <p>On
-the template port, this is implemented in the ASSP layer: </p> <codeblock id="GUID-FC4FFA46-804D-5A7F-B7CA-DDDC72C60041" xml:space="preserve">EXPORT_C TMachineStartupType TemplateAssp::StartupReason()
+<section id="GUID-B1E39D8C-1562-4464-A316-144ED89935C9"><title>Asic::StartupReason()
+implementation</title> <p>If a startup reason is available from hardware or
+a preserved RAM location, it should be returned by the function. The default
+is to return <codeph>EStartupColdReset</codeph>. </p> <p>On the template port,
+this is implemented in the ASSP layer: </p> <codeblock id="GUID-FC4FFA46-804D-5A7F-B7CA-DDDC72C60041" xml:space="preserve">EXPORT_C TMachineStartupType TemplateAssp::StartupReason()
     {
      __KTRACE_OPT(KBOOT,Kern::Printf("TemplateAssp::StartupReason"));
   #ifdef _DEBUG                                                            // REMOVE THIS

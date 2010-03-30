@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-32B82E5C-FD53-48E6-9ABC-88F82ACF71BC" xml:lang="en"><title>The
+LDD Entry Point and Factory</title><shortdesc>This document describes how LDDs are created.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A3C0C24F-BFE3-4126-A8C3-3CAEBDE28307">           <p>An LDD
+must define an entry point function using the macro <xref href="GUID-B5DA78FD-07CA-3C9F-9154-D29A04E5E1E7.dita"><apiname>DECLARE_STANDARD_LDD</apiname></xref>,
+or <xref href="GUID-38771B51-195D-3148-A462-277DA3696117.dita"><apiname>DECLARE_EXTENSION_LDD</apiname></xref> in the case of kernel extensions.
+This must create an LDD factory object derived from <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref>: </p> <codeblock id="GUID-4867DF18-9CCD-548F-AB08-25C168527BD8" xml:space="preserve">DECLARE_STANDARD_LDD()
+    {
+    return new DerivedLogicalDevice;
+    }</codeblock> <p>This factory object is created on the kernel heap. Its
+purpose is to create the logical channel, the object through which all client
+interaction with the driver will occur. </p> <p> <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita"><apiname>DLogicalDevice</apiname></xref> is
+derived from <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref>, and is, therefore a reference-counting
+object. It also means that <codeph>DLogicalDevice</codeph> objects are given
+a name, as these objects are always subsequently found by name. The user-side
+specifies the name of the logical device through the first parameter in the
+user-side call to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref>. </p> <p>The
+file extension of a LDD DLL can be any permitted Symbian Platform name but,
+by convention, the LDD DLL has the extension <filepath>.LDD</filepath>. Device
+driver DLLs are polymorphic interface DLLs. When building LDDs, specify a
+target type of <i>ldd</i> in the <filepath>.mmp</filepath> file. </p> <p>An
+LDD is loaded by calling <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-AE0D51B7-7ADC-3C9F-ACAA-8F6D9EA0AEFA"><apiname>User::LoadLogicalDevice()</apiname></xref>. This
+static function: </p> <ul>
+<li id="GUID-774CC8D6-4E6C-54C6-B6A4-1409EEDD8965"><p>loads the DLL into RAM,
+if necessary </p> </li>
+<li id="GUID-A9D6846C-F13F-56B3-A7C5-0CC2021BFF93"><p>calls the exported function
+at ordinal 1 to create the factory object, the <codeph>DLogicalDevice</codeph> derived
+object </p> </li>
+<li id="GUID-50E53C2E-216A-592C-B0E6-4F8CA3D1B577"><p>places the factory object
+into the appropriate object container. </p> </li>
+</ul> <note> This only needs to be done once, not every time the driver is
+used. </note> <p>If an LDD needs to perform initialisation at boot time (before
+the driver is loaded by <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-AE0D51B7-7ADC-3C9F-ACAA-8F6D9EA0AEFA"><apiname>User::LoadLogicalDevice()</apiname></xref>) then
+specify the entry point macros <codeph>DECLARE_STANDARD_EXTENSION</codeph> and <codeph>DECLARE_EXTENSION_LDD</codeph>. </p><codeblock id="GUID-4F20539E-4BC6-5D37-858B-53FD27E3A91E" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+    {
+    // initialise code here
+    }
+
+DECLARE_EXTENSION_LDD()
+    {
+    return new DMyLogicalFactory;
+    }</codeblock><note><p>In order for the kernel to initialise the LDD extension
+at boot time then the <filepath>.oby</filepath> file must specify the <codeph>extension</codeph> keyword.
+Also note that initialisation of the extension will not load
+the LDD: this still has to be done through a call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-AE0D51B7-7ADC-3C9F-ACAA-8F6D9EA0AEFA"><apiname>User::LoadLogicalDevice()</apiname></xref>.</p></note></section>
+</conbody></concept>

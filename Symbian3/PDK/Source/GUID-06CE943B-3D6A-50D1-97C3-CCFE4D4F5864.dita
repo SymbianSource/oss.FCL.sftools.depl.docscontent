@@ -9,4 +9,74 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-06CE943B-3D6A-50D1-97C3-CCFE4D4F5864"><title>SubConnection Client API</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This document gives an introduction to using the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API. </p> <p>The <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API creates a channel ("subconnection") within a connection (<xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref>). Sockets can be attached to this channel and will then be bound by the properties of that channel, such as Quality of Service (values such as minimum bandwith, latency limits etc.). Depending on the state of the channel, it may not be possible to bind arbitary sockets into it. Attempting to bind sockets from different protocol families to a single channel is an error, as each channel can only be used by one protocol family. </p> <p>Note: The sub-connection can represent an end-to-end channel and/or a channel from this device to an intermediate device (e.g an access server such as a GGSN using UMTS and PDP contexts.) Properties can be specified simultaneously on protocol and link level. In the case of GPRS/UMTS network interfaces, sub-connections correspond to Primary and Secondary PDP Contexts. Before using any of these services, a connection to a socket server session must have been made and the connection must be open. </p> <p>An <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> contains one or more sub-connections (a default sub-connection, which is created automatically with the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> plus any added <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> s). Each sub-connection has properties. To set those properties you apply an <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> to the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>. The parameter bundle consists of families of parameters. A "family" is a connected set of parameters, such as QoS. At present only two families are defined, Quality of Service (<xref href="GUID-022ECBFB-911A-330B-B197-3BDAE6493981.dita"><apiname>KSubConQoSFamily</apiname></xref>) and Authorisation (<xref href="GUID-B2567E44-BD9B-39B3-BB97-385124CFD973.dita"><apiname>KSubConAuthorisationFamily</apiname></xref>). </p> <p>Quality of Service (QoS) in Symbian OS is implemented by setting parameters on the sub-connection. </p> <p>The <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API provides the functionality to divide a Connection (provided by the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API) into channels that have properties such as bandwidth and latency. </p> <p>Each family of parameters can consist of the values you would like to have (<xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>) and the minimum you're willing to accept (<xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref>). If you don't specify the <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> then the <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref> will be used as the minimum acceptable. When the parameters have been applied and the sub-connection is used then the parameter family will be updated with a third set of values, the <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> (which will be somewhere between the <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> and the <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>) or an event will be raised to say that the parameters have been rejected/could not be granted. As this may be some time after the initial request, asynchronous event notification is used to tell your application what has been negotiated. Your application must monitor for the granted/rejected event notification. </p> <p>There is an overlap between the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API and the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API as both provide sub-connection management. The <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API provides overall sub-connection management for an entire connection whereas the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API allows the individual setting of properties of a sub-connection as well as the ability to associate sockets (<xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref>) with sub-connections. The sockets are then able to take advantage of the sub-connection's properties when they send and receive data. </p> <p>The <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> API can be created with a sub-connection as well as a connection. A client is able to start a sub-connection via <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> and associate individual <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> objects with that sub-connection. This ensures that all data flowing over those objects uses the particular sub-connection previously started by the application. This is implemented using a new <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-89C92445-FFCA-37F0-88D0-BF9B1B41BA2F"><apiname>RSocket::Open(…)</apiname></xref> method which takes an additional argument specifying the sub-connection to use for the object in question. The socket will not actually be added to the sub-connection until such time as the socket is used. </p> <p>As well as opening sub-connections explicitly via <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>, applications may also attach to the default sub-connection (e.g. in GPRS, the default could be the Primary PDP context without a TFT), and modify and retrieve its properties. </p> <p>Parameters that apply to an <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> are grouped together into "families" (<xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref>). Each parameter family contains parameter sets that are either "generic" (parameters that are independent of the underlying technology) or "extension" (a group of parameters specific to a technology). There will always be one generic parameter set in a family and there will be zero or more extension parameter sets. </p> <section><title>Historical Note</title> <p>RSubConnection was introduced in Symbian OS 9.1. </p> </section> </conbody></concept>
+<concept id="GUID-06CE943B-3D6A-50D1-97C3-CCFE4D4F5864" xml:lang="en"><title>SubConnection
+Client API</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This document gives an introduction to using the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API. </p>
+<p>The <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API creates a channel ("subconnection")
+within a connection (<xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref>). Sockets can be attached
+to this channel and will then be bound by the properties of that channel,
+such as Quality of Service (values such as minimum bandwith, latency limits
+etc.). Depending on the state of the channel, it may not be possible to bind
+arbitary sockets into it. Attempting to bind sockets from different protocol
+families to a single channel is an error, as each channel can only be used
+by one protocol family. </p>
+<p>Note: The sub-connection can represent an end-to-end channel and/or a channel
+from this device to an intermediate device (e.g an access server such as a
+GGSN using UMTS and PDP contexts.) Properties can be specified simultaneously
+on protocol and link level. In the case of GPRS/UMTS network interfaces, sub-connections
+correspond to Primary and Secondary PDP Contexts. Before using any of these
+services, a connection to a socket server session must have been made and
+the connection must be open. </p>
+<p>An <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> contains one or more sub-connections
+(a default sub-connection, which is created automatically with the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> plus
+any added <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> s). Each sub-connection has properties.
+To set those properties you apply an <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> to
+the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>. The parameter bundle consists of families
+of parameters. A "family" is a connected set of parameters, such as QoS. At
+present only two families are defined, Quality of Service (<xref href="GUID-022ECBFB-911A-330B-B197-3BDAE6493981.dita"><apiname>KSubConQoSFamily</apiname></xref>)
+and Authorisation (<xref href="GUID-B2567E44-BD9B-39B3-BB97-385124CFD973.dita"><apiname>KSubConAuthorisationFamily</apiname></xref>). </p>
+<p>Quality of Service (QoS) in Symbian platform is implemented by setting
+parameters on the sub-connection. </p>
+<p>The <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API provides the functionality to
+divide a Connection (provided by the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API) into
+channels that have properties such as bandwidth and latency. </p>
+<p>Each family of parameters can consist of the values you would like to have
+(<xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>) and the minimum you're willing to accept (<xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref>).
+If you don't specify the <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> then the <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref> will
+be used as the minimum acceptable. When the parameters have been applied and
+the sub-connection is used then the parameter family will be updated with
+a third set of values, the <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> (which will be somewhere
+between the <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> and the <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>)
+or an event will be raised to say that the parameters have been rejected/could
+not be granted. As this may be some time after the initial request, asynchronous
+event notification is used to tell your application what has been negotiated.
+Your application must monitor for the granted/rejected event notification. </p>
+<p>There is an overlap between the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API and
+the <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API as both provide sub-connection management.
+The <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> API provides overall sub-connection management
+for an entire connection whereas the <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> API
+allows the individual setting of properties of a sub-connection as well as
+the ability to associate sockets (<xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref>) with sub-connections.
+The sockets are then able to take advantage of the sub-connection's properties
+when they send and receive data. </p>
+<p>The <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> API can be created with a sub-connection
+as well as a connection. A client is able to start a sub-connection via <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> and
+associate individual <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> objects with that sub-connection.
+This ensures that all data flowing over those objects uses the particular
+sub-connection previously started by the application. This is implemented
+using a new <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-89C92445-FFCA-37F0-88D0-BF9B1B41BA2F"><apiname>RSocket::Open(…)</apiname></xref> method which takes an additional
+argument specifying the sub-connection to use for the object in question.
+The socket will not actually be added to the sub-connection until such time
+as the socket is used. </p>
+<p>As well as opening sub-connections explicitly via <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref>,
+applications may also attach to the default sub-connection (e.g. in GPRS,
+the default could be the Primary PDP context without a TFT), and modify and
+retrieve its properties. </p>
+<p>Parameters that apply to an <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> are grouped
+together into "families" (<xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref>). Each
+parameter family contains parameter sets that are either "generic" (parameters
+that are independent of the underlying technology) or "extension" (a group
+of parameters specific to a technology). There will always be one generic
+parameter set in a family and there will be zero or more extension parameter
+sets. </p>
+</conbody></concept>

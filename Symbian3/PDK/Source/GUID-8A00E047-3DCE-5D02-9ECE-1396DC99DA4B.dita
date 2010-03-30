@@ -25,7 +25,7 @@ objects for such things as threads, processes, chunks, and inter-process communi
 this provides per-process address spaces and inter-process data transfer,
 and governs how memory is allocated and mapped. It encapsulates access to
 the hardware Memory Management Unit (MMU), allowing the nanokernel and the
-Symbian OS kernel to be MMU-independent. </p> </li>
+Symbian platform kernel to be MMU-independent. </p> </li>
 <li id="GUID-5324322B-BC5E-5D08-BD9A-DA22EC41CFF4"><p> <i>Variant DLL</i>:
 this provides hardware dependent services required by the kernel, for example
 timer tick interrupts and Real Time Clock access. Systems based on an ASSP
@@ -39,7 +39,7 @@ between peripherals and the rest of Symbian platform. </p> </li>
 user side code, such as the user library, and the device hardware: </p>
 <fig id="GUID-9B3AF7EC-8339-5F92-B4BC-20DD3331F103">
 <title>           Kernel architectural relationships          </title>
-<image href="GUID-C842C016-0D1B-5462-8B04-49CFE941A964_d0e365435_href.jpg" placement="inline"/>
+<image href="GUID-C842C016-0D1B-5462-8B04-49CFE941A964_d0e386668_href.jpg" placement="inline"/>
 </fig>
 <p>The implementation of these parts is split into code that is hardware independent,
 and code that is dependent on the hardware platform. Hardware dependent code
@@ -55,32 +55,35 @@ ASSP and Variant. </p> </li>
 </ul>
 <fig id="GUID-EBB913A8-1694-5C98-B38B-1387F850CDB4">
 <title>           Kernel source layers          </title>
-<image href="GUID-A480F734-9EDF-5E29-AC96-039B71B22AC3_d0e365474_href.png" placement="inline"/>
+<image href="GUID-A480F734-9EDF-5E29-AC96-039B71B22AC3_d0e386707_href.png" placement="inline"/>
 </fig>
 <p>The following is a brief description of each layer and its purpose. </p>
-<section id="GUID-5317DC8F-56A2-4AF1-889D-D8E6F4925A0B"><title>Layer 1: Independent </title><p>This layer is about 60% of
-the total source code. It provides all the basic building blocks of both the
-nanokernel and the Symbian platform kernel. </p></section>
-<section id="GUID-4ABDF396-D282-4DDE-975F-7AEBBBE4C0E0"><title>Layer 2: Platform </title><p>This layer is concerned with
-executable images, whether on the emulator or real hardware. Only the memory
-model has code in this layer. It defines two platforms: the windows emulator
-and the real Symbian OS hardware. The windows emulator provides a single-process
-emulation of Symbian OS using the PC’s Win32 API, for software development:
-the Symbian OS hardware starts as a program running Win32 DLLs and threads,
-and interfaces with Win32 services rather than hardware and devices. </p><p>Key
-differences between the hardware and the emulator are: </p><ul>
+<section id="GUID-5317DC8F-56A2-4AF1-889D-D8E6F4925A0B"><title>Layer 1: Independent </title><p>This
+layer is about 60% of the total source code. It provides all the basic building
+blocks of both the nanokernel and the Symbian platform kernel. </p></section>
+<section id="GUID-4ABDF396-D282-4DDE-975F-7AEBBBE4C0E0"><title>Layer 2: Platform </title><p>This
+layer is concerned with executable images, whether on the emulator or real
+hardware. Only the memory model has code in this layer. It defines two platforms:
+the windows emulator and the real Symbian platform hardware. The windows emulator
+provides a single-process emulation of Symbian platform using the PC’s Win32
+API, for software development: the Symbian platform hardware starts as a program
+running Win32 DLLs and threads, and interfaces with Win32 services rather
+than hardware and devices. </p><p>Key differences between the hardware and
+the emulator are: </p><ul>
 <li id="GUID-109C7BE4-93C2-5848-8A4F-61474E240BAC"><p>The emulator runs in
-a single process, and Symbian OS processes are emulated within this. This
-means there is no memory protection between emulated Symbian OS processes. </p> </li>
+a single process, and Symbian platform processes are emulated within this.
+This means there is no memory protection between emulated Symbian platform
+processes. </p> </li>
 <li id="GUID-40B1A70F-1813-50ED-9EA0-9DE4C4067FFB"><p>The emulator file system
 maps Z: and C: to subdirectories on the user’s PC, so that programs running
 under the emulator do not interfere with the majority of the PC’s file system. </p> </li>
 <li id="GUID-6E52C610-8600-520F-9958-185C3BC97294"><p>Delayed function calls
 (DFCs) always run immediately on the emulator. </p> </li>
 </ul></section>
-<section id="GUID-AA29E2F8-D6B2-4C14-B983-3CF340BA17BA"><title>Layer 3: Model </title><p>This layer provides supports for
-the organisation of per process memory. Only the memory model has code at
-this level. There are three types of memory model supported: </p><ul>
+<section id="GUID-AA29E2F8-D6B2-4C14-B983-3CF340BA17BA"><title>Layer 3: Model </title><p>This
+layer provides supports for the organisation of per process memory. Only the
+memory model has code at this level. There are three types of memory model
+supported: </p><ul>
 <li id="GUID-38ACBEB0-C5E9-5F6A-BA8F-F6E0BD4EBA90"><p> <i>Moving</i>: a single
 page directory is used and page directory entries are moved between the home
 and run sections at address space switch time. This is intended for ARMv4
@@ -91,23 +94,24 @@ page directory per process. This is intended for ARMv6 CPUs. </p> </li>
 address space for the whole system. This can be used either for MMU-less CPUs
 or to allow incremental porting to a new MMU-aware CPU. </p> </li>
 </ul></section>
-<section id="GUID-AD70D1A5-E777-4FF3-B247-4F2E94C1D3C7"> <title>Layer 4: CPU</title><p>This layer provides code which differs
-according to the processor the OS is running on. The nanokernel, memory model
-and Symbian platform kernel all have code in this layer. This is the layer
-where assembly code belongs. Current possibilities for the CPU layer are X86
-(real X86 port to PC hardware), ARM (devices) and Win32 (for the emulator). </p><p>The
-nanokernel in this layer contains most of the realisation of the core CPU
-architecture, such as the exception/interrupt handling, context-switching
-mechanism, etc. It also contains some functionality which is conceptually
-part of the independent layer, but has been assembler coded for improved performance,
-for instance, DFC handling and timer handling on ARM-based hardware. </p><p>The
-bottom layer of the memory model is both CPU-specific as well as specific
-to the type of memory model. It presents interfaces used by the lower layers
-(ASSP and variant), and by the memory model and independent layer. </p></section>
-<section id="GUID-7BA28980-E4B2-4777-AB38-C25DD0B277A3"><title>Layers 5 and 6: ASSP/Variant </title><p>The variant provides
-the hardware specific implementation of the control functions expected by
-the nanokernel and Symbian platform kernel. </p><p>For some hardware, it may
-be appropriate to separate support for a particular ASSP (Application Specific
-Standard Product), an off-the-shelf integrated CPU part, so that multiple
-variants can be produced using the ASSP. </p></section>
+<section id="GUID-AD70D1A5-E777-4FF3-B247-4F2E94C1D3C7"> <title>Layer 4: CPU</title><p>This
+layer provides code which differs according to the processor the OS is running
+on. The nanokernel, memory model and Symbian platform kernel all have code
+in this layer. This is the layer where assembly code belongs. Current possibilities
+for the CPU layer are X86 (real X86 port to PC hardware), ARM (devices) and
+Win32 (for the emulator). </p><p>The nanokernel in this layer contains most
+of the realisation of the core CPU architecture, such as the exception/interrupt
+handling, context-switching mechanism, etc. It also contains some functionality
+which is conceptually part of the independent layer, but has been assembler
+coded for improved performance, for instance, DFC handling and timer handling
+on ARM-based hardware. </p><p>The bottom layer of the memory model is both
+CPU-specific as well as specific to the type of memory model. It presents
+interfaces used by the lower layers (ASSP and variant), and by the memory
+model and independent layer. </p></section>
+<section id="GUID-7BA28980-E4B2-4777-AB38-C25DD0B277A3"><title>Layers 5 and
+6: ASSP/Variant </title><p>The variant provides the hardware specific implementation
+of the control functions expected by the nanokernel and Symbian platform kernel. </p><p>For
+some hardware, it may be appropriate to separate support for a particular
+ASSP (Application Specific Standard Product), an off-the-shelf integrated
+CPU part, so that multiple variants can be produced using the ASSP. </p></section>
 </conbody></concept>

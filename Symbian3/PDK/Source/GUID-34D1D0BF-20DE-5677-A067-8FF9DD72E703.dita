@@ -10,7 +10,7 @@ Contributors:
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703" xml:lang="en"><title>Power
-Controller DPowerController Implementation Tutorial</title><shortdesc>This topic describes how to implement the <apiname>DPowerController</apiname> class
+Controller DPowerController Implementation Tutorial</title><shortdesc>This topic describes how to implement the <codeph>DPowerController</codeph> class
 to provide the main power controller functionality in a base port.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
 <p><xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita"><apiname>DPowerController</apiname></xref> is defined as: </p>
 <codeblock id="GUID-95318C39-B205-557C-B1F3-75C1441E464A" xml:space="preserve">class DPowerController : public DBase
@@ -61,9 +61,9 @@ to do here: </p> <ul>
 <li id="GUID-25C66F1B-6B2F-5B3B-A827-410263EE22A4"><p>create an instance of
 your power controller object </p> </li>
 <li id="GUID-369A09EC-74D3-529A-AC05-0EFE0C4ABBF7"><p>register your power
-controller object with the Symbian OS power manager, by calling <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita#GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366/GUID-F66D72D0-AA27-3BAF-8915-C6E8CC4E7CCF"><apiname>DPowerController::Register()</apiname></xref>.
-Your power controller cannot be used by the Symbian OS power manager until
-it has been registered. </p> </li>
+controller object with the Symbian platform power manager, by calling <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita#GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366/GUID-F66D72D0-AA27-3BAF-8915-C6E8CC4E7CCF"><apiname>DPowerController::Register()</apiname></xref>.
+Your power controller cannot be used by the Symbian platform power manager
+until it has been registered. </p> </li>
 <li id="GUID-E4C7D934-AAB9-511B-93A4-125D5A5B248D"><p>if you intend to use
 a battery monitor, then you would create it and register it as the HAL handler
 to deal with <xref href="GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7.dita#GUID-66A851A0-2A0C-3624-AEC1-22F6629FABF7/GUID-227B4DCD-5D74-3AB7-8E09-64A04D88F094"><apiname>THalFunctionGroup::EHALGroupPower</apiname></xref> calls. See <xref href="GUID-65CDCA83-C726-5173-8E46-B8981D1D7B02.dita">Battery Monitor Implementation
@@ -130,8 +130,8 @@ only be called by the Power Controller once. </p> </section>
 <section id="GUID-5A0CAD08-AA12-56EE-B0A3-75548D1896C9"><title>DPowerController::EnableWakeupEvents()</title> <codeblock id="GUID-38714507-C38C-5787-997F-5D45F3A90357" xml:space="preserve">virtual void EnableWakeupEvents() = 0;</codeblock> <p>The
 Symbian Power Model defines 3 generic system-wide <xref href="GUID-113B3755-1797-5D1B-8E07-8A18F5FE1504.dita">power
 states</xref>: <i>Active</i>, <i>Standby</i> and <i>Off</i>, as defined in
-the <xref href="GUID-0C435514-EEC6-5660-BB5F-535790349632.dita">Symbian OS power
-model</xref>. </p> <p>Each of the system-wide low power states: <i>Standby</i> and <i>Off</i>,
+the <xref href="GUID-0C435514-EEC6-5660-BB5F-535790349632.dita">Symbian platform
+power model</xref>. </p> <p>Each of the system-wide low power states: <i>Standby</i> and <i>Off</i>,
 has a defined set of wake-up events. If a wake-up event occurs while the system
 is preparing to transition into one of these low power states, or when the
 system is in the <i>Standby</i> state, then this can result in the system
@@ -151,7 +151,7 @@ However, before doing this, it calls <xref href="GUID-15D25C07-CFD2-32CE-AD22-E1
 It also calls <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-6CFE19D9-249A-3305-8224-823D2FDB1859"><apiname>Power::RequestWakeupEventNotification()</apiname></xref> so
 that it can be informed of a wake-up event. If it is notified of a wake-up
 event, it can halt, and reverse the user side response to the power transition. </p> <fig id="GUID-ACC6E7E3-71E3-5553-B433-9017CB04513D">
-<image href="GUID-65F3E8BD-22C9-5CF2-A3CC-270C24ADECC0_d0e378167_href.png" placement="inline"/>
+<image href="GUID-65F3E8BD-22C9-5CF2-A3CC-270C24ADECC0_d0e399684_href.png" placement="inline"/>
 </fig> <p>Before calling <xref href="GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366.dita#GUID-B3D1C422-6A82-3C6E-9123-1E4F598F0366/GUID-0642129D-05F2-3AB0-B562-37A7BB7A275F"><apiname>DPowerController::EnableWakeupEvents()</apiname></xref>,
 the power manager sets the <codeph>iTargetState</codeph> member of <codeph>DPowerController</codeph> to
 the applicable <xref href="GUID-87AB8B20-04EE-31D2-8F3D-EA904D05B8D0.dita"><apiname>TPowerState</apiname></xref>. This means that you can enable
@@ -303,7 +303,7 @@ the system tick interrupt</b> </p> <p>To further increase power savings during
 CPU Idle, a base port can choose to suppress the system tick interrupt until
 the next nanokernel Timer (as implemented by <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita"><apiname>NTimer</apiname></xref>) is
 due to expire. Nanokernel timers are the basic timing service and all Symbian
-OS tick-based timers and time-of-day functions are derived from nanokernel
+platform tick-based timers and time-of-day functions are derived from nanokernel
 timers. </p> <p>In EKA2, timing services rely on a hardware timer, which is
 programmed by the base port Variant code, to generate the system tick. We
 refer to this as the <i>system timer</i>. </p> <p>Typically, the platform-specific
@@ -363,8 +363,7 @@ CPU reaches the Idle mode <i>and</i> the platform is transitioned into a “slee
 state <i>and</i> data arrives while it is still in that state, <i>then</i> there
 is a possibility that the system will not wake up on time to service the incoming
 data. </p> </section>
-<section id="GUID-4B613C67-3A12-4AD5-8842-6ED510A68746"><title>Validation</title> <p>The <filepath>e32test</filepath> programs <filepath>t_power</filepath>,
-and <filepath>t_timer</filepath> will put the system into standby and resume
+<section id="GUID-4B613C67-3A12-4AD5-8842-6ED510A68746"><title>Validation</title> <p>The <filepath>e32test</filepath> programs <filepath>t_power</filepath>, and <filepath>t_timer</filepath> will put the system into standby and resume
 off a timer. </p> </section>
 </conbody><related-links>
 <link href="GUID-0C435514-EEC6-5660-BB5F-535790349632.dita"><linktext>Power Management</linktext>

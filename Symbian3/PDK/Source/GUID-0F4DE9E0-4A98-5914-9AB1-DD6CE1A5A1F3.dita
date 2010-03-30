@@ -9,10 +9,72 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-0F4DE9E0-4A98-5914-9AB1-DD6CE1A5A1F3"><title>Unified Stores Overview </title><prolog><metadata><keywords/></metadata></prolog><conbody><p>A Symbian platform device may contain zero or more individual certificate stores, and zero or more key stores. Software implementations for both of these are supplied, and device creators may add their own, perhaps using special hardware on the device - for example, using a WIM. The certificate store and key store classes act as central interfaces for certificate and key management, so that application writers do not need to know details of the specific implementations present. These classes automatically discover all implementations of the relevant interface on the device using the crypto token framework. </p> <p>The certificate and key stores centralize and amalgamate the individual certstore and keystore implementations. The stores are unified in the sense that client requests, which relate to all store implementations (such as "list keys" or "list certificates"), are passed to every implementation in turn, and the results collated. Requests that relate to a specific store are routed to the correct implementation. </p> <p>Clients should only use the certificate store and key store classes to access certificates and keys. There is no need to use the crypto token framework directly, and although this is possible, it is not recommended. </p> <section><title>Programming with the Certificate Store and the Key
-          Store</title> <p>The ctframework component provides the interfaces for key store and certificate store implementations, and the unified stores themselves are implemented in Certificate Management's (certman's) certstore component. Programs wishing to use the unified stores should therefore be linked against both <codeph>certstore.lib</codeph> and <codeph>ctframework.lib</codeph>. Note that <codeph>certstore.lib</codeph> provides both the <xref href="GUID-0010EB39-8C23-5453-BE96-4EFC520B6F81.dita">unified certificate store</xref> and the <xref href="GUID-695FCEB8-EA04-5C1C-A197-648275BA0281.dita">unified key store</xref>. </p> <p>The software certificate store implementation supplied with Symbian platform is provided by <codeph>filecertstore.dll</codeph>, and this runs entirely in the client application. The software key store runs in a separate server process - this is implemented by <codeph>fstokenserver.exe</codeph>, and the client side part that communicates with the server is provided by <codeph>fstokencli.dll</codeph>. The unified stores use the ECom framework to load these DLLs automatically, so there is no need to link against them in client applications. </p> <p>Within the header files for the Unified Certificate Store and the Unified Key Store, most of the functions are asynchronous and this means that clients need to be implemented as active objects to work. All calls to asynchronous functions must be called from the context of active objects - the active scheduler will call the client's <codeph>RunL()</codeph> function when the asynchronous function completes. </p> <p>This means that the following code will not work: </p> <codeblock id="GUID-6D87CFA3-44ED-5B24-B17C-6A5A77854688" xml:space="preserve"> 
+<concept id="GUID-0F4DE9E0-4A98-5914-9AB1-DD6CE1A5A1F3" xml:lang="en"><title>Unified
+Stores Overview </title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A Symbian platform device may contain zero or more individual certificate
+stores, and zero or more key stores. Software implementations for both of
+these are supplied, and device creators may add their own, perhaps using special
+hardware on the device - for example, using a WIM. The certificate store and
+key store classes act as central interfaces for certificate and key management,
+so that application writers do not need to know details of the specific implementations
+present. These classes automatically discover all implementations of the relevant
+interface on the device using the crypto token framework. </p>
+<p>The certificate and key stores centralize and amalgamate the individual
+certstore and keystore implementations. The stores are unified in the sense
+that client requests, which relate to all store implementations (such as "list
+keys" or "list certificates"), are passed to every implementation in turn,
+and the results collated. Requests that relate to a specific store are routed
+to the correct implementation. </p>
+<p>Clients should only use the certificate store and key store classes to
+access certificates and keys. There is no need to use the crypto token framework
+directly, and although this is possible, it is not recommended. </p>
+<section id="GUID-490A4096-02BF-47F9-B630-3E5CE07E43AD"><title>Programming with the Certificate Store and the Key       
+   Store</title> <p>The ctframework component provides the interfaces for
+key store and certificate store implementations, and the unified stores themselves
+are implemented in Certificate Management's (certman's) certstore component.
+Programs wishing to use the unified stores should therefore be linked against
+both <codeph>certstore.lib</codeph> and <codeph>ctframework.lib</codeph>.
+Note that <codeph>certstore.lib</codeph> provides both the <xref href="GUID-0010EB39-8C23-5453-BE96-4EFC520B6F81.dita">unified
+certificate store</xref> and the <xref href="GUID-695FCEB8-EA04-5C1C-A197-648275BA0281.dita">unified
+key store</xref>. </p> <p>The software certificate store implementation supplied
+with the Symbian platform is provided by <codeph>filecertstore.dll</codeph>,
+and this runs entirely in the client application. The software key store runs
+in a separate server process - this is implemented by <codeph>fstokenserver.exe</codeph>,
+and the client side part that communicates with the server is provided by <codeph>fstokencli.dll</codeph>.
+The unified stores use the ECom framework to load these DLLs automatically,
+so there is no need to link against them in client applications. </p> <p>Within
+the header files for the Unified Certificate Store and the Unified Key Store,
+most of the functions are asynchronous and this means that clients need to
+be implemented as active objects to work. All calls to asynchronous functions
+must be called from the context of active objects - the active scheduler will
+call the client's <codeph>RunL()</codeph> function when the asynchronous function
+completes. </p> <p>This means that the following code will not work: </p> <codeblock id="GUID-6D87CFA3-44ED-5B24-B17C-6A5A77854688" xml:space="preserve"> 
 // Broken!
 TRequestStatus status;
 certStore-&gt;DoSomething(parameters, status);
 User::WaitForRequest(&amp;status);
-</codeblock> </section> <section><title>APIs</title> <p>The following table provides information on the APIs for the unified certificate store and the unified key store. </p> <table id="GUID-09857F72-9410-5F5A-BE8E-61D5BD04D01D"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>API</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-AD63C29A-17C3-375C-840F-42A92422300D.dita"><apiname>CUnifiedCertStore</apiname></xref>  </p> </entry> <entry><p>This class provides a unified view of all the certificate store implementations in the device. </p> </entry> </row> <row><entry><p> <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita"><apiname>CUnifiedKeyStore</apiname></xref>  </p> </entry> <entry><p>This class provides a unified view of all the certificate store implementations in the device. </p> </entry> </row> </tbody> </tgroup> </table> </section> </conbody></concept>
+</codeblock> </section>
+<section id="GUID-92B8798E-3963-49C9-8994-60CDAC33AC74"><title>APIs</title> <p>The following table provides information on
+the APIs for the unified certificate store and the unified key store. </p> <table id="GUID-09857F72-9410-5F5A-BE8E-61D5BD04D01D">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-AD63C29A-17C3-375C-840F-42A92422300D.dita"><apiname>CUnifiedCertStore</apiname></xref>  </p> </entry>
+<entry><p>This class provides a unified view of all the certificate store
+implementations in the device. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-818689D6-EB99-382E-A435-D9C6C5D464DE.dita"><apiname>CUnifiedKeyStore</apiname></xref>  </p> </entry>
+<entry><p>This class provides a unified view of all the certificate store
+implementations in the device. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

@@ -9,7 +9,18 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-6CE68645-D8C5-52E1-88B3-76AEFB80DE51"><title>Peripherals As Power Resources</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Before Symbian OS version 9.5 peripherals should be implemented this was, but for 9.5 and after see the <xref href="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9.dita">Power Resource Manager</xref> documentation. </p> <p>Peripherals that provide services to other peripherals can be considered as power resources from the point of view of the client driver. </p> <p>As they can offer a service to more than one other peripheral, we suggest that the driver that manages them presents a <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita"><apiname>MPowerInput</apiname></xref> derived interface to client peripheral drivers, providing <codeph>Use()</codeph> and <codeph>Release()</codeph> functions that can be used by dependent peripheral drivers to issue power requests. The driver for the peripheral providing that interface may then use the built-in usage counting feature to control the peripheral power state. </p> <p>A typical example of a shared Peripheral is an Inter-Component serial Bus (I2C, SPI, etc): </p> <codeblock id="GUID-2E454D22-496D-5D9C-9F67-281D6F340459" xml:space="preserve">class MySharedPeripheral : public MPowerInput , (other parent classes)
+<concept id="GUID-6CE68645-D8C5-52E1-88B3-76AEFB80DE51" xml:lang="en"><title>Peripherals
+As Power Resources</title><shortdesc>Peripherals that provide services to other peripherals can be considered
+as power resources from the point of view of the client driver.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>As they can offer a service to more than one other peripheral, we suggest
+that the driver that manages them presents a <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita"><apiname>MPowerInput</apiname></xref> derived
+interface to client peripheral drivers, providing <codeph>Use()</codeph> and <codeph>Release()</codeph> functions
+that can be used by dependent peripheral drivers to issue power requests.
+The driver for the peripheral providing that interface may then use the built-in
+usage counting feature to control the peripheral power state. </p>
+<p>A typical example of a shared Peripheral is an Inter-Component serial Bus
+(I2C, SPI, etc): </p>
+<codeblock id="GUID-2E454D22-496D-5D9C-9F67-281D6F340459" xml:space="preserve">class MySharedPeripheral : public MPowerInput , (other parent classes)
     {
 public:    
     // from MPowerInput
@@ -19,4 +30,31 @@ public:
     ...
     (other methods and data members required to model the interface)
     };
-      </codeblock> <p>Special care must be taken to not create circular dependencies, for example, Peripheral A depends on Peripheral B, which depends on Peripheral C which depends on Peripheral A. Such circular dependencies would cause the <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita#GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A/GUID-606ECD77-A5F7-3408-9B63-C68C0A7B73C6"><apiname>MPowerInput::Release()</apiname></xref> mechanism not to work properly, and preventing the chain of peripherals from powering down when due. </p> <p>The shared peripheral driver’s power handler asynchronous <codeph>PowerDown()</codeph> must examine the usage count of that peripheral if the power manager issues a <codeph>PowerDown()</codeph> request to the shared peripheral driver’s power handler while the peripheral is still in use by another driver. In this situation, the shared peripheral driver must defer powering down until all the dependent peripherals have released their request on it. </p> <p>Some peripherals may also be represented as power resources to prevent the base port power saving operations inhibiting their usage. For example, a base port may consider DRAM to be a shared power resource with the DMA controller, or the DSP controller as clients. This will allow them to still be able to access DRAM whilst the CPU is idling, thus stopping the DRAM going into self-refresh if either one of its clients has pending operations on it. </p> <p>As another example, to save power some base ports might decide to reduce the refresh rate of the LCD whilst the CPU is idling or even power it down for short periods and rely on the persistence of the LCD to prevent degredation of the user experience. However, on a multiple core solution the LCD might be used by the second core (e.g. DSP), for example, for playing back video whilst the main CPU is idling. In this situation the LCD should be represented as a shared power resource and the DSP must be able to request usage of this resource. The DSP controller software could assert a request on the LCD preventing the main CPU from initiating the power saving measures. </p> </conbody></concept>
+      </codeblock>
+<p>Special care must be taken to not create circular dependencies, for example,
+Peripheral A depends on Peripheral B, which depends on Peripheral C which
+depends on Peripheral A. Such circular dependencies would cause the <xref href="GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A.dita#GUID-10105403-AF16-3908-AE9E-96CF2A03AD3A/GUID-606ECD77-A5F7-3408-9B63-C68C0A7B73C6"><apiname>MPowerInput::Release()</apiname></xref> mechanism
+not to work properly, and preventing the chain of peripherals from powering
+down when due. </p>
+<p>The shared peripheral driver’s power handler asynchronous <codeph>PowerDown()</codeph> must
+examine the usage count of that peripheral if the power manager issues a <codeph>PowerDown()</codeph> request
+to the shared peripheral driver’s power handler while the peripheral is still
+in use by another driver. In this situation, the shared peripheral driver
+must defer powering down until all the dependent peripherals have released
+their request on it. </p>
+<p>Some peripherals may also be represented as power resources to prevent
+the base port power saving operations inhibiting their usage. For example,
+a base port may consider DRAM to be a shared power resource with the DMA controller,
+or the DSP controller as clients. This will allow them to still be able to
+access DRAM whilst the CPU is idling, thus stopping the DRAM going into self-refresh
+if either one of its clients has pending operations on it. </p>
+<p>As another example, to save power some base ports might decide to reduce
+the refresh rate of the LCD whilst the CPU is idling or even power it down
+for short periods and rely on the persistence of the LCD to prevent degredation
+of the user experience. However, on a multiple core solution the LCD might
+be used by the second core (e.g. DSP), for example, for playing back video
+whilst the main CPU is idling. In this situation the LCD should be represented
+as a shared power resource and the DSP must be able to request usage of this
+resource. The DSP controller software could assert a request on the LCD preventing
+the main CPU from initiating the power saving measures. </p>
+</conbody></concept>

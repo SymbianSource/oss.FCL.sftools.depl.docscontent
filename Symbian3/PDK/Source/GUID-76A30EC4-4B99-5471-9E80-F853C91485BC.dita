@@ -44,9 +44,10 @@ source at any one time. </p> <p>A device driver binds an ISR by calling <xref hr
 passing the interrupt source ID; similarly, the device driver can unbind the
 ISR by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref>, also passing the <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-8E58F4C9-0290-55E0-A4FD-B6C2361BE205">interrupt
 ID</xref>. </p> </section>
-<section id="GUID-DDA62ABB-9CC6-44DC-B08D-FEE5AC505858"><title>Dispatching interrupts</title> <p>At its simplest, this is
-the process of deciding which interrupts are pending and calling the ISR for
-each. </p> <p>The following pseudo code shows the general principle: </p> <codeblock id="GUID-9C971C66-BB26-5A07-9373-3542B95A16FD" xml:space="preserve">
+<section id="GUID-DDA62ABB-9CC6-44DC-B08D-FEE5AC505858"><title>Dispatching
+interrupts</title> <p>At its simplest, this is the process of deciding which
+interrupts are pending and calling the ISR for each. </p> <p>The following
+pseudo code shows the general principle: </p> <codeblock id="GUID-9C971C66-BB26-5A07-9373-3542B95A16FD" xml:space="preserve">
     {
        FOREVER
               {
@@ -65,7 +66,7 @@ system may have multiple interrupt controllers to handle a large number of
 interrupt sources. These are usually prioritised by connecting the interrupt
 output of a lower-priority controller to an interrupt input of a higher-priority
 controller. This is called chaining. </p> <fig id="GUID-49264B94-DF6D-5F11-8815-D42CDBF94E39">
-<image href="GUID-0DB79535-E4E6-50BD-852D-B2F177202C9C_d0e365802_href.png" placement="inline"/>
+<image href="GUID-0DB79535-E4E6-50BD-852D-B2F177202C9C_d0e387035_href.png" placement="inline"/>
 </fig> <p>An interrupt from a lower priority controller will appear as an
 interrupt on the highest-priority controller. </p> <p>When the interrupt dispatcher
 of the higher-priority controller detects that it is the chained interrupt
@@ -76,7 +77,7 @@ has been identified. </p> </section>
 <section id="GUID-ED6F2F47-7A16-5AE6-8E5B-B2475F6EDEAA"><title>Multiple interrupt
 sources and pseudo interrupt sources</title> <p>It is possible that a single
 input to an interrupt controller is shared by several interrupt sources. </p> <fig id="GUID-DC96E3A8-9820-5CD4-8020-3B55398388D9">
-<image href="GUID-DCBBDFA7-1E6C-5B00-A13E-A25794668E12_d0e365824_href.png" placement="inline"/>
+<image href="GUID-DCBBDFA7-1E6C-5B00-A13E-A25794668E12_d0e387057_href.png" placement="inline"/>
 </fig> <p>It appears necessary to bind multiple ISRs to the same interrupt.
 However, this is not possible. There are two ways of dealing with this: </p> <ul>
 <li id="GUID-0D954444-C2C3-51CC-8E1D-7EB063CDACAA"><p>Maintain a list of all
@@ -99,7 +100,7 @@ in the split ASSP/Variant Configuration</title> <p>When a common ASSP extension
 is used, a device may have additional peripherals external to the ASSP, and
 there needs to be a way of allowing extra interrupt binding and dispatch functions
 to be added later by the variant layer. This must be handled by the port as
-Symbian OS does not provide any additional API to support this. </p> <p>Device
+Symbian platform does not provide any additional API to support this. </p> <p>Device
 drivers should be able to use the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class functions
 without having to know where the interrupt is actually implemented. This implies
 that all requests should go to the core implementation of functions like <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref>, <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> etc. </p> <p>To enable the core implementation of these functions to decide
@@ -121,15 +122,16 @@ is derived from <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><api
 the pure virtual functions: <codeph>InterruptBind()</codeph>, <codeph>InterruptUnbind()</codeph>, <codeph>InterruptEnable()</codeph> etc,
 all with signatures that are the same for the comparable functions defined
 by <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref>, and which are implemented by the <codeph>Template</codeph> class. </p> <fig id="GUID-458C7825-5B35-583C-BDF6-7DCD21DAE670">
-<image href="GUID-B7E7E6D6-7824-505C-BA0B-B7861897E78F_d0e365918_href.png" placement="inline"/>
+<image href="GUID-B7E7E6D6-7824-505C-BA0B-B7861897E78F_d0e387151_href.png" placement="inline"/>
 </fig> </section>
 <section id="GUID-9D98586F-AD1D-5C50-9AD8-F81D72135382"><title>Spurious interrupts</title> <p>In
 the Kernel Architecture 2, it is a convention that unbound interrupts should
 be bound to a "spurious" interrupt handler, i.e. an interrupt handler that
 faults the system indicating the number of the interrupt. This aids debugging
 by identifying interrupts that are enabled without corresponding ISRs. </p> </section>
-<section id="GUID-109C6250-DC5B-48EC-B1A0-24E2E9731B38"><title>Interrupt priority</title> <p>The interrupt architecture supports
-the concept of adjustable interrupt priorities. Symbian platform defines the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-FA4CFED7-D694-399C-8F84-FA9FE3C3A171"><apiname>Interrupt::SetPriority()</apiname></xref> function
+<section id="GUID-109C6250-DC5B-48EC-B1A0-24E2E9731B38"><title>Interrupt priority</title> <p>The
+interrupt architecture supports the concept of adjustable interrupt priorities.
+Symbian platform defines the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-FA4CFED7-D694-399C-8F84-FA9FE3C3A171"><apiname>Interrupt::SetPriority()</apiname></xref> function
 that can implement this. The function is passed the ID of the interrupt source
 to be adjusted together with a priority value. The meaning of the priority
 value is hardware and implementation dependent, and is defined by the port. </p> </section>
@@ -175,18 +177,18 @@ the hardware has separate interrupt controller hardware for IRQs and FIQs
 (or at least, different registers) then you will need to arrange the table
 so that you can determine from the <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-8E58F4C9-0290-55E0-A4FD-B6C2361BE205">interrupt
 ID</xref> whether the interrupt is an IRQ or FIQ. </p> <p>For example: </p> <fig id="GUID-9DD2CC92-A5DB-5C78-A9A6-64402FF04FE2">
-<image href="GUID-60949ACD-AAA9-540E-85AE-BB173382D548_d0e366034_href.png" placement="inline"/>
+<image href="GUID-60949ACD-AAA9-540E-85AE-BB173382D548_d0e387267_href.png" placement="inline"/>
 </fig> </section>
-<section id="GUID-EACCBDFD-46CD-4D67-B60C-D705867C9116"><title>Location of interrupt handling code</title> <p>Most of the
-interrupt dispatching code is implemented in the ASSP layer. This includes
-a list of ISRs, code for adding and removing ISRs, enabling and disabling
-interrupt sources, and dispatching ISRs. The kernel only provides a pre-amble
-and post-amble. </p> <p>The kernel defines, but does not implement, a class
-called <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> that exports interrupt functionality to
-device drivers and other kernel code. The class provides the public API for
-using interrupts (but not for dispatching them). The port must provide an
-implementation for each function defined by the class. </p> <p>The class is
-defined in the header files <filepath>...\e32\include\kernel\arm\assp.h</filepath>,
+<section id="GUID-EACCBDFD-46CD-4D67-B60C-D705867C9116"><title>Location of
+interrupt handling code</title> <p>Most of the interrupt dispatching code
+is implemented in the ASSP layer. This includes a list of ISRs, code for adding
+and removing ISRs, enabling and disabling interrupt sources, and dispatching
+ISRs. The kernel only provides a pre-amble and post-amble. </p> <p>The kernel
+defines, but does not implement, a class called <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> that
+exports interrupt functionality to device drivers and other kernel code. The
+class provides the public API for using interrupts (but not for dispatching
+them). The port must provide an implementation for each function defined by
+the class. </p> <p>The class is defined in the header files <filepath>...\e32\include\kernel\arm\assp.h</filepath>,
 which is exported to <filepath>...\epoc32\include\kernel\arm</filepath>. </p><p>See
 Symbian OS Internals Book, Chapter 6  - Interrupts and Exceptions</p> </section>
 </conbody></concept>

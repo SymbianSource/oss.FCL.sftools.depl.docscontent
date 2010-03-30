@@ -9,4 +9,44 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-71F33868-0C59-5CE8-95BD-304066DB8946"><title>Change notification</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Clients can be notified of changes to a database through an <codeph>RDbNotifier</codeph> object. This class is particularly useful for shared databases.</p> <p>A client makes an asynchronous request for notification, and this request completes when:</p> <ul><li id="GUID-F1437C46-26A1-5332-A001-D1A59D1D7D1B"><p>a transaction is committed</p> </li> <li id="GUID-CAC96C67-DA03-502C-A096-A1F0B95E1967"><p>a transaction is rolled back</p> </li> <li id="GUID-5A06F0C0-B151-56B5-92A6-C9CE2E88C0CE"><p>the database has been recovered</p> </li> <li id="GUID-C30258A7-BFC9-59A5-B12A-CDF6B0145EEA"><p>the database is closed</p> </li> <li id="GUID-7A2EC591-EBDD-57F1-9644-E33C1DD27C41"><p>all read-locks are removed</p> </li> </ul> <p>Any number of notifiers can be opened by a client on the same database and they all act identically.</p> <p>The lifetime of a notifier object is independent of the database that it is observing. For example, a client can close a database <i>before</i> closing a notifier which is observing that database. In this case, the notifier continues to report all activity on the database caused by other clients. Once the last client has closed the database, the notifier reports the status <codeph>RDbNotifier::EClose</codeph>; any further requests for change notification complete immediately with the same status, i.e. <codeph>RDbNotifier::EClose</codeph>.</p> <p>Notifiers cannot be opened on client-side databases.</p> <p>Only one request can be outstanding on a single notifier at any one time. If further database events occur while a client is handling the completion of a previous database event, the notifier remembers the most significant event; this is determined as:</p> <ul><li id="GUID-AD0E2488-553B-59C3-97FE-756D60A00BEB"><p>a database recovery event (<codeph>RDbNotifier::ERecover</codeph>) is more important than a transaction rollback event (<codeph>RDbNotifier::ERollback</codeph>)</p> </li> <li id="GUID-62700E30-4911-50A5-B8B8-B1F0431D0EF3"><p>a transaction rollback event (<codeph>RDbNotifier::ERollback</codeph>)is more important than a transaction committed event (<codeph>RDbNotifier::ECommit</codeph>)</p> </li> </ul> <p>Read-locks removed events (<codeph>RDbNotifier::EUnlock</codeph>) are not remembered in this way.</p> </conbody></concept>
+<concept id="GUID-71F33868-0C59-5CE8-95BD-304066DB8946" xml:lang="en"><title>Change
+notification</title><shortdesc>Describes change notification and when change notifications are
+required. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Clients can be notified of changes to a database through an <codeph>RDbNotifier</codeph> object.
+This class is particularly useful for shared databases.</p>
+<p>A client makes an asynchronous request for notification, and this request
+completes when:</p>
+<ul>
+<li id="GUID-F1437C46-26A1-5332-A001-D1A59D1D7D1B"><p>a transaction is committed</p> </li>
+<li id="GUID-CAC96C67-DA03-502C-A096-A1F0B95E1967"><p>a transaction is rolled
+back</p> </li>
+<li id="GUID-5A06F0C0-B151-56B5-92A6-C9CE2E88C0CE"><p>the database has been
+recovered</p> </li>
+<li id="GUID-C30258A7-BFC9-59A5-B12A-CDF6B0145EEA"><p>the database is closed</p> </li>
+<li id="GUID-7A2EC591-EBDD-57F1-9644-E33C1DD27C41"><p>all read-locks are removed</p> </li>
+</ul>
+<p>Any number of notifiers can be opened by a client on the same database
+and they all act identically.</p>
+<p>The lifetime of a notifier object is independent of the database that it
+is observing. For example, a client can close a database <i>before</i> closing
+a notifier which is observing that database. In this case, the notifier continues
+to report all activity on the database caused by other clients. Once the last
+client has closed the database, the notifier reports the status <codeph>RDbNotifier::EClose</codeph>;
+any further requests for change notification complete immediately with the
+same status, i.e. <codeph>RDbNotifier::EClose</codeph>.</p>
+<p>Notifiers cannot be opened on client-side databases.</p>
+<p>Only one request can be outstanding on a single notifier at any one time.
+If further database events occur while a client is handling the completion
+of a previous database event, the notifier remembers the most significant
+event; this is determined as:</p>
+<ul>
+<li id="GUID-AD0E2488-553B-59C3-97FE-756D60A00BEB"><p>a database recovery
+event (<codeph>RDbNotifier::ERecover</codeph>) is more important than a transaction
+rollback event (<codeph>RDbNotifier::ERollback</codeph>)</p> </li>
+<li id="GUID-62700E30-4911-50A5-B8B8-B1F0431D0EF3"><p>a transaction rollback
+event (<codeph>RDbNotifier::ERollback</codeph>)is more important than a transaction
+committed event (<codeph>RDbNotifier::ECommit</codeph>)</p> </li>
+</ul>
+<p>Read-locks removed events (<codeph>RDbNotifier::EUnlock</codeph>) are not
+remembered in this way.</p>
+</conbody></concept>

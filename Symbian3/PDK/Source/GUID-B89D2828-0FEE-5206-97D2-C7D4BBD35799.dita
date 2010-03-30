@@ -9,5 +9,119 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-B89D2828-0FEE-5206-97D2-C7D4BBD35799"><title>How is the Comms Database secured</title><shortdesc>This topic describes the security issues that govern access to the Comms Database. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>Symbian OS uses platform security capabilities to protect the data in the Comms Database. The CommsDat API accesses the Comms Database through a client/server mechanism. Capabilities are policed at the client/server interface. </p> <p>All elements in the Comms Database can have an access level. This means that all tables, records, columns, and fields can have an access level. The access level defines the type of access that elements offer to tools and applications. The access level available to tools and applications also depends on the platform security capabilities assigned to those tools and applications. </p> <section id="GUID-01939D1C-B904-5388-AC5E-C727BEA808C8"><title>Access levels</title> <p>The CommsDat API offers tools and applications 5 access levels to an element : </p> <ul><li id="GUID-60820978-310E-5785-A11B-47E132F07330"><p>hidden : the element contains data that must not be seen. </p> </li> <li id="GUID-3414C7B7-8A30-5320-B49F-53527793148D"><p>private : the element contains private data. For example, username or password data. </p> </li> <li id="GUID-EA1DFE7F-5F9D-5E32-9211-3742169175D9"><p>protected write : the element contains data that must be protected from most processes. For example, this can be data set by network operators. </p> </li> <li id="GUID-08E8B6B9-DE74-574F-9382-1CE85D0B2B94"><p>basic read-only guard : this access level is not used by the CommsDat API but exists for backward compatibilty with the legacy CommDb. </p> </li> <li id="GUID-AA0B2EA9-63DA-53B4-B1CA-3106A54148E8"><p>default : the element has no explicit access level. </p> </li> </ul> <p>The CommsDat API uses the flag bits defined by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>TCDAttributeFlags</apiname></xref> enum to indicate the levels of access to an element. The bits are known as the access control attributes of an element. </p> <p>Tools and applications use the CommsDat API functions <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBElement::SetAttributes()</apiname></xref> and <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBElement::ClearAttributes()</apiname></xref> to set the access control bits in the <codeph>iElementId</codeph> member of <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBElement</apiname></xref> and to set the access levels into the element in the Comms Database. </p> </section> <section id="GUID-834A910B-336E-5DB0-94B3-BB41E9691D28"><title>How platform security capabilities work with access
-          levels</title> <p>Tools and application processes without capabilities cannot write to the Comms Datababase. Processes without capabilities cannot damage the integrity of data in the Comms Database. Platform security makes sure that processes without capability cannot deny use of the database to other clients. </p> <p>To read or write elements in the Comms Database, tools and application processes must have the correct platform security capabilities. The following table lists the combination of capabilities and access levels to read and write elements. </p> <table id="GUID-1AEB546F-72E3-5AF9-98FA-2E8ABE75EF0B"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><tbody><row><entry><p> <b> Access</b>  </p> </entry> <entry><p> <b> Capability needed to read data</b>  </p> </entry> <entry><p> <b>Capability needed to write data</b>  </p> </entry> </row> <row><entry><p> <codeph> hidden</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDHidden</apiname></xref> bit set in the in the <codeph>iElementId</codeph> member of an element. </p> </entry> <entry><p>None </p> </entry> <entry><p>WriteDeviceData </p> </entry> </row> <row><entry><p> <codeph> Private</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDPrivate</apiname></xref> bit set in the <codeph>iElementId</codeph> member of an element. </p> </entry> <entry><p> <codeph>ReadDeviceData</codeph>  </p> </entry> <entry><p> <codeph>WriteDeviceData</codeph> + <codeph>ReadDeviceData</codeph>  </p> </entry> </row> <row><entry><p> <codeph> Protected write</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref> bit set in the <codeph>iElementId</codeph> member of an element. </p> </entry> <entry><p> <codeph>None</codeph>  </p> </entry> <entry><p> <codeph>WriteDeviceData</codeph> + <codeph>NetworkControl</codeph>  </p> </entry> </row> <row><entry><p> <codeph> Basic read-only guard</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDNoWriteButDeletee</apiname></xref> bit set in the <codeph>iElementId</codeph> member of an element. </p> </entry> <entry><p> <codeph>None</codeph>  </p> </entry> <entry><p> <codeph>WriteDeviceData</codeph>  </p> </entry> </row> <row><entry><p> <codeph> Default</codeph>  </p> <p>None of the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>TCDAttributeFlags</apiname></xref> bits set in the <codeph>iElementId</codeph> member of an element. </p> </entry> <entry><p> <codeph>None</codeph>  </p> </entry> <entry><p> <codeph>WriteDeviceData</codeph>  </p> </entry> </row> </tbody> </tgroup> </table> <p>Tools and applications that have the capability to change the access control attributes must follow data access control protocols. </p> <p>Tools and applications must also have <codeph>WriteDeviceData</codeph> capability to use database functions. For example, to open a transaction to write to the database. </p> <p>The platform security settings are cumulative. For example, to change an element that is marked <i>private </i> and has <i>protected write access</i> in the database requires: </p> <ul><li id="GUID-9378062D-31AB-50C7-99D7-116184077C74"><p>the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDPrivate</apiname></xref> bit and the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref> bit to be set set. </p> </li> <li id="GUID-99D1C214-BE33-53E1-8A26-687BE22ACE3D"><p>the tools and application process to have the <codeph>WriteDeviceData</codeph>, <codeph>ReadDeviceData</codeph> and <codeph>NetworkControl</codeph> capabilities. </p> </li> </ul> </section> <section id="GUID-3FDDACD8-25E5-54B2-B105-65C147B620FE"><title>Changing the access attributes for each session</title> <p>Tools and applications can choose to change the access levels of elements for the period of a session. For example, tools and applications can choose to view elements that have the <codeph>hidden</codeph> access level. Tools and applications set an <i>attribute mask</i> to change the access levels of elements for a session. </p> <p>An attribute mask does not change the access levels of elements in the database. The functions that set an attribute mask do not make a call to the Comms Database and do not check the capabilities of the process of the tool or application. An attribute mask does not remove platform security checks. For example, a tools or application process without <codeph>NetworkControl</codeph> capability can not update elements protected with <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref>. </p> <p>The most common use for this behaviour is to view elements that are hidden. </p> <p>For example, to view hidden records, call the session function <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBSession::SetAttributeMask()</apiname></xref> and pass the value for <i>hidden</i> to this function. The attribute value for <i>hidden</i> is the enum value <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDHidden</apiname></xref>. </p> <p>Use the session function <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBSession::ClearAttributeMask()</apiname></xref> to clear an attribute mask. </p> </section> </conbody><related-links><link href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita"><linktext>Platfom Security</linktext> </link> </related-links></concept>
+<concept id="GUID-B89D2828-0FEE-5206-97D2-C7D4BBD35799" xml:lang="en"><title>How
+is the Comms Database secured</title><shortdesc>This topic describes the security issues that govern access to
+the Comms Database. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Symbian platform uses platform security capabilities to protect
+the data in the Comms Database. The CommsDat API accesses the Comms Database
+through a client/server mechanism. Capabilities are policed at the client/server
+interface. </p>
+<p>All elements in the Comms Database can have an access level. This means
+that all tables, records, columns, and fields can have an access level. The
+access level defines the type of access that elements offer to tools and applications.
+The access level available to tools and applications also depends on the platform
+security capabilities assigned to those tools and applications. </p>
+<section id="GUID-01939D1C-B904-5388-AC5E-C727BEA808C8"><title>Access levels</title> <p>The
+CommsDat API offers tools and applications 5 access levels to an element : </p> <ul>
+<li id="GUID-60820978-310E-5785-A11B-47E132F07330"><p>hidden : the element
+contains data that must not be seen. </p> </li>
+<li id="GUID-3414C7B7-8A30-5320-B49F-53527793148D"><p>private : the element
+contains private data. For example, username or password data. </p> </li>
+<li id="GUID-EA1DFE7F-5F9D-5E32-9211-3742169175D9"><p>protected write : the
+element contains data that must be protected from most processes. For example,
+this can be data set by network operators. </p> </li>
+<li id="GUID-08E8B6B9-DE74-574F-9382-1CE85D0B2B94"><p>basic read-only guard
+: this access level is not used by the CommsDat API but exists for backward
+compatibilty with the legacy CommDb. </p> </li>
+<li id="GUID-AA0B2EA9-63DA-53B4-B1CA-3106A54148E8"><p>default : the element
+has no explicit access level. </p> </li>
+</ul> <p>The CommsDat API uses the flag bits defined by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>TCDAttributeFlags</apiname></xref> enum
+to indicate the levels of access to an element. The bits are known as the
+access control attributes of an element. </p> <p>Tools and applications use
+the CommsDat API functions <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBElement::SetAttributes()</apiname></xref> and <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBElement::ClearAttributes()</apiname></xref> to set
+the access control bits in the <codeph>iElementId</codeph> member of <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBElement</apiname></xref> and to set the access levels into
+the element in the Comms Database. </p> </section>
+<section id="GUID-834A910B-336E-5DB0-94B3-BB41E9691D28"><title>How platform
+security capabilities work with access           levels</title> <p>Tools and
+application processes without capabilities cannot write to the Comms Datababase.
+Processes without capabilities cannot damage the integrity of data in the
+Comms Database. Platform security makes sure that processes without capability
+cannot deny use of the database to other clients. </p> <p>To read or write
+elements in the Comms Database, tools and application processes must have
+the correct platform security capabilities. The following table lists the
+combination of capabilities and access levels to read and write elements. </p> <table id="GUID-1AEB546F-72E3-5AF9-98FA-2E8ABE75EF0B">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b> Access</b>  </p> </entry>
+<entry><p> <b> Capability needed to read data</b>  </p> </entry>
+<entry><p> <b>Capability needed to write data</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> hidden</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDHidden</apiname></xref> bit set in the in the <codeph>iElementId</codeph> member
+of an element. </p> </entry>
+<entry><p>None </p> </entry>
+<entry><p>WriteDeviceData </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> Private</codeph>  </p> <p>This is indicated by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDPrivate</apiname></xref> bit set in the <codeph>iElementId</codeph> member
+of an element. </p> </entry>
+<entry><p> <codeph>ReadDeviceData</codeph>  </p> </entry>
+<entry><p> <codeph>WriteDeviceData</codeph> + <codeph>ReadDeviceData</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> Protected write</codeph>  </p> <p>This is indicated by
+the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref> bit set in the <codeph>iElementId</codeph> member
+of an element. </p> </entry>
+<entry><p> <codeph>None</codeph>  </p> </entry>
+<entry><p> <codeph>WriteDeviceData</codeph> + <codeph>NetworkControl</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> Basic read-only guard</codeph>  </p> <p>This is indicated
+by the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDNoWriteButDeletee</apiname></xref> bit set in
+the <codeph>iElementId</codeph> member of an element. </p> </entry>
+<entry><p> <codeph>None</codeph>  </p> </entry>
+<entry><p> <codeph>WriteDeviceData</codeph>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> Default</codeph>  </p> <p>None of the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>TCDAttributeFlags</apiname></xref> bits
+set in the <codeph>iElementId</codeph> member of an element. </p> </entry>
+<entry><p> <codeph>None</codeph>  </p> </entry>
+<entry><p> <codeph>WriteDeviceData</codeph>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Tools and applications that have the capability to change the
+access control attributes must follow data access control protocols. </p> <p>Tools
+and applications must also have <codeph>WriteDeviceData</codeph> capability
+to use database functions. For example, to open a transaction to write to
+the database. </p> <p>The platform security settings are cumulative. For example,
+to change an element that is marked <i>private </i> and has <i>protected write
+access</i> in the database requires: </p> <ul>
+<li id="GUID-9378062D-31AB-50C7-99D7-116184077C74"><p>the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDPrivate</apiname></xref> bit
+and the <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref> bit to be set
+set. </p> </li>
+<li id="GUID-99D1C214-BE33-53E1-8A26-687BE22ACE3D"><p>the tools and application
+process to have the <codeph>WriteDeviceData</codeph>, <codeph>ReadDeviceData</codeph> and <codeph>NetworkControl</codeph> capabilities. </p> </li>
+</ul> </section>
+<section id="GUID-3FDDACD8-25E5-54B2-B105-65C147B620FE"><title>Changing the
+access attributes for each session</title> <p>Tools and applications can choose
+to change the access levels of elements for the period of a session. For example,
+tools and applications can choose to view elements that have the <codeph>hidden</codeph> access
+level. Tools and applications set an <i>attribute mask</i> to change the access
+levels of elements for a session. </p> <p>An attribute mask does not change
+the access levels of elements in the database. The functions that set an attribute
+mask do not make a call to the Comms Database and do not check the capabilities
+of the process of the tool or application. An attribute mask does not remove
+platform security checks. For example, a tools or application process without <codeph>NetworkControl</codeph> capability
+can not update elements protected with <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDProtectedWrite</apiname></xref>. </p> <p>The
+most common use for this behaviour is to view elements that are hidden. </p> <p>For
+example, to view hidden records, call the session function <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBSession::SetAttributeMask()</apiname></xref> and
+pass the value for <i>hidden</i> to this function. The attribute value for <i>hidden</i> is
+the enum value <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>ECDHidden</apiname></xref>. </p> <p>Use
+the session function <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CommsDat::CMDBSession::ClearAttributeMask()</apiname></xref> to
+clear an attribute mask. </p> </section>
+</conbody><related-links>
+<link href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita"><linktext>Platfom Security</linktext>
+</link>
+</related-links></concept>

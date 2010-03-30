@@ -9,4 +9,166 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-310A8A9C-98E7-59EE-9376-8E572580190F"><title>File services in Symbian OS</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Like other software systems, Symbian OS can store data so that it is kept when a handset is powered down. To do this, Symbian OS uses the common concepts of <i>file systems</i> and <i>files</i>. This topic describes these concepts. </p> <p>On PCs, a file is kept on magnetic disk or optical media such as CD or DVD. On older generations of personal organisers, a file was often kept in RAM, needing a permanent power supply, and a backup battery to guarantee this. On the most recent telephone handsets, files are normally stored in flash memory, either NOR flash or NAND flash, and also on removable devices such as MultiMediaCard (MMC), Secure Digital card (SD card), Memory Stick or Compact flash (CF). </p> <p>There are more sophisticated services for persisting data such as streams, stores, central repository etc. that applications can use, but they all rely, either directly or indirectly, on the commonly understood idea of the file. </p> <p>The ROM on a typical handset is located in non-volatile flash memory, allowing it to be upgraded by the handset manufacturer after initial production. The location for user data is almost always flash memory (NAND or NOR), on the grounds of cost, although rotating media devices capable of holding large amounts of data are likely in future handsets. </p> <ul><li id="GUID-798E9ED1-24DF-5990-9D1E-CD043B94B722"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-DD8C4BFB-9816-5EA5-A9F2-5146C64BBC9C">Basic concepts</xref>  </p> </li> <li id="GUID-BBB6D4C2-4AE6-55CD-BC65-416BCF705F31"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-62387DD0-D8E4-5426-8432-B14696291AF8">Accessing file services</xref>  </p> </li> <li id="GUID-B6AEF9DA-60D3-5728-9C46-59EE5C98346C"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-9FF4525A-EBFD-5E9F-BD86-C6B75E5C35EF">Security issues</xref>  </p> </li> <li id="GUID-ACF583E3-3FAA-52FE-9A07-8172A4BBBCC9"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-849F5D6E-7911-55F8-839A-019D1BF16726">File systems and mounting a drive</xref>  </p> </li> </ul> <section id="GUID-DD8C4BFB-9816-5EA5-A9F2-5146C64BBC9C"><title>Basic concepts</title> <p>Symbian OS uses a number of file concepts that are common to most operating systems, for example, drives and directories. </p> <p><b>Drives</b> </p> <p>Symbian OS uses the concept of the <i>drive</i>. This idea is similar to that in other operating systems, i.e. it corresponds to a logical device. A media device such as a MultiMediaCard can be logically split into partitions, and each partition is treated as a separate drive. Symbian OS adopts a DOS-like convention where each drive is identified by a single letter. This means that there can be up to 26 drives on a handset, identified by the letters <filepath>A:</filepath> through to <filepath>Z:</filepath>. In practice, there are far fewer than this, and the number depends on the individual manufacturer's handset </p> <p>Internally, Symbian OS uses the idea of a drive number instead of a letter, and some legacy API items take a drive number as input, or return a drive number as output. However, there are functions that can translate drive numbers to and from drive letters: <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-A0F50C51-A4F0-33C1-BBD4-757DEC4B7F2E"><apiname>RFs::DriveToChar()</apiname></xref> and <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-D545B868-0549-37A9-AACE-288E7C9CE8C3"><apiname>RFs::CharToDrive()</apiname></xref>. </p> <p>The main ROM on a handset is always identified as the <filepath>Z:</filepath> drive. Other drives may be in use: sixteen of the drives <filepath>C:</filepath> to <filepath>R:</filepath> are usually reserved as local drives, i.e. for media devices located within the handset. A common convention is to adopt <filepath>C:</filepath> as the main user data drive. and to designate <filepath>D:</filepath> or <filepath>E:</filepath> as drives for removable media. <i>Be aware</i>, however, that this is a convention that some handset manufacturers may not follow, so you are always advised to check the full SDK that applies to a specific handset for guidance. Indeed, as a matter of principle, you should always use the <xref href="GUID-629AB2C9-BEDD-5166-8B09-F8DFF7527C03.dita">system drive</xref> for user data. </p> <p><b>Volume</b> </p> <p>The concept of the volume applies to removable media. As users insert and remove individual devices, so different volumes are said to be mounted and demounted. For media types that can be split into partitions, each partition corresponds to a separate volume. </p> <p><b>File names and directory structures</b> </p> <p>Files have names, and Symbian OS uses a hierarchical directory structure in which to organise them; this is similar to schemes adopted by other operating systems. For example: </p> <codeblock id="GUID-C4330879-E93B-5939-A810-8D4A1E5B14DB" xml:space="preserve">C:\AAA\BBB\CCC\DDD.EXT</codeblock> <p>There are four main parts to the structure: </p> <ul><li id="GUID-39D18587-8793-511F-B3CC-8CFA6D129F80"><p>the <i>drive</i>; this is always at the top of the hierarchy, and is represented by a drive letter and a colon. </p> </li> <li id="GUID-8F5F5EB0-721F-5C5B-90B6-08E2CB92BA98"><p>the <i>path</i>; this is a list of names, each name representing a level in the hierarchy. Each directory name is separated by a back slash character, and the last directory name is always terminated by a back slash character. </p> </li> <li id="GUID-BD848A50-9BEA-5E08-ACDB-92EDB9C5CA86"><p>the <i>filename</i>; this is everything after the final backslash, and before the dot if there is a file extension. Symbian OS supports long file filenames. </p> </li> <li id="GUID-07E1D5CB-9D9B-5141-AD7B-76F839AA2FC0"><p>the <i>extension</i>, everything after the final dot. There is no restriction on the length of the extension; limits on length apply to the whole structure, not to any single part of it. </p> </li> </ul> <p>You will find that the whole structure is sometimes referred to as the full file name or the full path name. The maximum length of a full file name is limited to 256 characters. Symbian OS does not use the extension to identify the software or application that can access the data. Instead, files have UIDs embedded within them, and the mapping of files to applications is done through these UIDs. See <xref href="GUID-3AFA877F-41DE-5343-8BC2-C0FB894A062C.dita">Application registration information</xref>. </p> <p>The case of full path names is always preserved, but operations on names are case insensitive. This means that two files that have the same name but differ only in case are considered to refer to the same file. </p> <p>Full file names are normally manipulated programmatically. Extracting drive names, filenames, file extensions, and changing the names of a directory structure are typical activities. Symbian OS provides you with the <xref href="GUID-E79A3B03-F8CB-37DB-A2A8-1C6C4E4D739A.dita"><apiname>TParse</apiname></xref>, <xref href="GUID-A6268E58-68EC-3041-93FD-5368CD230947.dita"><apiname>TParsePtr</apiname></xref>, and <xref href="GUID-C65BCDAB-0476-3EAC-9BFC-37243AE43FE9.dita"><apiname>TParsePtrC</apiname></xref> classes to help you do this manipulation. </p> <p>See <xref href="GUID-ECF9E432-EA93-5284-B0E6-A1211289CBD8.dita">parsing paths and filenames</xref> . </p> </section> <section id="GUID-62387DD0-D8E4-5426-8432-B14696291AF8"><title>Accessing file services</title> <p>On Symbian OS, file services are a common resource. Like other common or shared resources on Symbian OS, file sevices are handled by a server - the file server. Applications and other software that require access to files, directories and drives are clients of the file server, and send file-related requests using the <xref href="GUID-198DCED1-F429-5C95-A51D-53AE416687E8.dita">file server client-side API</xref>. </p> <p>The file server is multithreaded, which allows each logical drive to be accessed concurrently. More than one request can be issued for the same drive, but these requests are handled sequentially. For example, a request to read or write data to a MultiMediaCard can be handled at the same time as a request to read or write data to the main user drive. </p> <p>The file server has a main thread that initially handles all requests. Short requests, such as those that require access to the ROM drive, and those that do not require access to any media, run in the file server. </p> <p>The services provided by the file server can be divided into two types: </p> <ul><li id="GUID-12F7606D-835D-5948-B0F0-EBACC5F6E569"><p>those that give you access to individual files, directories and drives using the <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref>, <xref href="GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516.dita"><apiname>RDir</apiname></xref> and <xref href="GUID-9D7E765B-6872-3EB9-9D5B-1503FA466EC1.dita"><apiname>RFormat</apiname></xref> classes. </p> <p>See also <xref href="GUID-30B2AF3F-E120-5D47-AAA2-529555625B55.dita">How to use sessions, files, and directories</xref>. </p> </li> <li id="GUID-9E40CF33-C35E-52CE-80B9-8A019F34F305"><p>those that allow you to do higher level longer running operations such as moving, copying and deleting files, using the <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita"><apiname>CFileMan</apiname></xref> class, scanning directory trees using the <xref href="GUID-C657AF2D-1183-3CD2-ACAF-3B0B00FC91BB.dita"><apiname>CDirScan</apiname></xref> class, and tracking the progress of these operations using the <xref href="GUID-E608485F-B3E3-3310-A80E-169D8B9D2234.dita"><apiname>MFileManObserver</apiname></xref> class. </p> <p>See also <xref href="GUID-ACF6C0A2-87ED-55B3-B22A-9B331D9940AC.dita">File management and searching</xref>  </p> </li> </ul> <p>Like most other servers, the client API allows you to make file requests synchronously or asynchronously. </p> <p>See also <xref href="GUID-6047DB3F-DC92-51DF-9EEB-00E79E890B54.dita">client-server</xref>. </p> </section> <section id="GUID-9FF4525A-EBFD-5E9F-BD86-C6B75E5C35EF"><title>Security issues</title> <p>Security considerations restrict the parts of a handset's directory structure that an application is allowed to access. The concept is referred to as <i>data caging</i>. </p> <p>There are a number of principles involved: </p> <ul><li id="GUID-21674EE5-40A3-5F71-9973-C089FD838585"><p>The fundamental principle is the separation of executable code from data. Executable code can only reside in the <filepath>/sys/bin/</filepath> directory. Executables cannot be loaded from any location other than <filepath>/sys/bin/</filepath>. Unless an application has the appropriate system capabilities, the <filepath>/sys/</filepath> directory is not visible to that application. System capabilities are a discrete set of 'permissions' that give access to various sensitive system services, and which can only be granted to applications, if justified, through the <xref scope="external" href="https://www.symbiansigned.com/app/page">Symbian Signed</xref> scheme. </p> </li> <li id="GUID-4A1854CE-25CB-5630-A27C-73931D937567"><p>Applications have their own private directory, under which they are free to create further directory structures and files, and to write to those files. This is the directory structure <filepath>/private/&lt;app_SID&gt;/</filepath>. <i>&lt;app_SID&gt;</i> is known as a secure identifier and, in general, is used when verifying an executable's rights of access to system resources. Here, it is used to form the path name for the executable's private directory. The secure identifier is a UID which is allocated to a developer through the <xref scope="external" href="https://www.symbiansigned.com/app/page">Symbian Signed</xref> scheme, and is guaranteed to be unique within the handset on which the application is installed. The UID is coded into the <filepath>mmp</filepath> file(s) that define the application's source files, link requirements, and general characteristics. </p> <p>Other applications have no right of access to an application's private directory. </p> </li> <li id="GUID-2814D086-A660-5294-9952-E6D66243B652"><p>There is a directory <filepath>/resource/</filepath> to which all applications have read access, but no write access. The purpose of this directory is to conatin common read-only files. </p> </li> <li id="GUID-FC6EE81A-59FA-5AC5-8EC4-3034597F8829"><p>All other directories are accessible for both reading and writing. This allows the use of standard file system hierarchies that may be available on removable media. </p> </li> <li id="GUID-95121831-873B-5E79-B07C-410858FC9779"><p>The above principles apply regardless of the drive. </p> </li> </ul> <p>It is possible to pass an open file to another process, or between a client and server, so that the target can access the file without knowing the full path name. The only information that is passed to the target is the filename and extension. </p> <p>You can find more detailed information in the <i>Symbian OS v9 Security Architecture document</i> in <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform security</xref>. </p> </section> <section id="GUID-849F5D6E-7911-55F8-839A-019D1BF16726"><title>File systems and mounting a drive</title> <p>The varying characteristics of media types can mean that different media types require different formats. A common format is VFAT, and typically, this is used for removable media to maintain compatibility with other systems. This also means that long file names are supported. </p> <p>In Symbian OS, format schemes are implemented by what are called file systems; they are constructed as plugins to the file server. This means that the file server itself is independent of the format scheme, and also means that a phone manufacturer is free to add new file systems to a handset. The ROM is an exception - it has its own file system built into the main file server code. </p> <p>A file system must be associated with a drive before the drive can be used. This is known as mounting the drive, and is typically done at system boot time. </p> <p>In practice, an application does not need to concern itself with the format scheme. </p> </section> </conbody></concept>
+<concept id="GUID-310A8A9C-98E7-59EE-9376-8E572580190F" xml:lang="en"><title>File
+services in Symbian platform</title><shortdesc>This topic describes the common concepts of file systems and files
+used by Symbian platform.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Like other software systems, Symbian platform can store data so that it
+is kept when a handset is powered down. </p>
+<p>On PCs, a file is kept on magnetic disk or optical media such as CD or
+DVD. On older generations of personal organisers, a file was often kept in
+RAM, needing a permanent power supply, and a backup battery to guarantee this.
+On the most recent telephone handsets, files are normally stored in flash
+memory, either NOR flash or NAND flash, and also on removable devices such
+as MultiMediaCard (MMC), Secure Digital card (SD card), Memory Stick or Compact
+flash (CF). </p>
+<p>There are more sophisticated services for persisting data such as streams,
+stores, central repository etc. that applications can use, but they all rely,
+either directly or indirectly, on the commonly understood idea of the file. </p>
+<p>The ROM on a typical handset is located in non-volatile flash memory, allowing
+it to be upgraded by the handset manufacturer after initial production. The
+location for user data is almost always flash memory (NAND or NOR), on the
+grounds of cost, although rotating media devices capable of holding large
+amounts of data are likely in future handsets. </p>
+<ul>
+<li id="GUID-798E9ED1-24DF-5990-9D1E-CD043B94B722"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-DD8C4BFB-9816-5EA5-A9F2-5146C64BBC9C">Basic concepts</xref>  </p> </li>
+<li id="GUID-BBB6D4C2-4AE6-55CD-BC65-416BCF705F31"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-62387DD0-D8E4-5426-8432-B14696291AF8">Accessing file services</xref>  </p> </li>
+<li id="GUID-B6AEF9DA-60D3-5728-9C46-59EE5C98346C"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-9FF4525A-EBFD-5E9F-BD86-C6B75E5C35EF">Security issues</xref>  </p> </li>
+<li id="GUID-ACF583E3-3FAA-52FE-9A07-8172A4BBBCC9"><p> <xref href="GUID-310A8A9C-98E7-59EE-9376-8E572580190F.dita#GUID-310A8A9C-98E7-59EE-9376-8E572580190F/GUID-849F5D6E-7911-55F8-839A-019D1BF16726">File systems and mounting a drive</xref>  </p> </li>
+</ul>
+<section id="GUID-DD8C4BFB-9816-5EA5-A9F2-5146C64BBC9C"><title>Basic concepts</title> <p>Symbian
+platform uses a number of file concepts that are common to most operating
+systems, for example, drives and directories. </p> <p><b>Drives</b> </p> <p>Symbian
+platform uses the concept of the <i>drive</i>. This idea is similar to that
+in other operating systems, i.e. it corresponds to a logical device. A media
+device such as a MultiMediaCard can be logically split into partitions, and
+each partition is treated as a separate drive. Symbian platform adopts a DOS-like
+convention where each drive is identified by a single letter. This means that
+there can be up to 26 drives on a handset, identified by the letters <filepath>A:</filepath> through
+to <filepath>Z:</filepath>. In practice, there are far fewer than this, and
+the number depends on the individual manufacturer's handset </p> <p>Internally,
+Symbian platform uses the idea of a drive number instead of a letter, and
+some legacy API items take a drive number as input, or return a drive number
+as output. However, there are functions that can translate drive numbers to
+and from drive letters: <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-A0F50C51-A4F0-33C1-BBD4-757DEC4B7F2E"><apiname>RFs::DriveToChar()</apiname></xref> and <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita#GUID-E263C747-946F-35AA-9F1D-41833BD350FC/GUID-D545B868-0549-37A9-AACE-288E7C9CE8C3"><apiname>RFs::CharToDrive()</apiname></xref>. </p> <p>The
+main ROM on a handset is always identified as the <filepath>Z:</filepath> drive.
+Other drives may be in use: sixteen of the drives <filepath>C:</filepath> to <filepath>R:</filepath> are
+usually reserved as local drives, i.e. for media devices located within the
+handset. A common convention is to adopt <filepath>C:</filepath> as the main
+user data drive. and to designate <filepath>D:</filepath> or <filepath>E:</filepath> as
+drives for removable media. <i>Be aware</i>, however, that this is a convention
+that some handset manufacturers may not follow, so you are always advised
+to check the full SDK that applies to a specific handset for guidance. Indeed,
+as a matter of principle, you should always use the <xref href="GUID-629AB2C9-BEDD-5166-8B09-F8DFF7527C03.dita">system
+drive</xref> for user data. </p> <p><b>Volume</b> </p> <p>The concept of the volume applies to removable media. As users insert
+and remove individual devices, so different volumes are said to be mounted
+and demounted. For media types that can be split into partitions, each partition
+corresponds to a separate volume. </p> <p><b>File
+names and directory structures</b> </p> <p>Files have names, and Symbian platform
+uses a hierarchical directory structure in which to organize them; this is
+similar to schemes adopted by other operating systems. For example: </p> <codeblock id="GUID-C4330879-E93B-5939-A810-8D4A1E5B14DB" xml:space="preserve">C:\AAA\BBB\CCC\DDD.EXT</codeblock> <p>There
+are four main parts to the structure: </p> <ul>
+<li id="GUID-39D18587-8793-511F-B3CC-8CFA6D129F80"><p>the <i>drive</i>; this
+is always at the top of the hierarchy, and is represented by a drive letter
+and a colon. </p> </li>
+<li id="GUID-8F5F5EB0-721F-5C5B-90B6-08E2CB92BA98"><p>the <i>path</i>; this
+is a list of names, each name representing a level in the hierarchy. Each
+directory name is separated by a back slash character, and the last directory
+name is always terminated by a back slash character. </p> </li>
+<li id="GUID-BD848A50-9BEA-5E08-ACDB-92EDB9C5CA86"><p>the <i>filename</i>;
+this is everything after the final backslash, and before the dot if there
+is a file extension. Symbian platform supports long file filenames. </p> </li>
+<li id="GUID-07E1D5CB-9D9B-5141-AD7B-76F839AA2FC0"><p>the <i>extension</i>,
+everything after the final dot. There is no restriction on the length of the
+extension; limits on length apply to the whole structure, not to any single
+part of it. </p> </li>
+</ul> <p>You will find that the whole structure is sometimes referred to as
+the full file name or the full path name. The maximum length of a full file
+name is limited to 256 characters. Symbian platform does not use the extension
+to identify the software or application that can access the data. Instead,
+files have UIDs embedded within them, and the mapping of files to applications
+is done through these UIDs. See <xref href="GUID-3AFA877F-41DE-5343-8BC2-C0FB894A062C.dita">Application
+registration information</xref>. </p> <p>The case of full path names is always
+preserved, but operations on names are case insensitive. This means that two
+files that have the same name but differ only in case are considered to refer
+to the same file. </p> <p>Full file names are normally manipulated programmatically.
+Extracting drive names, filenames, file extensions, and changing the names
+of a directory structure are typical activities. Symbian platform provides
+you with the <xref href="GUID-E79A3B03-F8CB-37DB-A2A8-1C6C4E4D739A.dita"><apiname>TParse</apiname></xref>, <xref href="GUID-A6268E58-68EC-3041-93FD-5368CD230947.dita"><apiname>TParsePtr</apiname></xref>, and <xref href="GUID-C65BCDAB-0476-3EAC-9BFC-37243AE43FE9.dita"><apiname>TParsePtrC</apiname></xref> classes
+to help you do this manipulation. </p> <p>See <xref href="GUID-ECF9E432-EA93-5284-B0E6-A1211289CBD8.dita">parsing
+paths and filenames</xref> . </p> </section>
+<section id="GUID-62387DD0-D8E4-5426-8432-B14696291AF8"><title>Accessing file
+services</title> <p>On Symbian platform, file services are a common resource.
+Like other common or shared resources on Symbian platform, file services are
+handled by a server - the file server. Applications and other software that
+require access to files, directories and drives are clients of the file server,
+and send file-related requests using the <xref href="GUID-198DCED1-F429-5C95-A51D-53AE416687E8.dita">file
+server client-side API</xref>. </p> <p>The file server is multithreaded, which
+allows each logical drive to be accessed concurrently. More than one request
+can be issued for the same drive, but these requests are handled sequentially.
+For example, a request to read or write data to a MultiMediaCard can be handled
+at the same time as a request to read or write data to the main user drive. </p> <p>The
+file server has a main thread that initially handles all requests. Short requests,
+such as those that require access to the ROM drive, and those that do not
+require access to any media, run in the file server. </p> <p>The services
+provided by the file server can be divided into two types: </p> <ul>
+<li id="GUID-12F7606D-835D-5948-B0F0-EBACC5F6E569"><p>those that give you
+access to individual files, directories and drives using the <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita"><apiname>RFile</apiname></xref>, <xref href="GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516.dita"><apiname>RDir</apiname></xref> and <xref href="GUID-9D7E765B-6872-3EB9-9D5B-1503FA466EC1.dita"><apiname>RFormat</apiname></xref> classes. </p> <p>See also <xref href="GUID-30B2AF3F-E120-5D47-AAA2-529555625B55.dita">How to
+use sessions, files, and directories</xref>. </p> </li>
+<li id="GUID-9E40CF33-C35E-52CE-80B9-8A019F34F305"><p>those that allow you
+to do higher level longer running operations such as moving, copying and deleting
+files, using the <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita"><apiname>CFileMan</apiname></xref> class, scanning directory trees
+using the <xref href="GUID-C657AF2D-1183-3CD2-ACAF-3B0B00FC91BB.dita"><apiname>CDirScan</apiname></xref> class, and tracking the progress of
+these operations using the <xref href="GUID-E608485F-B3E3-3310-A80E-169D8B9D2234.dita"><apiname>MFileManObserver</apiname></xref> class. </p> <p>See
+also <xref href="GUID-ACF6C0A2-87ED-55B3-B22A-9B331D9940AC.dita">File management
+and searching</xref>  </p> </li>
+</ul> <p>Like most other servers, the client API allows you to make file requests
+synchronously or asynchronously. </p> <p>See also <xref href="GUID-6047DB3F-DC92-51DF-9EEB-00E79E890B54.dita">client-server</xref>. </p> </section>
+<section id="GUID-9FF4525A-EBFD-5E9F-BD86-C6B75E5C35EF"><title>Security issues</title> <p>Security
+considerations restrict the parts of a handset's directory structure that
+an application is allowed to access. The concept is referred to as <i>data
+caging</i>. </p> <p>There are a number of principles involved: </p> <ul>
+<li id="GUID-21674EE5-40A3-5F71-9973-C089FD838585"><p>The fundamental principle
+is the separation of executable code from data. Executable code can only reside
+in the <filepath>/sys/bin/</filepath> directory. Executables cannot be loaded
+from any location other than <filepath>/sys/bin/</filepath>. Unless an application
+has the appropriate system capabilities, the <filepath>/sys/</filepath> directory
+is not visible to that application. System capabilities are a discrete set
+of 'permissions' that give access to various sensitive system services, and
+which can only be granted to applications, if justified, through the <xref href="https://www.symbiansigned.com/app/page" scope="external">Symbian Signed</xref> scheme. </p> </li>
+<li id="GUID-4A1854CE-25CB-5630-A27C-73931D937567"><p>Applications have their
+own private directory, under which they are free to create further directory
+structures and files, and to write to those files. This is the directory structure <filepath>/private/&lt;app_SID&gt;/</filepath>. <i>&lt;app_SID&gt;</i> is known as a secure identifier and, in general, is used when verifying
+an executable's rights of access to system resources. Here, it is used to
+form the path name for the executable's private directory. The secure identifier
+is a UID which is allocated to a developer through the <xref href="https://www.symbiansigned.com/app/page" scope="external">Symbian Signed</xref> scheme, and is guaranteed to be unique
+within the handset on which the application is installed. The UID is coded
+into the <filepath>mmp</filepath> file(s) that define the application's source
+files, link requirements, and general characteristics. </p> <p>Other applications
+have no right of access to an application's private directory. </p> </li>
+<li id="GUID-2814D086-A660-5294-9952-E6D66243B652"><p>There is a directory <filepath>/resource/</filepath> to
+which all applications have read access, but no write access. The purpose
+of this directory is to conatin common read-only files. </p> </li>
+<li id="GUID-FC6EE81A-59FA-5AC5-8EC4-3034597F8829"><p>All other directories
+are accessible for both reading and writing. This allows the use of standard
+file system hierarchies that may be available on removable media. </p> </li>
+<li id="GUID-95121831-873B-5E79-B07C-410858FC9779"><p>The above principles
+apply regardless of the drive. </p> </li>
+</ul> <p>It is possible to pass an open file to another process, or between
+a client and server, so that the target can access the file without knowing
+the full path name. The only information that is passed to the target is the
+filename and extension. </p> </section>
+<section id="GUID-849F5D6E-7911-55F8-839A-019D1BF16726"><title>File systems
+and mounting a drive</title> <p>The varying characteristics of media types
+can mean that different media types require different formats. A common format
+is VFAT, and typically, this is used for removable media to maintain compatibility
+with other systems. This also means that long file names are supported. </p> <p>In
+Symbian platform, format schemes are implemented by what are called file systems;
+they are constructed as plugins to the file server. This means that the file
+server itself is independent of the format scheme, and also means that a phone
+manufacturer is free to add new file systems to a handset. The ROM is an exception
+- it has its own file system built into the main file server code. </p> <p>A
+file system must be associated with a drive before the drive can be used.
+This is known as mounting the drive, and is typically done at system boot
+time. </p> <p>In practice, an application does not need to concern itself
+with the format scheme. </p> </section>
+</conbody></concept>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-178488C1-5453-490F-B168-9D73DB5BAE47" xml:lang="en"><title>Priority
+Configuration</title><shortdesc>This section explains how to configure the priorities in the OOM
+Monitor configuration file.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The OOM Monitor configuration file (<filepath>oomconfig.xml</filepath>)
+is located in <filepath>epo32\data\z\10207218</filepath>. </p>
+<note>The configuration file cannot be modified after flashing it to the device.</note>
+<p>The OOM Monitor configuration file can contain the following details:<ul>
+<li><p> initial priority of an internal application. For information on OOM
+Monitor priority, refer to <xref href="GUID-CE308C71-D8B2-43B3-97FD-B868285ED5FB.dita">OOM
+Monitor Priority</xref>.</p></li>
+<li><p>rules to change the priority. For more information, refer to <xref href="GUID-54D5CBD5-0A1F-4835-B5F3-492728B9F51E.dita">Rules to Change Priority
+Dynamically</xref>.</p></li>
+<li><p> default priority. If the priority of an application is not defined
+it will have the default priority. </p></li>
+<li><p> OOM Plug-ins priority. For information on OOM Monitor plug-ins priority,
+refer to <xref href="GUID-DB6F586B-932A-4BDC-BA48-79C7D3FD9931.dita">OOM Plug-ins</xref>.</p></li>
+</ul></p>
+<p>For applications that need to be active all the time the priority can be
+set to <codeph>NEVER_CLOSE</codeph>.</p>
+<section id="GUID-38FB434C-B8FF-4C7C-ADE3-45585902BDAF"> <title>Example</title><p>The
+following is an example of the OOM Monitor configuration file:</p><codeblock xml:space="preserve">&lt;oom_config&gt;
+
+&lt;!-- Low RAM and good RAM thresholds are defined in kilobytes.The value 1 means that applications are not closed in parallel. default_wait_after_plugin defines how long to wait (in milliseconds)after OOM plug-in is called.
+&lt;global_settings low_ram_threshold="3637" good_ram_threshold="4900" max_app_close_batch="3" default_wait_after_plugin="10" max_app_exit_time="2000" /&gt;
+
+
+&lt;!--	Application specific low RAM and good RAM thresholds are defined here --&gt;
+&lt;app_specific_thresholds&gt;
+&lt;!-- Uid of Browser application&gt;
+&lt;app uid="10008d39" low_ram_threshold="8637" good_ram_threshold="9900" /&gt;
+...
+&lt;/app_specific_thresholds&gt;
+
+
+&lt;app_close_settings&gt;
+
+&lt;!--The uid DEFAULT_APP refers to all applications, which priority is not specifically defined in the conf file.--&gt;
+&lt;close_app uid="DEFAULT_APP" priority="80" sync_mode="check"&gt;
+&lt;app_close_idle_priority idle_time="900" priority="50" /&gt;
+&lt;app_close_idle_priority idle_time="43200" priority="20" /&gt;
+&lt;/close_app&gt;
+
+&lt;close_app uid="BUSY_APP" priority="NEVER_CLOSE" sync_mode="check" /&gt; 
+
+&lt;close_app uid="10008d39" priority="80" sync_mode="check"&gt;
+&lt;app_close_settings&gt;
+
+
+&lt;!--The priority of executing each application plug-in is defined here--&gt;
+&lt;app_plugin_settings&gt;
+&lt;app_plugin uid="10281f93" target_app_id="10008d39" priority="30" wait="100" sync_mode="check"&gt;
+&lt;plugin_foreground_app_priority target_app_id="10008d39" priority="100" /&gt; 
+&lt;/app_plugin&gt;
+&lt;/app_plugin_settings&gt;
+
+
+&lt;/oom_config&gt;</codeblock>     </section>
+</conbody></concept>

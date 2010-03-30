@@ -9,6 +9,67 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-1261F3A3-6F27-5A85-81FF-A6858F03F711"><title>Single and Multiple Threads</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This section describes the threads used in C programs. </p> <section><title>Threads</title> <p>The POSIX interface is designed for a single thread of execution within a process. Many aspects of this interface do not apply to a typical Symbian program in which multiple threads of execution share the same address space. For information about threads and processes, see <xref href="GUID-BBBFC0AF-2E35-5F5C-A3A5-57C4196A6CDA.dita">Threads and processes</xref>. </p> <p>STDLIB allows for multiple threads, but each thread owns its own instance of the <codeph>_reent</codeph> structure which contains private data such as the thread's <codeph>errno</codeph> variable. Each thread's STDIO <codeph>FILE</codeph> structures are completely separate from other threads', even if those structures eventually share the same underlying file descriptor. A consequence of this is that different threads will buffer their output to <codeph>stdout</codeph> separately, even though the eventual output will be combined together when the STDIO layer flushes the buffers out to the corresponding file descriptor. </p> <p>It is unclear how some POSIX functions should be used in a multiple thread environment. An example is the <codeph>exit()</codeph> function. Although each thread should have separate <codeph>atexit()</codeph> processing, which should include closing all open STDIO files, it is unclear whether closing the STDIO file should also close the underlying descriptor. STDLIB's current implementation is to close the files, as would be expected to happen in a normal POSIX process. However, this implementation may be changed. Note that <codeph>exit()</codeph> does not attempt to free memory which was obtained by <codeph>malloc()</codeph>. </p> <p>The user of STDLIB can take control over thread termination by implementing <codeph>exit()</codeph>, <codeph>_exit()</codeph>, <codeph>abort()</codeph> and <codeph>_assert()</codeph> in their own program, so that all of the user's own code which calls these functions will invoke the user's routines instead of the STDLIB versions. A helper function, <codeph>_atexit_processing_r()</codeph>, can be called from the user's version of <codeph>exit()</codeph> to do the normal <codeph>atexit</codeph> processing, if desired. See <codeph>stdlib_r.h</codeph> for details. </p> </section> <section><title>Single-threaded programs</title> <p>Simple C programs may not need to support file descriptors shared between threads, or the execution of sub-processes. Such programs may use the default implementation of STDLIB, in which the library code opens files, sockets etc. in the context of the calling thread, and provides a per-thread table of open file descriptors. </p> <p>Multiple threads may still be used, but each thread's resources are private and cannot be shared with other threads. For example, a <codeph>setenv()</codeph> call in one thread will not be seen by a <codeph>getenv()</codeph> call in another and each thread will have a separate console window (created on demand when the console is first read from or written to). </p> </section> <section><title>Multi-threaded programs; the CPosixServer</title> <p>More complex programs may need to use process-wide resources. This is often true of programs which assume the existence of support for multiple threads within a POSIX process. To meet this requirement, STDLIB can operate in a mode in which all shareable resources are owned by a single <codeph>CPosixServer</codeph> thread. In this mode, library routines such as <codeph>open()</codeph>, <codeph>read()</codeph> and <codeph>write()</codeph> operate by passing an appropriate request to the <codeph>CPosixServer</codeph>. </p> <p>The program's mode of operation is determined when it first tries to use STDLIB's services. If a <codeph>CPosixServer</codeph> is running for the Symbian platform process, the thread will use it; otherwise the program will operate in the single-threaded mode. </p> <p>The <codeph>CPosixServer</codeph> is a Symbian platform active object, and can be started either in the context of an existing active scheduler, or by spawning a separate thread to run an active scheduler. The functions for doing this have a C++ interface, defined in <codeph>estlib.h</codeph>. For more information on active objects in Symbian platform, see <xref href="GUID-890F06C6-DE32-5EB1-BF0F-D41794F47AE1.dita">active objects</xref>. </p> <p>Communication between <codeph>CPosixServer</codeph> s is used to establish the POSIX process hierarchy and to communicate resources from parent to child. Programs which require multiple processes must use the multi-threaded mode of operation. </p> </section> </conbody><related-links><link href="GUID-BBBFC0AF-2E35-5F5C-A3A5-57C4196A6CDA.dita"><linktext>Threads and
-                processes</linktext> </link> <link href="GUID-890F06C6-DE32-5EB1-BF0F-D41794F47AE1.dita"><linktext>Active
-                objects</linktext> </link> </related-links></concept>
+<concept id="GUID-1261F3A3-6F27-5A85-81FF-A6858F03F711" xml:lang="en"><title>Single
+and Multiple Threads</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section describes the threads used in C programs. </p>
+<section id="GUID-1EF3A0B4-E737-4BAA-8F1A-10F8BB39B5F5"><title>Threads</title> <p>The POSIX interface is designed for a single
+thread of execution within a process. Many aspects of this interface do not
+apply to a typical Symbian program in which multiple threads of execution
+share the same address space. For information about threads and processes,
+see <xref href="GUID-BBBFC0AF-2E35-5F5C-A3A5-57C4196A6CDA.dita">Threads and processes</xref>. </p> <p>STDLIB
+allows for multiple threads, but each thread owns its own instance of the <codeph>_reent</codeph> structure
+which contains private data such as the thread's <codeph>errno</codeph> variable.
+Each thread's STDIO <codeph>FILE</codeph> structures are completely separate
+from other threads', even if those structures eventually share the same underlying
+file descriptor. A consequence of this is that different threads will buffer
+their output to <codeph>stdout</codeph> separately, even though the eventual
+output will be combined together when the STDIO layer flushes the buffers
+out to the corresponding file descriptor. </p> <p>It is unclear how some POSIX
+functions should be used in a multiple thread environment. An example is the <codeph>exit()</codeph> function.
+Although each thread should have separate <codeph>atexit()</codeph> processing,
+which should include closing all open STDIO files, it is unclear whether closing
+the STDIO file should also close the underlying descriptor. STDLIB's current
+implementation is to close the files, as would be expected to happen in a
+normal POSIX process. However, this implementation may be changed. Note that <codeph>exit()</codeph> does
+not attempt to free memory which was obtained by <codeph>malloc()</codeph>. </p> <p>The
+user of STDLIB can take control over thread termination by implementing <codeph>exit()</codeph>, <codeph>_exit()</codeph>, <codeph>abort()</codeph> and <codeph>_assert()</codeph> in their own program, so that all of the
+user's own code which calls these functions will invoke the user's routines
+instead of the STDLIB versions. A helper function, <codeph>_atexit_processing_r()</codeph>,
+can be called from the user's version of <codeph>exit()</codeph> to do the
+normal <codeph>atexit</codeph> processing, if desired. See <codeph>stdlib_r.h</codeph> for
+details. </p> </section>
+<section id="GUID-3E022252-3471-41AB-BE87-2690B6DA9374"><title>Single-threaded programs</title> <p>Simple C programs may
+not need to support file descriptors shared between threads, or the execution
+of sub-processes. Such programs may use the default implementation of STDLIB,
+in which the library code opens files, sockets etc. in the context of the
+calling thread, and provides a per-thread table of open file descriptors. </p> <p>Multiple
+threads may still be used, but each thread's resources are private and cannot
+be shared with other threads. For example, a <codeph>setenv()</codeph> call
+in one thread will not be seen by a <codeph>getenv()</codeph> call in another
+and each thread will have a separate console window (created on demand when
+the console is first read from or written to). </p> </section>
+<section id="GUID-19D6688E-F2B3-4AA1-89E5-7CA9FA72648B"><title>Multi-threaded programs; the CPosixServer</title> <p>More
+complex programs may need to use process-wide resources. This is often true
+of programs which assume the existence of support for multiple threads within
+a POSIX process. To meet this requirement, STDLIB can operate in a mode in
+which all shareable resources are owned by a single <codeph>CPosixServer</codeph> thread.
+In this mode, library routines such as <codeph>open()</codeph>, <codeph>read()</codeph> and <codeph>write()</codeph> operate
+by passing an appropriate request to the <codeph>CPosixServer</codeph>. </p> <p>The
+program's mode of operation is determined when it first tries to use STDLIB's
+services. If a <codeph>CPosixServer</codeph> is running for the Symbian platform
+process, the thread will use it; otherwise the program will operate in the
+single-threaded mode. </p> <p>The <codeph>CPosixServer</codeph> is a Symbian
+platform active object, and can be started either in the context of an existing
+active scheduler, or by spawning a separate thread to run an active scheduler.
+The functions for doing this have a C++ interface, defined in <codeph>estlib.h</codeph>.
+For more information on active objects, see <xref href="GUID-890F06C6-DE32-5EB1-BF0F-D41794F47AE1.dita">active
+objects</xref>. </p> <p>Communication between <codeph>CPosixServer</codeph> s
+is used to establish the POSIX process hierarchy and to communicate resources
+from parent to child. Programs which require multiple processes must use the
+multi-threaded mode of operation. </p> </section>
+</conbody><related-links>
+<link href="GUID-BBBFC0AF-2E35-5F5C-A3A5-57C4196A6CDA.dita"><linktext>Threads and
+                processes</linktext></link>
+<link href="GUID-890F06C6-DE32-5EB1-BF0F-D41794F47AE1.dita"><linktext>Active  
+              objects</linktext></link>
+</related-links></concept>

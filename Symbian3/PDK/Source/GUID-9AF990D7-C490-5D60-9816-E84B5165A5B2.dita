@@ -9,4 +9,72 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-9AF990D7-C490-5D60-9816-E84B5165A5B2"><title>BIO Watcher Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The BIO Watcher component is part of the Watcher Framework that handles BIO messages that come from the SMS and WAP stack. </p> <section><title>Purpose</title> <p>To handle BIO messages that come from the SMS stack and WAP stack. </p> </section> <section><title>Key terms</title> <dl><dlentry><dt>Replace-type-messages</dt> <dd><p>Replace-type-messages are SMS messages received from the service centre, where the protocol identifier contains a <b>Replace Short Message Type</b> code. </p> </dd> </dlentry> <dlentry><dt>BIO message</dt> <dd><p>Bearer Independent Objects (BIO) messages contain data that can be received and interpreted by the device, see <xref href="GUID-17DE7D55-00C9-5D40-8AE4-39BDB20FCC5B.dita">BIO Watcher Framework</xref> for more details. </p> </dd> </dlentry> </dl> </section> <section><title>Architecture</title> <p>BIO Watcher is made of two watchers—NBS Watcher and WAP Watcher. The Watcher Framework supports both of them. </p> <p> <b>NBS watcher:</b> The NBS watcher handles the reception of SMS messages. When initialised by Watcher Framework, the watcher queries the BIO Messaging database for BIO messages that are of type <codeph>ENbs</codeph>. For each of these BIO messages, the watcher creates an object that opens a connection to the SMS stack and waits for the particular message type. The message types are either defined by the port number that the message is received on or by a string to watch for at the start of the message. </p> <p>When the NBS Watcher receives a non-class 2 SMS message, it creates a new entry under the global inbox in the Message Store. For class 2 messages, the entry is created in the class 2 folder as defined by the SMS settings, which can be the global inbox. The details field of the entry is used to store the phone number of the incoming message or the name of the sender (provided if the watcher finds a match for the phone number in the contacts database). The description field is used to store the first N characters of the SMS message, where N is defined in the SMS settings, or for BIO messages, the description as retrieved from the BIO database. BIO messages also have the <codeph>BioType</codeph> field set to the UID of the BIO message as retrieved from the BIO database. The <xref href="GUID-790D9BA9-2FB7-3073-AF2F-FFD049C3FD3D.dita"><apiname>CSmsHeader</apiname></xref> class, which is a wrapper around the <xref href="GUID-FA6D9B1B-3845-3B81-ACBB-34977D3C9631.dita"><apiname>CSmsMessage</apiname></xref> class provided by the SMS Stack component, is used to externalise the SMS message to the entry’s <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref>. The watcher also places a copy of the body text of the message in the rich text stream of the entry’s <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref>. </p> <p>The NBS Watcher is also responsible for handing the following special SMS types: </p> <ul><li id="GUID-ED0F0075-FEF7-5195-B4E3-92A228830838"><p> <b>Replace type messages:</b> When the watcher receives a replace type message, it scans the folder (where the message is delivered to) for messages that have a matching protocol ID and from address. For each of the messages, it checks the time stamps from the service centre and discards the older message. </p> </li> <li id="GUID-6BD849B6-045C-5E67-B31F-5202302A6EA1"><p> <b>Message indications:</b> The watcher can listen for incoming message waiting indications. The <xref href="GUID-A9FE5C23-4F39-345E-873B-682D9807BAA0.dita"><apiname>CSmsSettings</apiname></xref> class defines whether the watcher listens and delivers the messages to the Inbox or discards them. If the watcher is configured to listen for messages, it uses the SMS utilities in the SMS Client MTM to decode the message to determine the notification type and number of messages. </p> </li> <li id="GUID-2884C04E-161F-5E02-92BC-0295240167E5"><p> <b>Delivery reports:</b> The watcher can be configured to listen to the delivery reports. The SMS utilities get a string from the <filepath>SMSs.rss</filepath> resource file to generate descriptions and details fields to store with SMS messages. </p> </li> </ul> <p> <b>WAP watcher:</b> The WAP watcher listens for incoming messages from the WAP stack using the WAP Message API. To determine ports to listen for messages, the watcher queries the BIO database for BIO message types—<codeph>EWsp</codeph>, <codeph>EWspSecure</codeph>, <codeph>EWap</codeph>, <codeph>EWapSecure</codeph> and registers them as an observer of the BIO database. It listens for new BIO message with these types when they are added. The watcher stores the messages in the global inbox tagged with the BIO type listed in the BIO database. </p> <p> <b>Note:</b> Symbian platform provides the preceding two watchers, but licensees can write their own watchers. </p> </section> <section><title>See also</title> <p><xref href="GUID-E18592CD-223D-5B50-AF40-1AC7267BAB8C.dita">Watcher Framework</xref>  </p> </section> </conbody></concept>
+<concept id="GUID-9AF990D7-C490-5D60-9816-E84B5165A5B2" xml:lang="en"><title>BIO
+Watcher Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The BIO Watcher component is part of the Watcher Framework that handles
+BIO messages that come from the SMS and WAP stack. </p>
+<section id="GUID-A69FED58-8F99-4F6A-8F30-587AB6FA1A7A"><title>Purpose</title> <p>To handle BIO messages that come from the
+SMS stack and WAP stack. </p> </section>
+<section id="GUID-5FF9CFB3-34FE-46BF-B91C-24CFA2F423A7"><title>Key terms</title> <dl>
+<dlentry>
+<dt>Replace-type-messages</dt>
+<dd><p>Replace-type-messages are SMS messages received from the service centre,
+where the protocol identifier contains a <b>Replace Short Message Type</b> code. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>BIO message</dt>
+<dd><p>Bearer Independent Objects (BIO) messages contain data that can be
+received and interpreted by the device, see <xref href="GUID-17DE7D55-00C9-5D40-8AE4-39BDB20FCC5B.dita">BIO
+Watcher Framework</xref> for more details. </p> </dd>
+</dlentry>
+</dl> </section>
+<section id="GUID-0FEFAE52-D59F-42CF-AEA4-80CCEE26E7D5"><title>Architecture</title> <p>BIO Watcher is made of two watchers—NBS
+Watcher and WAP Watcher. The Watcher Framework supports both of them. </p> <p> <b>NBS
+watcher:</b> The NBS watcher handles the reception of SMS messages. When initialised
+by Watcher Framework, the watcher queries the BIO Messaging database for BIO
+messages that are of type <codeph>ENbs</codeph>. For each of these BIO messages,
+the watcher creates an object that opens a connection to the SMS stack and
+waits for the particular message type. The message types are either defined
+by the port number that the message is received on or by a string to watch
+for at the start of the message. </p> <p>When the NBS Watcher receives a non-class
+2 SMS message, it creates a new entry under the global inbox in the Message
+Store. For class 2 messages, the entry is created in the class 2 folder as
+defined by the SMS settings, which can be the global inbox. The details field
+of the entry is used to store the phone number of the incoming message or
+the name of the sender (provided if the watcher finds a match for the phone
+number in the contacts database). The description field is used to store the
+first N characters of the SMS message, where N is defined in the SMS settings,
+or for BIO messages, the description as retrieved from the BIO database. BIO
+messages also have the <codeph>BioType</codeph> field set to the UID of the
+BIO message as retrieved from the BIO database. The <xref href="GUID-790D9BA9-2FB7-3073-AF2F-FFD049C3FD3D.dita"><apiname>CSmsHeader</apiname></xref> class,
+which is a wrapper around the <xref href="GUID-FA6D9B1B-3845-3B81-ACBB-34977D3C9631.dita"><apiname>CSmsMessage</apiname></xref> class provided
+by the SMS Stack component, is used to externalise the SMS message to the
+entry’s <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref>. The watcher also places a copy of the
+body text of the message in the rich text stream of the entry’s <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref>. </p> <p>The
+NBS Watcher is also responsible for handing the following special SMS types: </p> <ul>
+<li id="GUID-ED0F0075-FEF7-5195-B4E3-92A228830838"><p> <b>Replace type messages:</b> When
+the watcher receives a replace type message, it scans the folder (where the
+message is delivered to) for messages that have a matching protocol ID and
+from address. For each of the messages, it checks the time stamps from the
+service centre and discards the older message. </p> </li>
+<li id="GUID-6BD849B6-045C-5E67-B31F-5202302A6EA1"><p> <b>Message indications:</b> The
+watcher can listen for incoming message waiting indications. The <xref href="GUID-A9FE5C23-4F39-345E-873B-682D9807BAA0.dita"><apiname>CSmsSettings</apiname></xref> class
+defines whether the watcher listens and delivers the messages to the Inbox
+or discards them. If the watcher is configured to listen for messages, it
+uses the SMS utilities in the SMS Client MTM to decode the message to determine
+the notification type and number of messages. </p> </li>
+<li id="GUID-2884C04E-161F-5E02-92BC-0295240167E5"><p> <b>Delivery reports:</b> The
+watcher can be configured to listen to the delivery reports. The SMS utilities
+get a string from the <filepath>SMSs.rss</filepath> resource file to generate
+descriptions and details fields to store with SMS messages. </p> </li>
+</ul> <p> <b>WAP watcher:</b> The WAP watcher listens for incoming messages
+from the WAP stack using the WAP Message API. To determine ports to listen
+for messages, the watcher queries the BIO database for BIO message types—<codeph>EWsp</codeph>, <codeph>EWspSecure</codeph>, <codeph>EWap</codeph>, <codeph>EWapSecure</codeph> and registers them as an observer of the BIO
+database. It listens for new BIO message with these types when they are added.
+The watcher stores the messages in the global inbox tagged with the BIO type
+listed in the BIO database. </p> <p> <b>Note:</b> The Symbian
+platform provides the preceding two watchers, but licensees can write their
+own watchers. </p> </section>
+<section id="GUID-3CA936AF-57E4-448A-AEF5-91EDE6F52AE3"><title>See also</title> <p><xref href="GUID-E18592CD-223D-5B50-AF40-1AC7267BAB8C.dita">Watcher
+Framework</xref>  </p> </section>
+</conbody></concept>

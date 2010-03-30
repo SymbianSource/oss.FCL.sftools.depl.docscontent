@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-96CA3539-8C01-4EFE-8DE8-1F88C0607E02" xml:lang="en"><title>Pin
+Bias Functions</title><shortdesc>Describes the pin bias functions involved in implementing the Symbian
+platform GPIO class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Many platforms will provide programmable bias capability. This means programmable
+hardware to stabilize the state of a pin to its high or low state. For input
+pins the mechanism is usually a resistor: a pull-up resistor causes a pin
+to default to the high state and a pull-down resistor to the low state. Output
+pins may also be stabilized by resistors or sometimes by a weak drive. The
+Symbian platform GPIO class supports three bias modes specified in the enumeration <codeph>TGpioBias</codeph>:</p>
+<ul>
+<li><p>pull-up, a bias to the high state </p></li>
+<li><p>pull-down, a bias to the low state </p></li>
+<li><p>no drive, an absence of bias</p></li>
+</ul>
+<section id="GUID-35D80FC2-4DBF-4FF2-ACB4-409020651F86"><title> Implement
+the pin bias functions</title> <ul>
+<li><p>          Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-58D2511D-99F1-361B-875C-0A0C32775A3F.dita"><apiname>TGpioBias</apiname></xref>.        </p>  <p> 
+        Only implement this function to return          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> if
+the pin has a programmable device to stabilise          its electric state.
+Otherwise just implement it with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.
+        </p><ul>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>. </p><p>         
+                  Disable any resistor or weak drive forcing the pin to a
+               default electrical state.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> == <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref> and return
+value                .<xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Cause the pin to default to its low electrical state by    
+           pull-down resistor, weak drive or other means.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> == <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref> and return
+value                .<xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Cause the pin to default to its high electrical state by   
+            pull-down resistor, weak drive or other means.              </p> </li>
+<li><p>                Implement <xref href="GUID-2179ABA4-EF54-31B4-876D-35DE3AED4486.dita"><apiname>SetPinBias()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does 
+              not support setting the drive.              </p> </li>
+</ul> </li>
+<li><p>          Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-58D2511D-99F1-361B-875C-0A0C32775A3F.dita"><apiname>TGpioBias</apiname></xref>.         </p> <p> 
+        Only implement this function to return          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> if
+the pin has a programmable device to stabilise          its electric state.
+Otherwise just implement it with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.
+        </p> <ul>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that any stabilising device on the pin has been     
+          disabled. Set <codeph>aBias</codeph> to <xref href="GUID-41EC1BCD-EEE6-301F-84F5-5CED9F444991.dita"><apiname>ENoDrive</apiname></xref>.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin has been set to default to its low     
+          electric state. Set <xref href="GUID-F9031EA4-2C8A-32CB-BB2B-26A20569866F.dita"><apiname>aBias</apiname></xref> to                <xref href="GUID-94DC7B4C-A782-3881-AC16-D982F206057A.dita"><apiname>EPullDown</apiname></xref>.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with    
+           <codeph>aBias</codeph> containing <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref> and
+return value                <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p> 
+              Verify that the pin has been set to default to its high    
+           electric state. Set <xref href="GUID-F9031EA4-2C8A-32CB-BB2B-26A20569866F.dita"><apiname>aBias</apiname></xref> to <xref href="GUID-EFC660F1-A375-304B-9866-C937D2A36AD9.dita"><apiname>EPullUp</apiname></xref>.
+                            </p> </li>
+<li><p>                Implement <xref href="GUID-727E0B20-32AF-3CBE-B0AC-6381C16955F1.dita"><apiname>GetPinBias()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does 
+              not support reading the pin bias.              </p> </li>
+</ul> </li>
+</ul> </section>
+</conbody></concept>

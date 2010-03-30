@@ -10,7 +10,7 @@ Contributors:
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="GUID-2E42E7EA-FED8-522C-8A5F-F65D799476C9" xml:lang="en"><title>Keyboard
-Driver Implementation Tutorial</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+Driver Implementation Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
 <p>This topic describes how to implement an interrupt driven keyboard driver. </p>
 <p>The steps are: </p>
 <ul>
@@ -24,17 +24,18 @@ handle key events. The ISR queues a keyboard DFC. </p> </li>
 DFC. This function interrogates the keyboard, converts the scancode to a keypress
 event, and places it onto the kernel's event queue. </p> </li>
 </ul>
-<section id="GUID-B4B6A6C6-39D0-49FC-A630-1979368056B0"><title>Set Up</title> <p>In the template reference board port, the <filepath>.mmp</filepath> file
-for the keyboard driver is <filepath>...\template_variant\exkey_inttemplate.mmp</filepath>.
+<section id="GUID-B4B6A6C6-39D0-49FC-A630-1979368056B0"><title>Set Up</title> <p>In
+the template reference board port, the <filepath>.mmp</filepath> file for
+the keyboard driver is <filepath>...\template_variant\exkey_inttemplate.mmp</filepath>.
 This is one of the PRJ_MMPFILES referenced in the template variant's <filepath>bld.inf</filepath> file
 in the <filepath>...\template_variant\...</filepath> directory, and means
 that the keyboard driver is built as part of the Variant. </p> <p>The source
 for the driver is contained entirely within <filepath>...\template_variant\specific\keyboard_interrupt.cpp</filepath>. </p> <p>The
 driver is defined as a kernel extension and is loaded early in the boot sequence. </p> </section>
-<section id="GUID-547A2791-82D8-4C86-86E6-B4B9CEF04E3B"><title>Entry point implementation</title> <p>The driver functionality
-is encapsulated by the <codeph>DKeyboardTemplate</codeph> class, and an instance
-of this is created when the extension is loaded. </p> <p>As the driver is
-a kernel extension, it must have a <codeph>DECLARE_STANDARD_EXTENSION()</codeph> statement.
+<section id="GUID-547A2791-82D8-4C86-86E6-B4B9CEF04E3B"><title>Entry point
+implementation</title> <p>The driver functionality is encapsulated by the <codeph>DKeyboardTemplate</codeph> class,
+and an instance of this is created when the extension is loaded. </p> <p>As
+the driver is a kernel extension, it must have a <codeph>DECLARE_STANDARD_EXTENSION()</codeph> statement.
 In the template port, this is implemented: </p> <codeblock id="GUID-69F707CF-642D-5D03-AC78-4914549C4413" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
     {
     __KTRACE_OPT(KEXTENSION,Kern::Printf("Starting keyboard driver"));
@@ -64,17 +65,25 @@ has the following signature: </p> <codeblock id="GUID-5D247843-FF8C-5157-8BE5-53
 
 </codeblock> <p>See also <xref href="GUID-3C34724F-B476-5329-B0B1-6D5A34294979.dita">Interrupt
 Dispatcher Tutorial</xref>. </p> </section>
-<section id="GUID-F11265AA-D280-4B4E-92DA-38F12E7D5E30"><title> Interrupt Service Routine (ISR) implementation</title> <p>The
-ISR (Interrupt Service Routine) just schedules the DFC that handles the keypress.
-On the template reference board, this is implemented as: </p> <codeblock id="GUID-866CEA65-78AC-5A2C-AF08-29DF8FE53DD5" xml:space="preserve">void DKeyboardTemplate::Isr(TAny* aPtr)
-    {
-    DKeyboardTemplate&amp; k=*(DKeyboardTemplate*)aPtr;
-    Interrupt::Disable(KIntIdKeyboard);
-    k.iEventDfc.Add();
-    }
+<section id="GUID-F11265AA-D280-4B4E-92DA-38F12E7D5E30"><title> Interrupt
+Service Routine (ISR) implementation</title> <p>The ISR (Interrupt Service
+Routine) just schedules the DFC that handles the keypress. It can also optionally
+contribute the timing of key interrupts as a source of random data for the
+Random Number Generator (see <xref href="GUID-8290AAF0-577C-51D2-8AC1-0D37A10F45CB.dita">CSPRNG
+Implementation in Kernel</xref>). On the template reference board, this is
+implemented as: </p> <codeblock id="GUID-866CEA65-78AC-5A2C-AF08-29DF8FE53DD5" xml:space="preserve">void DKeyboardTemplate::Isr(TAny* aPtr)
+	{
+	Interrupt::Disable(KIntIdKeyboard);
+	
+	// Add the timing of key interrupts as entropy data for the RNG
+	Interrupt::AddTimingEntropy();
+	
+	k.iEventDfc.Add();
+	}
 </codeblock> <p>The ISR disables the keyboard interrupt, as repeated ISRs
 are not allowed to queue further DFC routines. </p> </section>
-<section id="GUID-E53E0FE1-3100-4B8B-BE90-250C1BDDE15C"><title>DFC function implementation</title> <p>The DFC is the function <codeph>DKeyboardTemplate::EventDfcFn</codeph> which
+<section id="GUID-E53E0FE1-3100-4B8B-BE90-250C1BDDE15C"><title>DFC function
+implementation</title> <p>The DFC is the function <codeph>DKeyboardTemplate::EventDfcFn</codeph> which
 is implemented as a call to <codeph>DKeyboardTemplate::EventDfc()</codeph>. </p> <codeblock id="GUID-2A1B334A-441E-57C3-B40C-603D992F934F" xml:space="preserve">void DKeyboardTemplate::EventDfcFn(TAny* aPtr)
     {
     ((DKeyboardTemplate*)aPtr)-&gt;EventDfc();

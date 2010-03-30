@@ -9,6 +9,100 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-E3BE62B2-9625-5F79-84A4-0248A3F36225"><title>Central Repository Access Guide</title><shortdesc>This section describes how to make an application read and modify a repository at runtime from function calls in its application code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Runtime operations </title> <p><b>Opening and closing a repository </b> </p> <p>You open a repository by creating a <codeph>CRepository</codeph> object in your code: there is no Open() function. To open several repositories you must create one <codeph>CRepository</codeph> object for each of them. These objects encapsulate client views of the Central Repository: data integrity is maintained by server classes which are not part of the exposed API. You read and modify the data in the repository using <codeph>CRepository</codeph> functions such as <codeph>Get()</codeph> and <codeph>Set()</codeph>. In order to prevent different clients corrupting the repository data with concurrent write operations, these operations are wrapped in sequences called transactions. Transactions will be explained in the next section. You close a repository by deleting the <codeph>CRepository</codeph> object: there is no Close() function. </p> <p>The keys are used in the initialisation file to identify data items as we saw above. They are also used as parameters of the API functions which are used to get, set, create, delete, reset and find settings. </p> <p><b>Reading data from a repository </b> </p> <p>Various functions of a CRepository object read the values of the repository settings. These functions all return an error message (KErrNone on success). The data requested by a function is returned as the value of a parameter of the function, and the data type of the parameter must match the data returned. </p> <p>The Get() functions of a CRepository object take individual keys as parameters and retrieve the corresponding values. You cannot directly retrieve values by specifying a range of keys: you must convert a range to a list of individual keys and pass those keys to a Get() function. </p> <p>The Find() functions of a CRepository object convert a range of keys into a list of individual keys. The input parameters are a partial key and a key mask, defining the range: the list of keys is returned as the value of another parameter. The list may contain all the keys in the range, or may be restricted to keys with specified values. The restricted Find() functions take the value of a setting as an input parameter and return variously those keys in the range whose values are equal to the parameter or those which are not equal to it. </p> <p>The GetMeta() function of a CRepository object reads the metadata value assigned to a key. A metadata value is a 32 bit hexadecimal number of which the most significant 8 bits are reserved. The reserved bits should normally be masked out so that they cannot be used. To do this you use a constant defined for the purpose, KMetaUnreserved, with logical AND. A metadata value AND KMetaUnreserved has the reserved bits set to 1. </p> <p><b>Writing data to a repository </b> </p> <p>The Set() functions of a CRepository object write the values of a setting to a repository where the key already exists. </p> <p>To create a new key and write its value, use the Create() functions of a CRepository object. </p> <p>To delete a key and its value, use the Delete() functions. You can delete a group of keys using the partial key and key mask mechanism. </p> <p>To restore the default value of a setting, use the Reset() functions of a CRepository object. The default value of a setting is the most recent value which was explicitly assigned to it, or else the value assigned in the initialisation file. If no value was ever assigned, a call to Reset() deletes the setting. </p> <p><b>Changing permissions on a setting </b> </p> <p>An access policy cannot be changed at run time. The permissions created on an area of keyspace are static: that area always has those permissions. However, it is possible to modify access to a setting at runtime by moving it from one area of keyspace to another area with different permissions. You do this by calling the Move() function of the CRepository class. </p> <codeblock id="GUID-C2BB8268-58B4-5492-A953-E7B99793CC80" xml:space="preserve">TInt CRepository::Move (TUint32 aSourcePartialKey, TUint32
+<concept id="GUID-E3BE62B2-9625-5F79-84A4-0248A3F36225" xml:lang="en"><title>Central
+Repository Access Guide</title><shortdesc>This section describes how to make an application read and modify
+a repository at runtime from function calls in its application code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-02A4A2D8-4167-4AB3-B6B5-8C017D37CC1C"><title>Runtime operations </title> <p><b>Opening
+and closing a repository </b> </p> <p>You open a repository by creating a <codeph>CRepository</codeph> object
+in your code: there is no Open() function. To open several repositories you
+must create one <codeph>CRepository</codeph> object for each of them. These
+objects encapsulate client views of the Central Repository: data integrity
+is maintained by server classes which are not part of the exposed API. You
+read and modify the data in the repository using <codeph>CRepository</codeph> functions
+such as <codeph>Get()</codeph> and <codeph>Set()</codeph>. In order to prevent
+different clients corrupting the repository data with concurrent write operations,
+these operations are wrapped in sequences called transactions. Transactions
+will be explained in the next section. You close a repository by deleting
+the <codeph>CRepository</codeph> object: there is no Close() function. </p> <p>The
+keys are used in the initialization file to identify data items as we saw
+above. They are also used as parameters of the API functions which are used
+to get, set, create, delete, reset and find settings. </p> <p><b>Reading data
+from a repository </b> </p> <p>Various functions of a CRepository object read
+the values of the repository settings. These functions all return an error
+message (KErrNone on success). The data requested by a function is returned
+as the value of a parameter of the function, and the data type of the parameter
+must match the data returned. </p> <p>The Get() functions of a CRepository
+object take individual keys as parameters and retrieve the corresponding values.
+You cannot directly retrieve values by specifying a range of keys: you must
+convert a range to a list of individual keys and pass those keys to a Get()
+function. </p> <p>The Find() functions of a CRepository object convert a range
+of keys into a list of individual keys. The input parameters are a partial
+key and a key mask, defining the range: the list of keys is returned as the
+value of another parameter. The list may contain all the keys in the range,
+or may be restricted to keys with specified values. The restricted Find()
+functions take the value of a setting as an input parameter and return variously
+those keys in the range whose values are equal to the parameter or those which
+are not equal to it. </p> <p>The GetMeta() function of a CRepository object
+reads the metadata value assigned to a key. A metadata value is a 32 bit hexadecimal
+number of which the most significant 8 bits are reserved. The reserved bits
+should normally be masked out so that they cannot be used. To do this you
+use a constant defined for the purpose, KMetaUnreserved, with logical AND.
+A metadata value AND KMetaUnreserved has the reserved bits set to 1. </p> <p><b>Writing
+data to a repository </b> </p> <p>The Set() functions of a CRepository object
+write the values of a setting to a repository where the key already exists. </p> <p>To
+create a new key and write its value, use the Create() functions of a CRepository
+object. </p> <p>To delete a key and its value, use the Delete() functions.
+You can delete a group of keys using the partial key and key mask mechanism. </p> <p>To
+restore the default value of a setting, use the Reset() functions of a CRepository
+object. The default value of a setting is the most recent value which was
+explicitly assigned to it, or else the value assigned in the initialization
+file. If no value was ever assigned, a call to Reset() deletes the setting. </p> <p><b>Changing
+permissions on a setting </b> </p> <p>An access policy cannot be changed at
+run time. The permissions created on an area of keyspace are static: that
+area always has those permissions. However, it is possible to modify access
+to a setting at runtime by moving it from one area of keyspace to another
+area with different permissions. You do this by calling the Move() function
+of the CRepository class. </p> <codeblock id="GUID-C2BB8268-58B4-5492-A953-E7B99793CC80" xml:space="preserve">TInt CRepository::Move (TUint32 aSourcePartialKey, TUint32
           aTargetPartialKey, TUint32 aMask, TUint32 &amp;aErrorKey) 
-        </codeblock> <p>The parameters <codeph>aSourcePartialKey</codeph> and <codeph>aMask</codeph> define one range of keys, the source, and the parameters <codeph>aTargetPartialKey</codeph> and <codeph>aMask</codeph> define another, the target. The effect of calling the function is to cause the values formerly accessed using the source keys to be accessed using the target keys. If the target keys have different permissions from the source, those permissions will in future govern access to the values concerned. </p> <p><b>Notification of changes </b> </p> <p>It will often be the case that your application accesses a repository in order to read data written by a separate application. If so, your application must request to be notified whenever the other application modifies the relevant settings. To request notification of changes to a setting or group of settings you use the <codeph>RequestNotify()</codeph> functions of a CRepository object with a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object as parameter. The value of this parameter changes when the notification server detects a change to the repository. If a single setting has changed, the parameter takes the value of that setting: if more than one setting has changed, the parameter takes the value <codeph>KUnspecifiedKey</codeph>. To receive notification of changes, your code must periodically poll this key. It must also renew the <codeph>RequestNotify()</codeph> call before reading the setting which has changed. This is important because several changes may occur in quick succession and you want to read the latest state of the repository. </p> <p>You cancel notifications about specific settings or groups of settings using <codeph>NotifyCancel()</codeph>, and you cancel all notifications using <codeph>NotifyCancelAll()</codeph>. </p> </section> <section><title>Error handling</title> <p>Two classes of error can occur when a keyspace is installed, upgraded or uninstalled. One is installation of a corrupt repository (one which does not conform to the specified text or binary format). If the central repository detects corrupt repositories, it deletes them. It is preferable to install a repository in binary format as corrupt files will then be detected at build time. </p> <p>The other class of possible error is system failures such as insufficient memory. These prevent the keyspaces from merging and the result is loss of synchronisation between applications and their repositories. The remedy for errors of this kind is to maintain versioning information within the repositories, so that the version of a repository can be checked when it is opened and validated against the version expected by the client. </p> </section> </conbody><related-links><link href="GUID-CBC57511-7F28-596A-9763-5674EB41BCAC.dita"><linktext>Central Repository Overview</linktext> </link> <link href="GUID-36539894-580E-5774-AA79-7F640E8C59E1.dita"><linktext>Central Repository Initialisation Files Guide</linktext> </link> <link href="GUID-53E5C9EA-0A38-54A1-AE24-95B71BFFB4B5.dita"><linktext>CenRep Converter Tool Tutorial</linktext> </link> </related-links></concept>
+        </codeblock> <p>The parameters <codeph>aSourcePartialKey</codeph> and <codeph>aMask</codeph> define
+one range of keys, the source, and the parameters <codeph>aTargetPartialKey</codeph> and <codeph>aMask</codeph> define
+another, the target. The effect of calling the function is to cause the values
+formerly accessed using the source keys to be accessed using the target keys.
+If the target keys have different permissions from the source, those permissions
+will in future govern access to the values concerned. </p> <p><b>Notification
+of changes </b> </p> <p>It will often be the case that your application accesses
+a repository in order to read data written by a separate application. If so,
+your application must request to be notified whenever the other application
+modifies the relevant settings. To request notification of changes to a setting
+or group of settings you use the <codeph>RequestNotify()</codeph> functions
+of a CRepository object with a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object as
+parameter. The value of this parameter changes when the notification server
+detects a change to the repository. If a single setting has changed, the parameter
+takes the value of that setting: if more than one setting has changed, the
+parameter takes the value <codeph>KUnspecifiedKey</codeph>. To receive notification
+of changes, your code must periodically poll this key. It must also renew
+the <codeph>RequestNotify()</codeph> call before reading the setting which
+has changed. This is important because several changes may occur in quick
+succession and you want to read the latest state of the repository. </p> <p>You
+cancel notifications about specific settings or groups of settings using <codeph>NotifyCancel()</codeph>,
+and you cancel all notifications using <codeph>NotifyCancelAll()</codeph>. </p> </section>
+<section id="GUID-F82316AE-2BC2-4CDD-A1B2-67BE1506F4EE"><title>Error handling</title> <p>Two
+classes of error can occur when a keyspace is installed, upgraded or uninstalled.
+One is installation of a corrupt repository (one which does not conform to
+the specified text or binary format). If the central repository detects corrupt
+repositories, it deletes them. It is preferable to install a repository in
+binary format as corrupt files will then be detected at build time. </p> <p>The
+other class of possible error is system failures such as insufficient memory.
+These prevent the keyspaces from merging and the result is loss of synchronization
+between applications and their repositories. The remedy for errors of this
+kind is to maintain versioning information within the repositories, so that
+the version of a repository can be checked when it is opened and validated
+against the version expected by the client. </p> </section>
+</conbody><related-links>
+<link href="GUID-CBC57511-7F28-596A-9763-5674EB41BCAC.dita"><linktext>Central Repository
+Overview</linktext></link>
+<link href="GUID-36539894-580E-5774-AA79-7F640E8C59E1.dita"><linktext>Central Repository
+Initialization Files Guide</linktext></link>
+<link href="GUID-53E5C9EA-0A38-54A1-AE24-95B71BFFB4B5.dita"><linktext>CenRep Converter
+Tool Tutorial</linktext></link>
+</related-links></concept>

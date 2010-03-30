@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2344B900-5EC5-4467-BEAD-AB55C88CE63E" xml:lang="en"><title>Stack
+Implementation Guide</title><shortdesc>How to implement the platform-specific class for an SDIO stack
+of an SDIO-based hardware component.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The stack is provided by the <xref href="GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91.dita"><apiname>DSDIOStack</apiname></xref> class. The developers
+porting the SDIO Controller must derive the <codeph>DSDIOStack</codeph> class
+and implement three platform-specific functions: <codeph>IssueMMCCommandSM()</codeph>, <codeph>EnableSDIOInterrupt()</codeph> and <codeph>MaxBlockSize()</codeph>. </p>
+<p>The following sections describe how to implement these functions in the <codeph>DMySdioStack</codeph> class
+derived from <codeph>DSIOStack</codeph>.</p>
+<section id="GUID-727CDF1D-9C0A-4793-8B27-DCC33A0D9E16"><title>Hardware registers</title><p>The <codeph>DMySdioStack</codeph> class
+needs to have access to the values and offsets of the SDIO configuration registers.
+Refer to the platform documentation and declare appropriate constants in the
+header file of the stack class. </p></section>
+<section id="GUID-94DC0BD9-0588-40A6-A9B9-5DBC2FDBA9E1"><title>IssueMMCCommandSM()</title><p>If
+you have not declared it already, declare the following function in the definition
+of <codeph>DMySdioStack</codeph>:<codeblock xml:space="preserve">TMMCErr IssueMMCCommandSM();</codeblock></p><p><xref href="GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91.dita#GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91/GUID-C4395EDB-2CB8-3BA7-A1C6-6B65A3A1FC46"><apiname>DSDIOStack::IssueMMCCommandSM()</apiname></xref> handles the commands to the bus and must be extended to support the SDIO
+protocol. See also <xref href="GUID-E194A923-99E7-5DC1-BB78-D050A4793A60.dita#GUID-E194A923-99E7-5DC1-BB78-D050A4793A60/GUID-3E6B3479-39B6-47BA-BD1A-18EA2F2A8597">DSDStack::IssueMMCCommandsSM()</xref>.</p><p>Rely on the platform documentation to perform the operations and
+update appropriate hardware registers when you intercept the following commands:<ul>
+<li><p><codeph>IO_OP_COND</codeph> (CMD5)</p></li>
+<li><p><codeph>IO_RW_DIRECT</codeph> (CMD52)</p></li>
+<li><p><codeph>IO_RW_EXTENDED</codeph> (CMD53)</p></li>
+</ul></p><p>You should also handle the additional <codeph>IO_SEND_OP_COND</codeph> (R4)
+and <codeph>IO_RW_DIRECT</codeph> (R5) responses.</p><p>In the following example,
+the hypothetical hardware platform has two requirements, which are implemented
+by the <codeph>IssueMMCCommandSM()</codeph> function. The function disables
+the CRC7 check when receiving an R4 response to an CMD5 command, and disables
+the SDIO interrupt before issuing a CMD52 command.<codeblock xml:space="preserve">void DMySdioStack::IssueMMCCommandSM()
+	{
+	TMMCCommandDesc&amp; cmd = Command();
+	...
+	// CMD5 
+	// Disable the CRC7 check for R4 responses
+	if (cmd.iCommand == ECmd5)
+		{	    
+		// Clear the MMC_CRC7_R4_ENABLE bit
+		// MMC_SDIO_REG_SLOT0 is a 32-bit hardware register for SDIO in slot 0
+		AsspRegister::Modify32(MMC_SDIO_REG_SLOT0, MMC_CRC7_R4_ENABLE, 0);
+		}
+	else     
+		{
+		// Set the MMC_CRC7_R4_ENABLE bit
+		AsspRegister::Modify32(MMC_SDIO_REG_SLOT0, 0, MMC_CRC7_R4_ENABLE);
+	    	}
+
+	// CMD52
+	// Disable SDIO interrupts for CMD 52	
+	if (cmd.iCommand == ECmd52)
+		{	    
+		EnableSDIOInterrupt(EFalse);
+		}
+	...
+	}
+</codeblock></p><p>As the SDIO Controller is instantiated at run-time, the
+memory used to support the SDIO transfer mechanisms must be allocated dynamically.
+Therefore, you can use two different types of memory and of data transfer: <ul>
+<li><p>Programmatic input/output using virtual memory</p></li>
+<li><p>DMA using physically-allocated <xref href="GUID-85454082-6734-3F1D-983F-734D4C2AB12D.dita"><apiname>DChunk</apiname></xref> objects.</p></li>
+</ul></p><p>The <codeph>KMMCCmdFlagDMARamValid</codeph> flag of the <xref href="GUID-6B3DDBFD-3A4A-3694-A058-7794700FEC7A.dita"><apiname>TMMCCommandDesc</apiname></xref> object
+indicates which kind of memory transfer to use. </p><p>If you use the Programmatic I/O method, you need to queue pending data transfers
+while you handle hardware interrupts. Your platform's documentation specifies
+which interrupts may be received during transfers.</p></section>
+<section id="GUID-21B00930-0D6E-464D-8F50-37355D189FE4"><title>EnableSDIOInterrupt()</title><p>Declare
+the following function in the definition of <codeph>DMySdioStack</codeph>:<codeblock xml:space="preserve">virtual void EnableSDIOInterrupt(TBool aEnable);</codeblock></p><p><xref href="GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91.dita#GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91/GUID-F547703F-62A6-359D-9AC6-818689DDE2DB"><apiname>DSDIOStack::EnableSDIOInterrupt()</apiname></xref> enables or disables
+the SDIO interrupt. </p><p>The following example is a typical implementation
+of <codeph>EnableSDIOInterrupt()</codeph>:<codeblock xml:space="preserve">void DMySdioStack::EnableSDIOInterrupt(TBool aEnable)
+	{
+	if (aEnable)
+		{
+		// Set the Interrupt Enable Master Bit
+		// MMC_SDIO_REG_SLOT0 is a 32-bit hardware register for SDIO in slot 0
+		AsspRegister:: Modify32(MMC_SDIO_REG_SLOT0, SDIO_IENM, 0);
+		}
+	else
+		{
+		// Set the Interrupt Enable Master Bit
+		AsspRegister:: Modify32(MMC_SDIO_REG_SLOT0, 0, SDIO_IENM);
+		}
+	}
+</codeblock></p><p>You must also ensure that your interrupt handler checks
+the SDIO interrupt register and the card slot before forwarding the interrupt
+to the stack. <note>If checking the card slot is likely to take too long,
+use a DFC (Delayed Function Call) for the interrupt handler to preserve real-time
+performance.</note></p>The following example illustrates how to implement
+this aspect of the interrupt handler:<codeblock xml:space="preserve">void DMySdioInterrupt::Service(TAny* aSelf)
+	{
+	... 
+	// Get access to the stack
+	DPlatMMCStack* stack = (reinterpret_cast&lt;DMySdioInterrupt*&gt;(aSelf))-&gt;Stack();
+
+	// MMC_SDIO_REG_SLOT0 is a 32-bit hardware register for SDIO in slot 0
+	TInt32 sdioReg = AsspRegister::Read32(MMC_SDIO_REG_SLOT0);
+	// Test for the SDIO interrupt
+	if (sdioReg &amp; KMMC_SDIO_IntPending)
+		{
+		// Trigger the PIL’s interrupt handler for slot 0
+		stack-&gt;HandleSDIOInterrupt(0);
+		return;
+		}
+
+	// MMC_SDIO_REG_SLOT1 is a 32-bit hardware register for SDIO in slot 1
+	sdioReg = AsspRegister::Read32(MMC_SDIO_REG_SLOT1);
+	// Test for the SDIO interrupt
+	if (sdioReg &amp; KMMC_SDIO_IntPending)
+		{
+		// Trigger the PIL’s interrupt handler for slot 1
+		stack-&gt;HandleSDIOInterrupt(1);
+		return;
+		}
+
+	...
+	}
+</codeblock></section>
+<section id="GUID-CF9A5D3D-E46D-4343-9A71-89128217C3F1"><title>MaxBlockSize() </title><p>Declare
+the following function in the definition of <codeph>DMySdioStack</codeph>:<codeblock xml:space="preserve">virtual TUint32 MaxBlockSize() const;</codeblock></p><p><xref href="GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91.dita#GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91/GUID-CE55D746-6F55-316B-86F3-6799F29F19B4"><apiname>DSDIOStack::MaxBlockSize()</apiname></xref> returns the maximum block size in bytes
+that can be transferred on the SDIO bus. Extended read/write commands require
+this information.</p><p>In the SD protocol, the block size must be a power
+of two. SDIO does not have the same constraint and the block size can be anything
+between 1 and 2048.</p><p>The following example is a typical implementation
+of <codeph>MaxBlockSize()</codeph>:<codeblock xml:space="preserve">TUint32 DMySdioStack::MaxBlockSize() const
+	{
+	return(512); 
+	}
+</codeblock></p></section>
+</conbody></concept>

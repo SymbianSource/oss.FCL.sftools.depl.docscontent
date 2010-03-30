@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-1DCB0B64-0B70-4F34-81A7-E00A996AD626" xml:lang="en"><title>Listing,
+Accessing and Launching Mailboxes</title><shortdesc>This section describes how to list, access and launch mailboxes
+using Email Client APIs.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-A90D8897-55A2-4D4C-9B22-DA8620B4FD83">       <p>Email Client
+provides <xref href="GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290.dita#GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290/GUID-015F8AAA-1C6B-3871-98B3-4058DE874C24"><apiname>MEmailMailbox::GetMailboxesL()</apiname></xref> method to list
+all the mailboxes. <xref href="GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290.dita#GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290/GUID-BC053BE5-CD31-3787-AFB9-6C52690FBD7A"><apiname>MEmailMailbox::ShowInboxL()</apiname></xref> method is
+used to launch a specific mailbox in the email application. </p>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-10-1-7-1-1-4-1-3-1-5-1-4-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-7-1-1-4-1-3-1-5-1-4-1-3-2-1"><cmd>Create an instance
+of <xref href="GUID-EAFF40CE-09E4-3739-A533-400CBA63C3BD.dita"><apiname>MEmailClientApi</apiname></xref> class.</cmd>
+<info><p><codeblock xml:space="preserve">EmailInterfaceFactory* factory = CEmailInterfaceFactory::NewL();
+CleanupStack::PushL( factory );
+MEmailClientApi* mailClient = static_cast&lt;MEmailClientApi*&gt;(factory-&gt;InterfaceL( KEmailClientApiInterface ) );</codeblock></p></info>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-7-1-1-4-1-3-1-5-1-4-1-3-2-2"><cmd>Get the mailboxes
+using <xref href="GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290.dita#GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290/GUID-06D34B16-19A5-34B9-B55F-882AFD30427F"><apiname>MEmailMailbox::GetMailboxesL(RMailboxPtrArray&amp; aMailboxes)</apiname></xref>.</cmd>
+<info><p><codeblock xml:space="preserve">RMailboxPtrArray mailboxes;
+CCleanupResetAndRelease&lt;MEmailMailbox&gt;::PushL( mailboxes );
+mailClient-&gt;GetMailboxesL( mailboxes );
+</codeblock></p></info>
+</step>
+<step id="GUID-6363BB6A-DC04-4E0A-B3C8-6F20CF13C1D9"><cmd>Launch the inbox
+using <xref href="GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290.dita#GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290/GUID-BC053BE5-CD31-3787-AFB9-6C52690FBD7A"><apiname>MEmailMailbox::ShowInboxL()</apiname></xref>.</cmd>
+<info><p><codeblock xml:space="preserve">mailbox-&gt;ShowInboxL();</codeblock></p><p>To access a mailbox
+using its address, use <xref href="GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290.dita#GUID-FCDFA4A7-2C82-3FE7-8C0B-2035C6602290/GUID-2FFBCEFB-B5D4-3924-B44D-AB608E0F2603"><apiname>MEmailMailbox::MailboxL( const TPtrC&amp;
+aAddress)</apiname></xref> method.</p></info>
+</step>
+</steps>
+<example><p>The following code snippet shows an example of how to list the
+mailboxes.</p><p><codeblock xml:space="preserve">TInt CEmailClientApiTester::GetMailboxListL( CItemParser&amp; /*aItem*/ )
+	{
+		TInt ret(KErrNone);
+
+		CEmailInterfaceFactory* factory = CEmailInterfaceFactory::NewL();
+		CleanupStack::PushL( factory );
+		MEmailClientApi* mailClient = static_cast&lt;MEmailClientApi*&gt;(factory-&gt;InterfaceL( KEmailClientApiInterface ) );
+		if ( mailClient )
+			{
+				CleanupReleasePushL( *mailClient );
+				RMailboxPtrArray mailboxes;
+				mailClient-&gt;GetMailboxesL( mailboxes );// Get the mailboxes
+				for ( TInt i = 0; i &lt; mailboxes.Count(); i++ )
+					{
+						MEmailMailbox* mailbox = mailboxes[i];
+						iLog-&gt;Log( _L( "%S id=%d" ), &amp;mailbox-&gt;MailboxName(), mailbox-&gt;MailboxId().iId );            
+						mailbox-&gt;Release(); //Release the memory
+					}
+				mailboxes.Close();
+				CleanupStack::PopAndDestroy();// mailClient
+			}
+		CleanupStack::PopAndDestroy(factory);     
+		return ret;
+	}
+</codeblock></p></example>
+</taskbody><related-links>
+<link href="GUID-B87B9E01-F5EB-40F6-A580-A7E46869AE39.dita"><linktext>Email Client
+API Overview</linktext></link>
+<link href="GUID-FC308B84-E109-48F3-90F1-78F0C837CC56.dita"><linktext>Creating,
+Replying and Forwarding Email Messages</linktext></link>
+<link href="GUID-222C2B18-F348-4B16-BB00-E5FAC11AE528.dita"><linktext>Searching
+Email Messages</linktext></link>
+</related-links></task>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-AC8439C7-7E57-4829-AB4B-70BC394DD66F" xml:lang="en"><title>Hiding
+item-specific commands in menus</title><shortdesc>The item-specific commands and item-action commands in options
+menu must be flagged with the <codeph>EEikMenuItemSpecific</codeph> and <codeph>EEikMenuItemAction</codeph> flags
+introduced in Symbian^3. This enables the UI framework to hide them in the
+options menu and display them only in the stylus pop-up menu. The touch down
+and hold action opens the stylus pop-up menu. Touch down and release performs
+an action.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-29AA14A9-B1E0-4C9A-A5BB-446351A11C87"><p>Actions like opening
+a radio button list and virtual input are performed on the first tap. These
+actions are normally handled by the UI framework. However, if your application
+contains an implementation of its own for handling these actions (for example,
+opening a custom component on the second tap) it must be changed to follow
+the single-tap style.</p>          </context>
+<steps-unordered id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-4-1-1-7-1-4-1-4-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-4-1-1-7-1-4-1-4-1-3-2-1"><cmd>Add the <codeph>EEikMenuItemAction</codeph> flag
+to all item-action commands in your options menu resource definitions. Menu
+item-action commands are functions that are called during touch down and release
+on an item (for example, <b>Open</b> action).</cmd>
+<stepxmp><p>For example, </p><codeblock xml:space="preserve">/**
+ *AppList View menuitems (Counters)
+ */
+RESOURCE MENU_PANE r_logs_applist_menu
+{
+ items =
+ {
+  MENU_ITEM
+  {
+   command = ELogsCmdMenuOpen;
+   txt = qtn_logs_cmd_open;
+ //---------------------------------------------------------------
+// Include the following line to the list-item action commands
+<b>   flags =EEikMenuItemAction;
+</b>
+//----------------------------------------------------------------
+  }
+ };
+}</codeblock></stepxmp>
+</step>
+<step id="GUID-192D8B8E-4521-40F0-81F1-7970D2487AF5"><cmd>Add the <codeph>EEikMenuItemSpecific</codeph> flag
+to all (other than item-action) item-specific commands in options menu resource
+definitions.</cmd>
+<stepxmp><p>For example, </p><codeblock xml:space="preserve">RESOURCE MENU_PANE r_common_event_menu_send_events
+{
+ items =
+ {
+  MENU_ITEM /* Send */
+  {
+   command = ELogsCmdMenuSendUi;
+   txt = qtn_stm_om_send;
+//-------------------------------------------------------------------------
+//Add the following line to the list item-specific commands
+<b>   flags = EEikMenuItemSpecific;
+</b>//-------------------------------------------------------------------------
+
+  },
+  MENU_ITEM /* Clear list */
+  { command = ELogsCmdMenuDeleteAll;
+   txt = qtn_stm_om_delete_all; }
+ };
+}</codeblock></stepxmp>
+<info><note> An application view containing <xref href="GUID-1AA32C40-CDE0-4627-A634-7C07BB1ED67B.dita">forms</xref> need
+not flag item-specific commands, as forms are always highlighted.</note></info>
+</step>
+<step id="GUID-D8010D5A-5703-4AC6-AC05-819689785680"><cmd>If your application
+code dynamically adds or removes menu items,  you must change
+the flag value of the menu pane using the <xref href="GUID-F6168582-DFF1-31DF-87F9-FF2AEC5EE0FF.dita#GUID-F6168582-DFF1-31DF-87F9-FF2AEC5EE0FF/GUID-DC63590B-B1CE-3B80-BDFE-6827A381F3AD"><apiname>CEikMenuPane::SetItemSpecific()</apiname></xref> function.</cmd>
+<stepxmp><p>For example, </p><codeblock xml:space="preserve">/* Add send message item to menu above position pos */
+TInt pos = 0;
+
+/* Returns pointer to menu item */
+aMenuPane-&gt;ItemAndPos(ELogsCmdMenuSendUi, pos);
+
+/* Delete marker item from menu */
+aMenuPane-&gt;DeleteMenuItem(ELogsCmdMenuSendUi);
+
+/* No need here yet to tailor subitems in SendUi menu */
+TSendingCapabilities capabilities(0, 0, 0);
+LogsAppUi()
+-&gt;
+SendUiL()
+-&gt;AddSendMenuItemL
+ (
+  *aMenuPane, pos, /* Position in menupane */ ELogsCmdMenuSendUi, /* Command id to be used for "Send" menu item */
+   capabilities
+ );
+aMenuPane-&gt;SetItemTextL(ELogsCmdMenuSendUi, iSendUiText-&gt;Des());
+//-------------------------------------------------------------
+// Include the following line to dynamically change the flag value
+<b>
+aMenuPane-&gt;SetItemSpecific(ELogsCmdMenuSendUi, ETrue);
+</b>//-----------------------------------------------------------------</codeblock></stepxmp>
+</step>
+</steps-unordered>
+</taskbody></task>

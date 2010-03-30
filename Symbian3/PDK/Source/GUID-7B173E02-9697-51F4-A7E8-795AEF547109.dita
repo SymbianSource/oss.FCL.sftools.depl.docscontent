@@ -9,4 +9,169 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-7B173E02-9697-51F4-A7E8-795AEF547109"><title>Thread priority scheme</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>At any given time, the thread running in Symbian OS is the one with the highest priority that is ready to run. The priority of a thread is simply a number; the value determines the priority; the greater the number, the higher the priority. We call this the <i>true</i> or <i>absolute</i> priority of the thread. </p> <p>The Kernel schedules a fixed amount of time called a <i>quantum</i> for a thread to run on the CPU, and the scheduler chooses the highest priority thread that is ready to run. Threads of equal priority are executed on a <i>round robin basis</i>. </p> <p>The <i>true</i> priority values range from 0 (lowest) to 63 (highest). </p> <p>The priority range divides into four broad categories: </p> <table id="GUID-1EAC04DE-B68F-5F95-887C-39E9926F2500"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><tbody><row><entry><p>0</p> </entry> <entry><p>This is reserved for the <i>null thread</i>, which puts the processor into idle mode to save power when no other threads are ready to run. </p> </entry> </row> <row><entry><p>1 - 23 </p> </entry> <entry><p>Used by kernel side threads and user-side applications and servers </p> </entry> </row> <row><entry><p>24 -31 </p> </entry> <entry><p>Used by kernel side threads and protected system servers, i.e. servers with the <codeph>ProtServ</codeph> capability. </p> </entry> </row> <row><entry><p>32 - 63 </p> </entry> <entry><p>Reserved for real-time threads running on the kernel side. </p> </entry> </row> </tbody> </tgroup> </table> <fig id="GUID-5FFD4994-B20D-5095-8F6E-FB1151A4FF79"><image href="GUID-A95FEDD4-106A-5E14-8B64-3E2882C76666_d0e338038_href.png" placement="inline"/></fig> <ul><li id="GUID-2BCF03FE-C23E-5CCA-87CF-4AE9A91FD0D8"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-0194B574-806B-5BA3-B65C-6DC5A80CAB86">Priority scheme for general user-side threads</xref>  </p> </li> <li id="GUID-000499D5-EE19-5838-90CD-8C13AC468A52"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-23801A52-4E62-56F4-8D81-E0A417517FDA">Priority scheme for real-time user-side threads</xref>  </p> </li> <li id="GUID-1BA97FE4-F817-50E4-A6DA-6B0B64819811"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">Thread priority value mapping table</xref>  </p> </li> <li id="GUID-2BB44CDE-B566-52C0-869C-C60FB8D6AD94"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-E9AFB6A3-ED3E-5110-82C8-E5E15E0AF899">Platform security notes</xref>  </p> </li> </ul> <section id="GUID-0194B574-806B-5BA3-B65C-6DC5A80CAB86"><title>Priority scheme for general user-side threads</title> <p>User-side threads do not allocate <i>true</i> priority values directly. Instead, they allocate priorities using symbolic values defined by enums. Symbian OS maps these values to the <i>true</i> value. </p> <p>There are two priority allocation schemes: </p> <ul><li id="GUID-6BE65AEC-DC54-5350-8704-538B5E425352"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-B9022468-F4E7-536B-B1D4-58DAA9EA5914">Process-relative scheme</xref>  </p> </li> <li id="GUID-BBB502EA-950C-5F8C-8CA2-F5F339000A10"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-7A38EE63-E955-5432-84E1-F35CB45C931E">Process-independent scheme for general user threads</xref>  </p> </li> </ul> <p id="GUID-B9022468-F4E7-536B-B1D4-58DAA9EA5914"><b>Process-relative scheme</b> </p> <p>This scheme bases the <i>true</i> priority of a thread on the priority of its owning process and the priority of the thread relative to the process. This means that changing the process priority results in a change to the <i>true</i> priority of the thread. </p> <p>A process can be assigned one of eight discrete priorities represented by the individual enumerators of <xref href="GUID-5D289F30-2C88-396D-9748-798055F0AF56.dita"><apiname>TProcessPriority</apiname></xref>, and range from <xref href="GUID-9B7922A7-6098-3BBD-9ADE-BC21AD6381C3.dita"><apiname>EPriorityLow</apiname></xref>, the lowest, to <xref href="GUID-A35268D0-7EFC-3D58-8C79-E4E619F762F5.dita"><apiname>EPrioritySupervisor</apiname></xref>, the highest. </p> <p>In practice, <i>user processes</i> can only be assigned priorities that are one of the values: </p> <ul><li id="GUID-85AA4A1D-A168-5AEF-9D4C-DC14C28686B2"><p> <xref href="GUID-9B7922A7-6098-3BBD-9ADE-BC21AD6381C3.dita"><apiname>EPriorityLow</apiname></xref> <codeph/>  </p> </li> <li id="GUID-45B720BB-3696-545F-B966-A2EA4B37AE5D"><p> <xref href="GUID-8778A277-DA7F-34A0-8472-29226DEC2CCE.dita"><apiname>EPriorityBackground</apiname></xref>  </p> </li> <li id="GUID-DF2708D4-B670-5B15-B587-CB71EAC99045"><p> <xref href="GUID-A62CF9B2-63E3-31E0-A51E-E04F2E2EB38F.dita"><apiname>EPriorityForeGround</apiname></xref>  </p> </li> <li id="GUID-9C68DD95-2AB6-57D0-9966-D83144788458"><p> <xref href="GUID-8995D880-69B7-3C31-891B-7A2C57E372FE.dita"><apiname>EPriorityHigh</apiname></xref>  </p> </li> </ul> <p>There are a further four process priorities that a user process is not permitted to set: <codeph>EPriorityWindowServer</codeph>, <codeph>EPriorityFileServer</codeph>, <codeph>EPriorityRealTimeServer</codeph> and <codeph>EPrioritySupervisor</codeph>. </p> <p>A process priority can be assigned: </p> <ul><li id="GUID-CC4FA12C-BFDD-5F75-BC18-B742BCACEECF"><p>when the associated <filepath>.exe</filepath> is built; this is done by specifying the value in the <filepath>.mmp</filepath> file that defines the project. </p> </li> <li id="GUID-B86220D9-B10D-5506-AD90-73E7F8D7A089"><p>by calling <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-189A64CB-F2EA-3C8F-A7A7-01CBF8FDE67A"><apiname>RProcess::SetPriority()</apiname></xref> and passing one of the <xref href="GUID-5D289F30-2C88-396D-9748-798055F0AF56.dita"><apiname>TProcessPriority</apiname></xref> enum values. </p> </li> </ul> <p>See also : <xref href="GUID-8DB5E558-9774-5CC3-AF8C-6C50D9FE0496.dita">Using Makmake</xref> in the <xref href="GUID-B21141D4-3BFE-59C9-8D5F-147A93BE1C95.dita">Build Tools Guide</xref>. </p> <p>The priority of a thread <i>relative</i> to a process is assigned by calling <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> and passing one of the five <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values: </p> <ul><li id="GUID-BCFFB27F-5CEB-58E8-A859-C82273CB7FDC"><p> <xref href="GUID-DF41A24C-6873-37E6-834A-98CDFC8D54FB.dita"><apiname>EPriorityMuchLess</apiname></xref>  </p> </li> <li id="GUID-21C1A24C-483D-579B-BA56-31B3694215CE"><p> <xref href="GUID-0429DE71-44B4-3764-A62B-AD937E6AD355.dita"><apiname> EPriorityLess</apiname></xref>  </p> </li> <li id="GUID-48747F5D-8F0E-5C57-8858-35D8881B1DB7"><p> <xref href="GUID-2ACE5CF0-7E8B-35FF-8ABC-6917B2F68BB1.dita"><apiname>EPriorityNormal</apiname></xref>  </p> </li> <li id="GUID-78DEBC15-DFD8-5384-8358-3744E2C1DDBE"><p> <xref href="GUID-34B6B121-2E45-36FE-B0FA-E8272E2F1D10.dita"><apiname>EPriorityMore</apiname></xref>  </p> </li> <li id="GUID-AE42DA32-09CA-5C8B-B9AF-2A68E66E6218"><p> <xref href="GUID-4F19A64D-FBBE-34F2-8387-1449E49DC923.dita"><apiname> EPriorityMuchMore</apiname></xref>  </p> </li> </ul> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread priority value mapping table</xref> shows the <i>true</i> priority of a thread based on the combination of process priority and process-relative thread priority </p> <p id="GUID-7A38EE63-E955-5432-84E1-F35CB45C931E"><b>Process-independent scheme for general user threads</b> </p> <p>In this scheme, the <i>true</i> priority of a thread is independent of the priority of its owning process. Changing the priority of the underlying process has no effect on the <i>true</i> priority of the thread. </p> <p>The priority of a thread is assigned by calling <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> and passing one of the <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values listed below. Note that the set of enum values splits into two logical groupings based on their equivalence to process-relative values. See the <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread priority value mapping table</xref>. </p> <table id="GUID-A0397BB8-AAC7-5F79-B94F-68103B66132C"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><tbody><row><entry><p> <b> Group 1 </b>  </p> </entry> <entry><p> <b> Group 2 </b>  </p> </entry> </row> <row><entry><ul><li id="GUID-12430992-C96F-5006-85AD-A9308AB75B93"><p> <xref href="GUID-A131F0B9-C8D4-3F0D-A0CB-140DA8EA3288.dita"><apiname>EPriorityAbsoluteVeryLow</apiname></xref>  </p> </li> <li id="GUID-A5682ECF-DCAA-5E35-8294-613A30F416FD"><p> <xref href="GUID-280BFA0F-9A1C-3644-AF1C-B169B09D8834.dita"><apiname>EPriorityAbsoluteLow</apiname></xref>  </p> </li> <li id="GUID-1750EB5D-A22B-5838-9EB8-37B06A0D1F98"><p> <xref href="GUID-ECA0DFF8-106C-3D1C-963C-10708885797A.dita"><apiname>EPriorityAbsoluteBackground</apiname></xref>  </p> </li> <li id="GUID-A83FCD79-3B4C-51CC-A82A-BE8AAB9BEEC0"><p> <xref href="GUID-451D6DB5-C247-34BF-8D8A-288C03599B7E.dita"><apiname>EPriorityAbsoluteForeground</apiname></xref>  </p> </li> <li id="GUID-1EDD4765-F02A-56CD-882D-E4DD443CE410"><p> <xref href="GUID-B6EEA9DD-68AE-30FD-AEE1-9B227109750F.dita"><apiname>EPriorityAbsoluteHigh</apiname></xref>  </p> </li> </ul> </entry> <entry><ul><li id="GUID-E03FCF50-F5B6-5885-B939-88B513F4AC2F"><p> <xref href="GUID-0070BA48-851D-36E2-9C4C-C11C0FF0BE46.dita"><apiname>EPriorityAbsoluteLowNormal</apiname></xref>  </p> </li> <li id="GUID-4C94D1D2-6B81-57D8-B44D-2FE19E9971F9"><p> <xref href="GUID-CD20880F-21EB-389C-A0A4-8DFFE714B102.dita"><apiname>EPriorityAbsoluteBackgroundNormal</apiname></xref>  </p> </li> <li id="GUID-6D3AA39B-AE42-575A-B63B-D109049ABFEF"><p> <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref>  </p> </li> <li id="GUID-E41572FD-0C50-54BC-98C6-857A8D86CCD7"><p> <xref href="GUID-E49C7DFA-4604-310C-915C-F278382A796A.dita"><apiname>EPriorityAbsoluteHighNormal</apiname></xref>  </p> </li> </ul> </entry> </row> </tbody> </tgroup> </table> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread priority value mapping table</xref> shows the resulting <i>true</i> priority of the thread. </p> </section> <section id="GUID-23801A52-4E62-56F4-8D81-E0A417517FDA"><title>Priority scheme for real-time user-side threads</title> <p>This scheme is the same as the <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-7A38EE63-E955-5432-84E1-F35CB45C931E">process-independent scheme for general user threads</xref>, but with one essential difference - the range of <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values to be passed to <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> is as shown below. These priorities map to the <i>true</i> priority values in the range 24 -31, and can only be set by executables having the <codeph>ProtServ</codeph> capability. This range is referred to as the real time range. </p> <ul><li id="GUID-78ACFC22-4FB7-5E90-B6E2-9EF39EA9A3F5"><p> <xref href="GUID-7574A754-ED28-3FE1-85BB-93F110DE8E50.dita"><apiname>EPriorityAbsoluteRealTime1</apiname></xref>  </p> </li> <li id="GUID-3ADBFE8D-E7D9-5316-B06E-E3C514F4221E"><p> <xref href="GUID-2561145A-9506-31F5-A0EA-24609EC71412.dita"><apiname>EPriorityAbsoluteRealTime2</apiname></xref>  </p> </li> <li id="GUID-90F0E400-AB37-52CC-B01E-2D7C3E589111"><p> <xref href="GUID-39A7F794-B7B1-3C0C-AFFF-956C71CE529F.dita"><apiname>EPriorityAbsoluteRealTime3</apiname></xref>  </p> </li> <li id="GUID-DDB4B69C-9BBD-5E4B-B87C-CF52B4BDAA85"><p> <xref href="GUID-DCDD7812-10F8-35A1-9DAD-EFDAC6EA874B.dita"><apiname> EPriorityAbsoluteRealTime4</apiname></xref>  </p> </li> <li id="GUID-91DEE716-6F45-51C2-8139-B9CB1AE5065B"><p> <xref href="GUID-F3872848-57CA-3682-80E2-39E87B7B3656.dita"><apiname>EPriorityAbsoluteRealTime5</apiname></xref>  </p> </li> <li id="GUID-01B2B0B9-4242-5D8E-83B2-2658CF68548F"><p> <xref href="GUID-D3FE9747-0CD8-3E0A-829E-3D7184AE8431.dita"><apiname>EPriorityAbsoluteRealTime6</apiname></xref>  </p> </li> <li id="GUID-6581842F-C83C-53A5-A567-F1D4BE97488C"><p> <xref href="GUID-A6BF84AA-2421-3DB0-A30D-B9D3B7E70B21.dita"><apiname>EPriorityAbsoluteRealTime7</apiname></xref>  </p> </li> <li id="GUID-C7AB328B-B910-51D2-ADB0-5E8A33AFCD69"><p> <xref href="GUID-84C4AED5-8AA8-31F0-9E77-6BBACE192763.dita"><apiname>EPriorityAbsoluteRealTime8</apiname></xref>  </p> </li> </ul> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread priority value mapping table</xref> shows the resulting <i>true</i> priority of the thread. </p> </section> <section id="GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF"><title>Thread priority value mapping table</title> <p>This table shows the effect of setting priorities, and the resulting <i>true</i> priority values. You need to be aware that this may change in the future, and you should never synchronise threads on the basis of thread priorities. If you need to synchronise threads, use mutexes or semaphores. </p> <p>Notes </p> <ul><li id="GUID-CBC69A23-E3EF-56BC-A915-2770EBFB76C4"><p>True priority values in the shaded region can only be accessed by threads running in processes with the <codeph>ProtServ</codeph> capability. </p> </li> <li id="GUID-1F8FC263-3C39-5E3C-A186-6D5D4DF7D6D3"><p>The process-priority values : <xref href="GUID-972ADC0C-546E-3D24-9071-02B074DC1540.dita"><apiname>EPriorityWindowServer</apiname></xref>, <xref href="GUID-A19C5464-A1DA-3EEC-B81B-41690EBB3DB2.dita"><apiname>EPriorityFileServer</apiname></xref> and <xref href="GUID-A35268D0-7EFC-3D58-8C79-E4E619F762F5.dita"><apiname>EPrioritySupervisor</apiname></xref> all map to the same range of priorities. Along with <xref href="GUID-AAA610A8-48D8-3642-94E8-6C9747170DA9.dita"><apiname>EPriorityRealTimeServer</apiname></xref>, these have historically been used for system servers and other processes needing access to high priorities suitable for real-time tasks, and their use requires <codeph>ProtServ</codeph> capability. </p> </li> <li id="GUID-3256F08A-AD30-5378-BFA9-140688B1CDB6"><p>Note that <codeph>ProtServ</codeph> capability will not be granted to general applications for the purpose of gaining access to the very high thread priorities. This risks breaking important system functionality. </p> </li> </ul> <fig id="GUID-6BF93712-F8AA-5D08-A5D4-FEB6B22592D8"><image href="GUID-B9306D01-1DE5-511A-AC1A-6E3E9749BA89_d0e338625_href.png" placement="inline"/></fig> <p>Note that we have used <i>E'</i> as an abreviation for <i>EPriority</i> in this diagram. </p> </section> <section id="GUID-E9AFB6A3-ED3E-5110-82C8-E5E15E0AF899"><title>Platform security notes</title> <p>Platform security restrictions prevent thread and process priorities from being modified by another user process. There is one exception: by default, applications have “Priority Control” enabled for them which allows the window server to switch them between foreground and background process priorities depending on which has foreground focus. </p> </section> </conbody></concept>
+<concept id="GUID-7B173E02-9697-51F4-A7E8-795AEF547109" xml:lang="en"><title>Thread
+Priority Scheme</title><shortdesc>Explains the factors involved in allocating thread priority.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>At any given time, the thread running on Symbian platform is the one with
+the highest priority that is ready to run. The priority of a thread is simply
+a number; the value determines the priority; the greater the number, the higher
+the priority. We call this the <i>true</i> or <i>absolute</i> priority of
+the thread. </p>
+<p>The Kernel schedules a fixed amount of time called a <i>quantum</i> for
+a thread to run on the CPU, and the scheduler chooses the highest priority
+thread that is ready to run. Threads of equal priority are executed on a <i>round
+robin basis</i>. </p>
+<p>The <i>true</i> priority values range from 0 (lowest) to 63 (highest). </p>
+<p>The priority range divides into four broad categories: </p>
+<table id="GUID-1EAC04DE-B68F-5F95-887C-39E9926F2500">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>0</p> </entry>
+<entry><p>This is reserved for the <i>null thread</i>, which puts the processor
+into idle mode to save power when no other threads are ready to run. </p> </entry>
+</row>
+<row>
+<entry><p>1 - 23 </p> </entry>
+<entry><p>Used by kernel side threads and user-side applications and servers </p> </entry>
+</row>
+<row>
+<entry><p>24 -31 </p> </entry>
+<entry><p>Used by kernel side threads and protected system servers, i.e. servers
+with the <codeph>ProtServ</codeph> capability. </p> </entry>
+</row>
+<row>
+<entry><p>32 - 63 </p> </entry>
+<entry><p>Reserved for real-time threads running on the kernel side. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<fig id="GUID-5FFD4994-B20D-5095-8F6E-FB1151A4FF79">
+<image href="GUID-A95FEDD4-106A-5E14-8B64-3E2882C76666_d0e359395_href.png" placement="inline"/>
+</fig>
+<ul>
+<li id="GUID-2BCF03FE-C23E-5CCA-87CF-4AE9A91FD0D8"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-0194B574-806B-5BA3-B65C-6DC5A80CAB86">Priority scheme for general user-side threads</xref>  </p> </li>
+<li id="GUID-000499D5-EE19-5838-90CD-8C13AC468A52"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-23801A52-4E62-56F4-8D81-E0A417517FDA">Priority scheme for real-time user-side threads</xref>  </p> </li>
+<li id="GUID-1BA97FE4-F817-50E4-A6DA-6B0B64819811"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">Thread priority value mapping table</xref>  </p> </li>
+<li id="GUID-2BB44CDE-B566-52C0-869C-C60FB8D6AD94"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-E9AFB6A3-ED3E-5110-82C8-E5E15E0AF899">Platform security notes</xref>  </p> </li>
+</ul>
+<section id="GUID-0194B574-806B-5BA3-B65C-6DC5A80CAB86"><title>Priority scheme
+for general user-side threads</title> <p>User-side threads do not allocate <i>true</i> priority
+values directly. Instead, they allocate priorities using symbolic values defined
+by enums. Symbian platform maps these values to the <i>true</i> value. </p> <p>There
+are two priority allocation schemes: </p> <ul>
+<li id="GUID-6BE65AEC-DC54-5350-8704-538B5E425352"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-B9022468-F4E7-536B-B1D4-58DAA9EA5914">Process-relative scheme</xref>  </p> </li>
+<li id="GUID-BBB502EA-950C-5F8C-8CA2-F5F339000A10"><p> <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-7A38EE63-E955-5432-84E1-F35CB45C931E">Process-independent scheme for general user threads</xref>  </p> </li>
+</ul> <p id="GUID-B9022468-F4E7-536B-B1D4-58DAA9EA5914"><b>Process-relative scheme</b> </p> <p>This
+scheme bases the <i>true</i> priority of a thread on the priority of its owning
+process and the priority of the thread relative to the process. This means
+that changing the process priority results in a change to the <i>true</i> priority
+of the thread. </p> <p>A process can be assigned one of eight discrete priorities
+represented by the individual enumerators of <xref href="GUID-5D289F30-2C88-396D-9748-798055F0AF56.dita"><apiname>TProcessPriority</apiname></xref>,
+and range from <xref href="GUID-9B7922A7-6098-3BBD-9ADE-BC21AD6381C3.dita"><apiname>EPriorityLow</apiname></xref>, the lowest, to <xref href="GUID-A35268D0-7EFC-3D58-8C79-E4E619F762F5.dita"><apiname>EPrioritySupervisor</apiname></xref>,
+the highest. </p> <p>In practice, <i>user processes</i> can only be assigned
+priorities that are one of the values: </p> <ul>
+<li id="GUID-85AA4A1D-A168-5AEF-9D4C-DC14C28686B2"><p> <xref href="GUID-9B7922A7-6098-3BBD-9ADE-BC21AD6381C3.dita"><apiname>EPriorityLow</apiname></xref> <codeph/>  </p> </li>
+<li id="GUID-45B720BB-3696-545F-B966-A2EA4B37AE5D"><p> <xref href="GUID-8778A277-DA7F-34A0-8472-29226DEC2CCE.dita"><apiname>EPriorityBackground</apiname></xref>  </p> </li>
+<li id="GUID-DF2708D4-B670-5B15-B587-CB71EAC99045"><p> <xref href="GUID-A62CF9B2-63E3-31E0-A51E-E04F2E2EB38F.dita"><apiname>EPriorityForeGround</apiname></xref>  </p> </li>
+<li id="GUID-9C68DD95-2AB6-57D0-9966-D83144788458"><p> <xref href="GUID-8995D880-69B7-3C31-891B-7A2C57E372FE.dita"><apiname>EPriorityHigh</apiname></xref>  </p> </li>
+</ul> <p>There are a further four process priorities that a user process is
+not permitted to set: <codeph>EPriorityWindowServer</codeph>, <codeph>EPriorityFileServer</codeph>, <codeph>EPriorityRealTimeServer</codeph> and <codeph>EPrioritySupervisor</codeph>. </p> <p>A process priority can be assigned: </p> <ul>
+<li id="GUID-CC4FA12C-BFDD-5F75-BC18-B742BCACEECF"><p>when the associated <filepath>.exe</filepath> is
+built; this is done by specifying the value in the <filepath>.mmp</filepath> file
+that defines the project. </p> </li>
+<li id="GUID-B86220D9-B10D-5506-AD90-73E7F8D7A089"><p>by calling <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-189A64CB-F2EA-3C8F-A7A7-01CBF8FDE67A"><apiname>RProcess::SetPriority()</apiname></xref> and
+passing one of the <xref href="GUID-5D289F30-2C88-396D-9748-798055F0AF56.dita"><apiname>TProcessPriority</apiname></xref> enum values. </p> </li>
+</ul> <p>See also : <xref href="GUID-8DB5E558-9774-5CC3-AF8C-6C50D9FE0496.dita">Using
+Makmake</xref> in the <xref href="GUID-B21141D4-3BFE-59C9-8D5F-147A93BE1C95.dita">Build
+Tools Guide</xref>. </p> <p>The priority of a thread <i>relative</i> to a
+process is assigned by calling <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> and
+passing one of the five <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values: </p> <ul>
+<li id="GUID-BCFFB27F-5CEB-58E8-A859-C82273CB7FDC"><p> <xref href="GUID-DF41A24C-6873-37E6-834A-98CDFC8D54FB.dita"><apiname>EPriorityMuchLess</apiname></xref>  </p> </li>
+<li id="GUID-21C1A24C-483D-579B-BA56-31B3694215CE"><p> <xref href="GUID-0429DE71-44B4-3764-A62B-AD937E6AD355.dita"><apiname> EPriorityLess</apiname></xref>  </p> </li>
+<li id="GUID-48747F5D-8F0E-5C57-8858-35D8881B1DB7"><p> <xref href="GUID-2ACE5CF0-7E8B-35FF-8ABC-6917B2F68BB1.dita"><apiname>EPriorityNormal</apiname></xref>  </p> </li>
+<li id="GUID-78DEBC15-DFD8-5384-8358-3744E2C1DDBE"><p> <xref href="GUID-34B6B121-2E45-36FE-B0FA-E8272E2F1D10.dita"><apiname>EPriorityMore</apiname></xref>  </p> </li>
+<li id="GUID-AE42DA32-09CA-5C8B-B9AF-2A68E66E6218"><p> <xref href="GUID-4F19A64D-FBBE-34F2-8387-1449E49DC923.dita"><apiname> EPriorityMuchMore</apiname></xref>  </p> </li>
+</ul> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread
+priority value mapping table</xref> shows the <i>true</i> priority of a thread
+based on the combination of process priority and process-relative thread priority </p> <p id="GUID-7A38EE63-E955-5432-84E1-F35CB45C931E"><b>Process-independent scheme
+for general user threads</b> </p> <p>In this scheme, the <i>true</i> priority
+of a thread is independent of the priority of its owning process. Changing
+the priority of the underlying process has no effect on the <i>true</i> priority
+of the thread. </p> <p>The priority of a thread is assigned by calling <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> and
+passing one of the <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values listed below.
+Note that the set of enum values splits into two logical groupings based on
+their equivalence to process-relative values. See the <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread priority value mapping table</xref>. </p> <table id="GUID-A0397BB8-AAC7-5F79-B94F-68103B66132C">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b> Group 1 </b>  </p> </entry>
+<entry><p> <b> Group 2 </b>  </p> </entry>
+</row>
+<row>
+<entry><ul>
+<li id="GUID-12430992-C96F-5006-85AD-A9308AB75B93"><p> <xref href="GUID-A131F0B9-C8D4-3F0D-A0CB-140DA8EA3288.dita"><apiname>EPriorityAbsoluteVeryLow</apiname></xref>  </p> </li>
+<li id="GUID-A5682ECF-DCAA-5E35-8294-613A30F416FD"><p> <xref href="GUID-280BFA0F-9A1C-3644-AF1C-B169B09D8834.dita"><apiname>EPriorityAbsoluteLow</apiname></xref>  </p> </li>
+<li id="GUID-1750EB5D-A22B-5838-9EB8-37B06A0D1F98"><p> <xref href="GUID-ECA0DFF8-106C-3D1C-963C-10708885797A.dita"><apiname>EPriorityAbsoluteBackground</apiname></xref>  </p> </li>
+<li id="GUID-A83FCD79-3B4C-51CC-A82A-BE8AAB9BEEC0"><p> <xref href="GUID-451D6DB5-C247-34BF-8D8A-288C03599B7E.dita"><apiname>EPriorityAbsoluteForeground</apiname></xref>  </p> </li>
+<li id="GUID-1EDD4765-F02A-56CD-882D-E4DD443CE410"><p> <xref href="GUID-B6EEA9DD-68AE-30FD-AEE1-9B227109750F.dita"><apiname>EPriorityAbsoluteHigh</apiname></xref>  </p> </li>
+</ul> </entry>
+<entry><ul>
+<li id="GUID-E03FCF50-F5B6-5885-B939-88B513F4AC2F"><p> <xref href="GUID-0070BA48-851D-36E2-9C4C-C11C0FF0BE46.dita"><apiname>EPriorityAbsoluteLowNormal</apiname></xref>  </p> </li>
+<li id="GUID-4C94D1D2-6B81-57D8-B44D-2FE19E9971F9"><p> <xref href="GUID-CD20880F-21EB-389C-A0A4-8DFFE714B102.dita"><apiname>EPriorityAbsoluteBackgroundNormal</apiname></xref>  </p> </li>
+<li id="GUID-6D3AA39B-AE42-575A-B63B-D109049ABFEF"><p> <xref href="GUID-1054385C-7168-31ED-89D9-4C33E28836A0.dita"><apiname>EPriorityAbsoluteForegroundNormal</apiname></xref>  </p> </li>
+<li id="GUID-E41572FD-0C50-54BC-98C6-857A8D86CCD7"><p> <xref href="GUID-E49C7DFA-4604-310C-915C-F278382A796A.dita"><apiname>EPriorityAbsoluteHighNormal</apiname></xref>  </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread
+priority value mapping table</xref> shows the resulting <i>true</i> priority
+of the thread. </p> </section>
+<section id="GUID-23801A52-4E62-56F4-8D81-E0A417517FDA"><title>Priority scheme
+for real-time user-side threads</title> <p>This scheme is the same as the <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-7A38EE63-E955-5432-84E1-F35CB45C931E">process-independent
+scheme for general user threads</xref>, but with one essential difference
+- the range of <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum values to be passed
+to <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref> is as shown below. These priorities
+map to the <i>true</i> priority values in the range 24 -31, and can only be
+set by executables having the <codeph>ProtServ</codeph> capability. This range
+is referred to as the real time range. </p> <ul>
+<li id="GUID-78ACFC22-4FB7-5E90-B6E2-9EF39EA9A3F5"><p> <xref href="GUID-7574A754-ED28-3FE1-85BB-93F110DE8E50.dita"><apiname>EPriorityAbsoluteRealTime1</apiname></xref>  </p> </li>
+<li id="GUID-3ADBFE8D-E7D9-5316-B06E-E3C514F4221E"><p> <xref href="GUID-2561145A-9506-31F5-A0EA-24609EC71412.dita"><apiname>EPriorityAbsoluteRealTime2</apiname></xref>  </p> </li>
+<li id="GUID-90F0E400-AB37-52CC-B01E-2D7C3E589111"><p> <xref href="GUID-39A7F794-B7B1-3C0C-AFFF-956C71CE529F.dita"><apiname>EPriorityAbsoluteRealTime3</apiname></xref>  </p> </li>
+<li id="GUID-DDB4B69C-9BBD-5E4B-B87C-CF52B4BDAA85"><p> <xref href="GUID-DCDD7812-10F8-35A1-9DAD-EFDAC6EA874B.dita"><apiname> EPriorityAbsoluteRealTime4</apiname></xref>  </p> </li>
+<li id="GUID-91DEE716-6F45-51C2-8139-B9CB1AE5065B"><p> <xref href="GUID-F3872848-57CA-3682-80E2-39E87B7B3656.dita"><apiname>EPriorityAbsoluteRealTime5</apiname></xref>  </p> </li>
+<li id="GUID-01B2B0B9-4242-5D8E-83B2-2658CF68548F"><p> <xref href="GUID-D3FE9747-0CD8-3E0A-829E-3D7184AE8431.dita"><apiname>EPriorityAbsoluteRealTime6</apiname></xref>  </p> </li>
+<li id="GUID-6581842F-C83C-53A5-A567-F1D4BE97488C"><p> <xref href="GUID-A6BF84AA-2421-3DB0-A30D-B9D3B7E70B21.dita"><apiname>EPriorityAbsoluteRealTime7</apiname></xref>  </p> </li>
+<li id="GUID-C7AB328B-B910-51D2-ADB0-5E8A33AFCD69"><p> <xref href="GUID-84C4AED5-8AA8-31F0-9E77-6BBACE192763.dita"><apiname>EPriorityAbsoluteRealTime8</apiname></xref>  </p> </li>
+</ul> <p>The <xref href="GUID-7B173E02-9697-51F4-A7E8-795AEF547109.dita#GUID-7B173E02-9697-51F4-A7E8-795AEF547109/GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF">thread
+priority value mapping table</xref> shows the resulting <i>true</i> priority
+of the thread. </p> </section>
+<section id="GUID-F5B98A28-EEDA-58BD-A6CC-62C1621D44DF"><title>Thread priority
+value mapping table</title> <p>This table shows the effect of setting priorities,
+and the resulting <i>true</i> priority values. You need to be aware that this
+may change in the future, and you should never synchronise threads on the
+basis of thread priorities. If you need to synchronise threads, use mutexes
+or semaphores. </p> <p>Notes </p> <ul>
+<li id="GUID-CBC69A23-E3EF-56BC-A915-2770EBFB76C4"><p>True priority values
+in the shaded region can only be accessed by threads running in processes
+with the <codeph>ProtServ</codeph> capability. </p> </li>
+<li id="GUID-1F8FC263-3C39-5E3C-A186-6D5D4DF7D6D3"><p>The process-priority
+values : <xref href="GUID-972ADC0C-546E-3D24-9071-02B074DC1540.dita"><apiname>EPriorityWindowServer</apiname></xref>, <xref href="GUID-A19C5464-A1DA-3EEC-B81B-41690EBB3DB2.dita"><apiname>EPriorityFileServer</apiname></xref> and <xref href="GUID-A35268D0-7EFC-3D58-8C79-E4E619F762F5.dita"><apiname>EPrioritySupervisor</apiname></xref> all
+map to the same range of priorities. Along with <xref href="GUID-AAA610A8-48D8-3642-94E8-6C9747170DA9.dita"><apiname>EPriorityRealTimeServer</apiname></xref>,
+these have historically been used for system servers and other processes needing
+access to high priorities suitable for real-time tasks, and their use requires <codeph>ProtServ</codeph> capability. </p> </li>
+<li id="GUID-3256F08A-AD30-5378-BFA9-140688B1CDB6"><p>Note that <codeph>ProtServ</codeph> capability
+will not be granted to general applications for the purpose of gaining access
+to the very high thread priorities. This risks breaking important system functionality. </p> </li>
+</ul> <fig id="GUID-6BF93712-F8AA-5D08-A5D4-FEB6B22592D8">
+<image href="GUID-B9306D01-1DE5-511A-AC1A-6E3E9749BA89_d0e359998_href.png" placement="inline"/>
+</fig> <p>Note that we have used <i>E'</i> as an abbreviation for <i>EPriority</i> in
+this diagram. </p> </section>
+<section id="GUID-E9AFB6A3-ED3E-5110-82C8-E5E15E0AF899"><title>Platform security
+notes</title> <p>Platform security restrictions prevent thread and process
+priorities from being modified by another user process. There is one exception:
+by default, applications have “Priority Control” enabled for them which allows
+the window server to switch them between foreground and background process
+priorities depending on which has foreground focus. </p> </section>
+</conbody></concept>

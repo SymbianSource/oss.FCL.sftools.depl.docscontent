@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DA8526FB-5789-4CB6-9A92-754E39C52E3B" xml:lang="en"><title>Pin
+Direction Functions</title><shortdesc>Describes the pin direction functions involved in implementing
+the Symbian platform GPIO class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Pins are used as inputs or outputs of binary signals. The Symbian platform
+GPIO class does not support bidirectional pins. However, some platforms allow
+pins to be in a quiescent state (also called floating or tri-stated). In this
+case a pin can be in one of three logical states namely, True, False or quiescent
+as specified in the enumeration <codeph>TGpioDirection</codeph>. The relevant
+three-valued logic is specified in this table.</p>
+<table id="GUID-C656B1CE-149D-4BCA-94BD-7B906E93F173">
+<tgroup cols="3"><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/>
+<thead>
+<row>
+<entry nameend="col2" namest="col1" valign="top"><p>Input </p> </entry>
+<entry valign="top"><p>Output</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>A</p></entry>
+<entry><p>B</p></entry>
+<entry><p>C</p></entry>
+</row>
+<row>
+<entry><p>0</p></entry>
+<entry><p>0</p></entry>
+<entry><p>Z</p></entry>
+</row>
+<row>
+<entry><p>1</p></entry>
+<entry><p>0</p></entry>
+<entry><p>Z</p></entry>
+</row>
+<row>
+<entry><p>0</p></entry>
+<entry><p>1</p></entry>
+<entry><p>0</p></entry>
+</row>
+<row>
+<entry><p>1</p></entry>
+<entry><p>1</p></entry>
+<entry><p>1</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<section id="GUID-3DA1E4AC-BAE0-469E-8A5D-72E292A533C1"><title>Implement the
+pin direction functions</title> <ul>
+<li><p>          Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> for each value
+         of the enumeration <xref href="GUID-2F6DB4C0-D198-39A8-B990-EF1D5B9B5901.dita"><apiname>TGpioDirection</apiname></xref>.</p><ul>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref> and return
+value             <codeph>KErrNone.</codeph>           </p> <p>          
+  Set the pin to behave as an input binary signal.           </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-8E81439B-6FB5-3EEC-BC36-F3B70217FA8D.dita"><apiname>EOutput</apiname></xref> and return
+value             <codeph>KErrNone.</codeph>           </p> <p>          
+  Set the pin to behave as an output binary signal.           </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> == <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> and
+return value             <codeph>KErrNone.</codeph>           </p> <p>   
+         Set the pin to be in a quiescent state (also called floating or 
+           deactivated).           </p> <p>             Only implement this
+if the platform supports the quiescent             state. The physical state
+of the pin will be determined by the drive on the             line.      
+    </p> </li>
+<li><p>             Implement <xref href="GUID-38FAAC57-13CF-390F-AE05-8D2B9E092450.dita"><apiname>SetPinDirection()</apiname></xref> with return
+            value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin cannot  
+          operate in the direction specified, for instance if             <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> has
+been passed and the platform does not             support the quiescent state.
+          </p> </li>
+</ul></li>
+<li><p>          Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> for each value
+         of the enumeration <xref href="GUID-2F6DB4C0-D198-39A8-B990-EF1D5B9B5901.dita"><apiname>TGpioDirection</apiname></xref>.         </p> <ul>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref> and
+return value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is behaving as a binary input signal. Set 
+           <xref href="GUID-221FF753-F089-399C-BD67-A693E68AB727.dita"><apiname>aDirection</apiname></xref> to <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref>    
+      </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-8E81439B-6FB5-3EEC-BC36-F3B70217FA8D.dita"><apiname>EOutput</apiname></xref> and
+return             value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is behaving as a binary output signal. Set
+            <codeph>aDirection</codeph> to <xref href="GUID-EC5870C2-5C3E-3DFB-9349-85AAF1A0AE58.dita"><apiname>EInput</apiname></xref>     
+     </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with  
+          <codeph>aDirection</codeph> containing <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> and
+return             value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p> 
+           Verify that the pin is in the quiescent state. Set             <codeph>aDirection</codeph> to <xref href="GUID-2AEEC0C1-CF80-3C1D-B24B-17178ACA6AB4.dita"><apiname>ETriStated</apiname></xref> 
+         </p> </li>
+<li><p>             Implement <xref href="GUID-062A11F7-123D-334C-A082-F21DB9A9EE32.dita"><apiname>GetPinDirection()</apiname></xref> with return
+            value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading the pin 
+           direction is not supported.           </p> </li>
+</ul></li>
+</ul> </section>
+</conbody></concept>

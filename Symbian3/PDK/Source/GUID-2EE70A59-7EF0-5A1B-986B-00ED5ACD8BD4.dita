@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2EE70A59-7EF0-5A1B-986B-00ED5ACD8BD4" xml:lang="en"><title>Patchable
+Constants: KListImplBufferSize</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<codeblock id="GUID-A819292B-1CC3-5378-82E8-01ECBCA1EF1C" xml:space="preserve"># define ECOM_PATCHDATA_KLISTIMPLBUFFERSIZE 2048</codeblock>
+<table id="GUID-5C9F05F1-89BD-5AE1-9C12-217EE4AE91A6">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Exported from: </p> </entry>
+<entry><p> <filepath>ECOMPATCHDATA.DLL</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p>Defined in: </p> </entry>
+<entry><p> <filepath>                 .../os/ossrv/lowlevellibsandfws/pluginfw/framework/frame/ecompatchdataconstant.cpp</filepath> </p> </entry>
+</row>
+<row>
+<entry><p>Purpose: </p> </entry>
+<entry><p>This constant is used to define the size of the buffer that is pre-allocated
+on the ECOM client side to hold the list of Implementation Information records.
+The records are copied from the server as a result of a call to one of the <xref href="GUID-1344F049-81C4-3D17-AF46-8B5584680ADB.dita#GUID-1344F049-81C4-3D17-AF46-8B5584680ADB/GUID-AE9D4F24-8554-3151-AAF3-D63F400821C4"><apiname>REComSession::ListImplementationsL()</apiname></xref> functions. </p> <p>If the result of a call to <codeph>ListImplementationsL()</codeph> does
+not fit into the initial buffer, the server stores the result and tells the
+client the required size. <codeph>ListImplementationsL()</codeph> then reallocates
+the buffer and makes a second call to the server to retrieve the results. </p> <p>This
+value can be adjusted during ROM build time to suit a particular device. In
+general, a smaller value results in more client-server requests, while a larger
+value results in fewer client-server requests. Care must be taken when choosing
+the value. A large value, increases the temporary heap consumption by ECOM
+client processes, but results in faster completion of the call to <codeph>ListImplementationsL()</codeph> because
+of fewer client-server calls. System start-up can benefit from fine-tuning
+this value. </p> <p>The default size is 2048 bytes. This value optimises performance
+on the Symbian test UI platform. Larger values do not result in any significant
+gain in performance; smaller values reduce performance. </p> <p>To work out
+the optimum value for this constant, you need to discover the typical size
+of the buffer required for each call to <codeph>ListImplementationsL()</codeph>.
+To get such values, you need to enable the <codeph>ECOM_TRACE</codeph> macro
+and rebuild <codeph>ECOM</codeph>. After booting up the device, you will see
+output in the following format from the serial port: </p> <codeblock id="GUID-13659F9E-02AC-5752-BE1B-DC08E351A8BC" xml:space="preserve">ECOM ListImplementations request buffer size required=88</codeblock> <codeblock id="GUID-28532E84-E2BA-59F8-9E9A-7B144FD2BF90" xml:space="preserve">ECOM ListImplementations request buffer size required=1562</codeblock> <p> </p> <p>You
+can use this information to calculate mean and median values, which will help
+you to choose the optimum value for your platform. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>ECom uses a customized scheme to handle patchable constants. Device creators
+should follow the scheme described below to set patch values: </p>
+<ul>
+<li id="GUID-E3EFD7AA-7B91-5CF9-8E9E-F027C35C167D"><p>Each patchable constant
+is represented by a macro listed in <filepath>\epoc32\rom\include\ecompatchconstants.hby</filepath>.
+The macros in the HBY file are all commented out. </p> </li>
+<li id="GUID-51E1005E-60FF-55CF-8D51-BEAE67E38D7A"><p>To activate a patch
+macro, uncomment the line and change the example value in the line to your
+custom value. </p> </li>
+</ul>
+</conbody></concept>

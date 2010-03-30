@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C45CE452-7260-5062-B14B-8445E6767DA3" xml:lang="en"><title>Patchable
+Constants: KShtdwnTimeoutClient</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<codeblock id="GUID-671FBA2A-E44A-5FD3-A807-FA4200C8BD0B" xml:space="preserve">EXPORT_C extern const TInt32 KShtdwnTimeoutClient = 500000;</codeblock>
+<table id="GUID-F93B3164-76D1-58A5-9DC6-2440D2FEA9FD">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Exported from: </p> </entry>
+<entry><p> <filepath>shutdownsrv.dll</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p>Defined in: </p> </entry>
+<entry><p> <filepath>                 .../os/devicesrv/resourcemgmt/powerandmemorynotificationservice/src/shutdownsrvpatchdata.cpp</filepath> </p> </entry>
+</row>
+<row>
+<entry><p>Purpose: </p> </entry>
+<entry><p>This constant represents the timeout value for each client in microseconds.
+The shutdown server uses it and <codeph>KShtdwnTimeoutBase</codeph> to calculate
+the shutdown timer. The timeout is calculated as </p> <codeblock id="GUID-B040CD7C-5674-5983-B5A4-649C2B941732" xml:space="preserve">KShtdwnTimeoutBase + KShtdwnTimeoutClient * numClients</codeblock> <p>where <codeph>numClients</codeph> is the number of connecting clients. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>If the timeout value is </p>
+<ul>
+<li id="GUID-2655B6B0-9010-5BDD-A73A-979471F0A35C"><p> <codeph>-1</codeph> the
+timer is not used and the server will wait for all client registrations before
+executing the shutdown, </p> </li>
+<li id="GUID-F8F7AD46-D83A-518C-A3A6-87C8B3187350"><p> <codeph> 0</codeph> the
+timer expires immediately and the server will execute the shutdown immediately
+not waiting for any client re-registration, or </p> </li>
+<li id="GUID-DDE5AB27-223B-541C-A3C4-08B1FBCE5E19"><p>greater than <codeph>0</codeph> the
+server will wait a certain period of time for the client registrations and
+execute the shutdown if the timer expires or all clients re-register. </p> </li>
+</ul>
+<p> <codeph>KShtdwnTimeoutClient</codeph> is an internal constant and should
+not be directly modified. Device creators who wish to alter <codeph>KShtdwnTimeoutClient</codeph> and <codeph>KShtdwnTimeoutBase</codeph> should
+define these ROM build-time macros in their product HRH or IBY files: </p>
+<ul>
+<li id="GUID-379D9AED-0C41-5283-9B33-EF4BC0CBFB27"><p> <codeph>SYMBIAN_PWRCLI_PATCHDATA_KSHTDWNTIMEOUTBASE</codeph> with
+value &gt;= -1, </p> </li>
+<li id="GUID-9299DE1B-3D7C-5928-884B-8211979DB7A4"><p> <codeph> SYMBIAN_PWRCLI_PATCHDATA_KSHTDWNTIMEOUTCLIENT</codeph> with
+value &gt;= 0. </p> </li>
+</ul>
+<p>If values fall outside the specified ranges, the server panics with <codeph>KErrNotSupported</codeph>. </p>
+</conbody></concept>

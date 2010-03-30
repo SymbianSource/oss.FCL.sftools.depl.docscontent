@@ -9,5 +9,78 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-CE7CF024-4898-551A-841B-38EC57A3EC82"><title>Ordinal Position</title><shortdesc>All windows in the Window Server have an <keyword>ordinal
-        position</keyword> which describes their z-order—that is, their ordering from nearest the viewer to furthest away from the viewer. Each window’s ordinal position is relative to its parent window and is unique among its siblings. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> <b>Variant</b>: Both (ScreenPlay and non-ScreenPlay). <b>Target audience</b>: Application developers. </p> <p>Ordinal positions are positive integers starting at 0, with 0 being the front-most position. A window with an ordinal position of 0 is displayed in the <keyword>foreground</keyword>, i.e., in front of all its sibling windows. The ordinal position of other windows increases by one for each position behind this window. </p> <p>When a window is created, it is automatically given an ordinal position of 0 within its parent window. Then, when another child of the same parent is created, the first window’s ordinal position changes to 1, and the new window’s position is 0. These ordinal positions can be changed after the windows have been created, using functions provided by the <codeph>RWindowTreeNode</codeph> class. </p> <p>When a window's ordinal position is changed, its order in the sibling list is also changed, so that the window with ordinal position 0 is always first in the sibling list, the window with ordinal position 1 is next in the list, and so on. Changing the ordinal position of windows therefore affects the result of the <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita"><apiname>RWindowTreeNode::Parent()</apiname></xref>, <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita"><apiname>RWindowTreeNode::Child()</apiname></xref>, <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita"><apiname>RWindowTreeNode::NextSibling()</apiname></xref> and <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita"><apiname>RWindowTreeNode::PrevSibling()</apiname></xref> functions. </p> <p>To give an illustration of how ordinal positions work, the diagram below shows three windows, A, B and C, all belonging to the same window group. Their ordinal positions are as follows: A=0; B=1; C=2. </p> <fig id="GUID-FB15A25F-FB7A-5031-9D17-51CD7C8ACA1D"><image href="GUID-694C7416-927E-58F7-B010-CA55D2FFA88F_d0e211936_href.png" placement="inline"/></fig> <p>This would be the default ordering of the windows if they were created in the order CBA. Many sibling windows within an application may not overlap in practice: nevertheless, each window has a unique ordinal position, even though this will not be evident in the way they are displayed. </p> <p>If a window’s ordinal position is changed, its position on the screen will change. All its child windows also move with it, although their ordinal positions, which are relative to the parent, don’t change. </p> <section><title>Moving a window to the front</title> <p>A window is moved to the front (i.e., to the <keyword>foreground</keyword>) by giving it an ordinal position of 0. The diagram below shows windows A, B and C, but window B has now been given an ordinal position of 0. A’s position has been incremented to 1, and C’s remains as 2. </p> <fig id="GUID-0B1ED6C1-4F47-5527-A9F9-5B4AD03528D5"><image href="GUID-74B329CD-4640-5636-9D8D-20F0D7E09EB4_d0e211955_href.png" placement="inline"/></fig> <p>The diagram below shows the same three windows as above, except that window B now contains a child window, D. Window D’s ordinal position is 0, relative to its parent window, B. </p> <fig id="GUID-313C9AEE-6ADB-5842-9EB6-0D563D7FC582"><image href="GUID-7AE4D17F-728A-5B7E-A3F9-A903E64731B1_d0e211961_href.png" placement="inline"/></fig> <p>If window A is now moved to the front, window B moves behind it, as shown in the diagram below. Window D’s ordinal position is still 0, but because its position is relative to its parent window, it moves with window B to behind window A. </p> <fig id="GUID-B6882EE3-C071-522B-9D7E-86D84F8D64DC"><image href="GUID-40A3938E-366E-5318-A7FA-146F9E5E23B1_d0e211967_href.png" placement="inline"/></fig> </section> <section><title>Moving a window to the back</title> <p>If a window is given an ordinal position greater than all its siblings, it is moved to the back of them. For convenience, the functions for setting ordinal position allow a negative ordinal position to be specified, which sends the window to the back and sets its ordinal position to be the highest among its siblings. </p> </section> <section><title>Ordinal position of window groups</title> <p>The ordinal position of a window group has special significance because there is normally one window group per application. As a result, the z-order of applications on the screen is typically determined by the ordinal positions of their window groups. For example, giving a window group an ordinal position of 0 typically brings an application to the front of the screen. Note, however, that window groups also have a priority, which overrides ordinal position. Ordinal position only applies among window groups of the same priority. </p> <p>The ordinal position of window groups is typically controlled by a shell or similar application. The <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita"><apiname>RWsSession</apiname></xref> class provides functions for such applications to set window group ordinal positions. </p> </section> <section><title>Keyboard focus and window group ordinal position</title> <p>When a window group is given an ordinal position of 0, it is automatically given keyboard focus, unless it has disabled keyboard focus by calling <codeph>EnableReceiptOfFocus(EFalse)</codeph>, or another window group has a higher priority. </p> </section> </conbody><related-links><link href="GUID-99AE1D62-571A-5A63-B472-C0FBC0861F52.dita"><linktext>Window Types</linktext> </link> </related-links></concept>
+<concept id="GUID-CE7CF024-4898-551A-841B-38EC57A3EC82" xml:lang="en"><title>Ordinal
+Position</title><shortdesc>All windows in the Window Server have an <keyword>ordinal     
+   position</keyword> which describes their z-order—that is, their ordering
+from nearest the viewer to furthest away from the viewer. Each window’s ordinal
+position is relative to its parent window and is unique among its siblings. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: Both (ScreenPlay and non-ScreenPlay). <b>Target audience</b>:
+Application developers. </p>
+<p>Ordinal positions are positive integers starting at 0, with 0 being the
+front-most position. A window with an ordinal position of 0 is displayed in
+the <keyword>foreground</keyword>, i.e., in front of all its sibling windows.
+The ordinal position of other windows increases by one for each position behind
+this window. </p>
+<p>When a window is created, it is automatically given an ordinal position
+of 0 within its parent window. Then, when another child of the same parent
+is created, the first window’s ordinal position changes to 1, and the new
+window’s position is 0. These ordinal positions can be changed after the windows
+have been created, using functions provided by the <codeph>RWindowTreeNode</codeph> class. </p>
+<p>When a window's ordinal position is changed, its order in the sibling list
+is also changed, so that the window with ordinal position 0 is always first
+in the sibling list, the window with ordinal position 1 is next in the list,
+and so on. Changing the ordinal position of windows therefore affects the
+result of the <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita#GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D/GUID-12634A4D-36F1-35AD-8D61-EEA63872CF8B"><apiname>RWindowTreeNode::Parent()</apiname></xref>, <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita#GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D/GUID-1FFFFED4-5062-3C9D-B9A6-A89B107080FF"><apiname>RWindowTreeNode::Child()</apiname></xref>, <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita#GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D/GUID-F11A3640-844E-30D3-AAB2-D154E4EACBB4"><apiname>RWindowTreeNode::NextSibling()</apiname></xref> and <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita#GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D/GUID-1B6C1D5F-8F27-3472-87EE-CBB90D1A9280"><apiname>RWindowTreeNode::PrevSibling()</apiname></xref> functions. </p>
+<p>To give an illustration of how ordinal positions work, the diagram below
+shows three windows, A, B and C, all belonging to the same window group. Their
+ordinal positions are as follows: A=0; B=1; C=2. </p>
+<fig id="GUID-FB15A25F-FB7A-5031-9D17-51CD7C8ACA1D">
+<image href="GUID-694C7416-927E-58F7-B010-CA55D2FFA88F_d0e239438_href.png" placement="inline"/>
+</fig>
+<p>This would be the default ordering of the windows if they were created
+in the order CBA. Many sibling windows within an application may not overlap
+in practice: nevertheless, each window has a unique ordinal position, even
+though this will not be evident in the way they are displayed. </p>
+<p>If a window’s ordinal position is changed, its position on the screen will
+change. All its child windows also move with it, although their ordinal positions,
+which are relative to the parent, don’t change. </p>
+<section id="GUID-4B42408E-06DC-4A98-9AC8-7EEAF533D614"><title>Moving a window to the front</title> <p>A window is moved
+to the front (i.e., to the <keyword>foreground</keyword>) by giving it an
+ordinal position of 0. The diagram below shows windows A, B and C, but window
+B has now been given an ordinal position of 0. A’s position has been incremented
+to 1, and C’s remains as 2. </p> <fig id="GUID-0B1ED6C1-4F47-5527-A9F9-5B4AD03528D5">
+<image href="GUID-74B329CD-4640-5636-9D8D-20F0D7E09EB4_d0e239459_href.png" placement="inline"/>
+</fig> <p>The diagram below shows the same three windows as above, except
+that window B now contains a child window, D. Window D’s ordinal position
+is 0, relative to its parent window, B. </p> <fig id="GUID-313C9AEE-6ADB-5842-9EB6-0D563D7FC582">
+<image href="GUID-7AE4D17F-728A-5B7E-A3F9-A903E64731B1_d0e239467_href.png" placement="inline"/>
+</fig> <p>If window A is now moved to the front, window B moves behind it,
+as shown in the diagram below. Window D’s ordinal position is still 0, but
+because its position is relative to its parent window, it moves with window
+B to behind window A. </p> <fig id="GUID-B6882EE3-C071-522B-9D7E-86D84F8D64DC">
+<image href="GUID-40A3938E-366E-5318-A7FA-146F9E5E23B1_d0e239475_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-EDA73282-0AB9-49EE-BAAB-C6D0DB267F56"><title>Moving a window to the back</title> <p>If a window is given
+an ordinal position greater than all its siblings, it is moved to the back
+of them. For convenience, the functions for setting ordinal position allow
+a negative ordinal position to be specified, which sends the window to the
+back and sets its ordinal position to be the highest among its siblings. </p> </section>
+<section id="GUID-5288AAAA-9513-4981-98E1-8B5F4EDAC35C"><title>Ordinal position of window groups</title> <p>The ordinal position
+of a window group has special significance because there is normally one window
+group per application. As a result, the z-order of applications on the screen
+is typically determined by the ordinal positions of their window groups. For
+example, giving a window group an ordinal position of 0 typically brings an
+application to the front of the screen. Note, however, that window groups
+also have a priority, which overrides ordinal position. Ordinal position only
+applies among window groups of the same priority. </p> <p>The ordinal position
+of window groups is typically controlled by a shell or similar application.
+The <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RWsSession</apiname></xref> class provides functions for
+such applications to set window group ordinal positions. </p> </section>
+<section id="GUID-D5CA8ED0-CD91-4FB9-B56F-613EE825435C"><title>Keyboard focus and window group ordinal position</title> <p>When
+a window group is given an ordinal position of 0, it is automatically given
+keyboard focus, unless it has disabled keyboard focus by calling <codeph>EnableReceiptOfFocus(EFalse)</codeph>,
+or another window group has a higher priority. </p> </section>
+</conbody><related-links>
+<link href="GUID-99AE1D62-571A-5A63-B472-C0FBC0861F52.dita"><linktext>Window Types</linktext>
+</link>
+</related-links></concept>

@@ -9,4 +9,41 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-F3520C6E-1B3A-5CB2-95F8-AB430D4BA327"><title>How to finalise a drive</title><prolog><metadata><keywords/></metadata></prolog><conbody> <p>Finalising a drive moves it to a consistent state, which enables the safe removal of media or safe shut down of the device. There are two types of finalisation defined by <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>TFinaliseDrvMode</apiname></xref>: </p> <ul><li id="GUID-DA29B46D-4E2A-54B8-9D29-545830B1CB8F"><p> <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RO</apiname></xref> - <i>Hard</i> finalisation. This flushes all caches and puts the volume into a consistent state. After finalisation, the volume becomes read-only until remounted. All read operations are accepted but all write operations fail. This mode is used: </p> <ul><li id="GUID-851E514E-8275-51A9-84AA-784AE7ED69C5"><p>in an eject media application - this application is launched by the user in order to safely remove the media </p> </li> <li id="GUID-FFCB8EDA-940C-5D4B-AB7E-EF23238A3898"><p>when the device is shut down. </p> </li> </ul> </li> <li id="GUID-F0C8E51E-4188-53E9-BD33-694F703C5A4D"><p> <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RW</apiname></xref> - <i>soft</i> finalisation. This flushes all caches and puts the volume into a consistent state, after which all read and write operations are accepted but the first write access after finalisation renders the volume no longer finalised. </p> <p>This mode of finalisation can be used by an application to put the media into a consistent state after a period of device inactivity. This minimizes the risk of media corruption on its removal or sudden power loss. </p> </li> </ul> <p>Finalise a drive by calling <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs::FinaliseDrive()</apiname></xref> with the drive number and the type of finalisation mode required, <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RW</apiname></xref> or <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RO</apiname></xref>. The error code returned by <codeph>FinaliseDrive()</codeph> should be checked before proceeding as it is not possible to finalise the volume if it is corrupt or has filesystem objects open on it (files, directories, formats etc.). </p> <p>During drive finalisation, data is written to the media that indicates the drive is in a consistent state, after which no write operations are supposed to take place on the specified volume. </p> <p>From v9.4. the API <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs::FinaliseDrives()</apiname></xref> has been changed so that it sends finalise drive requests to <i>all</i> the existing drives in the system, not just the local and internal drives. </p> <p>The user of <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> APIs must have the <codeph>DiskAdmin</codeph>  <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">security capability</xref>. </p> </conbody></concept>
+<concept id="GUID-F3520C6E-1B3A-5CB2-95F8-AB430D4BA327" xml:lang="en"><title>How
+to finalize a drive</title><shortdesc>This topic describes how to finalize a drive.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+
+<p>Finalising a drive moves it to a consistent state, which enables the safe
+removal of media or safe shut down of the device. There are two types of finalisation
+defined by <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>TfinalizeDrvMode</apiname></xref>: </p>
+<ul>
+<li id="GUID-DA29B46D-4E2A-54B8-9D29-545830B1CB8F"><p> <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RO</apiname></xref> - <i>Hard</i> finalisation.
+This flushes all caches and puts the volume into a consistent state. After
+finalisation, the volume becomes read-only until remounted. All read operations
+are accepted but all write operations fail. This mode is used: </p> <ul>
+<li id="GUID-851E514E-8275-51A9-84AA-784AE7ED69C5"><p>in an eject media application
+- this application is launched by the user in order to safely remove the media </p> </li>
+<li id="GUID-FFCB8EDA-940C-5D4B-AB7E-EF23238A3898"><p>when the device is shut
+down. </p> </li>
+</ul> </li>
+<li id="GUID-F0C8E51E-4188-53E9-BD33-694F703C5A4D"><p> <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RW</apiname></xref> - <i>soft</i> finalisation.
+This flushes all caches and puts the volume into a consistent state, after
+which all read and write operations are accepted but the first write access
+after finalisation renders the volume no longer finalized. </p> <p>This mode
+of finalisation can be used by an application to put the media into a consistent
+state after a period of device inactivity. This minimizes the risk of media
+corruption on its removal or sudden power loss. </p> </li>
+</ul>
+<p>finalize a drive by calling <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs::finalizeDrive()</apiname></xref> with
+the drive number and the type of finalisation mode required, <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RW</apiname></xref> or <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>EFinal_RO</apiname></xref>. The error code returned by <codeph>finalizeDrive()</codeph> should
+be checked before proceeding as it is not possible to finalize the volume
+if it is corrupt or has filesystem objects open on it (files, directories,
+formats etc.). </p>
+<p>During drive finalisation, data is written to the media that indicates
+the drive is in a consistent state, after which no write operations are supposed
+to take place on the specified volume. </p>
+<p>From v9.4. the API <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs::finalizeDrives()</apiname></xref> has
+been changed so that it sends finalize drive requests to <i>all</i> the existing
+drives in the system, not just the local and internal drives. </p>
+<p>The user of <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> APIs must have the <codeph>DiskAdmin</codeph>  <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">security capability</xref>. </p>
+</conbody></concept>

@@ -11,83 +11,15 @@ Contributors:
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="GUID-F8E4D4AC-878A-52C5-A04D-9E116A0087D5" xml:lang="en"><title>CalInterimAPI:
 Using the Calendar API</title><prolog><metadata><keywords/></metadata></prolog><conbody>
-<section id="GUID-F8DBB917-A597-4688-BE28-93EA2CAB64A7"><title>Description</title> <p>This example demonstrates how to use
-the Calendar API. The main class in the example, <codeph>CCalExample</codeph>,
-creates and opens a calendar file, then creates a view of the entries in the
-file. It then creates a calendar entry and adds it to the file, via the view.
-Next, it sets properties such as attendees, category, and description. It
-then adds a repeat appointment called the 'originating entry' and an entry
-modifying the instances of the originating entry (modifying entry). It finally
-deletes the originating entry thereby deleting all the modifying entries. </p> <p><b> The
-calendar file</b> </p> <p> <codeph>CCalExample::ConstructL()</codeph> instantiates
-a <codeph>CCalSession</codeph> with the calendar server by calling <xref href="GUID-609318A7-43F1-3FC1-952B-146B1EA8115D.dita#GUID-609318A7-43F1-3FC1-952B-146B1EA8115D/GUID-B7B697D9-05CF-399A-9509-60E08BF5A04C"><apiname>CCalSession::NewL()</apiname></xref>.
-All calendar file operations, for instance creation and opening, are done
-through the <codeph>CCalSession</codeph> class. </p> <p>Note that a session
-with the calendar server must exist before you can use any of the Calendar
-API classes, and the session object must not be destroyed until all the objects
-which were created by referencing it have been destroyed. </p> <p>Next, <codeph>CCalExample::ConstructL()</codeph> creates
-and opens a named calendar file, to store the calendar entries (using <xref href="GUID-609318A7-43F1-3FC1-952B-146B1EA8115D.dita#GUID-609318A7-43F1-3FC1-952B-146B1EA8115D/GUID-ED607714-0F76-3708-A303-29E376936E32"><apiname>CCalSession::CreateCalFileL()</apiname></xref> and <xref href="GUID-609318A7-43F1-3FC1-952B-146B1EA8115D.dita#GUID-609318A7-43F1-3FC1-952B-146B1EA8115D/GUID-8A49B99E-6272-3A19-9032-FBDDDF6AEFE9"><apiname>CCalSession::OpenL()</apiname></xref>). File creation leaves with <codeph>KErrAlreadyExists</codeph> if a file
-with that name already exists. </p> <p><b>The calendar entry view</b> </p> <p>A
-calendar entry defines a type of calendar event. There are several types of
-entries; to-do, appointment, all day event, reminder and anniversary. A calendar
-entry view (<xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita"><apiname>CCalEntryView</apiname></xref>) is used to access and manipulate
-calendar entries. In this example it is used to display the non-repeating
-appointment. </p> <p>View creation can take some time because of the processing
-that must be done in the server to prepare entry indexes. So, <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita#GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556/GUID-795FE89C-9074-3DFB-9C67-99E002DE386C"><apiname>CCalEntryView::NewL()</apiname></xref> takes
-a progress callback object (<xref href="GUID-1A1D94E6-AD7C-3202-B1BD-A1583FA34A5F.dita"><apiname>MCalProgressCallBack</apiname></xref>). When
-the callback function <xref href="GUID-1A1D94E6-AD7C-3202-B1BD-A1583FA34A5F.dita#GUID-1A1D94E6-AD7C-3202-B1BD-A1583FA34A5F/GUID-CDF9D6D4-BE72-3FF3-8E65-2C3D5B5B6230"><apiname>MCalProgressCallBack::Completed()</apiname></xref> is
-called, the view is ready for use. <codeph>CCalExample</codeph> implements
-the <xref href="GUID-1A1D94E6-AD7C-3202-B1BD-A1583FA34A5F.dita"><apiname>MCalProgressCallBack</apiname></xref> interface. </p> <p><b>Calendar
-entries </b> </p> <p>A calendar entry is created using <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-AAFDB9B2-260A-3CB4-BD6E-058A04FEC327"><apiname>CCalEntry::NewL()</apiname></xref>.
-This specifies the type of entry, its global UID and some optional properties
-used for group scheduling. </p> <p>An entry's start and end times are represented
-using class <xref href="GUID-5C206B40-0ED3-33F3-A52A-A25311C996C1.dita"><apiname>TCalTime</apiname></xref>. This class requires the caller to
-specify whether the time is UTC or local. In this example, the times are considered
-to be local, so <xref href="GUID-5C206B40-0ED3-33F3-A52A-A25311C996C1.dita#GUID-5C206B40-0ED3-33F3-A52A-A25311C996C1/GUID-D725177F-A243-376C-BD26-53E97FC1ED8C"><apiname>TCalTime::SetTimeLocalL()</apiname></xref> is called before
-setting the entry's start and end times using <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-4DCAD199-2A36-364D-98CE-BB6222FD2523"><apiname>CCalEntry::SetStartAndEndTimeL()</apiname></xref>. </p> <p> <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita#GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556/GUID-41282158-9CC7-3563-A542-834BE2B10D78"><apiname>CCalEntryView::StoreL()</apiname></xref> is used to store one or more new entries into the file. <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita#GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556/GUID-43FA0568-E254-3C7C-BC4C-1C73AFB6421A"><apiname>CCalEntryView::FetchL()</apiname></xref> is
-used to retrieve entries, based on their UID and <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita#GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556/GUID-536FA411-5D58-3CE5-8F10-22FA8089FBBF"><apiname>CCalEntryView::UpdateL()</apiname></xref> is
-used to update one or more entries. </p> <p><b>Originating and modifying an
-entry</b> </p> <p>The originating entry (parent entry) is a repeating appointment.
-The modifying entry (child entry) inherits all properties of the originating
-entry. It can have a different repeat rule and description from its originating
-entry. The originating and its modified (children) entries will have the same
-UID. </p> <p><b>Calendar user</b> </p> <p>Attendee is a specialised calendar
-user information (for example, email ID, phone number etc.) which is used
-only in group scheduled entries for attendees of an event, and not for a single
-calendar user. <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-D6202737-D180-34C5-9FB0-D19673689ECE"><apiname>CCalEntry::AttendeesL()</apiname></xref> is called to get
-a list of attendees. Attendees can be added to or deleted from a calendar
-entry using <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-88CD1003-A7EE-332D-98DF-784B8BACE39C"><apiname>CCalEntry::AddAttendeeL</apiname></xref> and <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-21A0AA94-BBB4-3547-9559-0B137348AC30"><apiname>CCalEntry::DeleteAttendeeL()</apiname></xref> respectively. </p> <p><b>Categorising
-an entry</b> </p> <p>A calendar entry can be categorised into pre-defined
-or user defined types such as appointment, business,education, holiday etc.
-In this example we have used extended category and not the pre-defined ones. </p> <p>Create
-a new category using <xref href="GUID-B04F36D1-88B6-3D87-836A-130C0B862515.dita#GUID-B04F36D1-88B6-3D87-836A-130C0B862515/GUID-A3E3148D-BF9A-3B5D-AFD8-C21C3FF21ED9"><apiname>CCalCategory::NewL()</apiname></xref> and pass a buffer
-as argument. <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-09038E6D-63B8-38F8-9B83-BA6693675A06"><apiname>CCalEntry::AddCategoryL()</apiname></xref> is called to set
-a category for the calendar entry. To get a list of available categories call <xref href="GUID-C880013D-3E6F-38C7-B8C5-EB90E7070FEB.dita#GUID-C880013D-3E6F-38C7-B8C5-EB90E7070FEB/GUID-2F84B113-A463-352E-900C-E0A7B09BA4D3"><apiname>CalCategory::CategoryListL()</apiname></xref>. </p> <p><b>Repeat
-rules</b> </p> <p>For an event which occurs repetitively, such as a weekly
-progress meeting, you need to set a repeat rule. Repeat frequency (<xref href="GUID-010934C4-DC1F-37F3-8121-E497B0BC9CDE.dita"><apiname>TCalRRule</apiname></xref>)can
-be set to daily, weekly, monthly by day and yearly by date to a calendar entry.
-When a repeat rule is assigned to an entry, that entry's start time should
-be an instance of the repeat rule. It can be either same as the start time
-value or a later instance. Repeat rule is set by passing an instance of <xref href="GUID-010934C4-DC1F-37F3-8121-E497B0BC9CDE.dita"><apiname>TCalRRule</apiname></xref> to <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita#GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801/GUID-C6EB1EC3-8CA0-3E9E-9EBB-8F0973F63A53"><apiname>CCalEntry::SetRuleL()</apiname></xref>. </p> <p><b>Instance views </b> </p> <p>An instance view is used to display instances
-of a repeating entry. It gets a list of all entry views or instances by calling <xref href="GUID-7B49A9D5-ACA0-3D96-A49C-0F19712E24E2.dita"><apiname>InstanceList()</apiname></xref>. <xref href="GUID-58BA8611-A364-3E30-B5F0-E5787E19C48C.dita#GUID-58BA8611-A364-3E30-B5F0-E5787E19C48C/GUID-961D3CE4-3C92-3A15-BDD1-19FF3D970F83"><apiname>CCalInstanceView::FindInstanceL()</apiname></xref> is used to fetch all instances within the specified date and time range. </p> <p><b>Deleting
-an entry</b> </p> <p>A calendar entry is deleted by specifying a pointer to
-the enrty array index. In this example, the originating entry is deleted using <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita#GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556/GUID-4B78A543-8F12-3E68-8C09-D178FBB8F83E"><apiname>CCalEntryView::DeleteL()</apiname></xref>. </p> </section>
-<section id="GUID-FEB7E2BB-CFB7-48E7-A9D7-D5F93DE3DA2D"><title>Download</title> <p>Click on the following link to download
-the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-e304a659-d708-4a39-86c9-2334ca994ec5.zip" scope="external">CalExample.zip</xref></p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-e304a659-d708-4a39-86c9-2334ca994ec5.html" scope="peer">browse</xref> to view the example code. </p> </section>
-<section id="GUID-81696D29-7835-42B3-B527-C2999B07BD58"><title>Usage</title> <p>The <xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">Symbian
-OS build process</xref> describes how to build an application. </p> <p>This
-is a console application, so does not have a GUI. It builds an executable
-called <filepath>calexample.exe</filepath> in the standard location (<filepath>\epoc32\release\winscw\</filepath> <i>&lt;build_variant&gt;</i> for
-CodeWarrior). After launching the executable, depending on the emulator you
-are using, you may need to task away from the app launcher/shell screen to
-view the console. </p> </section>
-<section id="GUID-CCC737B7-EAC5-42AA-9A7E-6FC3F94C7615"><title>Class Summary</title> <ul>
-<li id="GUID-881CD688-462B-53EB-8A45-78109EA2F264"><p> <xref href="GUID-609318A7-43F1-3FC1-952B-146B1EA8115D.dita"><apiname>CCalSession</apiname></xref> </p> </li>
-<li id="GUID-B7C99265-CC7B-5460-859E-47AA1DF6B288"><p> <xref href="GUID-D2835D4E-F0A8-3EDE-BC13-B45E52170556.dita"><apiname>CCalEntryView</apiname></xref> </p> </li>
-<li id="GUID-CB229CEA-618A-56B2-987B-605B41684A16"><p> <xref href="GUID-725D11A2-8805-3466-98DB-EF5CDEAF2801.dita"><apiname>CCalEntry</apiname></xref> </p> </li>
-<li id="GUID-2559C1E7-EF3F-5F26-8505-BD2DA71AD124"><p> <xref href="GUID-1A1D94E6-AD7C-3202-B1BD-A1583FA34A5F.dita"><apiname>MCalProgressCallBack</apiname></xref> </p> </li>
-<li id="GUID-46143FD1-FB79-5161-A317-B2B2030F72E1"><p><xref href="GUID-5C206B40-0ED3-33F3-A52A-A25311C996C1.dita"><apiname>TCalTime</apiname></xref> </p> </li>
-</ul> </section>
-<section id="GUID-AA957A78-BC29-45C0-98DF-30FC05DCF5C8"><title>See also</title> <p><xref href="GUID-3A6BEF56-ADBF-543E-B70A-52195DE3E92A.dita">Calendar
-overview</xref>  </p> </section>
+<section id="GUID-F8DBB917-A597-4688-BE28-93EA2CAB64A7"><title>Description</title><p>This
+C++ application demonstrates how to add and modify anniversary entries using
+the Calendar Interim API (also known as CalInterim API). The Calendar Interim
+API replaced the Agenda Model API in Symbian OS v9.1 (S60 3rd Edition). The
+application has been updated to be compatible with S60 5th Edition and touch
+UI. Important classes: CCalEntry, CCalEntryView, CCalInstance, CCalInstanceView,
+CCalAlarm, CCalSession, MCalProgressCallBack. Click on the following link
+for more information on this example: <xref href="http://www.forum.nokia.com/info/sw.nokia.com/id/a856c0b7-2b71-480e-810e-99acedb24b77/S60_Platform_Calendar_Interim_API_Example.html" scope="external">S60 Platform: Calendar Interim API Example</xref>  </p> </section>
+<section id="GUID-FEB7E2BB-CFB7-48E7-A9D7-D5F93DE3DA2D"><title>Download</title> <p>Click
+on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-e304a659-d708-4a39-86c9-2334ca994ec5.zip" scope="external">CalenderExample.zip</xref></p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-e304a659-d708-4a39-86c9-2334ca994ec5.html" scope="peer">browse</xref> to view the example code. </p> </section>
+<section id="GUID-AA957A78-BC29-45C0-98DF-30FC05DCF5C8"><title>See also</title> <p><xref href="GUID-3A6BEF56-ADBF-543E-B70A-52195DE3E92A.dita">Calendar overview</xref>  </p> </section>
 </conbody></concept>

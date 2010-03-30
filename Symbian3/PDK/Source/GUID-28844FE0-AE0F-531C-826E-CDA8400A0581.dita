@@ -34,8 +34,8 @@ the ready queue to the working set queue if all current sessions in the working
 set queue are blocked and there are less than eight sessions in it. This is
 anchored in the <codeph>DMMCStack::iWorkSet</codeph> private member. </p> </li>
 </ul> <p>All three queues are circular queues as implemented using the internal
-Symbian OS class <codeph>TMMCSessionRing</codeph>. </p> <fig id="GUID-E8B1FA7F-1759-52BC-A9D8-80FF7E39FE51">
-<image href="GUID-B30D6027-EB0F-578F-9B2F-AFC2DFD27E39_d0e383478_href.png" placement="inline"/>
+Symbian platform class <codeph>TMMCSessionRing</codeph>. </p> <fig id="GUID-E8B1FA7F-1759-52BC-A9D8-80FF7E39FE51">
+<image href="GUID-B30D6027-EB0F-578F-9B2F-AFC2DFD27E39_d0e405202_href.png" placement="inline"/>
 </fig> </section>
 <section id="GUID-FF74AAF0-D1F6-59A7-A859-B73DF946C92F"><title>The scheduler</title> <p>Every
 time one of the following events occurs, the MultiMediaCard stack invokes
@@ -46,28 +46,29 @@ a session to the MultiMediaCard controller </p> </li>
 session </p> </li>
 <li id="GUID-00D34161-C53E-5BED-9818-F0CCEED8FDF4"><p>a card interrupt occurring. </p> </li>
 </ul> <p>The stack invokes the scheduler by calling the internal function <codeph>DMMCStack::Scheduler()</codeph>. </p> </section>
-<section id="GUID-25D6F073-7310-4654-BC69-4B032EFB13A5"><title>Blocking a session</title><p>Sometimes, the MultiMediaCard
-controller has to perform its processing in a DFC context. In those cases
-the Controller postpones operation by queuing a DFC; the DFC call-back function
-then resumes the operation by invoking the scheduler again. This means that
-the scheduler may be running as part of a kernel executive call, a DFC or
-an interrupt service routine. </p> <p>In general, the MultiMediaCard controller
-processes a session in stages, issuing commands, checking responses, reading
-or writing data etc. Each stage is usually done asynchronously, first setting
-up the activity and then setting up a means of being notified when that activity
-is complete, for whatever reason (e.g. issuing a command and setting up an
-interrupt when a response has been received). </p> <p>If a session is waiting
-on an asynchronous operation, it is blocked. When one session is blocked,
-the stack tries to process another session which isn’t blocked. </p> <p>The
-blocking of sessions is set up and implemented internally to Symbian OS. However,
-the platform specific layer can block a session by calling the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E7B38752-F9AB-3A66-8FB6-E321717A63B5"><apiname>DMMCStack::BlockCurrentSession()</apiname></xref> function
+<section id="GUID-193EAA8E-32F0-4331-A137-39DB3A47623D"><title>Blocking a
+session</title><p>Sometimes, the MultiMediaCard controller has to perform
+its processing in a DFC context. In those cases the Controller postpones operation
+by queuing a DFC; the DFC call-back function then resumes the operation by
+invoking the scheduler again. This means that the scheduler may be running
+as part of a kernel executive call, a DFC or an interrupt service routine. </p> <p>In
+general, the MultiMediaCard controller processes a session in stages, issuing
+commands, checking responses, reading or writing data etc. Each stage is usually
+done asynchronously, first setting up the activity and then setting up a means
+of being notified when that activity is complete, for whatever reason (e.g.
+issuing a command and setting up an interrupt when a response has been received). </p> <p>If
+a session is waiting on an asynchronous operation, it is blocked. When one
+session is blocked, the stack tries to process another session which isn’t
+blocked. </p> <p>The blocking of sessions is set up and implemented internally
+to Symbian platform. However, the platform specific layer can block a session
+by calling the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E7B38752-F9AB-3A66-8FB6-E321717A63B5"><apiname>DMMCStack::BlockCurrentSession()</apiname></xref> function
 with the <xref href="GUID-8A9A2DD2-C630-3651-8374-17BCF2A09AC4.dita"><apiname>KMMCBlockOnASSPFunction</apiname></xref> bit set in the parameter
 passed to that function. </p> <p>Internally, the <codeph>DMMCSession::iBlockOn</codeph> private
 data member is set when a session is blocked. This is a bit-mask variable
 containing the reason that the session is blocked. </p></section>
-<section id="GUID-4EE6ABBA-9863-499C-BB5F-96BB0782042E"><title>Scheduler algorithm</title><p>The following flow-diagram shows
-the algorithm used by the scheduler. </p> <fig id="GUID-78F3CD78-61F3-5DD8-8D0D-9D5251D11158">
-<image href="GUID-AA53650C-664C-53F0-8BE9-445677FC1FE2_d0e383551_href.png" placement="inline"/>
+<section id="GUID-E0D63F8B-D4BC-48E5-8601-D1B0FCFB1644"><title>Scheduler algorithm</title><p>The
+following flow-diagram shows the algorithm used by the scheduler. </p> <fig id="GUID-78F3CD78-61F3-5DD8-8D0D-9D5251D11158">
+<image href="GUID-AA53650C-664C-53F0-8BE9-445677FC1FE2_d0e405275_href.png" placement="inline"/>
 </fig> <p>The <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita"><apiname>DMMCStack</apiname></xref> private members referenced in this
 diagram have the following meaning: </p> <table id="GUID-E1F971E8-949B-527B-B0EC-8D21BBB0EDE0">
 <tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>

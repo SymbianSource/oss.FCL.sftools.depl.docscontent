@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-12A4418A-9BC6-4BEB-993D-B55E61240A15" xml:lang="en"><title>Using
+the SDIO Interface in a Device Driver</title><shortdesc>Describes how to use the SDIO interface in a device driver.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This is a generic description of how to use SDIO in a kernel-side device
+driver. Specifics differ according to hardware and card function.</p>
+<section id="GUID-F6EC5141-075B-4B9A-8207-330FA8EC696A"><title>Socket, stack,
+card and function</title>       <p>SDIO is an input/output protocol originally
+introduced to enable a device to communicate with SDIO (Secure Digital) cards.
+It can also be used as input/output for media such as Bluetooth adapters and
+GPS receivers and for input/output within a device (for instance to talk to
+an internal bus). These different uses of SDIO are called functions.</p><p>Symbian
+platform implements SDIO as part of a larger framework involving SD cards,
+which are a type of MMC (multimedia) card. For this reason, to use SDIO in
+a device driver you will need to use classes representing SD and MMC cards
+and the associated communications stack even if you only want the basic I/O
+functionality. These classes are:</p><ul>
+<li><p><xref href="GUID-45B97680-1756-3559-8A2D-2F2E851AD6A7.dita"><apiname>DMMCSocket</apiname></xref></p></li>
+<li><p><xref href="GUID-908B4DA8-8E1C-3B38-90FF-14EC52277B91.dita"><apiname>DSDIOStack</apiname></xref></p></li>
+<li><p><xref href="GUID-731522ED-8259-3CBA-9AD3-09DDAE23257D.dita"><apiname>TSDIOCard</apiname></xref></p></li>
+<li><p><xref href="GUID-1342EC36-363F-3E7D-9B5F-4AFD3BAC98C8.dita"><apiname>TSDIOFunction</apiname></xref></p></li>
+</ul><p>The work of data transfer is performed by reading to and writing from
+registers in response to interrupts, and sometimes the read and write operations
+are performed in sessions. The classes used are these:</p><ul>
+<li><p><xref href="GUID-CC5352E2-DB21-393F-A7A4-108AA3684460.dita"><apiname>DSDIORegInterface</apiname></xref></p></li>
+<li><p><xref href="GUID-5A5218D4-E8AD-322F-BE5B-597137623B3F.dita"><apiname>TSDIOInterrupt</apiname></xref></p></li>
+<li><p><xref href="GUID-36C5854E-6FD4-3630-9FF9-7DB3D578F9BD.dita"><apiname>DSDIOSession</apiname></xref></p></li>
+</ul><p>This document illustrates the use of these classes to create a driver,
+with example code fragments in which the driver being created is called <codeph>DSDIODriver</codeph>.</p> 
+   </section>
+<section id="GUID-6C842F3D-12E5-44A3-8284-4BD8C1770B08"><title>Creation and
+initialization</title><p>The first step in writing a driver using SDIO is
+thus to create socket, stack and card objects.</p><codeblock xml:space="preserve">	DMMCSocket* iSocket = static_cast&lt;DMMCSocket&gt;DPBusSocket::SocketFromId(KSocketNumber));
+	if (NULL == iSocket)
+		return KErrNoMemory;
+
+	DMMCStack* iStack = static_cast&lt;DSDIOStack*&gt;(iSocket-&gt;Stack(KStackNumber));
+	if (NULL == iStack)
+		return KErrNoMemory;
+
+	TSDIOCard* iCard = static_cast&lt;TSDIOCard*&gt;(iStack-&gt;CardP(KCardNumber));
+	if (NULL == iCard)
+		return KErrNoMemory;
+
+</codeblock></section>
+<section id="GUID-6046097E-372A-4C06-941F-C37280668FDD"><title>Function types</title><p>The
+functions supported by SDIO are represented by the enumeration <xref href="GUID-14307AD8-424C-3AEC-964F-0488DE751CBA.dita"><apiname>TSdioFunctionType</apiname></xref><codeph/> which
+is declared in the <xref href="GUID-B05522D8-A05B-334F-AA92-05FDC2451000.dita"><apiname>TSdioFunctionCaps</apiname></xref> class. </p><codeblock xml:space="preserve">enum TSdioFunctionType
+	{
+	/** Not an SDIO standard interface */
+	ESdioFunctionTypeUnknown  = 0,
+	/** SDIO UART standard interface */
+	ESdioFunctionTypeUART	  = 1,
+	/** SDIO 'thin' Bluetooth standard interface */
+	ESdioFunctionTypeThinBT	  = 2,
+	/** SDIO 'complete' Bluetooth standard interface */
+	ESdioFunctionTypeFullBT	  = 3,
+	/** SDIO GPS standard interface */
+	ESdioFunctionTypeGPS	  = 4,
+	/** SDIO Camera standard interface */
+	ESdioFunctionTypeCamera	  = 5,
+	/** SDIO PHS Radio standard interface */
+	ESdioFunctionTypePHS	  = 6,
+	/** SDIO WLAN standard interface (Introduced in SDIO Rev. 1.10f) */
+	ESdioFunctionTypeWLAN	  = 7,
+	/** Extended SDIO standard interface (Introduced in SDIO Rev. 1.10f) */
+	ESdioFunctionTypeExtended = 15,
+	};
+</codeblock></section>
+<section id="GUID-8B81F9BF-167E-4E94-A019-E90EA8281319"><title>Kernel polling</title><p>Kernel
+polling means the use of the <codeph>Kern::PollingWait()</codeph> function
+of the kernel to call a function repeatedly if it is likely to fail on a first
+try. You specify the number of attempts and the delay between them as parameters.
+It is a recommended technique in writing kernel drivers and is used more than
+once in the example code in this document. </p></section>
+<section id="GUID-1784014E-0352-408E-8BDD-EF27F53AF17C"><title>Initialization</title><p>To
+initialize the card you must power it up and test whether it is ready for
+use. The following code uses kernel polling to perform the test 10 times at
+100 millisecond intervals.</p><codeblock xml:space="preserve">	…
+	iSocket-&gt;PowerUp();
+	Kern::PollingWait(CardReady, iCard, 100, 10);
+
+	if (!iCard-&gt;IsReady())
+		return(KErrNotReady);
+	…
+
+
+TBool DSDIODriver::CardReady(TAny* aSelfP)
+	{
+	TSDIOCard&amp; card = *(TSDIOCard*)aSelfP;
+	return card.IsReady();
+	}
+</codeblock><p>You may also want to test that the card is an SDIO card.</p><codeblock xml:space="preserve">	if (!pCard-&gt;IsIOCard())
+		return KErrNotReady;
+</codeblock><p>Next you locate and enable the function of the card (Bluetooth,
+UART etc.) which you want to use. A function has a location which differs
+from card to card and which is stored in a data structure called the CIS (Card
+Information Structure. To use a card's CIS you load it using the <xref href="GUID-98450844-1ED3-3696-B1A6-C1A97AED83A9.dita"><apiname>CheckCis()</apiname></xref> function
+of the <xref href="GUID-731522ED-8259-3CBA-9AD3-09DDAE23257D.dita"><apiname>TSDIOCard</apiname></xref> class.</p><codeblock xml:space="preserve">	TInt err = iCard-&gt;CheckCIS();
+	if (KErrNone != err)
+		return err;
+</codeblock><p>The following code is a simple test to determine whether the
+passed in function type is present on the card.</p><codeblock xml:space="preserve">TSDIOFunction* DSdioDriver::FindFunction(TSdioFunctionType aFunctionType)
+	{
+	// We are going to try to match the function type
+	TUint32 capsMatchMask = TSDIOFunctionCaps::EFunctionType; 
+
+	// Create the caps specification for a BT function
+	TSDIOFunctionCaps functionCaps;
+	functionCaps.iType = aFunctionType;
+ 
+	// Request to find the function on the card
+	TSDIOFunction* pFunction = iCard-&gt;FindFunction(functionCaps, capsMatchMask);
+
+	// If the function cannot be found, pFunction will be NULL
+
+	return pFunction;
+	}
+</codeblock><p>Once you have the location of a function, you register the
+client driver with the stack and enable the function on the card.</p><codeblock xml:space="preserve">	TInt err = iFunction-&gt;RegisterClient(this);
+	if (err != KErrNone)
+		{
+		return err;
+		}
+
+	// Enable the function
+	err = iFunction-&gt;Enable(ETrue);  
+	
+	if (KErrNone == err)
+		{
+		Kern::PollingWait(FunctionReady, this, 100, 10);
+		}
+
+	TBool isReady = EFalse;
+	iFunction-&gt;IsReady(isReady);
+	If (!isReady)
+		return KErrNotReady;
+	…
+
+
+TBool DSdioDriver::FunctionReady(TAny* aSelfP)
+	{
+	TSDIOFunction* pFunction = (TSDIOFunction*)aSelfP;
+	TBool isReady = EFalse;
+	pFunction-&gt;IsReady(isReady);
+	return isReady;
+	}
+</codeblock></section>
+<section id="GUID-44B9EA31-9BDD-4181-BF2F-FF80F5EDCE32"><title>Transferring
+data: registers and shared chunks</title><p>SDIO cards place data to be read
+or written in a register whose address depends on the function and is defined
+in the relevant specification available at <xref href="www.sdcard.org.dita">www.sdcard.org</xref>.
+Registers are also used to send commands to the card and to enable or disable
+interrupts. You access the register for a function using the <xref href="GUID-6BD11B5F-2269-3317-A40D-6547042CA463.dita"><apiname>DSDIORegisterInterface</apiname></xref> class
+which is obtained from the function pointer like this.</p><p/><codeblock xml:space="preserve">		// Get the register interface
+		DSDIORegisterInterface* pRegIfc = iFunction-&gt;RegisterInterface(this);
+</codeblock><p>Data can be transferred.</p><ul>
+<li><p>as individual bytes,</p></li>
+<li><p>as the contents of byte buffers (both directly and using shared chunks),
+and</p></li>
+<li><p>by setting bits in the register.</p></li>
+</ul><p>The following code uses the <xref href="GUID-53280C38-1734-332D-A432-0A56AB16CD04.dita"><apiname>Read8()</apiname></xref> and <xref href="GUID-BF2E636A-FA49-39F6-9A52-A09E4879F3FC.dita"><apiname>Write8()</apiname></xref> functions
+of the <xref href="GUID-6BD11B5F-2269-3317-A40D-6547042CA463.dita"><apiname>DSDIORegisterInterface</apiname></xref> class to read and write a
+single byte from and to the card function. You typically set registers on
+the card and enable interrupts by this method.</p><codeblock xml:space="preserve">	TUint8 readVal = 0;
+	TInt ret = pRegIfc-&gt;Read8(KReadRegister, &amp;readVal);
+	if (KErrNone != ret)
+		return ret;
+	
+	TUint8 writeVal = readVal + 1;
+	ret = pRegIfc-&gt;Write8(KWriteRegister, writeVal);
+	if (KErrNone != ret)
+		return ret;
+</codeblock><p>This code demonstrates the use of the <xref href="GUID-2E0277CD-3CB8-3A8C-AAD3-8083E8BA7B60.dita"><apiname>ReadMultiple8()</apiname></xref> and <xref href="GUID-F29DFD6B-9CA4-3170-B829-F3881B152614.dita"><apiname>WriteMultiple8()</apiname></xref> functions
+to read to and write from byte buffers.</p><codeblock xml:space="preserve">	TUint8 client[6];
+	memcpy(client, “client”, 6);
+	TInt ret = pRegIfc-&gt;WriteMultiple8(KWriteRegister, client, 6);
+	if (KErrNone != ret)
+		return ret;
+
+	TUint8 server[6];	
+	ret = pRegIfc-&gt;ReadMultiple8(KReadRegister, server, 6);
+	if (KErrNone != ret)
+		return ret;
+
+	if (memcmp(server, “server”) != 0)
+		return KErrNotFound;
+</codeblock><p>When large amounts of data are being transferred it is good
+practice to use a shared chunk. You call the same functions as before with
+the chunk as additional argument. The following example writes 1024 bytes
+with an offset of zero and reads 1024 bytes with an offset of 1024.</p><codeblock xml:space="preserve">	TInt ret = pRegIfc-&gt;WriteMultiple8(KWriteRegister, chunk, 0, 1024);
+	if (KErrNone != ret)
+		return ret;
+
+	ret = pRegIfc-&gt;ReadMultiple8(KReadRegister, chunk, 1024, 1024);
+	if (KErrNone != ret)
+		return ret;
+</codeblock><p>The advantages of shared chunks are that they can be used from
+user space and reduce copying overhead.</p><p>The following code example shows
+how to set and clear bits in a register using the <xref href="GUID-312948B9-5338-3030-9130-821E9BDDCE62.dita"><apiname>Modify8()</apiname></xref> function
+of the <xref href="GUID-6BD11B5F-2269-3317-A40D-6547042CA463.dita"><apiname>DSDIORegisterInterface</apiname></xref> class</p><codeblock xml:space="preserve">	TUint8 setBits = 0x80;
+	TUint8 clearBis = 0x02;
+
+	ret = pRegIfc-&gt;Modify8(KModifyRegister, setBits, clearBits);
+	if (KErrNone != ret)
+		return ret;
+</codeblock><p>Another advantage of shared chunks is that they make it possible
+to send commands to the card while a multibyte data transfer is taking place.
+Not all cards support this functionality: you can check whether a particular
+card does so by reading the SDC bit in the Card Capability register. To do
+this, you need to create a second register interface to write the commands
+in the form of one byte transfers. This second interface (or 'second session')
+must run in a different thread from the interface performing the multibyte
+transfer and it is created in a different way, as in this code:</p><codeblock xml:space="preserve">	// Create a second session
+	DSDIORegisterInterface* interfaceP = new DSDIORegisterInterface(cardP, functionP-&gt;FunctionNumber());
+
+	// Using the second interface run a direct command 
+	TUint8 readVal = 0;
+	ret = interfaceP-&gt;Read8(KReadRegister, &amp;readVal);
+	
+	…
+</codeblock></section>
+<section id="GUID-11562A70-49EF-49BE-9323-6E1E69433907"><title>Controlling
+data transfer: interrupts</title><p>Cards generate interrupts which control
+the process of data transfer: for instance the arrival of data on the function
+of a card generates an interrupt which serves as a signal that a read operation
+should take place. The are two levels of interrupts. A card level interrupt
+indicates which function has triggered it and a separate function level interrupt
+gives information specific to that function which is covered in the documentation
+for a particular card.</p><p>You must provide ISRs (interrupt service routines)
+to handle interrupts. ISRs typically queue DFCs to perform the required actions
+such as read and write operations on the card since ISRs must complete very
+quickly to maintain real-time guarantees whereas data transfer can wait for
+the current time slice to complete. The exact functionality of the DFCs will
+vary depending on the nature of the function and the hardware. Two things
+you must do in any driver implementation are enabling and disabling interrupts
+and binding the ISRs to the stack. Also, when an interrupt is triggered you
+must read the interrupt register to make sure that the interrupt is applicable
+and then clear the function level interrupt and re-enable interrupts.</p><p>You
+enable card level interrupts as in this example code:</p><codeblock xml:space="preserve">	// Enable SDIO card interrupt
+	iFunction-&gt;Interrupt().Enable();
+
+	// Disable SDIO card interrupt
+	iFunction-&gt;Interrupt().Disable();
+</codeblock><p>How you enable function level interrupts is described in the
+documentation for a particular card.</p><p>You bind ISRs to the stack as in
+the following code fragment. </p><codeblock xml:space="preserve">	…
+	// Bind to interrupt
+	err = iFunction-&gt;Interrupt().Bind(DSDIODriver::Isr, this);
+	if (KErrNone != err)
+		return err;
+
+	…
+
+void DSDIODriver::Isr(TAny* aParam)
+	{
+	DSDIODriver* pDriver = (DSDIODriver*)aParam;
+	…
+	}
+</codeblock></section>
+<section id="GUID-458DACCF-1FAD-4F2A-8D79-AD3B77BE75F0"><title>Notifications
+and powering down: callbacks</title><p>Register callbacks to be notified of
+events. This mechanism is standard for handling the removal of a card and
+powering down.</p><p>The SDIO stack can notify clients of events they must
+react to such as power down or the removal of the card. Events of this kind
+are listed in the enumeration <xref href="GUID-84D32429-8E04-39BA-A032-478976C7991C.dita"><apiname>TSDIOFunctionCallbackReason</apiname></xref>.</p><codeblock xml:space="preserve">enum TSDIOFunctionCallbackReason
+	{
+	/** Card has powered up */
+	ESdioNotifyPowerUp			 	 	= 0,
+	/** Card requests to power down */
+	ESdioNotifyPowerDownPending	  	= 1,
+	/** Card has powered down */
+	ESdioNotifyPowerDown		  			= 2,
+	/** Request to enter sleep mode */
+	ESdioNotifyPowerSleep		  	= 3,
+	/** Emergency power down */
+	ESdioNotifyEmergencyPowerDown 	= 4,
+	/** PSU fault */
+	ESdioNotifyPsuFault			  	= 5,
+	/** Card has been removed */
+	ESdioNotifyCardRemoved		  	= 6,
+	/** Card has been inserted */
+	ESdioNotifyCardInserted		  	= 7,
+	};
+</codeblock><p>You respond to notifications with callback functions which
+you write to provide appropriate functionality. Use the callback to initialize
+a <xref href="GUID-C07575EE-FCAA-3050-89F3-F0DF8EF8D122.dita"><apiname>TSDIOFunctionCallback</apiname></xref> object and then register that object
+with the socket. The following code uses an example callback <codeph>FnCallback()</codeph> and
+object <codeph>functionCallback</codeph>.</p><codeblock xml:space="preserve">	TSDIOFunctionCallback functionCallback(DSDIODriver::FnCallback, this);
+
+	// Register the callback
+	functionCallback.Register(iSocket);
+	…
+
+TInt DSDIODriver::FnCallback(TAny* aParam, TSDIOFunctionCallbackReason aReason)
+	{
+	DSDIODriver* pDriver = (DSDIODriver*)aParam;
+
+	switch(aReason)
+		{
+		case ESdioNotifyCardRemoved:
+			…
+			break;
+		}
+	…
+	}
+</codeblock><p>You typically use notifications and callbacks to perform cleanup
+before a pending power down event. The socket class has functions to postpone
+power down at the start of cleanup and to resume power down when cleanup is
+finished. They are used like this.</p><codeblock xml:space="preserve">	iSocket-&gt;RequestAsyncPowerDown();
+
+/* cleanup code here */
+	iSocket-&gt;PowerDownComplete();</codeblock></section>
+</conbody></concept>

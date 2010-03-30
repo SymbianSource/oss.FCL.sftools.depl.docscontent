@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8290AAF0-577C-51D2-8AC1-0D37A10F45CB" xml:lang="en"><title>CSPRNG
+Implementation in Kernel</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-6125753A-78E8-4C9F-B25C-B1285A50AE9A"><title>Purpose</title> <p>The
+Cryptographically Secure/Strong Pseudo-Random Number Generator (CSPRNG) generates
+random numbers that are cryptographically secure. The CSPRNG generates a sequence
+of numbers that approximates the properties of random numbers. The strength
+of CSPRNG not only depends on the generation algorithm, but also
+on the strength of entropy (the degree of uncertainty in the random number
+or the extent to which the number is random).</p><p>In Symbian platform, the
+CSPRNG is implemented in the kernel. This provides the kernel and user-level
+threads and processes easy access to secure random numbers. For an overview
+of the various APIs by means of which the CSPRNG can be accessed, see <xref href="GUID-BAA558C1-8613-43A0-899E-F53DCAA68F4B.dita">APIs for Accessing Random
+Number Generator</xref>.</p> </section>
+<section id="GUID-B5BD3E1A-AFBB-5526-B5EA-8FA51A17E596-GENID-1-10-1-15-1-1-10-1-5-1-19-1-2-2"><title>Description</title> <p>The
+CSPRNG uses Hash_DRBG algorithm to generate pseudo-random number. Hash_DRBG
+algorithm is a standard recommended by National Institute of Secure Technology
+(<xref href="http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf" scope="external">NIST SP800-90</xref>), which uses cryptographic hash functions
+(SHA-256) to generate random numbers. The strength of CSPRNG not only depends
+on the generation algorithm, but also on the strength of entropy input. </p><p>A
+key process in the generation of random numbers is entropy accumulation. During
+initialization of the CSPRNG,  it is critical to accumulate entropy from the
+entropy sources. Entropy accumulation is the process by which a CSPRNG acquires
+a new unpredictable internal state. The entropies are collected into a hash-based
+pool using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-85F0FCA1-1998-3863-94E7-1E9D4496E682"><apiname>Kern::RandomSalt</apiname></xref>. </p> </section>
+<section id="GUID-4E6F8E44-43E9-473B-8733-029FD3036224"><title>Generating
+Random Data</title> <ul>
+<li><p><b>To generate random numbers on the user side</b>: Applications can
+call <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita#GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A/GUID-9D7451C0-A293-3DCB-AF73-69CEB41AF13D"><apiname>Math::Random</apiname></xref> and its overloaded functions, which call <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FA565586-92EB-3727-9824-FCD5ED341E58"><apiname>Kern::Random</apiname></xref> to
+generate a random number. The overloaded functions of <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita"><apiname>Math</apiname></xref> class
+are listed below: </p> <ul>
+<li id="GUID-49840D10-1AA9-5B1E-89F2-EE76AA6EE168"><p> <codeph>TUint32 Math::Random()</codeph>  </p> </li>
+<li id="GUID-44B4E31A-F2CD-57B1-841C-5D49FB31F761"><p> <codeph>void Math::Random(TDes8&amp;
+aRandomValue)</codeph>  </p> </li>
+<li id="GUID-A44D2225-FD37-58F0-8371-93BE55FE0B14"><p> <codeph>TUint32 Math::RandomL()</codeph>  </p> </li>
+<li id="GUID-CDA30955-23FE-574B-9C9D-EF60905AE143"><p> <codeph>void Math::RandomL(TDes8&amp;
+aRandomValue)</codeph>  </p> </li>
+</ul></li>
+<li><p><b>To generate random numbers on the kernel side</b>: Random numbers
+can be accessed using the following methods: </p> <ul>
+<li id="GUID-7B3E4D44-394F-5D51-8DA1-DC7515C6BD14"><p> <codeph>EXPORT_C TInt
+Kern::SecureRandom(TDes8&amp; aRandomValue)</codeph>  </p> </li>
+<li id="GUID-8DD4B45E-4659-5F72-92CB-6774C8CCE12F"><p> <codeph>EXPORT_C TUint32
+Kern::Random()</codeph>  </p> </li>
+</ul></li>
+</ul><note><p>If the generated random number is not secure, the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita"><apiname>Kern</apiname></xref> and <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita"><apiname>Math</apiname></xref> random
+functions return appropriate error codes or leave. </p><p>The <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FA565586-92EB-3727-9824-FCD5ED341E58"><apiname>Kern::Random</apiname></xref> and <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita#GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A/GUID-9D7451C0-A293-3DCB-AF73-69CEB41AF13D"><apiname>Math::Random</apiname></xref> are
+the only functions that do not return any error codes.</p></note> </section>
+<example><p>The following examples show the use of the various user-side APIs
+to generate a random number:</p><ul>
+<li><p> Example of <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita#GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A/GUID-F37E64ED-4DE4-3F0D-9BE2-756CF9D00B13"><apiname>Math::RandomL(TDes8&amp;)</apiname></xref> </p><codeblock xml:space="preserve">const TInt KRandomBufferSize = 1024;
+TBuf8 &lt;KRandomBufferSize&gt; buffer(KRandomBufferSize);
+Math::RandomL(buffer); // The function will leave if the number is not secure</codeblock></li>
+<li><p>Example of <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita#GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A/GUID-4B6E5650-682D-32FA-87E8-B64DBCB74BC5"><apiname>Math::RandomL(</apiname></xref>)</p><codeblock xml:space="preserve">TUint randomValue = Math::RandomL();// The function will leave if the number is not secure</codeblock></li>
+<li><p>Example of <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita#GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A/GUID-0B4A64E4-7EC3-300F-ACA0-7F53AAEF7066"><apiname>Math::Random()</apiname></xref></p><codeblock xml:space="preserve">TUint randomValue = Math::Random();</codeblock></li>
+</ul><p>The following examples show the use of the kernel side APIs to generate
+a random number:</p><ul>
+<li><p> Example of <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-EA575BCE-D227-3D4A-8581-542DFAFB4E6C"><apiname>Kern::SecureRandom(TDes8&amp;)</apiname></xref> </p><codeblock xml:space="preserve">const TInt KRandomBufferSize = 1024;
+TBuf8 &lt;KRandomBufferSize&gt; buffer(KRandomBufferSize);
+Tint err = Kern::SecureRandom(buffer); // Number is secure if err is KErrNone else the number is not secure</codeblock></li>
+<li><p>Example of <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-13B7C085-495E-36BB-97CE-141A8E5776B6"><apiname>Kern::Random()</apiname></xref></p><codeblock xml:space="preserve">TUint randomValue = Kern::Random();</codeblock></li>
+</ul></example>
+<section id="GUID-157FE439-6C53-407A-8909-2CB88E89857C"><title>Providing Entropy</title><p>The
+quality of the output of the CSPRNG can be improved by providing it with data
+known to be random. Such data is referred to as entropy data. Entropy data
+sources can either be:</p><ul>
+<li><p>Independent of user input. For example, hardware RNG oscillator and
+specific interrupts. </p></li>
+<li><p>Influenced by user input. For example, audio (microphone input), video
+(camera input), keypad input, touch screen input and accelerometer.</p></li>
+</ul><p>The kernel provides various functions to allow entropy data to be
+contributed to the CSPRNG. The functions are as follows:</p><ul>
+<li><p><xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-5AFC49C0-CDAB-317E-B88A-BD1A4C9307CB"><apiname>Kern::RandomSalt(TUint32 aEntropyData, TUint aBitsOfEntropy)</apiname></xref>:
+Allows entropy data up to 32 bits in length to be contributed to the CSPRNG.
+This function is low-latency and safe to be called from an Interrupt Service
+Routine (ISR).</p></li>
+<li><p><xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-35F5D818-0C74-3C6E-8EF1-7EF49BB43705"><apiname>Kern::RandomSalt(TUint64 aEntropyData, TUint aBitsOfEntropy)</apiname></xref>:
+Allows entropy data up to 64 bits in length to be contributed to the CSPRNG.
+This function is low-latency and safe to be called from an ISR.</p></li>
+<li><p><xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-1E340F3C-DCE5-3599-A0B9-29E9419807E9"><apiname>Kern::RandomSalt(const TUint8* aEntropyData, TUint aEntropyDataLength,
+TUint aBitsOfEntropy)</apiname></xref>: Allows entropy data larger than 64 bits to
+be contributed to the CSPRNG. This function cannot be called from an ISR.</p></li>
+<li><p><xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-C46E48EE-6F4A-3A61-A3C9-84B145119541"><apiname>Interrupt::AddTimingEntropy()</apiname></xref>: This function allows
+the timing of an interrupt to be contributed as entropy data, the highest
+resolution timer available is automatically used for the timestamp. This function
+can only be called from an ISR. For an example of its usage, see the section <b>Interrupt
+Service Routine (ISR) implementation</b> in <xref href="GUID-2E42E7EA-FED8-522C-8A5F-F65D799476C9.dita">Keyboard
+Driver Implementation Tutorial</xref>.</p></li>
+</ul><note>In all these cases, <codeph>aBitsOfEntropy</codeph> is an estimate
+of the number of bits of entropy contained in the sample and not necessarily
+the length of the sample. Failure to provide accurate entropy estimations
+may affect the quality of the CSPRNG’s output.</note></section>
+</conbody></concept>

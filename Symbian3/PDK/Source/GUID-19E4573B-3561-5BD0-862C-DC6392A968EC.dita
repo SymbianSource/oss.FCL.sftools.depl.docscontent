@@ -9,9 +9,53 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC"><title>Changes to File Server Behaviour</title><shortdesc>This document describes the behaviour changes of APIs that have been made 64-bit aware. The signature of these APIs has not changed but the change in their behaviour may impact existing applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>If you wish to use large files with your application and you are using some of these functions check that the changes in behaviour described here do not cause your application to fail. </p> <ul><li id="GUID-E9044715-E60B-5D82-BB90-3284C0E8498F"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67">RFile::Read()</xref>  </p> </li> <li id="GUID-80A44708-BE6C-5B95-A4B1-EC56553FB381"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-AD981741-0472-5A90-92DA-CF81A62B9D90">RFile::Seek()</xref>  </p> </li> <li id="GUID-0A42DC9A-1C42-5665-9892-2D943689C614"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C">RFile::Size()</xref>  </p> </li> <li id="GUID-4162E24B-DE1F-5D22-8278-A2160D8DCFD6"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-8EEB2085-351D-5DB0-9B3D-B0E0AF416646">CDir::Sort()</xref>  </p> </li> <li id="GUID-5CB1C0F7-0676-5B99-8DE8-068B99B2E717"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-C67F312D-8C85-537F-826C-162CF757A1CC">RDir::GetDir()</xref>  </p> </li> <li id="GUID-E47766BC-111A-59DB-8A77-7BA227B6B850"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-86B6B023-586A-5B56-8971-DB9EB1A6A876">CFileMan::Copy()</xref>  </p> </li> <li id="GUID-84FEA1E1-0C95-56EE-BCA1-57849B68FA51"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-66AA8177-3E90-5A10-89DB-401E58F74A36">CFileMan::Move()</xref>. </p> </li> </ul> <p> <b>Note</b>: if your legacy application opens a file in shared write mode, another application can make it large using the 64-bit APIs. If your application is affected you should: </p> <ul><li id="GUID-B55E4B74-812C-50FA-8584-4259BE3BA093"><p>enable 64-bit file support to allow access to files beyond the 2GBytes boundary </p> </li> <li id="GUID-1F159C18-0B52-55B1-B3F9-658561BD537F"><p>migrate to using <codeph>TInt64</codeph> offsets </p> </li> <li id="GUID-536D46FB-BAB2-577F-B80C-D8278DE1838B"><p>migrate to the <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-218CA816-A257-3B6E-94C7-9722FD5D147C"><apiname>RFile::Seek64()</apiname></xref> and <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-61BEEB4F-4771-30F5-9B20-F8AC44655640"><apiname>RFile::Size64()</apiname></xref> APIs. </p> </li> </ul> <p>Clients that do not migrate need to ensure they handle the error <codeph>KErrTooBig</codeph>: </p> <ul><li id="GUID-0AA448C1-4E0B-58E1-B251-A6BA6A1B3099"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67">RFile::Read()</xref> - this function will return <codeph>KErrTooBig</codeph> if the read position goes beyond 2GB-1. </p> </li> <li id="GUID-2D7F696E-3024-5EF1-AFFE-5BE0DA8BC768"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-AD981741-0472-5A90-92DA-CF81A62B9D90">RFile::Seek()</xref> - this function will return <codeph>KErrTooBig</codeph> if the 64-bit <codeph>Seek()</codeph> function seeks to a location greater than 2GB-1. </p> </li> <li id="GUID-A0110A50-BDB9-59AB-A264-D4DC97D19F56"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C">RFile::Size()</xref> - this function will return the lower 32-bits of the file size and <codeph>KErrTooBig</codeph>. </p> </li> </ul> <section id="GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67"><title>RFile::Read()</title> <p>There are four <codeph>RFile::Read()</codeph> overload functions that can perform a read from the current file position these functions can read from a position beyond 2GB–1: </p> <ul><li id="GUID-52DB7776-C28D-58D1-8BF8-B1EFEC1DF044"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-5CB6C63F-A6E3-3835-95C4-DE5F0AA5A74E"><apiname>RFile::Read(TDes8&amp; aDes)</apiname></xref>  </p> </li> <li id="GUID-DAE68DDF-C1F2-5062-B071-C8D13DD756F3"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-F845B529-7E5C-3702-8473-DCBBE154FBEE"><apiname>RFile::Read(TDes8&amp; aDes, TRequestStatus&amp;
-                aStatus)</apiname></xref>  </p> </li> <li id="GUID-F01ABF44-48EE-5D46-BC28-9E0DBBE4A64F"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-5D58841A-90A6-30AE-8DC1-6940F7FC8D7D"><apiname>RFile::Read(TDes8&amp; aDes, TInt aLength)</apiname></xref>  </p> </li> <li id="GUID-B2B6BD4B-5CAF-5812-A1DF-9A10BCC79FA4"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-7E05F49C-77C1-3537-B437-31DE35982E40"><apiname>RFile::Read(TDes8&amp; aDes, TInt aLength,
-                TRequestStatus&amp; aStatus)</apiname></xref>. </p> </li> </ul> <p>Verify that your application can handle reads greater than 2GB. For example, This example shows a counter variable accumulating the number of bytes. As this can be more than 2GB the counter should be of type <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref>. </p> <codeblock id="GUID-E187355B-9800-5C30-9671-3971A85C3275" xml:space="preserve">    TInt r;
+<concept id="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC" xml:lang="en"><title>Changes
+to File Server Behaviour</title><shortdesc>Describes the behaviour changes of APIs that have been made 64-bit
+aware. The signature of these APIs has not changed but the change in their
+behaviour may impact existing applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If you wish to use large files with your application and you are using
+any of the following functions, check that the changes in behaviour described
+here do not cause your application to fail. </p>
+<ul>
+<li id="GUID-E9044715-E60B-5D82-BB90-3284C0E8498F"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67">RFile::Read()</xref>  </p> </li>
+<li id="GUID-80A44708-BE6C-5B95-A4B1-EC56553FB381"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-AD981741-0472-5A90-92DA-CF81A62B9D90">RFile::Seek()</xref>  </p> </li>
+<li id="GUID-0A42DC9A-1C42-5665-9892-2D943689C614"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C">RFile::Size()</xref>  </p> </li>
+<li id="GUID-4162E24B-DE1F-5D22-8278-A2160D8DCFD6"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-8EEB2085-351D-5DB0-9B3D-B0E0AF416646">CDir::Sort()</xref>  </p> </li>
+<li id="GUID-5CB1C0F7-0676-5B99-8DE8-068B99B2E717"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-C67F312D-8C85-537F-826C-162CF757A1CC">RDir::GetDir()</xref>  </p> </li>
+<li id="GUID-E47766BC-111A-59DB-8A77-7BA227B6B850"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-86B6B023-586A-5B56-8971-DB9EB1A6A876">CFileMan::Copy()</xref>  </p> </li>
+<li id="GUID-84FEA1E1-0C95-56EE-BCA1-57849B68FA51"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-66AA8177-3E90-5A10-89DB-401E58F74A36">CFileMan::Move()</xref>. </p> </li>
+</ul>
+<note>If your legacy application opens a file in shared write mode, another
+application can make it large using the 64-bit APIs. If your application is
+affected, you should:<ul>
+<li id="GUID-B55E4B74-812C-50FA-8584-4259BE3BA093"><p>enable 64-bit file support
+to allow access to files beyond the 2GB boundary </p> </li>
+<li id="GUID-1F159C18-0B52-55B1-B3F9-658561BD537F"><p>migrate to <codeph>TInt64</codeph> offsets </p> </li>
+<li id="GUID-536D46FB-BAB2-577F-B80C-D8278DE1838B"><p>migrate to the <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-218CA816-A257-3B6E-94C7-9722FD5D147C"><apiname>RFile::Seek64()</apiname></xref> and <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-61BEEB4F-4771-30F5-9B20-F8AC44655640"><apiname>RFile::Size64()</apiname></xref> APIs. </p> </li>
+</ul> </note>
+<p>Clients that do not migrate need to ensure t hey handle the error <codeph>KErrTooBig</codeph>: </p>
+<ul>
+<li id="GUID-0AA448C1-4E0B-58E1-B251-A6BA6A1B3099"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67">RFile::Read()</xref> returns <codeph>KErrTooBig</codeph> if the read position
+goes beyond 2GB-1. </p> </li>
+<li id="GUID-2D7F696E-3024-5EF1-AFFE-5BE0DA8BC768"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-AD981741-0472-5A90-92DA-CF81A62B9D90">RFile::Seek()</xref> returns <codeph>KErrTooBig</codeph> if the 64-bit <codeph>Seek()</codeph> function
+seeks to a location greater than 2GB-1. </p> </li>
+<li id="GUID-A0110A50-BDB9-59AB-A264-D4DC97D19F56"><p> <xref href="GUID-19E4573B-3561-5BD0-862C-DC6392A968EC.dita#GUID-19E4573B-3561-5BD0-862C-DC6392A968EC/GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C">RFile::Size()</xref> returns the lower 32-bits of the file size and <codeph>KErrTooBig</codeph>. </p> </li>
+</ul>
+<section id="GUID-7F63E81E-3E56-5F5A-980C-3843913D3F67"><title>RFile::Read()</title> <p>There
+are four <codeph>RFile::Read()</codeph> overloaded functions that can perform
+a read from the current file position. These functions can read from a position
+beyond 2GB–1: </p><ul>
+<li id="GUID-52DB7776-C28D-58D1-8BF8-B1EFEC1DF044"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-5CB6C63F-A6E3-3835-95C4-DE5F0AA5A74E"><apiname>RFile::Read(TDes8&amp;
+aDes)</apiname></xref>  </p> </li>
+<li id="GUID-DAE68DDF-C1F2-5062-B071-C8D13DD756F3"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-F845B529-7E5C-3702-8473-DCBBE154FBEE"><apiname>RFile::Read(TDes8&amp;
+aDes, TRequestStatus&amp; aStatus)</apiname></xref>  </p> </li>
+<li id="GUID-F01ABF44-48EE-5D46-BC28-9E0DBBE4A64F"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-5D58841A-90A6-30AE-8DC1-6940F7FC8D7D"><apiname>RFile::Read(TDes8&amp;
+aDes, TInt aLength)</apiname></xref>  </p> </li>
+<li id="GUID-B2B6BD4B-5CAF-5812-A1DF-9A10BCC79FA4"><p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-7E05F49C-77C1-3537-B437-31DE35982E40"><apiname>RFile::Read(TDes8&amp;
+aDes, TInt aLength, TRequestStatus&amp; aStatus)</apiname></xref>. </p> </li>
+</ul> <p>Verify that your application can handle reads greater than 2GB. The
+following example shows a counter variable accumulating the number of bytes.
+As this can be more than 2GB, the counter should be of type <xref href="GUID-AAE85115-A8AA-3F6C-BA8C-69F5A23B0D90.dita"><apiname>TInt64</apiname></xref>. </p><codeblock id="GUID-E187355B-9800-5C30-9671-3971A85C3275" xml:space="preserve">    TInt r;
     RFile file;
     // Replace TInt variable with TInt64 variable
     // TInt bytesRead = 0;
@@ -28,4 +72,71 @@ Contributors:
             // Error handling
             break;
             }
-        bytesRead += readBuf.Length();</codeblock> </section> <section id="GUID-AD981741-0472-5A90-92DA-CF81A62B9D90"><title>RFile::Seek()</title> <p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref> has not been altered to handle large files. The table below describes the behaviour for the different seek modes as defined in <xref href="GUID-5AFEBCA5-00CE-3D2F-A4F9-5E1EABDD7F3C.dita"><apiname>TMode</apiname></xref>. </p> <table id="GUID-300EBDEA-F417-5D37-9C0C-6340B9983C00"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><tbody><row><entry><p> <b>Seek mode</b>  </p> </entry> <entry><p> <b>New behaviour</b>  </p> </entry> </row> <row><entry><p> <xref href="GUID-575221DD-F696-313A-90B4-D3ED6D96E8C7.dita"><apiname>ESeekAddress</apiname></xref>  </p> </entry> <entry><p>No change in behaviour </p> </entry> </row> <row><entry><p> <xref href="GUID-458B652E-537A-3FC0-9DF7-396907A13522.dita"><apiname>ESeekStart</apiname></xref>  </p> </entry> <entry><p>Can seek up to 2GB–1 </p> </entry> </row> <row><entry><p> <xref href="GUID-054ECFC9-C8C2-32B6-81DE-0526B3B17FF1.dita"><apiname>ESeekCurrent</apiname></xref>  </p> </entry> <entry><p>If the current position is less than 2GB–1 and the expected position is less than 2GB–1, then the current file pointer is moved, the output parameter is updated with the new file position and <codeph>KErrNone</codeph> is returned. </p> <p>If either the current position or the expected position is more than 2GB–1, seek fails with the error code <codeph>KErrTooBig</codeph> and the output parameter is not modified. </p> </entry> </row> <row><entry><p> <xref href="GUID-08B70CC6-3EFE-3355-9E96-9C99FCA6D911.dita"><apiname>ESeekEnd</apiname></xref>  </p> </entry> <entry><p>If the current position is less than 2GB–1 and the expected position is less than 2GB–1, then the current file pointer is moved and the output parameter is updated with the new file position and <codeph>KErrNone</codeph> is returned. </p> <p>If either the current position or the expected position is more than 2GB–1, seek fails with the error code <codeph>KErrTooBig</codeph> and the output parameter is not modified. </p> </entry> </row> </tbody> </tgroup> </table> <p>To handle large files use <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-218CA816-A257-3B6E-94C7-9722FD5D147C"><apiname>RFile::Seek64()</apiname></xref> instead of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref>. See <xref href="GUID-A7C26FE4-54B2-58D6-9FDF-4B0A565D00DE.dita">Seeking a Position in a Large File</xref>. </p> </section> <section id="GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C"><title>RFile::Size()</title> <p>If the file is less than 2GB-1 <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-01ACE541-916F-3811-A596-E25F1EF1C409"><apiname>RFile::Size()</apiname></xref> behaves as usual and returns <codeph>KErrNone</codeph> with the size of the file. If the file is larger than 2GB–1 the function returns <codeph>KErrTooBig</codeph> and the lower 32 bits of the file size is returned. </p> <p>To handle files larger than 2GB-1 use the function <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-61BEEB4F-4771-30F5-9B20-F8AC44655640"><apiname>RFile::Size64()</apiname></xref>. See <xref href="GUID-21ADA839-46B7-5DCF-BE58-F3F19FB1E30A.dita">Getting the Size of a Large File</xref>. </p> </section> <section id="GUID-8EEB2085-351D-5DB0-9B3D-B0E0AF416646"><title>CRir::Sort()</title> <p> <xref href="GUID-DB05F06E-4770-3255-BED9-6D3ACC845652.dita#GUID-DB05F06E-4770-3255-BED9-6D3ACC845652/GUID-C46316DF-79F1-32D9-9545-7F5D448C3873"><apiname>CRir::Sort()</apiname></xref> has been enhanced so that it can handle the sorting by size of large directory entries. No change is required to applications currently using this function. </p> <p> <b>Note</b>: sort by size is limited to 4GB-1. </p> </section> <section id="GUID-C67F312D-8C85-537F-826C-162CF757A1CC"><title>RDir::GetDir()</title> <p>The implementation of the three overload functions for <xref href="GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516.dita#GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516/GUID-766549C6-AC07-3958-9100-59A238BD8367"><apiname>RDir::GetDir()</apiname></xref> has been updated so that these functions can correctly sort directory entries by size. No change is required to applications currently using this function. </p> <p> <b>Note</b>: sort by size is limited to 4GB-1. </p> </section> <section id="GUID-86B6B023-586A-5B56-8971-DB9EB1A6A876"><title>CFileMan::Copy()</title> <p> <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita#GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7/GUID-633C2FF5-4077-346D-B7B6-4CC04F887D7B"><apiname>CFileMan::Copy()</apiname></xref> copies a large file to any location on the same drive or to any location on a different drive. If the target drive does not support large files the function returns the error <codeph>KErrTooBig</codeph>. </p> <p>No change is required to applications currently using this function. </p> </section> <section id="GUID-66AA8177-3E90-5A10-89DB-401E58F74A36"><title>CFileMan::Move()</title> <p> <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita#GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7/GUID-9456C8B9-C975-356C-B3A4-755928DE2AC3"><apiname>CFileMan::Move()</apiname></xref> moves a file to any location on the same drive or a different drive. If the target drive does not support large files the function returns the error <codeph>KErrTooBig</codeph>. </p> <p>No change is required to applications currently using this function. </p> </section> </conbody></concept>
+        bytesRead += readBuf.Length();</codeblock> </section>
+<section id="GUID-AD981741-0472-5A90-92DA-CF81A62B9D90"><title>RFile::Seek()</title> <p> <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref> has
+not been altered to handle large files. The table below describes the behaviour
+for the different seek modes as defined in <xref href="GUID-5AFEBCA5-00CE-3D2F-A4F9-5E1EABDD7F3C.dita"><apiname>TMode</apiname></xref>. </p><table id="GUID-300EBDEA-F417-5D37-9C0C-6340B9983C00">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Seek mode</b>  </p> </entry>
+<entry><p> <b>New behaviour</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-575221DD-F696-313A-90B4-D3ED6D96E8C7.dita"><apiname>ESeekAddress</apiname></xref>  </p></entry>
+<entry><p>No change in behaviour.</p></entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-458B652E-537A-3FC0-9DF7-396907A13522.dita"><apiname>ESeekStart</apiname></xref>  </p></entry>
+<entry><p>Can seek up to 2GB–1.</p></entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-054ECFC9-C8C2-32B6-81DE-0526B3B17FF1.dita"><apiname>ESeekCurrent</apiname></xref>  </p> </entry>
+<entry><p>If the current position is less than 2GB–1 and the expected position
+is less than 2GB–1, then the current file pointer is moved, the output parameter
+is updated with the new file position and <codeph>KErrNone</codeph> is returned. </p><p>If
+either the current position or the expected position is more than 2GB–1, seek
+fails with the error code <codeph>KErrTooBig</codeph> and the output parameter
+is not modified. </p></entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-08B70CC6-3EFE-3355-9E96-9C99FCA6D911.dita"><apiname>ESeekEnd</apiname></xref>  </p> </entry>
+<entry><p>If the current position is less than 2GB–1 and the expected position
+is less than 2GB–1, then the current file pointer is moved and the output
+parameter is updated with the new file position and <codeph>KErrNone</codeph> is
+returned. </p><p>If either the current position or the expected position is
+more than 2GB–1, seek fails with the error code <codeph>KErrTooBig</codeph> and
+the output parameter is not modified. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>To handle large files use <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-218CA816-A257-3B6E-94C7-9722FD5D147C"><apiname>RFile::Seek64()</apiname></xref> instead
+of <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-07136402-8D95-3256-9591-EE4141748E15"><apiname>RFile::Seek()</apiname></xref>. See <xref href="GUID-A7C26FE4-54B2-58D6-9FDF-4B0A565D00DE.dita">Seeking
+a Position in a Large File</xref>. </p> </section>
+<section id="GUID-0000F940-1831-57C0-8A9E-29EB20B11A0C"><title>RFile::Size()</title> <p>If
+the file is less than 2GB-1 <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-01ACE541-916F-3811-A596-E25F1EF1C409"><apiname>RFile::Size()</apiname></xref> behaves as usual
+and returns <codeph>KErrNone</codeph> with the size of the file. If the file
+is larger than 2GB–1 the function returns <codeph>KErrTooBig</codeph> and
+the lower 32 bits of the file size is returned. </p> <p>To handle files larger
+than 2GB-1 use the function <xref href="GUID-BE0804F6-4375-3C8A-8C83-968F510466E0.dita#GUID-BE0804F6-4375-3C8A-8C83-968F510466E0/GUID-61BEEB4F-4771-30F5-9B20-F8AC44655640"><apiname>RFile::Size64()</apiname></xref>. See <xref href="GUID-B6F35F05-8EFB-5E88-B14B-C1B2F83E6015.dita">Getting the Size of a Large
+File using RFile</xref> and <xref href="GUID-B97C3C1D-7F35-4B0A-9420-180CE70EF6DE.dita">Getting
+the Size of a Large File using TEntry</xref>. </p> </section>
+<section id="GUID-8EEB2085-351D-5DB0-9B3D-B0E0AF416646"><title>CRir::Sort()</title> <p> <xref href="GUID-DB05F06E-4770-3255-BED9-6D3ACC845652.dita#GUID-DB05F06E-4770-3255-BED9-6D3ACC845652/GUID-C46316DF-79F1-32D9-9545-7F5D448C3873"><apiname>CRir::Sort()</apiname></xref> has
+been enhanced so that it can handle the sorting by size of large directory
+entries. No change is required to applications currently using this function. </p> <note>Sort
+by size is limited to 4GB-1.</note> </section>
+<section id="GUID-C67F312D-8C85-537F-826C-162CF757A1CC"><title>RDir::GetDir()</title> <p>The
+implementation of the three overloaded functions for <xref href="GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516.dita#GUID-12AE154F-7741-38C0-ADFE-9784FCF5E516/GUID-766549C6-AC07-3958-9100-59A238BD8367"><apiname>RDir::GetDir()</apiname></xref> has
+been updated so that these functions can correctly sort directory entries
+by size. No change is required to applications currently using this function. </p> <note>Sort
+by size is limited to 4GB-1.</note></section>
+<section id="GUID-86B6B023-586A-5B56-8971-DB9EB1A6A876"><title>CFileMan::Copy()</title> <p> <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita#GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7/GUID-633C2FF5-4077-346D-B7B6-4CC04F887D7B"><apiname>CFileMan::Copy()</apiname></xref> copies
+a large file to any location on either the same drive or a different drive.
+If the target drive does not support large files, the function returns the
+error <codeph>KErrTooBig</codeph>. </p> <p>No change is required to applications
+currently using this function. </p> </section>
+<section id="GUID-66AA8177-3E90-5A10-89DB-401E58F74A36"><title>CFileMan::Move()</title> <p> <xref href="GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7.dita#GUID-82CEC14F-1479-3922-846A-9FCDB6465EF7/GUID-9456C8B9-C975-356C-B3A4-755928DE2AC3"><apiname>CFileMan::Move()</apiname></xref> moves
+a file to any location on either the same drive or a different drive. If the
+target drive does not support large files, the function returns the error <codeph>KErrTooBig</codeph>. </p> <p>No
+change is required to applications currently using this function. </p> </section>
+</conbody></concept>

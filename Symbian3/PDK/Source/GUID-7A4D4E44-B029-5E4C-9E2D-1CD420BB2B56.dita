@@ -9,4 +9,154 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56"><title>Emulator BSP Overview</title><shortdesc>The emulator board support package (BSP) provides the variant kernel, executables, debugging framework and device drivers for the Symbian OS (Epoc) emulator. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Purpose</title> <p>The emulator is a port of Symbian OS on the Win32 platform. It allows developers to try things out in an inexpensive development environment and to test and debug code before running it on target hardware. When attempting to implement some new and perhaps unproven functionality developers can learn much from running the application in the emulator. </p> <p>The emulator is used for: </p> <ul><li id="GUID-2A94B6D1-F44C-532D-A12B-040F825F4C0C"><p>testing new code ideas, </p> </li> <li id="GUID-7D9F8ADF-5531-59FC-9586-1566DD605718"><p>debugging code before trying it on target hardware or a hardware BSP such as OMAP H4, </p> </li> <li id="GUID-AA53B122-E40E-507D-8AAF-82D0588E8823"><p>running Symbian OS reference implementations and test code, </p> </li> <li id="GUID-F618725D-99B5-592D-8AA2-760DA5ADFABB"><p>learning to develop for Symbian OS — through formal Symbian OS developer training courses. </p> </li> </ul> <p>This document describes the composition of the Symbian OS (Epoc) emulator in the <xref href="GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56.dita#GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56/GUID-82A619C7-BF2C-5211-9134-8414685413C5">Emulator BSP Summary</xref>. For details about configuring and using the emulator please see the <xref href="GUID-6CEE9977-4697-5050-85EF-719FB2A0E71E.dita">Emulator</xref> section of Symbian OS Tools And Utilities. </p> </section> <section><title>Required background</title> <p>There is no formal background required for this section; except perhaps curiosity or a need to know more about the emulator. </p> </section> <section id="GUID-D5D33AFF-583F-5E3B-B153-29D8E12EDD42"><title>Key concepts and terms</title> <p>The following concepts and terms are used in the context of the emulator: </p> <dl><dlentry><dt>Bootstrap</dt> <dd><p>The first task of Symbian OS is to run the bootstrap application, which performs various initialization tasks on the hardware before starting the kernel. Since emulator does not have to intialize the hardware, its startup application directly starts the kernel. The remainder of the boot process is the same on the emulator as well. </p> </dd> </dlentry> <dlentry><dt>File system support</dt> <dd><p>During run time, the emulator emulates the Symbian OS file system onto the file system on a PC. This enables the application to use the file system drives without interfering with the drives on the PC. Performance and size of such drives may not be the same as it would be for the actual hardware. </p> </dd> </dlentry> <dlentry><dt>Floating point behaviour </dt> <dd><p>The emulator is implemented on the Intel x86 processors which has floating point hardware as opposed to IEEE-754 single precision and double precision floating point values used by Symbian OS. So the user has to be careful in using floating-point functions where the target hardware does not have hardware support. </p> </dd> </dlentry> <dlentry><dt>Machine word alignment</dt> <dd><p>Since ARM uses a 32-bit RISC architecture, the 32-bit quantities must be aligned to a 32-bit machine word boundary only. In other words, the address is a multiplier of 4. This may or may not work with an emulator. For more details see <xref href="GUID-ADCDCB7D-2402-53CE-B563-85BF479DA6C3.dita">Machine word alignment</xref>. </p> </dd> </dlentry> <dlentry><dt>Memory constraints </dt> <dd><p>The emulator emulates a device with a total heap size of 64MB. The initial and maximum size for the default heap for an individual process on the emulator (EKA2) can be set, in the same way as for a process on a native target. </p> </dd> </dlentry> <dlentry><dt>Process emulation</dt> <dd><p>The EKA2 kernel provides a good emulation of Symbian OS processes on the emulator with some limitations. For more details see <xref href="GUID-1940E2B6-47D8-553C-A448-D630551E86A6.dita">Process emulation</xref> section. </p> </dd> </dlentry> <dlentry><dt>Scheduling</dt> <dd><p>The thread scheduling functionality has been faithfully emulated by the emulator on the target hardware. </p> </dd> </dlentry> <dlentry><dt>Serial ports</dt> <dd><p>The serial ports are emulated through Windows serial ports. This is adequate for most purposes, but may not provide the same performance as UARTs on a real device. </p> </dd> </dlentry> <dlentry><dt>Timer</dt> <dd><p>The standard timer resolution is 1/64th second on all platforms and also on the emulator. </p> </dd> </dlentry> <dlentry><dt>USB</dt> <dd><p>The emulator does not provide USB client support on reference hardware. </p> </dd> </dlentry> </dl> </section> <section id="GUID-82A619C7-BF2C-5211-9134-8414685413C5"><title> Emulator BSP Summary</title> <p>Emulator BSP provides the following executables, device drivers (PDD and LDD) and utility applications: </p> <ul><li id="GUID-65C58628-BB5A-5E05-BFD5-D6857BE96337"><p> <b>Emulator kernel</b>  </p> <p> <filepath>_h4hrp_ekern.exe</filepath>  </p> <p>The emulator specific variant of the kernel. </p> </li> <li id="GUID-8A563FC4-830C-566E-B6B8-540CE153C5E4"><p> <b>Emulator Internal RAM media driver</b>  </p> <p> <filepath>_h4hrp_medint.pdd</filepath>  </p> <p>The physical device driver (PDD) for the internal RAM media for the emulator. </p> </li> <li id="GUID-75D4794E-1713-56D5-BAAF-2F09438CD704"><p> <b>Kernel Trace Tool</b>  </p> <p> <filepath>_integrator_cm1136_btracex.ldd</filepath>  </p> <p>The emulator variant kernel trace tool. </p> </li> <li id="GUID-1BEC67D4-62D9-5DFC-8FE0-98914B4A802B"><p> <b>Epoc boot library</b>  </p> <p> <filepath>_integrator_cm920_kc_exe.lib</filepath>  </p> <p>Provides the bootup for Epoc. </p> </li> <li id="GUID-1D562FED-7678-59CB-9DCF-A1C1E2A2FACA"><p> <b>Display Device Driver</b>  </p> <p> <filepath>display0.ldd</filepath>  </p> <p>The logical device driver (LDD) for the emulator display. </p> </li> <li id="GUID-AAF10CBE-9B3B-5233-8040-7864074F6DA0"><p> <b>Symbian OS Startup</b>  </p> <p> <filepath>e32strt.exe</filepath>  </p> <p>The Symbian OS startup process for the emulator. </p> </li> <li id="GUID-8040ADCD-3650-521A-8949-D805F0928DBD"><p> <b>Serial Device Driver</b>  </p> <p> <filepath>ecdrv.pdd</filepath>  </p> <p>The physical driver for the emulator serial device. </p> </li> <li id="GUID-F718A1FF-D151-5BED-8CB7-B83A1BAFBD3D"><p> <b>Serial Port Driver</b>  </p> <p> <filepath>ecomm.ldd</filepath>  </p> <p>The logical device driver (LDD) for the emulator serial port. </p> </li> <li id="GUID-B0BCCCDD-1950-52F3-850E-CB3550B0CF1F"><p> <b>Console</b>  </p> <p> <filepath>econsnogui.dll</filepath>  </p> <p>The emulator console. Provides an <xref href="GUID-1B13A3E3-678A-3430-9A42-3749BF77A633.dita"><apiname>RConsole</apiname></xref>. </p> </li> <li id="GUID-64D8F18F-C33F-5326-9D21-DCB16F59525B"><p> <b>Variant Specific Debugging Customizations</b>  </p> <p> <filepath>ecust.dll</filepath>  </p> <p>Debugging customizations for the emulator. </p> </li> <li id="GUID-636EA738-D2FB-535D-82AF-8D3B0CAE30D0"><p> <b>Keyboard Data</b>  </p> <p> <filepath>ekdata.dll</filepath>  </p> <p>Provides keyboard mapping behaviours. </p> </li> <li id="GUID-45FF5314-CB4E-5797-9BB2-578CF8C0E036"><p> <b>MMC / SD Card Configuration</b>  </p> <p> <filepath>epbusv.dll</filepath>  </p> <p>Provides the MMC / SD Card configuration for the emulator. </p> </li> <li id="GUID-938E7A40-FF19-5E62-9649-7A0369ED6E94"><p> <b>Sound Device Driver</b>  </p> <p> <filepath>esdrv.pdd</filepath>  </p> <p>The physical device driver (PDD) for the sound device. </p> </li> <li id="GUID-3BEDC85E-650F-5B57-8508-66BF099D9377"><p> <b>Ethernet Device Driver</b>  </p> <p> <filepath>ethernet.pdd</filepath>  </p> <p>The physical device driver (PDD) for the Ethernet under the windows emulator. </p> </li> <li id="GUID-486F392A-8A27-51A7-938B-3472E7464B14"><p> <b>Hardware Abstraction</b>  </p> <p> <filepath>hal.dll</filepath>  </p> <p>The hardware abstraction that is used to configure hardware settings for the emulator. Specifically the CPU speed and the display settings are configured with the emulator HAL. </p> </li> <li id="GUID-7EB71A72-01B8-56F7-90CF-94409FA3A2B5"><p> <b>Flash Media Driver</b>  </p> <p> <filepath>medlfs.pdd</filepath>  </p> <p>The physical device driver (PDD) for the Flash Media Driver. </p> </li> <li id="GUID-0B8E31B3-700B-5B63-8BFA-36A59CD9F6F2"><p> <b>NAND Media Driver</b>  </p> <p> <filepath>mednand.pdd</filepath>  </p> <p>The physical device driver (PDD) for the NAND Media Driver. </p> </li> <li id="GUID-02B06847-062A-5F47-8E19-1337CE8FE2EF"><p> <b>Shared Chunk Sound Driver</b>  </p> <p> <filepath>soundsc.pdd</filepath>  </p> <p>Emulator playback functions for the shared chunk sound driver PDD. </p> </li> <li id="GUID-3C5965C2-6132-5073-B3B0-BC2136B4717B"><p> <b>File Server</b>  </p> <p> <filepath>win_drive.fxt</filepath>  </p> <p>The test File Server extension for the emulator. </p> </li> <li id="GUID-85A419B0-665A-56C5-B30E-456F0D5A8B24"><p> <b>Windows GUI Settings</b>  </p> <p> <filepath>winsgui.dll</filepath>  </p> <p>The standard emulator GUI and keyboard settings. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-04F23FCB-FC53-5CBA-9035-5F4F234C1F59.dita"><linktext>Emulator Guide</linktext> </link> <link href="GUID-9540A82E-F83D-55F5-B441-868CF77468E9.dita#GUID-9540A82E-F83D-55F5-B441-868CF77468E9/GUID-CFED15B1-E768-534E-9043-7AADE45EE9AF"><linktext>Media Drivers</linktext> </link> <link href="GUID-0437DB4C-FC4E-51DC-BB4C-95C0B26834F5.dita"><linktext>Device Driver Guide</linktext> </link> </related-links></concept>
+<concept id="GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56" xml:lang="en"><title>Emulator
+BSP Overview</title><shortdesc>The emulator board support package (BSP) provides the variant kernel,
+executables, debugging framework and device drivers for the Symbian platform
+(Epoc) emulator. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-03D81C3F-4036-462F-86B0-6B6A6897B5CE"><title>Purpose</title> <p>The emulator is a port of Symbian platform
+on the Win32 platform. It allows developers to try things out in an inexpensive
+development environment and to test and debug code before running it on target
+hardware. When attempting to implement some new and perhaps unproven functionality
+developers can learn much from running the application in the emulator. </p> <p>The
+emulator is used for: </p> <ul>
+<li id="GUID-2A94B6D1-F44C-532D-A12B-040F825F4C0C"><p>testing new code ideas, </p> </li>
+<li id="GUID-7D9F8ADF-5531-59FC-9586-1566DD605718"><p>debugging code before
+trying it on target hardware or a hardware BSP such as OMAP H4, </p> </li>
+<li id="GUID-AA53B122-E40E-507D-8AAF-82D0588E8823"><p>running Symbian platform
+reference implementations and test code, </p> </li>
+<li id="GUID-F618725D-99B5-592D-8AA2-760DA5ADFABB"><p>learning to develop
+for Symbian platform — through formal Symbian platform developer training
+courses. </p> </li>
+</ul> <p>This document describes the composition of the Symbian platform (Epoc)
+emulator in the <xref href="GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56.dita#GUID-7A4D4E44-B029-5E4C-9E2D-1CD420BB2B56/GUID-82A619C7-BF2C-5211-9134-8414685413C5">Emulator
+BSP Summary</xref>. For details about configuring and using the emulator please
+see the <xref href="GUID-6CEE9977-4697-5050-85EF-719FB2A0E71E.dita">Emulator</xref> section
+of Symbian platform Tools And Utilities. </p> </section>
+<section id="GUID-135581F1-7A93-4DFE-89C1-4388FDCDFBBD"><title>Required background</title> <p>There is no formal background
+required for this section; except perhaps curiosity or a need to know more
+about the emulator. </p> </section>
+<section id="GUID-D5D33AFF-583F-5E3B-B153-29D8E12EDD42"><title>Key concepts
+and terms</title> <p>The following concepts and terms are used in the context
+of the emulator: </p> <dl>
+<dlentry>
+<dt>Bootstrap</dt>
+<dd><p>The first task of Symbian platform is to run the bootstrap application,
+which performs various initialization tasks on the hardware before starting
+the kernel. Since emulator does not have to intialize the hardware, its startup
+application directly starts the kernel. The remainder of the boot process
+is the same on the emulator as well. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>File system support</dt>
+<dd><p>During run time, the emulator emulates the Symbian platform file system
+onto the file system on a PC. This enables the application to use the file
+system drives without interfering with the drives on the PC. Performance and
+size of such drives may not be the same as it would be for the actual hardware. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Floating point behaviour </dt>
+<dd><p>The emulator is implemented on the Intel x86 processors which has floating
+point hardware as opposed to IEEE-754 single precision and double precision
+floating point values used by Symbian platform. So the user has to be careful
+in using floating-point functions where the target hardware does not have
+hardware support. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Machine word alignment</dt>
+<dd><p>Since ARM uses a 32-bit RISC architecture, the 32-bit quantities must
+be aligned to a 32-bit machine word boundary only. In other words, the address
+is a multiplier of 4. This may or may not work with an emulator. For more
+details see <xref href="GUID-ADCDCB7D-2402-53CE-B563-85BF479DA6C3.dita">Machine
+word alignment</xref>. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Memory constraints </dt>
+<dd><p>The emulator emulates a device with a total heap size of 64MB. The
+initial and maximum size for the default heap for an individual process on
+the emulator (EKA2) can be set, in the same way as for a process on a native
+target. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Process emulation</dt>
+<dd><p>The EKA2 kernel provides a good emulation of Symbian platform processes
+on the emulator with some limitations. For more details see <xref href="GUID-1940E2B6-47D8-553C-A448-D630551E86A6.dita">Process
+emulation</xref> section. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Scheduling</dt>
+<dd><p>The thread scheduling functionality has been faithfully emulated by
+the emulator on the target hardware. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Serial ports</dt>
+<dd><p>The serial ports are emulated through Windows serial ports. This is
+adequate for most purposes, but may not provide the same performance as UARTs
+on a real device. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Timer</dt>
+<dd><p>The standard timer resolution is 1/64th second on all platforms and
+also on the emulator. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>USB</dt>
+<dd><p>The emulator does not provide USB client support on reference hardware. </p> </dd>
+</dlentry>
+</dl> </section>
+<section id="GUID-82A619C7-BF2C-5211-9134-8414685413C5"><title> Emulator BSP
+Summary</title> <p>Emulator BSP provides the following executables, device
+drivers (PDD and LDD) and utility applications: </p> <ul>
+<li id="GUID-65C58628-BB5A-5E05-BFD5-D6857BE96337"><p> <b>Emulator kernel</b>  </p> <p> <filepath>_h4hrp_ekern.exe</filepath>  </p> <p>The
+emulator specific variant of the kernel. </p> </li>
+<li id="GUID-8A563FC4-830C-566E-B6B8-540CE153C5E4"><p> <b>Emulator Internal
+RAM media driver</b>  </p> <p> <filepath>_h4hrp_medint.pdd</filepath>  </p> <p>The
+physical device driver (PDD) for the internal RAM media for the emulator. </p> </li>
+<li id="GUID-75D4794E-1713-56D5-BAAF-2F09438CD704"><p> <b>Kernel Trace Tool</b>  </p> <p> <filepath>_integrator_cm1136_btracex.ldd</filepath>  </p> <p>The emulator variant kernel trace tool. </p> </li>
+<li id="GUID-1BEC67D4-62D9-5DFC-8FE0-98914B4A802B"><p> <b>Epoc boot library</b>  </p> <p> <filepath>_integrator_cm920_kc_exe.lib</filepath>  </p> <p>Provides the bootup for Epoc. </p> </li>
+<li id="GUID-1D562FED-7678-59CB-9DCF-A1C1E2A2FACA"><p> <b>Display Device Driver</b>  </p> <p> <filepath>display0.ldd</filepath>  </p> <p>The
+logical device driver (LDD) for the emulator display. </p> </li>
+<li id="GUID-AAF10CBE-9B3B-5233-8040-7864074F6DA0"><p> <b>Symbian platform
+Startup</b>  </p> <p> <filepath>e32strt.exe</filepath>  </p> <p>The Symbian
+platform startup process for the emulator. </p> </li>
+<li id="GUID-8040ADCD-3650-521A-8949-D805F0928DBD"><p> <b>Serial Device Driver</b>  </p> <p> <filepath>ecdrv.pdd</filepath>  </p> <p>The
+physical driver for the emulator serial device. </p> </li>
+<li id="GUID-F718A1FF-D151-5BED-8CB7-B83A1BAFBD3D"><p> <b>Serial Port Driver</b>  </p> <p> <filepath>ecomm.ldd</filepath>  </p> <p>The
+logical device driver (LDD) for the emulator serial port. </p> </li>
+<li id="GUID-B0BCCCDD-1950-52F3-850E-CB3550B0CF1F"><p> <b>Console</b>  </p> <p> <filepath>econsnogui.dll</filepath>  </p> <p>The
+emulator console. Provides an <xref href="GUID-1B13A3E3-678A-3430-9A42-3749BF77A633.dita"><apiname>RConsole</apiname></xref>. </p> </li>
+<li id="GUID-64D8F18F-C33F-5326-9D21-DCB16F59525B"><p> <b>Variant Specific
+Debugging Customizations</b>  </p> <p> <filepath>ecust.dll</filepath>  </p> <p>Debugging
+customizations for the emulator. </p> </li>
+<li id="GUID-636EA738-D2FB-535D-82AF-8D3B0CAE30D0"><p> <b>Keyboard Data</b>  </p> <p> <filepath>ekdata.dll</filepath>  </p> <p>Provides
+keyboard mapping behaviours. </p> </li>
+<li id="GUID-45FF5314-CB4E-5797-9BB2-578CF8C0E036"><p> <b>MMC / SD Card Configuration</b>  </p> <p> <filepath>epbusv.dll</filepath>  </p> <p>Provides
+the MMC / SD Card configuration for the emulator. </p> </li>
+<li id="GUID-938E7A40-FF19-5E62-9649-7A0369ED6E94"><p> <b>Sound Device Driver</b>  </p> <p> <filepath>esdrv.pdd</filepath>  </p> <p>The
+physical device driver (PDD) for the sound device. </p> </li>
+<li id="GUID-3BEDC85E-650F-5B57-8508-66BF099D9377"><p> <b>Ethernet Device
+Driver</b>  </p> <p> <filepath>ethernet.pdd</filepath>  </p> <p>The physical
+device driver (PDD) for the Ethernet under the windows emulator. </p> </li>
+<li id="GUID-486F392A-8A27-51A7-938B-3472E7464B14"><p> <b>Hardware Abstraction</b>  </p> <p> <filepath>hal.dll</filepath>  </p> <p>The
+hardware abstraction that is used to configure hardware settings for the emulator.
+Specifically the CPU speed and the display settings are configured with the
+emulator HAL. </p> </li>
+<li id="GUID-7EB71A72-01B8-56F7-90CF-94409FA3A2B5"><p> <b>Flash Media Driver</b>  </p> <p> <filepath>medlfs.pdd</filepath>  </p> <p>The
+physical device driver (PDD) for the Flash Media Driver. </p> </li>
+<li id="GUID-0B8E31B3-700B-5B63-8BFA-36A59CD9F6F2"><p> <b>NAND Media Driver</b>  </p> <p> <filepath>mednand.pdd</filepath>  </p> <p>The
+physical device driver (PDD) for the NAND Media Driver. </p> </li>
+<li id="GUID-02B06847-062A-5F47-8E19-1337CE8FE2EF"><p> <b>Shared Chunk Sound
+Driver</b>  </p> <p> <filepath>soundsc.pdd</filepath>  </p> <p>Emulator playback
+functions for the shared chunk sound driver PDD. </p> </li>
+<li id="GUID-3C5965C2-6132-5073-B3B0-BC2136B4717B"><p> <b>File Server</b>  </p> <p> <filepath>win_drive.fxt</filepath>  </p> <p>The
+test File Server extension for the emulator. </p> </li>
+<li id="GUID-85A419B0-665A-56C5-B30E-456F0D5A8B24"><p> <b>Windows GUI Settings</b>  </p> <p> <filepath>winsgui.dll</filepath>  </p> <p>The
+standard emulator GUI and keyboard settings. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-04F23FCB-FC53-5CBA-9035-5F4F234C1F59.dita"><linktext>Emulator
+Guide</linktext></link>
+<link href="GUID-9540A82E-F83D-55F5-B441-868CF77468E9.dita#GUID-9540A82E-F83D-55F5-B441-868CF77468E9/GUID-CFED15B1-E768-534E-9043-7AADE45EE9AF">
+<linktext>Media Drivers</linktext></link>
+<link href="GUID-0437DB4C-FC4E-51DC-BB4C-95C0B26834F5.dita"><linktext>Device Driver
+Guide</linktext></link>
+</related-links></concept>

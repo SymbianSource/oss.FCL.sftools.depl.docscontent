@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-FD8634B8-E522-4AC4-8129-ED807A7754A2-GENID-1-10-1-15-1-1-7-1-1-5-1-5-1-6-1" xml:lang="en"><title>Kernel-side
+Implementation</title><shortdesc>This document describes kernel-side implementation of requests
+to device drivers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Requests from the user-side are initially handled by the driver
+in the context of the client user-side thread. All requests are passed to
+the "gateway" function: <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita#GUID-E7550422-5121-3393-A85E-BB797969CD2A/GUID-FD4DA73F-45E7-37BE-9380-1D8ED36114F7"><apiname>DLogicalChannelBase::Request()</apiname></xref>.
+This is defined as pure virtual in <codeph>DLogicalChannelBase</codeph>, and
+needs to be implemented in a derived class as part of your logical channel
+implementation. </p>
+<fig id="GUID-0DEEF003-53B6-5892-8FF2-6684BC424E27-GENID-1-10-1-15-1-1-7-1-1-5-1-5-1-6-1-3-2">
+<title>                 Device driver logical channel communication      
+        </title>
+<image href="GUID-4A2E212E-BC1B-5965-9A62-6309CC7CAAAB_d0e291187_href.png" placement="inline"/>
+</fig>
+<p>There are two options for implementing this: </p>
+<ol id="GUID-F9FDC221-82F8-569E-B12A-969194137E24-GENID-1-10-1-15-1-1-7-1-1-5-1-5-1-6-1-3-4">
+<li id="GUID-A58B2511-6058-5DE6-8407-0ED4EB7A0112-GENID-1-10-1-15-1-1-7-1-1-5-1-5-1-6-1-3-4-1"><p>Use the ready-made framework
+provided by the <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita"><apiname>DLogicalChannel</apiname></xref> class, which handles a
+request in the context of a single kernel-side thread. This framework uses
+the kernel-side messaging mechanism for queuing requests on a DFC that runs
+in that single kernel-side thread. </p> <p>In practice, this model makes the
+writing of device drivers easier because the same kernel thread can be used
+to process requests from (potentially multiple) user-side clients and DFCs,
+thus in effect serialising access to the device driver, and eliminating thread-related
+issues, such as the need to know about mutexes, pre-emption, etc. Several
+drivers can use the same request/DFC kernel thread to reduce resource usage. </p> </li>
+<li id="GUID-DE277962-5BDC-5CD7-9868-65FA576E11AD-GENID-1-10-1-15-1-1-7-1-1-5-1-5-1-6-1-3-4-2"><p>Derive your own logical
+channel class from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> to handle requests.
+This allows you to build your own thread model for running DFCs to handle
+requests and to handle request completion. This requires that you manage inter-thread
+conflicts. However, your design may give you the chance to do some optimisation
+by handling some requests in the context of the user-side thread, minimising
+context-switching overhead. </p> </li>
+</ol>
+<p>Option 1 lets you get a new driver up and running quickly. Option 2 gives
+you greater flexibility if the requirements of your driver demand it. </p>
+</conbody></concept>

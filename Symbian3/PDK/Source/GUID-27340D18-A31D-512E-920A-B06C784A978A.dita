@@ -9,10 +9,92 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-27340D18-A31D-512E-920A-B06C784A978A"><title>String Pools </title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Many systems, components and applications deal with pre-defined, well known string constants. For example, parsing and manipulating text containing structure mostly requires comparisons against standard string constants. </p> <p>In a complex system, composed of a large number of objects, there may also be a need to pass strings between objects, and to route processing depending on the value of some string. The implementation of the HTTP transport framework and the XML framework are examples within Symbian platform where such intense string handling is required. </p> <p>To improve efficiency, Symbian platform uses the idea of the string pool. </p> <p>A string pool is referenced through an <xref href="GUID-4BF6ECD3-5FB3-3A6A-B9CE-98871BD0812B.dita"><apiname>RStringPool</apiname></xref>, which is a handle like object. The following diagram illustrates the basic idea: </p> <fig id="GUID-756DB8BA-1D6F-56AE-9C93-66DD3512B4A7"><title>
-          String pool representation 
-        </title> <image href="GUID-7F8F6ABB-8F46-5486-A116-6965787BC539_d0e195429_href.png" placement="inline"/></fig> <p>A string pool is a mechanism for storing strings in a particular way that makes the comparison of strings a very fast operation. It is particularly efficient at handling strings that can be set up at program compile time. For example, strings that identify lexical elements in a structured text. Typically, they are well known strings that are likely to be used very often in a given context. </p> <p>Such strings are organised into tables, and each string within a table can be referenced by an index value, which can be symbolised by an enum. Such tables are referred to as <b>static string tables</b> (See <xref href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita#GUID-27340D18-A31D-512E-920A-B06C784A978A/GUID-8221E235-15F9-55E9-8C17-4015051F70CD">Static string tables</xref>). The basic algorithm used internally ensures that the pool contains only one string of any particular value, and uses a reference counting mechanism to keep track of usage. </p> <p>The advantages of representing string constants in such a way are: </p> <ul><li id="GUID-DE544092-1FA8-5537-8357-62510F42D2EA"><p>avoiding a proliferation of duplicate strings throughout a component or an application; typically there is one string pool per thread, and one copy of a string </p> </li> <li id="GUID-55E5FD27-5E2B-51D6-91AA-435AE1A4421C"><p>allowing string constants to be represented by integer values </p> </li> <li id="GUID-3C5CA539-11E1-53EB-8A1F-69AEF0D9C1F0"><p>allowing strings to be passed between objects by passing integer values, wrapped in a class (any one of the <xref href="GUID-C117EB69-0B1E-3D16-88E1-B44349C716DE.dita"><apiname>String</apiname></xref> and <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> classes) </p> </li> <li id="GUID-559BCA58-B426-5919-A948-DC15ED501397"><p>allowing strings to be compared by comparing the integer values. </p> </li> </ul> <p>Internally, a string pool uses hash tables to reference strings. </p> <p>Static string tables and string constants can be added dynamically to the string pool, for example, at run time. However, there is always a performance penalty while adding either a static or a dynamic string to the string pool as the hash tables need to be updated. This means that it is better to add static string tables at string pool initialisation time, as this is the best time to absorb the overhead. </p> <section><title>Key features of string pool</title> <ul><li id="GUID-39F73513-7F37-57DA-AF7A-D3A7B2B28A76"><p>The string pool as supplied by Symbian platform supports any strings that can be represented by a <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> descriptor; this includes ASCII or UTF-8 encoded strings. Note that a <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> type can represent any type of data , including binary data, and means that a string pool can easily handle the extended characters of another encoding. </p> </li> <li id="GUID-8F9BA578-B6B5-54FD-8C29-8C2996AED4D0"><p>Within the string pool, strings are of two types - case sensitive and case insensitive. This affects the way strings are compared. Case insensitivity implies that strings are folded for the purpose of comparison. </p> </li> <li id="GUID-D958763A-70F8-5452-A556-99F92B2B0246"><p>A string pool can contain up to 4,096 static string tables, and each table can represent up 26,2144 strings. </p> </li> </ul> </section> <section id="GUID-8221E235-15F9-55E9-8C17-4015051F70CD"><title>Static string tables</title> <p>Static string tables are defined and built at compile time. They are represented by a <xref href="GUID-91322CD6-6DA0-3868-A5D7-CA561A102074.dita"><apiname>TStringTable</apiname></xref> object. A string table can be added to the string pool by passing the string table reference to a call to: </p> <codeblock id="GUID-2FAB371D-74A4-5D7E-99F1-B7C02BEDA8D5" xml:space="preserve">void RStringTable::OpenL( const TStringTable&amp; aTable );</codeblock> <p>The following diagram illustrates a general picture. Note that the strings in any given string table are deemed to be either case sensitive or case insensitive, and this governs how comparisons are made. </p> <fig id="GUID-D7CEA86C-0643-5BDA-A60E-D80B97008BF2"><image href="GUID-ECACB935-AD19-5BE6-AC27-A63465244087_d0e195530_href.png" placement="inline"/></fig> <p>As the name implies, a static string table is declared as a <codeph>const
-          TStringTable</codeph> data member of a class with a user-defined name. The class name is defined in a header file while the table itself is implemented in a <codeph>.cpp</codeph> C++ source file. Both the header file and the C++ source file are normally included in the project definition. Typically, a set of enum values are also defined within the scope of the class, and each value is associated with the strings in the table; code in other parts of the program access the strings in the string pool using these enum values. </p> <p>The Perl script, <codeph>stringtable.pl</codeph>, located in <filepath>...\syslibs\bafl\stringtools\</filepath>, can be used to generate these <codeph>.cpp</codeph> and <codeph>.h</codeph> files from a simple text definition. The text definition file simply lists the strings and the enum symbols to be associated with them; the file itself is given a <codeph>.st</codeph> file type. </p> <p>Following is a simple example of <codeph>ExampleStringTable.st</codeph> file: </p> <codeblock id="GUID-5D487C02-D710-55E6-BD8D-769BE4C4E754" xml:space="preserve"># Example String Table
+<concept id="GUID-27340D18-A31D-512E-920A-B06C784A978A" xml:lang="en"><title>String
+Pools </title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Many systems, components and applications deal with pre-defined, well known
+string constants. For example, parsing and manipulating text containing structure
+mostly requires comparisons against standard string constants. </p>
+<p>In a complex system, composed of a large number of objects, there may also
+be a need to pass strings between objects, and to route processing depending
+on the value of some string. The implementation of the HTTP transport framework
+and the XML framework are examples within the Symbian platform where such
+intense string handling is required. </p>
+<p>To improve efficiency, the Symbian platform uses the idea of the string
+pool. </p>
+<p>A string pool is referenced through an <xref href="GUID-4BF6ECD3-5FB3-3A6A-B9CE-98871BD0812B.dita"><apiname>RStringPool</apiname></xref>,
+which is a handle like object. The following diagram illustrates the basic
+idea: </p>
+<fig id="GUID-756DB8BA-1D6F-56AE-9C93-66DD3512B4A7">
+<title>           String pool representation          </title>
+<image href="GUID-7F8F6ABB-8F46-5486-A116-6965787BC539_d0e223118_href.png" placement="inline"/>
+</fig>
+<p>A string pool is a mechanism for storing strings in a particular way that
+makes the comparison of strings a very fast operation. It is particularly
+efficient at handling strings that can be set up at program compile time.
+For example, strings that identify lexical elements in a structured text.
+Typically, they are well known strings that are likely to be used very often
+in a given context. </p>
+<p>Such strings are organised into tables, and each string within a table
+can be referenced by an index value, which can be symbolised by an enum. Such
+tables are referred to as <b>static string tables</b> (See <xref href="GUID-27340D18-A31D-512E-920A-B06C784A978A.dita#GUID-27340D18-A31D-512E-920A-B06C784A978A/GUID-8221E235-15F9-55E9-8C17-4015051F70CD">Static string tables</xref>). The basic algorithm used internally ensures
+that the pool contains only one string of any particular value, and uses a
+reference counting mechanism to keep track of usage. </p>
+<p>The advantages of representing string constants in such a way are: </p>
+<ul>
+<li id="GUID-DE544092-1FA8-5537-8357-62510F42D2EA"><p>avoiding a proliferation
+of duplicate strings throughout a component or an application; typically there
+is one string pool per thread, and one copy of a string </p> </li>
+<li id="GUID-55E5FD27-5E2B-51D6-91AA-435AE1A4421C"><p>allowing string constants
+to be represented by integer values </p> </li>
+<li id="GUID-3C5CA539-11E1-53EB-8A1F-69AEF0D9C1F0"><p>allowing strings to
+be passed between objects by passing integer values, wrapped in a class (any
+one of the <xref href="GUID-C117EB69-0B1E-3D16-88E1-B44349C716DE.dita"><apiname>String</apiname></xref> and <xref href="GUID-B886F0AA-DB9C-356C-9B96-33252820F93E.dita"><apiname>RStringF</apiname></xref> classes) </p> </li>
+<li id="GUID-559BCA58-B426-5919-A948-DC15ED501397"><p>allowing strings to
+be compared by comparing the integer values. </p> </li>
+</ul>
+<p>Internally, a string pool uses hash tables to reference strings. </p>
+<p>Static string tables and string constants can be added dynamically to the
+string pool, for example, at run time. However, there is always a performance
+penalty while adding either a static or a dynamic string to the string pool
+as the hash tables need to be updated. This means that it is better to add
+static string tables at string pool initialisation time, as this is the best
+time to absorb the overhead. </p>
+<section id="GUID-B2F3D713-6BCA-4A47-99E4-EC4886F857EA"><title>Key features of string pool</title> <ul>
+<li id="GUID-39F73513-7F37-57DA-AF7A-D3A7B2B28A76"><p>The string pool as supplied
+by the Symbian platform supports any strings that can be represented
+by a <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> descriptor; this includes ASCII or UTF-8 encoded
+strings. Note that a <xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita"><apiname>TDes8</apiname></xref> type can represent any type
+of data , including binary data, and means that a string pool can easily handle
+the extended characters of another encoding. </p> </li>
+<li id="GUID-8F9BA578-B6B5-54FD-8C29-8C2996AED4D0"><p>Within the string pool,
+strings are of two types - case sensitive and case insensitive. This affects
+the way strings are compared. Case insensitivity implies that strings are
+folded for the purpose of comparison. </p> </li>
+<li id="GUID-D958763A-70F8-5452-A556-99F92B2B0246"><p>A string pool can contain
+up to 4,096 static string tables, and each table can represent up 26,2144
+strings. </p> </li>
+</ul> </section>
+<section id="GUID-8221E235-15F9-55E9-8C17-4015051F70CD"><title>Static string
+tables</title> <p>Static string tables are defined and built at compile time.
+They are represented by a <xref href="GUID-91322CD6-6DA0-3868-A5D7-CA561A102074.dita"><apiname>TStringTable</apiname></xref> object. A string
+table can be added to the string pool by passing the string table reference
+to a call to: </p> <codeblock id="GUID-2FAB371D-74A4-5D7E-99F1-B7C02BEDA8D5" xml:space="preserve">void RStringTable::OpenL( const TStringTable&amp; aTable );</codeblock> <p>The following diagram illustrates a general picture. Note that the strings
+in any given string table are deemed to be either case sensitive or case insensitive,
+and this governs how comparisons are made. </p> <fig id="GUID-D7CEA86C-0643-5BDA-A60E-D80B97008BF2">
+<image href="GUID-ECACB935-AD19-5BE6-AC27-A63465244087_d0e223225_href.png" placement="inline"/>
+</fig> <p>As the name implies, a static string table is declared as a <codeph>const
+          TStringTable</codeph> data member of a class with a user-defined
+name. The class name is defined in a header file while the table itself is
+implemented in a <codeph>.cpp</codeph> C++ source file. Both the header file
+and the C++ source file are normally included in the project definition. Typically,
+a set of enum values are also defined within the scope of the class, and each
+value is associated with the strings in the table; code in other parts of
+the program access the strings in the string pool using these enum values. </p> <p>The
+Perl script, <codeph>stringtable.pl</codeph>, located in <filepath>...\syslibs\bafl\stringtools\</filepath>,
+can be used to generate these <codeph>.cpp</codeph> and <codeph>.h</codeph> files
+from a simple text definition. The text definition file simply lists the strings
+and the enum symbols to be associated with them; the file itself is given
+a <codeph>.st</codeph> file type. </p> <p>Following is a simple example of <codeph>ExampleStringTable.st</codeph> file: </p> <codeblock id="GUID-5D487C02-D710-55E6-BD8D-769BE4C4E754" xml:space="preserve"># Example String Table
 fstringtable ExampleStringTable
 !// Some types of fruit
 # This comment won't appear in the .h file, but the one above will.
@@ -22,7 +104,24 @@ EBanana banana
 # Some animals
 ECat cat
 EDog dog
-</codeblock> <p>The main points to note are: </p> <ul><li id="GUID-8FCB19B1-7033-5120-98DD-08EECA91C65B"><p>the keyword <i>fstringtable</i> is used to define the name of the class that contains the string table declaration and the enum value symbols. The class name itself follows the keyword. For example, <codeph>ExampleStringTable</codeph>. </p> <p>Note that you can include underscore characters in the class name. For example, <codeph>Example_StringTable</codeph>. </p> </li> <li id="GUID-0E714FA5-859E-597F-9B33-2F0DC3372FCD"><p>the symbols <codeph>EApple</codeph> and <codeph>EOrange</codeph> form the enum value symbols that correspond to the strings <codeph>apple</codeph> and <codeph>orange</codeph> respectively. </p> </li> <li id="GUID-F9F62AD7-5209-5D01-9F60-413C7E161689"><p>all statements starting with a <b>#</b> are comments and are completely ignored. However <b>#</b> characters can appear in a string. For example <codeph>ap#ple</codeph> is a valid string and is not interpreted as a comment. </p> </li> <li id="GUID-F70C2B1A-2029-5B1A-A27D-A65A123A6CA9"><p>all statements starting with a <b>!</b> are comments that are inserted into the generated header file. </p> </li> </ul> <p>Running the Perl script with <codeph>ExampleStringTable.st</codeph> as source generates the header file <codeph>ExampleStringTable.h</codeph> and the C++ source file <codeph>ExampleStringTable.cpp</codeph> as illustrated below: </p> <codeblock id="GUID-7E0263D1-D4A5-5B0A-B355-C2D958247590" xml:space="preserve">// Autogenerated from epoc32\build\generated\example\ExampleStringTable.st by the stringtable tool - Do not edit
+</codeblock> <p>The main points to note are: </p> <ul>
+<li id="GUID-8FCB19B1-7033-5120-98DD-08EECA91C65B"><p>the keyword <i>fstringtable</i> is
+used to define the name of the class that contains the string table declaration
+and the enum value symbols. The class name itself follows the keyword. For
+example, <codeph>ExampleStringTable</codeph>. </p> <p>Note that you can include
+underscore characters in the class name. For example, <codeph>Example_StringTable</codeph>. </p> </li>
+<li id="GUID-0E714FA5-859E-597F-9B33-2F0DC3372FCD"><p>the symbols <codeph>EApple</codeph> and <codeph>EOrange</codeph> form
+the enum value symbols that correspond to the strings <codeph>apple</codeph> and <codeph>orange</codeph> respectively. </p> </li>
+<li id="GUID-F9F62AD7-5209-5D01-9F60-413C7E161689"><p>all statements starting
+with a <b>#</b> are comments and are completely ignored. However <b>#</b> characters
+can appear in a string. For example <codeph>ap#ple</codeph> is a valid string
+and is not interpreted as a comment. </p> </li>
+<li id="GUID-F70C2B1A-2029-5B1A-A27D-A65A123A6CA9"><p>all statements starting
+with a <b>!</b> are comments that are inserted into the generated header file. </p> </li>
+</ul> <p>Running the Perl script with <codeph>ExampleStringTable.st</codeph> as
+source generates the header file <codeph>ExampleStringTable.h</codeph> and
+the C++ source file <codeph>ExampleStringTable.cpp</codeph> as illustrated
+below: </p> <codeblock id="GUID-7E0263D1-D4A5-5B0A-B355-C2D958247590" xml:space="preserve">// Autogenerated from epoc32\build\generated\example\ExampleStringTable.st by the stringtable tool - Do not edit
 
 #ifndef STRINGTABLE_ExampleStringTable
 #define STRINGTABLE_ExampleStringTable
@@ -79,5 +178,11 @@ const void * const KStringPointers[] =
        };
 
 const TStringTable ExampleStringTable::Table = {5, KStringPointers, EFalse};
-</codeblock> <p>The table itself is the static data member <codeph>Table</codeph> of class <codeph>ExampleStringTable</codeph>. </p> </section> </conbody><related-links><link href="GUID-24D509E8-CF46-58D3-85E9-27DA7AB22012.dita"><linktext>Constructing a Static
-                String Table</linktext> </link> <link href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita"><linktext>Using string pools</linktext> </link> </related-links></concept>
+</codeblock> <p>The table itself is the static data member <codeph>Table</codeph> of
+class <codeph>ExampleStringTable</codeph>. </p> </section>
+</conbody><related-links>
+<link href="GUID-24D509E8-CF46-58D3-85E9-27DA7AB22012.dita"><linktext>Constructing
+a Static                 String Table</linktext></link>
+<link href="GUID-2B6D7221-A23E-562E-9D9C-5EC197F1CB78.dita"><linktext>Using string
+pools</linktext></link>
+</related-links></concept>

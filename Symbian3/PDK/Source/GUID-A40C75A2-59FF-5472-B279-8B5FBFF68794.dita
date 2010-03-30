@@ -9,7 +9,153 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-A40C75A2-59FF-5472-B279-8B5FBFF68794"><title>Content Rendering Plug-ins (CRPs) Overview</title><shortdesc>Content Rendering Plug-ins (CRPs) are Window Server plug-ins that can perform custom drawing in response to client requests. The client simply calls <apiname>CWindowGc::DrawWsGraphic(TWsGraphicId, TRect)</apiname>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>To the client, a CRP call appears like any other draw operation—the thing it most resembles is drawing a bitmap. In particular, a CRP call can be issued as part of a stream of draw operations. If there are draw operations before and after the CRP call, it may draw above some elements and other elements may be drawn above it. This is in contrast to anims and sprites, which always appear above other window drawing. </p> <p>On the server side, the plugin provides a subclass of <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref>. When the client’s <codeph>CWindowGc::DrawWsGraphic()</codeph> call is processed, the appropriate <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref> subclass is called to perform the rendering. </p> <p>CRPs have several benefits: </p> <ul><li id="GUID-EAF066AE-72E8-5029-B7EA-B2F6BB4D80E7"><p> <b>Content abstraction</b> —the client has no knowledge of what is rendered—that is left to the plug-in. As a result, CRPs can enable the appearance of an application to be customized without any change to application code. (This is similar to the use of skin bitmaps to customize application appearance, but it goes further.) </p> </li> <li id="GUID-B175FE51-4BF5-56A6-8AD9-D4A03A48F7BB"><p> <b>Server-side execution</b> —CRP rendering code executes inside the Window Server process. This means that it is less susceptible to interruptions under CPU loading than client-side code. However, it also means that CRPs must be written with greater care, because their failure can cause a device reset rather than a simple application exit. </p> </li> <li id="GUID-459F38EA-08E3-54E0-B761-51ED774DFCA9"><p> <b>Animation</b> —CRPs are able to schedule their own reanimation within the Window Server. This is managed by the Window Server animation scheduler and so provides more reliable animation than can be achieved from the client-side alone. </p> </li> </ul> <p>CRPs are generally written by device creators for showing customized content on the screen. For example, a CRP might be an SVG renderer, where the client application provides data in the form of an SVG source file and the CRP decodes and renders it. </p> <p>Unlike animations created using <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CAnim</apiname></xref>, other drawing can appear above the CRP-based content within the same window. </p> <section><title>Architecture</title> <p>The following diagram shows how the client application and the server-side CRP work together: </p> <fig id="GUID-DCD46D7C-575D-5F96-B9AF-118FEB6DA8DC"><title>
-             Figure 1: Relationship of a client application and the CRP 
-          </title> <image href="GUID-C8AD9E54-F93D-5E04-A958-95934D29180B_d0e220613_href.png" placement="inline"/></fig> <dl><dlentry><dt>Client UI application</dt> <dd><p>This originates the draw request that drives the system to render the result of a CRP to a given location of the screen. </p> </dd> </dlentry> <dlentry><dt>Server-side CRP</dt> <dd><p>This runs in the Window Server process. It has the priorities and privileges of the Window Server. </p> </dd> </dlentry> </dl> <p>Prioritized scheduling and access to Window Server resources enable CRPs to function more efficiently than if they were modeled in the client UI application. </p> <p>The typical workflow in the client application is as follows: </p> <ol id="GUID-889BC31D-0085-521B-AF16-D78320B00D9C"><li id="GUID-5B5B06A5-9AFF-56DA-8A66-48CC6A74DA20"><p>Set up the necessary CRPs by calling constructors. </p> </li> <li id="GUID-E499C0CC-709A-5D52-8A60-706FBB0B1F32"><p>Set application-specific values for the CRP by sending method calls from the client UI application to the client-side CRP proxy (there is more information about this below). </p> </li> <li id="GUID-9F2D8783-9DAC-5C22-9AE6-789FA7B5D5FD"><p>Call the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> command. This initiates the drawing, which is actually done by the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw()</apiname></xref> method of the server-side CRP. </p> </li> </ol> </section> <section><title>Graphic Drawer library details</title> <p>The following table shows the DLLs that provide the server-side functionality. </p> <table id="GUID-E4F2FF7F-87D6-5F36-BDAF-74B16746B5E1"><tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><thead><row><entry>DLL</entry> <entry>LIB</entry> <entry>Short description</entry> </row> </thead> <tbody><row><entry><p> <filepath>wsgraphicdrawer_nga.dll </filepath>  </p> </entry> <entry><p> <filepath>wsgraphicdrawer.lib</filepath>  </p> </entry> <entry><p>The server-side base classes for graphic drawers in the ScreenPlay variant. </p> </entry> </row> <row><entry><p> <filepath>wsgraphicdrawer_nonnga.dll </filepath>  </p> </entry> <entry><p> <filepath>wsgraphicdrawer.lib</filepath>  </p> </entry> <entry><p>The server-side base classes for graphic drawers in the non-ScreenPlay variant. </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title>APIs</title> <p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. </p> <p>Assuming the construction of objects has been done, the client UI application issues a <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> call each time it wants a CRP to be shown on the screen. For our SVG rendering example, the UI application simply decides where on the screen the CRP is to be shown. </p> <p>Any additional information (such as the location of the SVG file) is handled by the client-side CRP proxy. This is a subclass of <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic</apiname></xref>. You can pass application-specific data to the server-side CRP by implementing the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic::SendMessage()</apiname></xref> method. When a client-side CRP invokes <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic::SendMessage()</apiname></xref>, the server-side CRP receives a <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::HandleMessage()</apiname></xref> call. </p> <p>The client-side UI application uses the GDI interface to issue draw commands. <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> can be considered to be just another draw command. </p> <p>The server-side CRP interface is defined by the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref> interface. This cannot be extended. However, the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::HandleMessage()</apiname></xref> method that accepts a data buffer can be interpreted in an application-specific manner by the server-side CRP author. </p> <p><b>Summary </b> </p> <table id="GUID-5418A2B7-B872-55FF-B0A3-A61E47D70997"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>API</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref>  </p> </entry> <entry><p>The abstract base class for the server-side graphic drawer. Each CRP has a concrete implementation of this class. The most important function is <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw(MWsGc, TRect)</apiname></xref>, which issues the drawing commands. </p> </entry> </row> <row><entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGc</apiname></xref>  </p> </entry> <entry><p>This is provided to the graphic drawer in the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw(MWsGc, TRect)</apiname></xref> function. There main things to note about this interface: </p> <ul><li id="GUID-7C8FF1A8-D0E7-55CE-A7D2-9D26BAE9884F"><p>Because it is derived from <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsObjectProvider</apiname></xref>, it provides the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsObjectProvider::ResolveObjectInterface()</apiname></xref> function. The CRP can call this to obtain a concrete implementation of the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGraphicsContext</apiname></xref> interface against which to issue draw operations. </p> </li> <li id="GUID-B60F4FE8-E982-56B0-8403-9C724B0AC33C"><p>It provides the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGc::ScheduleAnimation()</apiname></xref> function, which as its name suggests enables the CRP to schedule animations. During drawing, the CRP can ask to be drawn again after a specified time period. </p> </li> </ul> <p>CRPs do not need to hold onto a handle to a graphic context, because they are passed one every time they are required to draw. This means that other parts of the Window Server (specifically render stages) can safely redirect drawing without any concern that CRPs hold invalid graphics contexts. </p> </entry> </row> <row><entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic</apiname></xref>  </p> </entry> <entry><p>This is the abstract base class for the client-side proxy. This serves a function similar to <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>RAnim</apiname></xref>, enabling the client to control the CRP's state remotely. </p> </entry> </row> </tbody> </tgroup> </table> </section> </conbody><related-links><link href="GUID-5D81D4E2-BE8B-58CE-A745-4F044DE2FB5F.dita"><linktext>Window Server Plug-in
-                Framework</linktext> </link> </related-links></concept>
+<concept id="GUID-A40C75A2-59FF-5472-B279-8B5FBFF68794" xml:lang="en"><title>Content
+Rendering Plug-ins (CRPs) Overview</title><shortdesc>Content Rendering Plug-ins (CRPs) are Window Server plug-ins that
+can perform custom drawing in response to client requests. The client simply
+calls <codeph>CWindowGc::DrawWsGraphic(TWsGraphicId, TRect)</codeph>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To the client, a CRP call appears like any other draw operation—the thing
+it most resembles is drawing a bitmap. In particular, a CRP call can be issued
+as part of a stream of draw operations. If there are draw operations before
+and after the CRP call, it may draw above some elements and other elements
+may be drawn above it. This is in contrast to anims and sprites, which always
+appear above other window drawing. </p>
+<p>On the server side, the plugin provides a subclass of <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref>. When the client’s <codeph>CWindowGc::DrawWsGraphic()</codeph> call is processed,
+the appropriate <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref> subclass
+is called to perform the rendering. </p>
+<p>CRPs have several benefits: </p>
+<ul>
+<li id="GUID-EAF066AE-72E8-5029-B7EA-B2F6BB4D80E7"><p> <b>Content abstraction</b> —the
+client has no knowledge of what is rendered—that is left to the plug-in. As
+a result, CRPs can enable the appearance of an application to be customized
+without any change to application code. (This is similar to the use of skin
+bitmaps to customize application appearance, but it goes further.) </p> </li>
+<li id="GUID-B175FE51-4BF5-56A6-8AD9-D4A03A48F7BB"><p> <b>Server-side execution</b> —CRP
+rendering code executes inside the Window Server process. This means that
+it is less susceptible to interruptions under CPU loading than client-side
+code. However, it also means that CRPs must be written with greater care,
+because their failure can cause a device reset rather than a simple application
+exit. </p> </li>
+<li id="GUID-459F38EA-08E3-54E0-B761-51ED774DFCA9"><p> <b>Animation</b> —CRPs
+are able to schedule their own reanimation within the Window Server. This
+is managed by the Window Server animation scheduler and so provides more reliable
+animation than can be achieved from the client-side alone. </p> </li>
+</ul>
+<p>CRPs are generally written by device creators for showing customized content
+on the screen. For example, a CRP might be an SVG renderer, where the client
+application provides data in the form of an SVG source file and the CRP decodes
+and renders it. </p>
+<p>Unlike animations created using <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CAnim</apiname></xref>,
+other drawing can appear above the CRP-based content within the same window. </p>
+<section id="GUID-01B7CC86-E06B-467E-B75B-ED5FCA1839C6"><title>Architecture</title> <p>The following diagram shows how the
+client application and the server-side CRP work together: </p> <fig id="GUID-DCD46D7C-575D-5F96-B9AF-118FEB6DA8DC">
+<title>              Figure 1: Relationship of a client application and the
+CRP            </title>
+<image href="GUID-C8AD9E54-F93D-5E04-A958-95934D29180B_d0e248415_href.png" placement="inline"/>
+</fig> <dl>
+<dlentry>
+<dt>Client UI application</dt>
+<dd><p>This originates the draw request that drives the system to render the
+result of a CRP to a given location of the screen. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Server-side CRP</dt>
+<dd><p>This runs in the Window Server process. It has the priorities and privileges
+of the Window Server. </p> </dd>
+</dlentry>
+</dl> <p>Prioritized scheduling and access to Window Server resources enable
+CRPs to function more efficiently than if they were modeled in the client
+UI application. </p> <p>The typical workflow in the client application is
+as follows: </p> <ol id="GUID-889BC31D-0085-521B-AF16-D78320B00D9C">
+<li id="GUID-5B5B06A5-9AFF-56DA-8A66-48CC6A74DA20"><p>Set up the necessary
+CRPs by calling constructors. </p> </li>
+<li id="GUID-E499C0CC-709A-5D52-8A60-706FBB0B1F32"><p>Set application-specific
+values for the CRP by sending method calls from the client UI application
+to the client-side CRP proxy (there is more information about this below). </p> </li>
+<li id="GUID-9F2D8783-9DAC-5C22-9AE6-789FA7B5D5FD"><p>Call the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> command. This initiates the drawing,
+which is actually done by the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw()</apiname></xref> method of the server-side CRP. </p> </li>
+</ol> </section>
+<section id="GUID-ACE9A1E6-C9C5-49E3-B10A-72A6B1D8DCB4"><title>Graphic Drawer library details</title> <p>The following table
+shows the DLLs that provide the server-side functionality. </p> <table id="GUID-E4F2FF7F-87D6-5F36-BDAF-74B16746B5E1">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>DLL</entry>
+<entry>LIB</entry>
+<entry>Short description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <filepath>wsgraphicdrawer_nga.dll </filepath>  </p> </entry>
+<entry><p> <filepath>wsgraphicdrawer.lib</filepath>  </p> </entry>
+<entry><p>The server-side base classes for graphic drawers in the ScreenPlay
+variant. </p> </entry>
+</row>
+<row>
+<entry><p> <filepath>wsgraphicdrawer_nonnga.dll </filepath>  </p> </entry>
+<entry><p> <filepath>wsgraphicdrawer.lib</filepath>  </p> </entry>
+<entry><p>The server-side base classes for graphic drawers in the non-ScreenPlay
+variant. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-FBB7F0CA-045B-441D-B0D9-55543AFBEA57"><title>APIs</title> <p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. </p> <p>Assuming
+the construction of objects has been done, the client UI application issues
+a <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> call
+each time it wants a CRP to be shown on the screen. For our SVG rendering
+example, the UI application simply decides where on the screen the CRP is
+to be shown. </p> <p>Any additional information (such as the location of the
+SVG file) is handled by the client-side CRP proxy. This is a subclass of <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic</apiname></xref>.
+You can pass application-specific data to the server-side CRP by implementing
+the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic::SendMessage()</apiname></xref> method.
+When a client-side CRP invokes <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic::SendMessage()</apiname></xref>, the server-side CRP receives a <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::HandleMessage()</apiname></xref> call. </p> <p>The client-side UI application uses the GDI interface to issue
+draw commands. <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWindowGc::DrawWsGraphic()</apiname></xref> can
+be considered to be just another draw command. </p> <p>The server-side CRP
+interface is defined by the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref> interface.
+This cannot be extended. However, the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::HandleMessage()</apiname></xref> method that accepts a data buffer can be interpreted in an application-specific
+manner by the server-side CRP author. </p> <p><b>Summary </b> </p> <table id="GUID-5418A2B7-B872-55FF-B0A3-A61E47D70997">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer</apiname></xref>  </p> </entry>
+<entry><p>The abstract base class for the server-side graphic drawer. Each
+CRP has a concrete implementation of this class. The most important function
+is <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw(MWsGc,
+TRect)</apiname></xref>, which issues the drawing commands. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGc</apiname></xref>  </p> </entry>
+<entry><p>This is provided to the graphic drawer in the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphicDrawer::DoDraw(MWsGc,
+TRect)</apiname></xref> function. There main things to note about this interface: </p> <ul>
+<li id="GUID-7C8FF1A8-D0E7-55CE-A7D2-9D26BAE9884F"><p>Because it is derived
+from <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsObjectProvider</apiname></xref>,
+it provides the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsObjectProvider::ResolveObjectInterface()</apiname></xref> function. The CRP can call this to obtain a concrete implementation of the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGraphicsContext</apiname></xref> interface
+against which to issue draw operations. </p> </li>
+<li id="GUID-B60F4FE8-E982-56B0-8403-9C724B0AC33C"><p>It provides the <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>MWsGc::ScheduleAnimation()</apiname></xref> function,
+which as its name suggests enables the CRP to schedule animations. During
+drawing, the CRP can ask to be drawn again after a specified time period. </p> </li>
+</ul> <p>CRPs do not need to hold onto a handle to a graphic context, because
+they are passed one every time they are required to draw. This means that
+other parts of the Window Server (specifically render stages) can safely redirect
+drawing without any concern that CRPs hold invalid graphics contexts. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>CWsGraphic</apiname></xref>  </p> </entry>
+<entry><p>This is the abstract base class for the client-side proxy. This
+serves a function similar to <xref href="GUID-213DF770-58AE-3176-93E8-8D72E516AE45.dita"><apiname>RAnim</apiname></xref>,
+enabling the client to control the CRP's state remotely. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody><related-links>
+<link href="GUID-5D81D4E2-BE8B-58CE-A745-4F044DE2FB5F.dita"><linktext>Window Server
+Plug-in                 Framework</linktext></link>
+</related-links></concept>

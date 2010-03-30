@@ -9,53 +9,124 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-AF5A75D7-0687-546C-87B2-0B7DF7D33217"><title>SQL WHERE Clause Tips</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The guide provides tips for using the WHERE clause. </p> <section><title>Introduction</title> <p>You should use indexed column names rather than expressions in WHERE clauses. </p> <p><b>Intended audience:</b> </p> <p>This document is intended to be used by Symbian OS licensees and third party application developers. </p> </section> <section id="GUID-54EE7DC6-1E73-5A90-9442-7056C355DB63"><title>Used Indexed Column Names, not Expressions, in WHERE Clauses</title> <p>Suppose you have a table with an indexed column you want to search against, like this: </p> <codeblock id="GUID-0BEAF3EE-EFEC-50E2-81AD-38AFC4BA3A79" xml:space="preserve">
+<concept id="GUID-AF5A75D7-0687-546C-87B2-0B7DF7D33217" xml:lang="en"><title>SQL WHERE Clause Tips</title><shortdesc>This guide provides tips for using the WHERE clause. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-DF59190A-38ED-4ACA-B4F2-C4D08FBE50BB"><title>Introduction</title> <p>You should use indexed column names
+rather than expressions in WHERE clauses. </p> <p><b>Intended
+audience:</b> </p> <p>This document is intended to be used by Symbian platform
+licensees and third party application developers. </p> </section>
+<section id="GUID-54EE7DC6-1E73-5A90-9442-7056C355DB63"><title>Used Indexed
+Column Names, not Expressions, in WHERE Clauses</title> <p>Suppose you have
+a table with an indexed column you want to search against, like this: </p> <codeblock id="GUID-0BEAF3EE-EFEC-50E2-81AD-38AFC4BA3A79" xml:space="preserve">
 CREATE TABLE demo312(
     id INTEGER PRIMARY KEY,
     name TEXT
 );
-</codeblock> <p>When you use the demo312.id column in a query, it is important that the column name appear by itself on one side of the comparison operation and that it not be part of an expression. So the following query works very efficiently: </p> <codeblock id="GUID-FA12E021-9464-5F19-B192-84CF46BE6028" xml:space="preserve">
+</codeblock> <p>When you use the demo312.id column in a query, it is important
+that the column name appear by itself on one side of the comparison operation
+and that it not be part of an expression. So the following query works very
+efficiently: </p> <codeblock id="GUID-FA12E021-9464-5F19-B192-84CF46BE6028" xml:space="preserve">
 SELECT name FROM demo312 WHERE id=?;
-</codeblock> <p>But the following variations, although logically equivalent, result in a full table scan: </p> <codeblock id="GUID-D37A64D9-9480-572E-86DD-D7A6C36CF8F5" xml:space="preserve">
+</codeblock> <p>But the following variations, although logically equivalent,
+result in a full table scan: </p> <codeblock id="GUID-D37A64D9-9480-572E-86DD-D7A6C36CF8F5" xml:space="preserve">
 SELECT name FROM demo312 WHERE id-?=0;
 SELECT name FROM demo312 WHERE id*1=?;
 SELECT name FROM demo312 WHERE +id=?;
-</codeblock> <p>In other words, you want to make sure that the indexed column name appears by itself on one side or the other of the comparison operator, and not inside an expression of some kind. Even a degenerate expression such as a single unary “+” operator will disable the optimizer and cause a full table scan. </p> <p>Some variation in terms of the WHERE clause is permitted. The column name can be enclosed in parentheses, it can be qualified with the name of its table, and it can occur on either side of the comparison operator. So all of the following forms are efficient, and will in fact generate identical bytecode: </p> <codeblock id="GUID-F400BDF3-3A5D-53EB-A94D-D2A75CB156AE" xml:space="preserve">
+</codeblock> <p>In other words, you want to make sure that the indexed column
+name appears by itself on one side or the other of the comparison operator,
+and not inside an expression of some kind. Even a degenerate expression such
+as a single unary “+” operator will disable the optimizer and cause a full
+table scan. </p> <p>Some variation in terms of the WHERE clause is permitted.
+The column name can be enclosed in parentheses, it can be qualified with the
+name of its table, and it can occur on either side of the comparison operator.
+So all of the following forms are efficient, and will in fact generate identical
+bytecode: </p> <codeblock id="GUID-F400BDF3-3A5D-53EB-A94D-D2A75CB156AE" xml:space="preserve">
 SELECT name FROM demo312 WHERE id=?;
 SELECT name FROM demo312 WHERE demo312.id=?;
 SELECT name FROM demo312 WHERE ?=id;
 SELECT name FROM demo312 WHERE (id)=?;
 SELECT name FROM demo312 WHERE (((demo321.id))=?);
-</codeblock> <p>The previous examples have all shown SELECT statements. But the same rules apply for the WHERE clause in DELETE and UPDATE statements: </p> <codeblock id="GUID-BFF2D644-12F1-5CF4-9658-CCA9A38A258E" xml:space="preserve">
+</codeblock> <p>The previous examples have all shown SELECT statements. But
+the same rules apply for the WHERE clause in DELETE and UPDATE statements: </p> <codeblock id="GUID-BFF2D644-12F1-5CF4-9658-CCA9A38A258E" xml:space="preserve">
 UPDATE demo312 SET name=? WHERE id=?;
 DELETE FROM demo312 WHERE id=?;
-</codeblock> </section> <section id="GUID-DA77E2E3-2F9D-5F56-A699-8BFDFE6CD3ED"><title>Use Conjunctions in WHERE Clause Expressions</title> <p>SQLite works best when the expression in a WHERE clause is a list of terms connected by the conjunction (AND) operator. Furthermore, each term should consist of a single comparison operator against an indexed column. The same rule also applies to ON clauses in a join and to a HAVING clause. </p> <p>SQLite is able to optimize queries such as this: </p> <codeblock id="GUID-0B7F11E0-E50E-5C3B-B0B6-7390BDF7F201" xml:space="preserve">
+</codeblock> </section>
+<section id="GUID-DA77E2E3-2F9D-5F56-A699-8BFDFE6CD3ED"><title>Use Conjunctions
+in WHERE Clause Expressions</title> <p>SQLite works best when the expression
+in a WHERE clause is a list of terms connected by the conjunction (AND) operator.
+Furthermore, each term should consist of a single comparison operator against
+an indexed column. The same rule also applies to ON clauses in a join and
+to a HAVING clause. </p> <p>SQLite is able to optimize queries such as this: </p> <codeblock id="GUID-0B7F11E0-E50E-5C3B-B0B6-7390BDF7F201" xml:space="preserve">
 SELECT * FROM demo313 WHERE a=5 AND b IN ('on','off') AND c&gt;15.5;
-</codeblock> <p>The WHERE clause in the example above consists of three terms connected by the AND operator and each term contains a single comparison operator with a column as one operand. The three terms are: </p> <codeblock id="GUID-A2B87FA7-DBFC-534F-B549-9AAB0AB6A48F" xml:space="preserve">
+</codeblock> <p>The WHERE clause in the example above consists of three terms
+connected by the AND operator and each term contains a single comparison operator
+with a column as one operand. The three terms are: </p> <codeblock id="GUID-A2B87FA7-DBFC-534F-B549-9AAB0AB6A48F" xml:space="preserve">
 a=5
 b IN ('on','off')
 c&gt;15.5
-</codeblock> <p>The SQLite query optimizer is able to break the WHERE clause down and analyze each of the terms separately, and possibly use one or more of those terms with indexes to generate bytecode that runs faster. But consider the following similar query: </p> <codeblock id="GUID-E6734A32-D04F-5594-B435-4EA15B4B03F9" xml:space="preserve">
+</codeblock> <p>The SQLite query optimizer is able to break the WHERE clause
+down and analyze each of the terms separately, and possibly use one or more
+of those terms with indexes to generate bytecode that runs faster. But consider
+the following similar query: </p> <codeblock id="GUID-E6734A32-D04F-5594-B435-4EA15B4B03F9" xml:space="preserve">
 SELECT * FROM demo313 WHERE (a=5 AND b IN ('on','off') AND c&gt;15.5) OR d=0;
-</codeblock> <p>In this case, the WHERE clause consist of two terms connected by an OR. The query optimizer is not able to break this expression up for analysis. As a result, this query will be implemented as a full table scan in which the complete WHERE clause expression will be evaluated for each row. </p> <p>In this case, refactoring the WHERE clause does not help much: </p> <codeblock id="GUID-1B5F89D5-F21C-5F53-B427-C2EC6ACEAF21" xml:space="preserve">
+</codeblock> <p>In this case, the WHERE clause consist of two terms connected
+by an OR. The query optimizer is not able to break this expression up for
+analysis. As a result, this query will be implemented as a full table scan
+in which the complete WHERE clause expression will be evaluated for each row. </p> <p>In
+this case, refactoring the WHERE clause does not help much: </p> <codeblock id="GUID-1B5F89D5-F21C-5F53-B427-C2EC6ACEAF21" xml:space="preserve">
 SELECT * FROM demo313 WHERE (a=5 OR d=0) AND (b IN ('on','off') OR d==0)
     AND (c&gt;15.5 OR d=0)
-</codeblock> <p>The WHERE clause is now a conjunctive expression but its terms are not simple comparison operators against table columns. The query optimizer will be able to break the WHERE expression into three smaller subexpressions for analysis, but because each subexpression is a disjunction, no indexes will be usable and a full table scan will result. </p> <p>If you know in advance that all rows in the result set are unique (or if that is what you want anyway) then the following query can be used for an efficient implementation: </p> <codeblock id="GUID-D1C700BD-F69C-5C67-8EF4-CC7BED64A2BB" xml:space="preserve">
+</codeblock> <p>The WHERE clause is now a conjunctive expression but its terms
+are not simple comparison operators against table columns. The query optimizer
+will be able to break the WHERE expression into three smaller subexpressions
+for analysis, but because each subexpression is a disjunction, no indexes
+will be usable and a full table scan will result. </p> <p>If you know in advance
+that all rows in the result set are unique (or if that is what you want anyway)
+then the following query can be used for an efficient implementation: </p> <codeblock id="GUID-D1C700BD-F69C-5C67-8EF4-CC7BED64A2BB" xml:space="preserve">
 SELECT * FROM demo313 WHERE a=5 AND b IN ('on','off') AND c&gt;15.5
 UNION
 SELECT * FROM demo313 WHERE d=0
-</codeblock> <p>In this form, the two queries are evaluated separately and their results are merged to get the final result. The WHERE clause on both queries is a conjunction of simple comparison operators so both queries could potentially be optimized to use indexes. </p> <p>If the result set could potentially contain two or more identical rows, then you can run the above query efficiently as follows: </p> <codeblock id="GUID-CDCBAE0D-BE30-575B-A7A4-E3E7E8F99000" xml:space="preserve">
+</codeblock> <p>In this form, the two queries are evaluated separately and
+their results are merged to get the final result. The WHERE clause on both
+queries is a conjunction of simple comparison operators so both queries could
+potentially be optimized to use indexes. </p> <p>If the result set could potentially
+contain two or more identical rows, then you can run the above query efficiently
+as follows: </p> <codeblock id="GUID-CDCBAE0D-BE30-575B-A7A4-E3E7E8F99000" xml:space="preserve">
 SELECT * FROM demo313 WHERE RowID IN (
     SELECT RowID FROM demo313 WHERE a=5 AND b IN('on','off') AND c&gt;15.5
     UNION ALL
     SELECT RowID FROM demo313 WHERE d=0
 )
-</codeblock> <p>The subquery computes a set containing the RowID of every row that should be in the result set. Then the outer query retrieves the desired rows. When a WHERE clause contains OR terms at the top level, most enterprise-class SQL database engines such as PostgreSQL or Oracle will automatically convert the query to a form similar to the above. But in order to keep minimize the complexity and size of SQLite, such advanced optimizations are omitted. In the rare cases where such queries are required, than can be optimized manually by the programmer by recasting the query statements as shown above. </p> </section> </conbody><related-links><link href="GUID-22844C28-AB5B-5A6F-8863-7269464684B4.dita"><linktext>SQL Overview</linktext> </link> <link href="GUID-78773BCA-ADF6-53E6-AC80-5CB2AE1F8BCC.dita"><linktext>SQL Server Guide</linktext> </link> <link href="GUID-E51836E1-D33E-506C-B75B-19B8E3CC313A.dita"><linktext>SQLite</linktext> </link> <link href="GUID-1F12E3F5-45B2-55EC-B021-00338277C608.dita"><linktext>SQL DB Overview</linktext> </link> <link href="GUID-43CA02E7-0101-5824-B91B-E15EE20C829A.dita"><linktext>Avoid Transient
-                Tables</linktext> </link> <link href="GUID-49A3419F-D20A-5C5D-B2FF-51724EF37704.dita"><linktext>Prevent
-                Datafile Corruption</linktext> </link> <link href="GUID-C2FAEBB2-4A1A-5BB0-9670-4801525CBC6A.dita"><linktext>SQL Index
-                Tips</linktext> </link> <link href="GUID-B994E6F7-228A-5433-B87F-91857C5D93D6.dita"><linktext>SQL Insertion
-                Tips</linktext> </link> <link href="GUID-4FC23DB7-4758-5DA4-81FF-0DAB169E2757.dita"><linktext>SQL Schema
-                Tips</linktext> </link> <link href="GUID-2A2920E0-5D40-5358-BC0C-8572CEFE078C.dita"><linktext>SQL
-                Expressions</linktext> </link> <link href="GUID-126FCCCC-0E7D-59AE-959A-2F94A7319C4B.dita"><linktext>SQL Statement
-                Tips</linktext> </link> <link href="GUID-ACCCB148-DAF9-59EC-B585-8EF632B9BF04.dita"><linktext>SQL Joins</linktext> </link> <link href="GUID-B7E978C1-45CA-554C-8028-D901B97BA2E0.dita"><linktext> ANALYZE
-                Command</linktext> </link> <link><linktext/></link></related-links></concept>
+</codeblock> <p>The subquery computes a set containing the RowID of every
+row that should be in the result set. Then the outer query retrieves the desired
+rows. When a WHERE clause contains OR terms at the top level, most enterprise-class
+SQL database engines such as PostgreSQL or Oracle will automatically convert
+the query to a form similar to the above. But in order to keep minimize the
+complexity and size of SQLite, such advanced optimizations are omitted. In
+the rare cases where such queries are required, than can be optimized manually
+by the programmer by recasting the query statements as shown above. </p> </section>
+</conbody><related-links>
+<link href="GUID-22844C28-AB5B-5A6F-8863-7269464684B4.dita"><linktext>SQL Overview</linktext>
+</link>
+<link href="GUID-78773BCA-ADF6-53E6-AC80-5CB2AE1F8BCC.dita"><linktext>SQL Server
+Guide</linktext></link>
+<link href="GUID-1F12E3F5-45B2-55EC-B021-00338277C608.dita"><linktext>SQL DB Overview</linktext>
+</link>
+<link href="GUID-43CA02E7-0101-5824-B91B-E15EE20C829A.dita"><linktext>Avoid Transient
+Tables</linktext></link>
+<link href="GUID-49A3419F-D20A-5C5D-B2FF-51724EF37704.dita"><linktext>Prevent Datafile
+Corruption</linktext></link>
+<link href="GUID-C2FAEBB2-4A1A-5BB0-9670-4801525CBC6A.dita"><linktext>SQL Index
+Tips</linktext></link>
+<link href="GUID-B994E6F7-228A-5433-B87F-91857C5D93D6.dita"><linktext>SQL Insertion
+Tips</linktext></link>
+<link href="GUID-4FC23DB7-4758-5DA4-81FF-0DAB169E2757.dita"><linktext>SQL Schema
+Tips</linktext></link>
+<link href="GUID-2A2920E0-5D40-5358-BC0C-8572CEFE078C.dita"><linktext>SQL Expressions</linktext>
+</link>
+<link href="GUID-126FCCCC-0E7D-59AE-959A-2F94A7319C4B.dita"><linktext>SQL Statement
+Tips</linktext></link>
+<link href="GUID-ACCCB148-DAF9-59EC-B585-8EF632B9BF04.dita"><linktext>SQL Joins</linktext>
+</link>
+<link href="GUID-B7E978C1-45CA-554C-8028-D901B97BA2E0.dita"><linktext> ANALYZE
+Command</linktext></link>
+</related-links></concept>

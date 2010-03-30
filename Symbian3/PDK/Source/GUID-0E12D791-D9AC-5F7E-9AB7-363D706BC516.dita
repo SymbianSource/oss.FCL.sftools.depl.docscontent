@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0E12D791-D9AC-5F7E-9AB7-363D706BC516" xml:lang="en"><title>Category:
+W32</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>W32 is a synchronous interface onto the window server that user code can
+include, link to and invoke instead of sending low level client-server requests
+to the window server. Some errors can be detected before they are sent to
+the server and are raised as panics from W32. Code in the W32 synchronous
+interface runs in the client’s thread, so it raises panics in situations it
+can understand on the current thread via <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-D64BDAEB-AB87-37ED-9F4C-99516B40FFB8"><apiname>User::Panic()</apiname></xref>.
+These panics have a category of W32. </p>
+<p>To minimise strain on the system, W32 can cache several requests in order
+in a buffer and send them as a group to the server. This means that a panic
+might not be caused by a bug in the last client-side code to run, but by an
+earlier line that does not get its request serviced until later. To debug
+such a panic it is often useful to turn on auto flushing. </p>
+<p>Window server synchronous interface (W32) panics are raised by the synchronous
+interface onto the window server when it realises a client has attempted an
+action the interface can’t legally pass on to the window server thread. Because
+the interface is synchronous, the current thread is panicked, and the request
+is never sent to the window server. </p>
+<p>These panics are defined in the enumeration <codeph>TW32Panic</codeph> in
+the <filepath>w32cmd.h</filepath> file. </p>
+<p>Note that some panics are raised in debug builds only. </p>
+<table id="GUID-A07B38D4-A8C0-5300-8B6A-CC293B4B8561">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>0</p> </entry>
+<entry><p>An attempt was made to reconnect to the window server using <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-6CA684BC-746E-3357-90A0-E5105DDC4E01"><apiname>RWsSession::Connect()</apiname></xref>.
+It is only possible to reconnect if the current session has been closed. </p> </entry>
+</row>
+<row>
+<entry><p>1</p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>2</p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>3</p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>4</p> </entry>
+<entry><p>Raised by <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-16D0746A-B05E-3BB6-AD6F-45D22F3CE0CE"><apiname>CWindowGc::MapColors()</apiname></xref> when its <codeph>aNumPairs</codeph> argument
+has a value greater than 16. </p> </entry>
+</row>
+<row>
+<entry><p>5</p> </entry>
+<entry><p>Data is too long to fit into the window server's client side buffer,
+see <xref href="GUID-E5CDDA05-CD86-5C44-B9DA-3249D9C14396.dita">Client-side buffer</xref>. </p> <p>Introduced
+in v6.0. </p> </entry>
+</row>
+<row>
+<entry><p>6</p> </entry>
+<entry><p> <codeph>CWsScreenDevice::SetCustomPalette()</codeph> was called
+with a NULL pointer. </p> <p>Introduced in v7.0. </p> </entry>
+</row>
+<row>
+<entry><p>7</p> </entry>
+<entry><p> <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-A61D694F-FDC7-369A-947C-7AD8A340768A"><apiname>CWsScreenDevice::SetPalette()</apiname></xref> failed, but no
+error code could be returned. Debug builds for the emulator only. </p> <p>Introduced
+in v7.0. </p> </entry>
+</row>
+<row>
+<entry><p>8</p> </entry>
+<entry><p>A direct screen access function was called out of turn. </p> <p>Introduced
+in v7.0. </p> </entry>
+</row>
+<row>
+<entry><p>9</p> </entry>
+<entry><p>An attempt was made to pass an invalid region to the window server.
+Debug builds only. </p> <p>Introduced in v7.0s. </p> </entry>
+</row>
+<row>
+<entry><p>10 </p> </entry>
+<entry><p>Raised when the client is trying to use a wrong IpcSlot. The first
+slot if raised by <xref href="GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10.dita#GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10/GUID-682EB86C-BD43-3CAD-8A29-1F1DBBFC0C8D"><apiname>RAnim::CommandReply()</apiname></xref> or <xref href="GUID-800B3667-F45F-391F-A8A9-F876FB4ABC34.dita#GUID-800B3667-F45F-391F-A8A9-F876FB4ABC34/GUID-6B0A3E62-E1F8-35D8-8C44-7EA01AE9FEDD"><apiname>RAnimDll::Construct()</apiname></xref>.
+Either the first or the second if raised by <xref href="GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10.dita#GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10/GUID-601E27D2-88BC-361F-9308-A5F85842B6CB"><apiname>RAnim::AsyncCommandReply()</apiname></xref>. </p> <p>Introduced
+in v7.0s. </p> </entry>
+</row>
+<row>
+<entry><p>11 </p> </entry>
+<entry><p>A function has been called with a <codeph>NULL</codeph> array pointer
+when it should not be. </p> <p>Introduced in v8.1. </p> </entry>
+</row>
+<row>
+<entry><p>12 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>13 </p> </entry>
+<entry><p>The <xref href="GUID-924312A8-C5C6-3A0A-8DB4-0381693AE3FD.dita#GUID-924312A8-C5C6-3A0A-8DB4-0381693AE3FD/GUID-421EAB75-3457-3F49-9D82-472CE0B4C2CB"><apiname>CWsGraphic::CManager</apiname></xref>'s <xref href="GUID-631D81BD-C05C-3802-9224-BD1D5F4F7358.dita"><apiname>RPointerArray&lt;CWsGraphic&gt;</apiname></xref> still
+has pointers to <codeph>CWsGraphic</codeph> left inside when it should be
+empty. </p> <p>Introduced in v9.2. </p> </entry>
+</row>
+<row>
+<entry><p>14 </p> </entry>
+<entry><p>Raised when one of the <codeph>CWsGraphic::CManager()</codeph>'s
+members has an inconsistent value (i.e. <codeph>NULL</codeph> when it should
+not be and vice-versa). </p> <p>Introduced in v9.2. </p> </entry>
+</row>
+<row>
+<entry><p>15 </p> </entry>
+<entry><p>Raised if <xref href="GUID-35FABDFE-4C10-3BBF-B6C5-660082840620.dita"><apiname>RWsGraphicMsgBuf</apiname></xref> has been passed an
+out of bounds index or an incorrect type message. </p> <p>Introduced in v9.2. </p> </entry>
+</row>
+<row>
+<entry><p>16 </p> </entry>
+<entry><p>Raised when trying to send an empty <xref href="GUID-EEFAEF17-4CE6-3113-87D6-7A2FF27773C3.dita"><apiname>TWsClCmdGdSendMessage</apiname></xref>. </p> <p>Introduced
+in v9.2. </p> </entry>
+</row>
+<row>
+<entry><p>17 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>18 </p> </entry>
+<entry><p>Raised when an invalid parameter is passed to a function. </p> <p>Introduced
+in v9.4. </p> </entry>
+</row>
+<row>
+<entry><p>19 </p> </entry>
+<entry><p>Raised when <codeph>Construct()</codeph> is called on an already
+constructed client-side object. </p> <p>Introduced in v9.5. </p> </entry>
+</row>
+<row>
+<entry><p>20 </p> </entry>
+<entry><p>Debug: Raised when trying to use an interface that is not initialised. </p> <p>Introduced
+in v9.5. </p> </entry>
+</row>
+<row>
+<entry><p>21 </p> </entry>
+<entry><p>Debug: Raised when returned data does not match expected sizes or
+granularity. </p> <p>Introduced in v9.5. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></conbody></concept>

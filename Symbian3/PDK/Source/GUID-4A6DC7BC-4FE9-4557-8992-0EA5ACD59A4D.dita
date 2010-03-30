@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4A6DC7BC-4FE9-4557-8992-0EA5ACD59A4D" xml:lang="en"><title>EGL Multithreading
+Requirements</title><shortdesc>This topic provides EGL implementers with information about the
+EGL multithreading requirements on the Symbian platform.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><b>Target audience</b>: Device creators.</p>
+<section id="GUID-E44AB766-ED1D-49EC-8D74-AE141B2406E7"><title>Introduction</title><p>This
+topic provides clarifications to the following sections of the EGL specification:</p><ul>
+<li>2.3 Direct Rendering and Address Spaces</li>
+<li>3.7 Rendering Context</li>
+<li>3.7.3 Binding Contexts and Drawables</li>
+</ul><p>For links to the relevant EGL specifications, see <xref href="GUID-A5914CFF-6F86-53E8-9928-36D3379835B1.dita">EGL
+Interface Overview</xref>.</p></section>
+<section id="GUID-9E17E402-DA10-4DC3-AB97-E03135310C28"><title>Number of threads
+per process</title><p>An EGL implementation must support an unlimited number
+of threads per process. On Symbian all threads within a process share the
+same virtual address space. EGL objects that are used by multiple threads
+in a process are therefore used within the address space in which they are
+created, as required by the EGL specification. </p><p>With one exception,
+all EGL functions and handles must be able to be used and shared
+between all of the threads within the same process. The exception is the EGL
+window surface as explained in <xref href="GUID-894AB487-C127-532D-852B-37CB0DEA1440.dita">Symbian-Specific
+Behavior</xref>. </p><p>There is a graphics resource cost associated with
+each additional thread that uses EGL. Typically only one thread within a process
+uses EGL. While usage by eight threads within a process should be possible,
+it is exceptional and has not been encountered in practice. Therefore you
+may want to optimize your implementation for between one and eight threads.
+ </p></section>
+<section id="GUID-D379EFA3-D88B-4626-8F2C-18FF82BB0E47"><title>Number of current
+contexts</title><p>An EGL implementation should not place arbitrary restrictions
+on the number of contexts that can be made current, other than the restrictions
+that are explicitly stated in the specification. For example, <codeph>eglMakeCurrent()</codeph> should
+not fail with <codeph>EGL_BAD_ACCESS</codeph> when a client attempts to make
+multiple OpenVG contexts current to separate threads, simply because the implementation
+has a limit to the number of contexts that can be current at the same time. </p></section>
+</conbody><related-links>
+<link href="GUID-F094A9FA-D253-5D33-B625-A2AA0B1CE447.dita"><linktext>EGL Implementer's
+Guide</linktext></link>
+</related-links></concept>

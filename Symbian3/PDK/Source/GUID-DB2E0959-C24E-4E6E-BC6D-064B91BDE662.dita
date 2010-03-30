@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DB2E0959-C24E-4E6E-BC6D-064B91BDE662" xml:lang="en"><title>Checking
+for touch support at runtime</title><shortdesc>The Symbian platform now includes <parmname>AknLayoutUtils::PenEnabled()</parmname> to
+check for touch support at runtime to allow for reduced run-time memory consumption
+if the device does not support touch.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Typical cases where <parmname>AknLayoutUtils::PenEnabled()</parmname> might
+be useful include:</p>
+<ul>
+<li><p>In the component’s constructor to skip the creation of touch-only component
+controls.</p></li>
+<li><p>In the component’s <parmname>HandleResourceChange</parmname>, create
+touch-only component controls if the layout is switched from a non-touchable
+to a touchable one. Touch-only component controls should not be deleted.</p></li>
+<li><p>In the component’s drawing code.</p></li>
+</ul>
+<note><p><codeph>AknLayoutUtils::PenEnabled()</codeph> is supported from S60
+3rd Edition, FP1, onwards.</p></note>
+<codeblock xml:space="preserve">void CMyAppContainer::ConstructL( const TRect&amp; aRect )
+    {
+    CreateWindowL();
+    SetRect( aRect );
+ 
+    // If the device supports touch, construct long tap detector
+    if ( AknLayoutUtils::PenEnabled() )
+        {
+        iLongTapDetector = CAknLongTapDetector::NewL( this );
+        }
+    ActivateL();
+    }</codeblock>
+<note><p>You cannot use <codeph>AknLayoutUtils::PenEnabled()</codeph> in <codeph>.rss</codeph> resource
+files.</p></note>
+</conbody></concept>

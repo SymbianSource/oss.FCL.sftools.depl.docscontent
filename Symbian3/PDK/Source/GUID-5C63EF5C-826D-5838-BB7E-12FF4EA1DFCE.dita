@@ -9,7 +9,44 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-5C63EF5C-826D-5838-BB7E-12FF4EA1DFCE"><title>Debugging the Host Controller</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The HCI extension-conduit enables the writing of vendor specific commands to the Bluetooth host controller hardware via the stack. Specific debugging events or command completions are received back through a "secure channel". Event notifications are only available to the one client that issued the command in the first place, and there is only one such client on a device at any one time. </p> <p><b>Intended Audience </b> </p> <p>This document is intended to be read by Symbian OS licensees. </p> <section><title>How to send vendor-specific debug commands to the host controller</title> <p>A wrapper class <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita"><apiname>CHciExtensionConduit</apiname></xref> is provided to drive a command/event loop on behalf of the client program. The wrapper class provides callbacks into the client-implemented <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita"><apiname>MVendorSpecificHciConduit</apiname></xref> interface upon reception of a debug or command completion event. On construction, the <codeph>CHciExtensionConduit</codeph> registers itself with the Bluetooth stack, which ensures that there can be only one HCI Extension Conduit in existence on a machine at one time. This means that the first such conduit constructed after bootup has sole access to issue vendor specific commands and more importantly receive back vendor specific events. </p> <p><b>Basic Procedure</b> </p> <p>To send vendor specific debug commands to the host controller: </p> <ol id="GUID-7C2C1742-54F1-533C-B511-4DB2486E6791"><li id="GUID-2AB6F7B7-69BC-5DA2-A365-BC2E32B8DFE1"><p>create an array for your vendor specific commands and a descriptor to hold this data </p> </li> <li id="GUID-5567327D-A4EF-51AE-8123-3E358AF16CC7"><p>call <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita#GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B/GUID-1989D0A7-ADC4-33F2-B1B1-6F1DDB685DE1"><apiname>CHciExtensionConduit::IssueCommandL()</apiname></xref> to issue the vendor specific command to the hardware, passing it the descriptor containing the raw binary data for the command. The raw binary data should not include the HCI transport header and footer bytes, as the stack will add these automatically to the provided hex command. </p> </li> <li id="GUID-2B1DD0BD-547B-5C66-BD73-2EA5406195CA"><p>define and implement <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita#GUID-2591274E-4F6F-315C-B170-82D980E82750/GUID-08860F56-E933-3746-962F-92FA858EAB56"><apiname>MVendorSpecificHciConduit::CommandCompleted()</apiname></xref>: this function is called when a vendor specific command issued through the conduit receives a completion from the hardware. </p> </li> <li id="GUID-0C35ABB8-E040-5DB9-85D4-62A8F7B71A2D"><p>If the command generates debug events, call <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita#GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B/GUID-AB5A6279-CA79-3318-A3A1-111118985C57"><apiname>CHciExtensionConduit::WaitForEvent()</apiname></xref> to instruct the conduit that vendor debug events are expected back from the hardware. Implement <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita#GUID-2591274E-4F6F-315C-B170-82D980E82750/GUID-C4154C63-3F48-3FF2-8702-923327370170"><apiname>MVendorSpecificHciConduit::ReceiveEvent()</apiname></xref> to get your specific debug event data generated from the hardware. </p> </li> </ol> <p><b> Example </b> </p> <codeblock id="GUID-1E719427-E3AB-5ED8-9EEC-C8C0D8EFE725" xml:space="preserve">class CDebugEventConsole : public CBase, private MVendorSpecificHciConduit
+<concept id="GUID-5C63EF5C-826D-5838-BB7E-12FF4EA1DFCE" xml:lang="en"><title>Debugging
+the Host Controller</title><shortdesc>Describes how to debug the host controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The HCI extension-conduit enables the writing of vendor specific commands
+to the Bluetooth host controller hardware via the stack. Specific debugging
+events or command completions are received back through a "secure channel".
+Event notifications are only available to the one client that issued the command
+in the first place, and there is only one such client on a device at any one
+time. </p>
+
+
+<p><b>Intended Audience </b> </p>
+<p>This document is intended to be read by Symbian platform licensees. </p>
+<section id="GUID-19A5E2C9-4222-4759-BBBA-8A257313061C"><title>How to send vendor-specific debug commands to the host controller</title> <p>A
+wrapper class <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita"><apiname>CHciExtensionConduit</apiname></xref> is provided to drive
+a command/event loop on behalf of the client program. The wrapper class provides
+callbacks into the client-implemented <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita"><apiname>MVendorSpecificHciConduit</apiname></xref> interface
+upon reception of a debug or command completion event. On construction, the <codeph>CHciExtensionConduit</codeph> registers
+itself with the Bluetooth stack, which ensures that there can be only one
+HCI Extension Conduit in existence on a machine at one time. This means that
+the first such conduit constructed after bootup has sole access to issue vendor
+specific commands and more importantly receive back vendor specific events. </p> <p><b>Basic Procedure</b> </p> <p>To send vendor specific debug commands to
+the host controller: </p> <ol id="GUID-7C2C1742-54F1-533C-B511-4DB2486E6791">
+<li id="GUID-2AB6F7B7-69BC-5DA2-A365-BC2E32B8DFE1"><p>create an array for
+your vendor specific commands and a descriptor to hold this data </p> </li>
+<li id="GUID-5567327D-A4EF-51AE-8123-3E358AF16CC7"><p>call <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita#GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B/GUID-1989D0A7-ADC4-33F2-B1B1-6F1DDB685DE1"><apiname>CHciExtensionConduit::IssueCommandL()</apiname></xref> to
+issue the vendor specific command to the hardware, passing it the descriptor
+containing the raw binary data for the command. The raw binary data should
+not include the HCI transport header and footer bytes, as the stack will add
+these automatically to the provided hex command. </p> </li>
+<li id="GUID-2B1DD0BD-547B-5C66-BD73-2EA5406195CA"><p>define and implement <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita#GUID-2591274E-4F6F-315C-B170-82D980E82750/GUID-08860F56-E933-3746-962F-92FA858EAB56"><apiname>MVendorSpecificHciConduit::CommandCompleted()</apiname></xref>:
+this function is called when a vendor specific command issued through the
+conduit receives a completion from the hardware. </p> </li>
+<li id="GUID-0C35ABB8-E040-5DB9-85D4-62A8F7B71A2D"><p>If the command generates
+debug events, call <xref href="GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B.dita#GUID-EEC833C9-8711-30FA-95B5-1FB8D7A02A0B/GUID-AB5A6279-CA79-3318-A3A1-111118985C57"><apiname>CHciExtensionConduit::WaitForEvent()</apiname></xref> to
+instruct the conduit that vendor debug events are expected back from the hardware.
+Implement <xref href="GUID-2591274E-4F6F-315C-B170-82D980E82750.dita#GUID-2591274E-4F6F-315C-B170-82D980E82750/GUID-C4154C63-3F48-3FF2-8702-923327370170"><apiname>MVendorSpecificHciConduit::ReceiveEvent()</apiname></xref> to
+get your specific debug event data generated from the hardware. </p> </li>
+</ol> <p><b> Example </b> </p> <codeblock id="GUID-1E719427-E3AB-5ED8-9EEC-C8C0D8EFE725" xml:space="preserve">class CDebugEventConsole : public CBase, private MVendorSpecificHciConduit
     {
 public:
     static CDebugEventConsole* NewL();
@@ -98,4 +135,18 @@ void DoEventListenerL()
     CActiveScheduler::Start();
     CleanupStack::PopAndDestroy(2); // active shed, myDebug
     }
-</codeblock> </section> <section><title>Where Next?</title> <p>This tutorial set takes you through all the steps involved in setting up and communicating over a Bluetooth connection. </p> <ul><li id="GUID-710429DF-DDE9-5529-B0C5-62BE04E9FB03"><p> <xref href="GUID-70339E6A-63CD-5A74-846C-50771FDAC763.dita">Listening for Incoming Bluetooth Connections</xref>  </p> </li> <li id="GUID-40F5BDDB-06CF-5D2E-AD32-0BA5B9C2438F"><p> <xref href="GUID-834BD3BB-B39C-5EE9-8A62-9DC435930F95.dita">Handling the Local Device Name</xref>  </p> </li> <li id="GUID-E7C9448C-4C00-5755-BCF0-47ADD30F012C"><p> <xref href="GUID-FDA7B932-B9C6-502D-8699-C18C8D86BCC6.dita">Performing Low-level Configuration</xref>  </p> </li> <li id="GUID-8E85825C-92DB-554D-9EBC-74297A3CD148"><p> <b>Debugging the Host Controller</b> - This document </p> </li> <li id="GUID-39439F8A-81F6-5AA2-88D2-DEC3FCE8DC11"><p> <xref href="GUID-01A0682A-50B1-57AB-9939-6CC8FCCD782D.dita">Disconnecting ACL links</xref>  </p> </li> </ul> </section> </conbody></concept>
+</codeblock> </section>
+<section id="GUID-205EEED3-5B56-497C-9714-0D40653DABC5"><title>Where Next?</title> <p>This tutorial set takes you through
+all the steps involved in setting up and communicating over a Bluetooth connection. </p> <ul>
+<li id="GUID-710429DF-DDE9-5529-B0C5-62BE04E9FB03"><p> <xref href="GUID-70339E6A-63CD-5A74-846C-50771FDAC763.dita">Listening
+for Incoming Bluetooth Connections</xref>  </p> </li>
+<li id="GUID-40F5BDDB-06CF-5D2E-AD32-0BA5B9C2438F"><p> <xref href="GUID-834BD3BB-B39C-5EE9-8A62-9DC435930F95.dita">Handling
+the Local Device Name</xref>  </p> </li>
+<li id="GUID-E7C9448C-4C00-5755-BCF0-47ADD30F012C"><p> <xref href="GUID-FDA7B932-B9C6-502D-8699-C18C8D86BCC6.dita">Performing
+Low-level Configuration</xref>  </p> </li>
+<li id="GUID-8E85825C-92DB-554D-9EBC-74297A3CD148"><p> <b>Debugging the Host
+Controller</b> - This document </p> </li>
+<li id="GUID-39439F8A-81F6-5AA2-88D2-DEC3FCE8DC11"><p> <xref href="GUID-01A0682A-50B1-57AB-9939-6CC8FCCD782D.dita">Disconnecting
+ACL links</xref>  </p> </li>
+</ul> </section>
+</conbody></concept>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-361BB951-DB74-4D83-ACFC-812383C8129C" xml:lang="en"><title>Activating
+items in a list</title><shortdesc>This document describes the code changes required to activate items
+in a list on single-tap.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps-unordered id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-4-1-1-7-1-4-1-7-1-3-1">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-4-1-1-7-1-4-1-7-1-3-1-1"><cmd>Replace the <codeph>EEventItemDoubleClicked</codeph> event
+with <codeph>EEventItemSingleClicked</codeph>. Remove the <codeph>EEventItemClicked</codeph> processing
+code if any.</cmd>
+<stepxmp><p>The following code snippet illustrates the changes to the event
+handling code of a File Browser application.</p><codeblock xml:space="preserve">// ----------------------------------------------------------------------------
+// CFileBrowseBaseView::HandleListBoxEventL
+//
+// If single-tap is enabled, the touch related events must be handled here
+// ----------------------------------------------------------------------------
+//
+void CFileBrowseBaseView::HandleListBoxEventL(CEikListBox* /*aListBox*/, TListBoxEvent aEventType)
+ {
+  if(AknLayoutUtils::PenEnabled())
+  {
+    switch (aEventType)
+    {
+<b>		  //case EEventItemDoubleClicked:</b> ----- Remove this code--------------
+      <b>case EEventItemSingleClicked:</b> //------- Include this new event for item activation---
+      {
+        NavigateL(iListBox-&gt;CurrentItemIndex()); // user defined function for navigating to the selected folder
+	     OpenFolderL(); // user defined function for opening the selected folder
+	     break;
+      }
+    }
+  }
+}
+</codeblock></stepxmp>
+</step>
+</steps-unordered>
+</taskbody></task>

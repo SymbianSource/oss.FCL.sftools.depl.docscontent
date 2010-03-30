@@ -9,8 +9,36 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-B4039418-6499-555D-AC24-9B49161299F2"><title>Creating a Periodic Timer</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>You can use a periodic timer to provide repeated signals to your process. </p> <p>The following example illustrates a periodic timer with a delay of a second and a repeating interval of ten milliseconds. It also configures a thread function as the timer expiry notification using <codeph>SIGEV_THREAD</codeph>. </p> <p>The following example code performs the following tasks: </p> <ol id="GUID-B648631F-8CC2-5304-B2DC-6A9293385E3E"><li id="GUID-228938F5-3F52-5853-96FC-2556650A617A"><p>Creates a notification function (thread function) that must be invoked after timer expiry. </p> </li> <li id="GUID-7F02B8B1-7AE3-566A-A864-A64B45837C79"><p>Sets the thread priority to <b>255</b> using the thread scheduling parameters (<codeph>struct sched_param</codeph>). This ensures that the thread function has the highest priority when it is invoked as a result of a timer expiry. </p> </li> <li id="GUID-14F0D0AC-65EF-56B6-B82A-EC41C4DDA94F"><p>Creates a timer based on the current system time (<codeph>CLOCK_REALTIME</codeph>) and a notification function (<codeph>struct
-             sigevent sig</codeph>) that must be invoked when the timer expires. </p> </li> <li id="GUID-0A915D17-5113-563B-9CE4-7A7B7B7D7B23"><p>Defines the input values for <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. The key input values are the timer value (<codeph>in.it_value.tv_sec = 1;</codeph>) and the interval (<codeph>in.it_interval.tv_nsec = 100000000;</codeph>). The periodic timer will expire after a second and then invoke the notification function every one-tenth of a second until it is destroyed. </p> </li> <li id="GUID-126A5B20-133D-585A-9FF9-9CB5456D2D71"><p>Starts the periodic timer using <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. </p> </li> <li id="GUID-FD1EEA8C-3215-5DBE-BB29-47576DED3955"><p>Uses <codeph>sleep(2)</codeph> to pause the program execution for two seconds before destroying the timer. </p> </li> </ol> <codeblock id="GUID-60B88762-E6C3-52F8-8DBC-E77D70B03FAE" xml:space="preserve">#include &lt;time.h&gt;
+<concept id="GUID-B4039418-6499-555D-AC24-9B49161299F2" xml:lang="en"><title>Creating
+a Periodic Timer</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You can use a periodic timer to provide repeated signals to your process. </p>
+<p>The following example illustrates a periodic timer with a delay of a second
+and a repeating interval of ten milliseconds. It also configures a thread
+function as the timer expiry notification using <codeph>SIGEV_THREAD</codeph>. </p>
+<p>The following example code performs the following tasks: </p>
+<ol id="GUID-B648631F-8CC2-5304-B2DC-6A9293385E3E">
+<li id="GUID-228938F5-3F52-5853-96FC-2556650A617A"><p>Creates a notification
+function (thread function) that must be invoked after timer expiry. </p> </li>
+<li id="GUID-7F02B8B1-7AE3-566A-A864-A64B45837C79"><p>Sets the thread priority
+to <b>255</b> using the thread scheduling parameters (<codeph>struct sched_param</codeph>).
+This ensures that the thread function has the highest priority when it is
+invoked as a result of a timer expiry. </p> </li>
+<li id="GUID-14F0D0AC-65EF-56B6-B82A-EC41C4DDA94F"><p>Creates a timer based
+on the current system time (<codeph>CLOCK_REALTIME</codeph>) and a notification
+function (<codeph>struct              sigevent sig</codeph>) that must be
+invoked when the timer expires. </p> </li>
+<li id="GUID-0A915D17-5113-563B-9CE4-7A7B7B7D7B23"><p>Defines the input values
+for <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. The key input values are the timer
+value (<codeph>in.it_value.tv_sec = 1;</codeph>) and the interval (<codeph>in.it_interval.tv_nsec
+= 100000000;</codeph>). The periodic timer will expire after a second and
+then invoke the notification function every one-tenth of a second until it
+is destroyed. </p> </li>
+<li id="GUID-126A5B20-133D-585A-9FF9-9CB5456D2D71"><p>Starts the periodic
+timer using <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. </p> </li>
+<li id="GUID-FD1EEA8C-3215-5DBE-BB29-47576DED3955"><p>Uses <codeph>sleep(2)</codeph> to
+pause the program execution for two seconds before destroying the timer. </p> </li>
+</ol>
+<codeblock id="GUID-60B88762-E6C3-52F8-8DBC-E77D70B03FAE" xml:space="preserve">#include &lt;time.h&gt;
 #include &lt;stdio.h&gt;
 #include &lt;signal.h&gt;
 #include &lt;pthread.h&gt;
@@ -62,11 +90,18 @@ int main()
     else
     printf("timer_create() failed with %d\n", errno);
     return Ret;
-    }</codeblock> <p>The output of the above program is: </p> <codeblock id="GUID-313450D1-6766-58C6-933C-49AD55A5D985" xml:space="preserve">Handler entered with value :20 for 1 times
+    }</codeblock>
+<p>The output of the above program is: </p>
+<codeblock id="GUID-313450D1-6766-58C6-933C-49AD55A5D985" xml:space="preserve">Handler entered with value :20 for 1 times
 Handler entered with value :20 for 2 times
 Handler entered with value :20 for 3 times
 Handler entered with value :20 for 4 times
 Handler entered with value :20 for 5 times
 Handler entered with value :20 for 6 times
 Handler entered with value :20 for 7 times
-Handler entered with value :20 for 8 times</codeblock> <p> <b>Note:</b> Ideally, in the preceding output the handler must have entered <b>10</b> times. This is not the case on Symbian platform as there is some latency due to the timer emulation solution and the underlying Symbian platform clock resolution. </p> </conbody></concept>
+Handler entered with value :20 for 8 times</codeblock>
+<p> <b>Note:</b> Ideally, in the preceding output the handler must have entered <b>10</b> times.
+This is not the case on the Symbian platform as there is some
+latency due to the timer emulation solution and the underlying Symbian platform
+clock resolution. </p>
+</conbody></concept>

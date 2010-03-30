@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-12C74671-1988-55E7-8320-FE77024A523C"><title>Supplying Data to a 3GP Parser</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This tutorial describes how to supply data to a 3GP Parser. </p> <section><title>Purpose</title> <p>To use the 3GP Parser in buffer mode, you must supply MP4/3GP/3G2 content in sequential blocks of data. The purpose of this tutorial is to show you how to supply the data to a 3GP Parser. </p> <p><b>Required background</b> </p> <p>The <xref href="GUID-EF71F4BF-2206-5489-BDB9-2F85ED74D6E2.dita">3GP Library Overview</xref> introduces the 3GP Parser. </p> <p><b>Introduction</b> </p> <p>You use the <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::InsertData()</apiname></xref> function to supply data to a 3GP Parser. If there is not enough data to process requests, the 3GP Parser returns <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>KErrMM3GPLibMoreDataRequired</apiname></xref>. You supply more data to the 3GP Parser through the <codeph>C3GPParse::InsertData()</codeph> function. A copy of the supplied data will be stored within the 3GP Parser. You are safe to destroy your copy on the return of <codeph>C3GPParse::InsertData()</codeph>. </p> <p><b>Setup and configuration requirements</b> </p> <p>To initialise the 3GP Parser to read data from a buffer, you must use the correct overload of <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::Open()</apiname></xref>. For more information, see <xref href="GUID-4D4A2853-B573-5B16-B9E3-0E4853C90BCD.dita">Setting up a 3GP Parser</xref>. </p> </section> <section><title>Using InsertData() </title> <p>The following tasks are covered in this tutorial: </p> <ul><li id="GUID-67E0DA94-768A-5261-83B1-76A8B4B04A7C"><p><xref href="GUID-12C74671-1988-55E7-8320-FE77024A523C.dita#GUID-12C74671-1988-55E7-8320-FE77024A523C/GUID-BF727AE9-4EB1-5A57-96C9-475A19BAB6CF"> Supplying data to a 3GP Parser</xref>  </p> </li> </ul> <p id="GUID-BF727AE9-4EB1-5A57-96C9-475A19BAB6CF"><b>Supplying data to a 3GP Parser</b> </p> <p>The high-level steps to supply data to a 3GP Parser are shown here: </p> <ul><li id="GUID-B5F5D1E3-588C-5A12-897A-67136877297C"><p>Call <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::InsertData(const
+                  TDesC8&amp;)</apiname></xref> and set <codeph>aBuffer</codeph> to be a descriptor containing the data to be inserted. </p> <codeblock id="GUID-DE2F5E16-426F-5114-A066-54F49EFC8492" xml:space="preserve">TInt InsertData(const TDesC8&amp; aBuffer);</codeblock> </li> </ul> </section> <section><title>Example</title> <p>The following example shows you how to supply a received data block into the 3GP Parser: </p> <codeblock id="GUID-5AF6897B-8C6D-5B7F-A082-0DE22D581093" xml:space="preserve">CMyApp::ReceiveFileContentL(const TDesC&amp; aData)
+    {
+    ...
+    // assume parser already setup in buffer mode
+    ...
+// supply the received data block into the parser
+User::LeaveIfError(iParser-&gt;InsertData(aData));       
+    
+// attempt to retrieve video properties
+err = parser-&gt;GetVideoProperties(...);
+if (err == KErrMM3GPLibMoreDataRequired)
+   {
+   // indicate to supplier of the content more data is needed
+   // before this can be processed.  Possibly to trigger CMyApp::ReceiveFileContentL
+   // to be called again with the next block of data
+   }     
+else 
+   {
+   // do something with the video properties
+   }    
+    }  </codeblock> </section> <section><title>See also</title> <p><xref href="GUID-4D4A2853-B573-5B16-B9E3-0E4853C90BCD.dita">Setting up a 3GP Parser</xref>  </p> <p><xref href="GUID-CC4BA8E7-BCAB-58F7-AC5D-BA75A82D04AE.dita">Getting Audio and Video Stream Metadata</xref>  </p> <p><xref href="GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF.dita">Reading Video and Audio Content</xref>  </p> </section> </conbody></concept>

@@ -9,15 +9,32 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-50BE8F1A-513A-433C-B045-66658FC226D7" xml:lang="en"><title>Client/server communication</title><prolog><metadata><keywords/></metadata></prolog><conbody>
-<p><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/guide/Base-subsystem-guide/e32/InterProcessCommunication/index.html" format="application/java-archive">Inter Process communication</xref> (IPC) is the basis for client/server architecture. Clients and servers run in different threads, although not necessarily in different processes, and communicate through message passing protocol. There are no direct pointers between the parties, leaving the integrity of the server and its resources untouched by clients. For more information, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/guide/Base-subsystem-guide/e32/InterProcessCommunication/ClientServer/ClientServerIntroduction.guide.html" format="application/java-archive">Introduction to the client/server architecture</xref>.</p>
-<p>Communication between the client and the server is managed by <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/guide/Base-subsystem-guide/e32/InterProcessCommunication/ClientServer/InterThreadDataTransfer.guide.html" format="application/java-archive">Inter-thread data transfer</xref>. Only the server and its clients can decode the parameters of the message. This is also a security feature, because process boundaries are separators of memory space, direct pointers to the client's data structures cannot be delivered. All data not fitting in the provided integers must be represented as a <xref href="GUID-261ADCEC-C8C8-46E3-A7DC-804AC868C233.dita">descriptor</xref>, and an address to the descriptor (or actually a <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TPckgClass.html" format="application/java-archive">TPckg</xref></codeph> object) is delivered within the message. The server then uses safe inter-thread read and write functions to access the provided descriptor.</p>
+<concept id="GUID-50BE8F1A-513A-433C-B045-66658FC226D7" xml:lang="en"><title>Client/server
+communication</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><xref href="GUID-E530CBB9-C20D-5426-89AA-DC0281C05381.dita">Inter Process
+Communication</xref> (IPC) is the basis for client/server architecture. Clients
+and servers run in different threads, although not necessarily in different
+processes, and communicate through message passing protocol. There are no
+direct pointers between the parties, leaving the integrity of the server and
+its resources untouched by clients. For more information, see <xref href="GUID-D4C7A714-F7BB-5A8D-A875-4796395B9B6C.dita">Introduction
+to the client/server architecture</xref>.</p>
+<p>Communication between the client and the server is managed by <xref href="GUID-E651C7A7-D6EB-533E-A97A-360D089DE7A5.dita">Inter-thread data transfer</xref>.
+Only the server and its clients can decode the parameters of the message.
+This is also a security feature, because process boundaries are separators
+of memory space, direct pointers to the client's data structures cannot be
+delivered. All data not fitting in the provided integers must be represented
+as a <xref href="GUID-261ADCEC-C8C8-46E3-A7DC-804AC868C233.dita">descriptor</xref>,
+and an address to the descriptor (or actually a <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TPckgClass.html" format="application/java-archive">TPckg</xref></codeph> object)
+is delivered within the message. The server then uses safe inter-thread read
+and write functions to access the provided descriptor.</p>
 <p>The following figure shows the relationship of the <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/e32cmn.hGlobals.html#%3a%3aTDesC" format="application/java-archive">TDesC</xref></codeph> and <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TPckgClass.html" format="application/java-archive">TPckg</xref></codeph> classes.</p>
-<fig id="GUID-715F1B96-AFC4-4FB2-AF51-6E720077F83A"><title>Relationship of a message package and a descriptor class</title><image href="GUID-D99BA4CA-9823-4968-953D-36AA7F266B39_d0e8172_href.png"/></fig>
+<fig id="GUID-715F1B96-AFC4-4FB2-AF51-6E720077F83A"><title>Relationship of a message package and a descriptor class</title><image href="GUID-D99BA4CA-9823-4968-953D-36AA7F266B39_d0e12366_href.png"/></fig>
 <p>Consider the following issues when implementing the client-side API:</p>
 <ul>
 <li><p>Determine if the server is already running with the <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TFindServerClass.html" format="application/java-archive">TFindServer</xref></codeph> class. If not, then it should be launched.</p></li>
-<li><p>Once the server is running, create the connection with <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/RSessionBaseClass.html" format="application/java-archive">RSessionBase::CreateSession</xref></codeph> and make sure there are free message slots available to avoid lost messages.</p></li>
-<li><p>When packaging message arguments, make sure they are in a format that the server understands. For more information, see <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TIpcArgsClass.html" format="application/java-archive">TIpcArgs</xref></codeph>.</p></li>
+<li><p>Once the server is running, create the connection with <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/RSessionBaseClass.html" format="application/java-archive">RSessionBase::CreateSession</xref></codeph> and make sure there are free message slots available to avoid lost
+messages.</p></li>
+<li><p>When packaging message arguments, make sure they are in a
+format that the server understands. For more information, see <codeph><xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/reference/reference-cpp/Kernel_Architecture_2/TIpcArgsClass.html" format="application/java-archive">TIpcArgs</xref></codeph>.</p></li>
 </ul>
 </conbody></concept>

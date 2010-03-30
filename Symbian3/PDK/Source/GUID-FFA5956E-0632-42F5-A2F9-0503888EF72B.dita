@@ -19,20 +19,20 @@ implementation with a fully functional implementation of their own. </shortdesc>
 <section id="GUID-3400F826-F4A6-4BCA-BF98-9CD941532B8A"><title>Implemented
 APIs</title><p>The EGL Reference Implementation implements the following EGL
 1.4 APIs: </p><ul>
-<li><p><codeph>eglGetError()</codeph></p></li>
-<li><p><codeph>eglGetDisplay()</codeph></p></li>
-<li><p><codeph>eglInitialize()</codeph></p></li>
-<li><p><codeph>eglTerminate()</codeph></p></li>
-<li><p><codeph>eglReleaseThread()</codeph></p></li>
-<li><p><codeph>eglQueryString()</codeph></p></li>
-<li><p><codeph>eglGetProcAddress()</codeph></p></li>
+<li><codeph>eglGetError()</codeph></li>
+<li><codeph>eglGetDisplay()</codeph></li>
+<li><codeph>eglInitialize()</codeph></li>
+<li><codeph>eglTerminate()</codeph></li>
+<li><codeph>eglReleaseThread()</codeph></li>
+<li><codeph>eglQueryString()</codeph></li>
+<li><codeph>eglGetProcAddress()</codeph></li>
 </ul><p>The EGL Reference Implementation also implements the following reusable
 sync extension functions:</p><ul>
-<li><p><codeph>eglCreateSyncKHR()</codeph></p></li>
-<li><p><codeph>eglDestroySyncKHR()</codeph></p></li>
-<li><p><codeph>eglClientWaitSyncKHR()</codeph></p></li>
-<li><p><codeph>eglSignalSyncKHR()</codeph></p></li>
-<li><p><codeph>eglGetSyncAttribKHR()</codeph></p></li>
+<li><codeph>eglCreateSyncKHR()</codeph></li>
+<li><codeph>eglDestroySyncKHR()</codeph></li>
+<li><codeph>eglClientWaitSyncKHR()</codeph></li>
+<li><codeph>eglSignalSyncKHR()</codeph></li>
+<li><codeph>eglGetSyncAttribKHR()</codeph></li>
 </ul><p>The Reference Implementation implements <codeph>eglGetProcAddress()</codeph> ,
 which supports retrieving OpenWF-C extension functions. </p><p>Calling any
 of the unsupported APIs panics the client with the <codeph>EEglPanicNotSupported</codeph> panic
@@ -72,20 +72,23 @@ strings: </p><table id="GUID-EAEA383C-E4ED-4C11-A957-6EFFEECDE6BD">
 </tgroup>
 </table></section>
 <section id="GUID-CD9221D3-55FC-479B-A3DE-B28BBF32DAC0"><title>Private
-signaling function</title><p>Signaling is often used by both a third party
-application and its middleware API, such as OpenWF-C. However, once the middleware
-API calls the <codeph>eglSignalSyncKHR()</codeph> standard signaling function
+signaling function</title><p>Both applications and middleware APIs, such as
+OpenWF-C may need to signal on the EGL sync object. However, once the middleware
+API calls the standard <codeph>eglSignalSyncKHR()</codeph> signaling function
 and obtains the error code using <codeph>eglGetError()</codeph>, the error
-code is not available to the application. </p><p>The following private signaling
-function returns the error without generating the error code. This is an implementation-specific
-function, which gives the OpenWF-C implementation a mechanism for calling
-into the EGL implementation.</p><codeblock xml:space="preserve">EGLint egl_Private_SignalSyncNOK(
+code is not available to the application. </p><p>The EGL reference implementation
+therefore has the following private signaling function, which returns the
+error code instead of generating an EGL error. This enables the OpenWF implementation
+to signal the sync object and get the error code without setting
+the EGL error. This means that from the application level, the normal EGL
+error behavior is maintained.</p><codeblock xml:space="preserve">EGLint egl_Private_SignalSyncNOK(
               EGLDisplay dpy,
               EGLSyncKHR sync,
-              EGLenum mode)</codeblock><p>Generally when the same vendor implements
-both EGL and OpenWF-C, the vendor will implement their own private functions.</p><p><i>Note</i>:
-The extension name of this private signal function is <codeph>EGL_NOK__private__signal_sync</codeph>,
-which can be obtained using <codeph>eglQueryString()</codeph>. </p> </section>
+              EGLenum mode)</codeblock><p>The extension name of this private
+signal function is <codeph>EGL_NOK__private__signal_sync</codeph>, which can
+be obtained using <codeph>eglQueryString()</codeph>. </p><p>When the same
+vendor implements both EGL and OpenWF-C, the vendor might implement a different
+solution.</p> </section>
 <section id="GUID-8ED3006D-56A3-4512-A1A8-0E88149C236B"><title>Thread handling</title><p>The
 Reference Implementation allows the supported EGL APIs to be used from multiple
 threads within the same process. The Reference Implementation maintains the
@@ -111,15 +114,15 @@ management follows the EGL specification for <codeph>eglGetError()</codeph> and 
 </thead>
 <tbody>
 <row>
-<entry><p> <filepath>libegl_ref.dll</filepath>  </p> </entry>
-<entry><p>The EGL reference implementation.</p> </entry>
+<entry><filepath>libegl_ref.dll</filepath> </entry>
+<entry>The EGL reference implementation. </entry>
 </row>
 <row>
-<entry><p><filepath>libEGL.dll</filepath></p></entry>
-<entry><p>In the emulator, this provides a mechanism that switches among different
+<entry><filepath>libEGL.dll</filepath></entry>
+<entry>In the emulator, this provides a mechanism that switches among different
 EGL implementation DLLs used in different scenarios, including the Reference
 Implementation mentioned above. For ARM builds, the file above is renamed
-to this during the ROM build process. This is controlled by IBY files. </p></entry>
+to this during the ROM build process. This is controlled by IBY files.</entry>
 </row>
 </tbody>
 </tgroup>

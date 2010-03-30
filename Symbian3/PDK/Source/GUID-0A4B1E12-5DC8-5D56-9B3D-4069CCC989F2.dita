@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0A4B1E12-5DC8-5D56-9B3D-4069CCC989F2" xml:lang="en"><title>Category:
+KERN-EXEC</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>These panics represent program errors which are detected by the Kernel
+Executive. Typically, they are caused by passing bad or contradictory parameters
+to functions. Threads which cause exceptions also raise a KERN-EXEC panic. </p>
+<p>The thread causing the panic is terminated. </p>
+<table id="GUID-02685316-C647-56B2-A681-BCD54A127ABC">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>0</codeph>  </p> </entry>
+<entry><p>This panic is raised when the Kernel cannot find an object in the
+object index for the current process or current thread using the specified
+object index number (the raw handle number). </p> <p>The most common reason
+for this is trying to use a kernel-side resource without first having successfully
+created it or successfully opened it. Typically, such resources are created
+or opened through user side handles, which are instances of classes derived
+from <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref>, for example, <xref href="GUID-25327159-83D6-3507-B187-09EA4BB3727F.dita"><apiname>RLibrary</apiname></xref>, <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita"><apiname>RThread</apiname></xref>, <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita"><apiname>RProcess</apiname></xref>, <xref href="GUID-AED27A76-3645-3A04-B80D-10473D9C5A27.dita"><apiname>RSemaphore</apiname></xref>. (Note that this list is not exhaustive). </p> <p>For example, a call to <xref href="GUID-25327159-83D6-3507-B187-09EA4BB3727F.dita#GUID-25327159-83D6-3507-B187-09EA4BB3727F/GUID-D8CAE2DE-8F64-365C-A650-0516F64B4D6E"><apiname>RLibrary::Lookup()</apiname></xref> panics
+with KERN-EXEC 0 if not preceded by a successful call to <xref href="GUID-25327159-83D6-3507-B187-09EA4BB3727F.dita#GUID-25327159-83D6-3507-B187-09EA4BB3727F/GUID-4F1B2717-D34F-32A4-B6E6-03D0533186A3"><apiname>RLibrary::Load()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>1</codeph>  </p> </entry>
+<entry><p>This is a general panic raised as a result of trying an unauthorized
+activity such as trying to suspend a thread, to set the priority of a thread
+or to set the priority of a process, when not authorized to do so. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>2</codeph>  </p> </entry>
+<entry><p>This panic is raised by the kernel when opening a kernel side object,
+a <xref href="GUID-E48F1435-14B6-37F1-BE47-2EA803AFE497.dita"><apiname>DObject</apiname></xref> type, and the full name is invalid. </p> <p>The
+full name is deemed to be invalid if it contains a character that is not one
+of the printable characters lying between 0x20 and 0x7e inclusive, or it contains
+an asterisk or a question mark. </p> <p>See also <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-31A5628C-BE83-3A17-83AA-06DBE3AA92D8"><apiname>Kern::ValidateFullName()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>3</codeph>  </p> </entry>
+<entry><p>This panic is raised when an unhandled exception occurs. Exceptions
+have many causes, but the most common are access violations caused, for example,
+by dereferencing NULL. Among other possible causes are: general protection
+faults, executing an invalid instruction, alignment checks, etc. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>4</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>5</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>6</codeph>  </p> </entry>
+<entry><p>This panic is raised by the kernel when a handle to a code segment
+is invalid. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>7</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>8</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>9</codeph>  </p> </entry>
+<entry><p>This is a general type of panic that is usually raised by a device
+driver when dealing with an asynchronous request, and it finds that an asynchronous
+request is already outstanding. For an example of the context in which this
+is raised, see <filepath>...\cedar\e32test\examples\driver1\driver1_ldd.cpp</filepath>. </p> <p>This
+panic is also raised when trying to subscribe to a property through a call
+to <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-21A2FEB7-AAF1-3AC0-84B9-AB30E6CFFF99"><apiname>RProperty::Subscribe()</apiname></xref> and there is already an outstanding
+subscription on this property handle. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>10</codeph>  </p> </entry>
+<entry><p>This panic is raised by <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-8F504350-7FD4-348D-9264-62993FF8FF48"><apiname>DLogicalChannel::Request()</apiname></xref> when
+the request number passed to the function is smaller than the permitted minimum. </p> <p>See
+also <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-D0339051-4765-3BC7-8CDE-6D3F03647BD9"><apiname>DLogicalChannel::EMinRequestId()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>11</codeph>  </p> </entry>
+<entry><p>This panic is raised when creating a logical channel, and the unit
+number is outside the permitted range: </p> <ul>
+<li id="GUID-DBF4E7B7-1EF0-5D56-AA08-104FCAF57BA4"><p>If unit numbers are
+not permitted, the unit number value must be <xref href="GUID-7342BAE7-5894-3378-A6CD-B638360C4118.dita"><apiname>KNullUnit</apiname></xref>. </p> <p>If
+unit numbers are permitted, the unit number value must be less than <xref href="GUID-0C20DBC7-CE54-3A7D-8601-3C9A4B71B37D.dita"><apiname>KMaxUnits</apiname></xref>. </p> </li>
+</ul> <p>A logical channel is created as a result of a call to <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-669AF44C-96BD-3CAB-95E7-DB2C5BEA00AF"><apiname>RBusLogicalChannel::DoCreate()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>12</codeph>  </p> </entry>
+<entry><p>This panic is raised by the kernel if an event capture hook has
+already been designated. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>13</codeph>  </p> </entry>
+<entry><p>This panic is raised by the kernel if the current thread is not
+the designated event capture hook. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>14</codeph>  </p> </entry>
+<entry><p>This panic is raised when an attempt is made to set the priority
+of a thread or process to an illegal value. </p> <p>The permitted priority
+values for a user process are a subset of the values defined by the <xref href="GUID-5D289F30-2C88-396D-9748-798055F0AF56.dita"><apiname>TProcessPriority</apiname></xref> enum.
+The permitted values are: </p> <ul>
+<li id="GUID-0ED10B95-2008-598C-983E-72ABAE5FE0A5"><p> <codeph> EPriorityLow</codeph>  </p> </li>
+<li id="GUID-2F48B806-77EB-5320-B399-5895B01F756D"><p> <codeph>EPriorityBackground</codeph>  </p> </li>
+<li id="GUID-D39C73DA-747B-55EF-8645-3E21F7690400"><p> <codeph>EPriorityForeground</codeph>  </p> </li>
+<li id="GUID-847B7349-D0D6-5798-9319-EB59FABB401F"><p> <codeph>EPriorityHigh</codeph>  </p> </li>
+</ul> <p>The permitted priority values for a user thread are a subset of the
+values defined by the <xref href="GUID-8708AFB7-92CC-34FC-9FBB-E6B16472B99D.dita"><apiname>TThreadPriority</apiname></xref> enum. The permitted
+values are: </p> <ul>
+<li id="GUID-80026CCE-EC25-5E56-ABDB-7DC39968718F"><p> <codeph> EPriorityMuchLess</codeph>  </p> </li>
+<li id="GUID-398861B7-99C4-5C96-9521-306F8BA78D00"><p> <codeph> EPriorityLess</codeph>  </p> </li>
+<li id="GUID-06F0AA6A-7566-5DDC-BEAB-D5BE3B44AB64"><p> <codeph> EPriorityNormal</codeph>  </p> </li>
+<li id="GUID-A3FCF240-EE3D-55A4-8659-46299CCD4B31"><p> <codeph>EPriorityMore</codeph>  </p> </li>
+<li id="GUID-54553A7C-12DD-5707-BC5F-97314FF8CFE1"><p> <codeph> EPriorityMuchMore</codeph>  </p> </li>
+<li id="GUID-628E3CC5-F5B2-56CF-8C34-CF2B2D3F6EE5"><p> <codeph>EPriorityRealTime</codeph>  </p> </li>
+<li id="GUID-575FAE25-6354-50A8-A95E-A20FB53204BA"><p> <codeph>EPriorityAbsoluteVeryLow</codeph>  </p> </li>
+<li id="GUID-FB516869-0610-5397-BE19-549894FC96A4"><p> <codeph> EPriorityAbsoluteLow</codeph>  </p> </li>
+<li id="GUID-6AED04F0-8A4E-538B-9A26-83C9B2F82689"><p> <codeph> EPriorityAbsoluteBackground</codeph>  </p> </li>
+<li id="GUID-F5CF0B43-E465-5803-B7D9-B60397D6E590"><p> <codeph> EPriorityAbsoluteForeground</codeph>  </p> </li>
+<li id="GUID-F0FFE553-7B01-5230-92A7-1FAE6DA54CB7"><p> <codeph> EPriorityAbsoluteHigh</codeph>  </p> </li>
+</ul> </entry>
+</row>
+<row>
+<entry><p> <codeph>15</codeph>  </p> </entry>
+<entry><p>This panic is raised when a timer event is requested from an asynchronous
+timer service, an <xref href="GUID-8A423EA2-4264-30C9-9579-0466994E6E88.dita"><apiname>RTimer</apiname></xref>, and a timer event is already
+outstanding. It is caused by calling either the <xref href="GUID-8A423EA2-4264-30C9-9579-0466994E6E88.dita"><apiname>At()</apiname></xref> , <xref href="GUID-8A423EA2-4264-30C9-9579-0466994E6E88.dita"><apiname>After()</apiname></xref> or <xref href="GUID-8A423EA2-4264-30C9-9579-0466994E6E88.dita"><apiname>Lock()</apiname></xref> member
+functions after a previous call to any of these functions, but before the
+timer event requested by those functions has completed. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>16</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>17</codeph>  </p> </entry>
+<entry><p>The panic is raised if kernel heap checking has failed. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>18</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>19</codeph>  </p> </entry>
+<entry><p>This panic is raised by the Kernel when a server program makes a
+request to receive a message, i.e. when it calls the <xref href="GUID-5349904B-ACB2-3A03-B3B8-406DEA7CB80A.dita"><apiname>Receive()</apiname></xref> member
+function of <xref href="GUID-5349904B-ACB2-3A03-B3B8-406DEA7CB80A.dita"><apiname>RServer2</apiname></xref>, the handle to the Kernel side server
+object. The panic occurs when a receive message request has previously been
+made and is still outstanding. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>20</codeph>  </p> </entry>
+<entry><p>This panic is raised by the Kernel when a request for an event,
+as originated by a call to <xref href="GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9.dita#GUID-9EF04FB9-B36F-3A6F-AF3F-F2238BD181E9/GUID-B086BFD8-17EC-3834-BCB1-6155866D4CC0"><apiname>UserSvr::RequestEvent()</apiname></xref>, defined
+in the <filepath>e32svr.h</filepath> file, is made while a previously made
+request is still outstanding. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>21</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>22</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>23</codeph>  </p> </entry>
+<entry><p>This panic is raised in a call to <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-0A453CA9-9DF7-35B8-963E-D75763626136"><apiname>RSessionBase::ShareAuto()</apiname></xref> or <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-943BCB86-1497-3940-BDA5-6DB1767DA395"><apiname>RSessionBase::ShareProtected()</apiname></xref>,
+when attempting to create a session with a server that can be shared, and
+the server does not allow or support shared sessions. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>24</codeph>  </p> </entry>
+<entry><p>This panic is raised when writing global DLL data, and the length
+of data to be written is greater than the space available. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>25</codeph>  </p> </entry>
+<entry><p>This panic is raised when searching for objects, using the internal
+function <xref href="GUID-8EC6F10D-25D3-33BD-9B6F-53A96BFBF788.dita#GUID-8EC6F10D-25D3-33BD-9B6F-53A96BFBF788/GUID-DE00F320-85CA-3E7A-9EEC-F5DE6200A769"><apiname>TFindHandleBase::NextObject()</apiname></xref>, and an invalid
+type of object is specified; i.e. it is not a thread, process, chunk, mutex
+etc. etc. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>26</codeph>  </p> </entry>
+<entry><p>This panic is raised by kernel side code that implements heap debugging
+behavior, when a specific debug request is not recognized. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>27</codeph>  </p> </entry>
+<entry><p>This panic is raised when an executive call is made with an invalid
+call number. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>28</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>29</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>30</codeph>  </p> </entry>
+<entry><p>This panic is raised when an attempt is being made to send a synchronous
+message to a server more than once, using the current thread's dedicated synchronous
+message. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>31</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>32</codeph>  </p> </entry>
+<entry><p>This panic is called by <xref href="GUID-5B2E4FFA-8E41-3D62-A386-11BFD3EBB436.dita#GUID-5B2E4FFA-8E41-3D62-A386-11BFD3EBB436/GUID-1827A0F0-B70B-339D-8EBA-407B212CA7B1"><apiname>DProcess::Resume()</apiname></xref> when
+trying to resume a process that is still being loaded. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>33</codeph>  </p> </entry>
+<entry><p>This panic is raised in a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F9B70C06-0611-3EA8-9C9C-553B77347D36"><apiname>Kern::KUDesInfo()</apiname></xref>, <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8B62DE20-357F-3499-9F2E-FAD4B18C34D6"><apiname>Kern::KUDesPut()</apiname></xref>,
+when an invalid descriptor is passed. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>34</codeph>  </p> </entry>
+<entry><p>This panic is raised in a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-998E9D58-0CA4-37B2-9E27-9338B0E87CC0"><apiname>Kern::KUDesSetLength()</apiname></xref> and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8B62DE20-357F-3499-9F2E-FAD4B18C34D6"><apiname>Kern::KUDesPut()</apiname></xref> when
+the descriptor passed to it is not a modifiable type; i.e. is derived from <xref href="GUID-52D07F46-2162-380C-A775-C3BB335C42F5.dita"><apiname>TDesC</apiname></xref> but
+not derived from <xref href="GUID-49D4E917-57EA-39AE-8941-144AA8AC2584.dita"><apiname>TDes</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>35</codeph>  </p> </entry>
+<entry><p>This panic is raised in a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-998E9D58-0CA4-37B2-9E27-9338B0E87CC0"><apiname>Kern::KUDesSetLength()</apiname></xref> &amp; <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-8B62DE20-357F-3499-9F2E-FAD4B18C34D6"><apiname>Kern::KUDesPut()</apiname></xref> when
+the length of the source descriptor is longer than the maximum length of the
+target descriptor. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>36</codeph>  </p> </entry>
+<entry><p>This panic is raised by the kernel side code that implements the
+setting of the currency symbol when the length of the currency symbol is greater
+than <xref href="GUID-CE2D102D-9506-33DD-AC20-012BA428EA23.dita"><apiname>KMaxCurrencySymbol</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>37</codeph>  </p> </entry>
+<entry><p>This panic is raised by kernel code when it tries to acquire the
+process DLL lock just before a load, and the wait DLL lock is invalid. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>38</codeph>  </p> </entry>
+<entry><p>This panic is raised by internal kernel code when an illegal attempt
+is made to attach to a library. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>39</codeph>  </p> </entry>
+<entry><p>This panic is raised when extracting a list of DLL entry points,
+and the number exceeds the maximum permitted. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>40</codeph>  </p> </entry>
+<entry><p>This panic is raised by internal kernel code when an illegal attempt
+is made to detach a library. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>41</codeph>  </p> </entry>
+<entry><p>This panic is raised by internal kernel code when an illegal attempt
+is made to attach to a library. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>42</codeph>  </p> </entry>
+<entry><p>This panic is raised by internal kernel code when an illegal attempt
+is made to detach a library. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>43</codeph>  </p> </entry>
+<entry><p>This panic is raised by kernel code when it tries to release the
+process DLL lock when a load fails, and the release DLL lock is invalid. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>44</codeph>  </p> </entry>
+<entry><p>This panic is raised when a bad message handle is passed to the
+kernel. This usually occurs when using functions called on the <xref href="GUID-78E0DEDD-C020-3174-AD0A-E4C18C4C9213.dita"><apiname>RMessagePtr2</apiname></xref> or <xref href="GUID-D7D422D3-65E5-378B-8F52-6485BC5603A0.dita"><apiname>RMessage2</apiname></xref> classes
+after the message has been completed; or when the <codeph>iHandle</codeph> data
+member of the base class <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> has become corrupt. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>45</codeph>  </p> </entry>
+<entry><p>This panic is not used. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>46</codeph>  </p> </entry>
+<entry><p>This panic can be raised as a result of a call to one of a large
+number of functions. In general, the panic indicates an attempt to perform
+an operation on a thread or process by code running in another process - violating
+the security principle of process isolation. </p> <p>There are exceptions
+to this general rule, for example, where the panic is raised because the calling
+process has insufficient capability. The precise reason is stated with the
+function(s). </p> <ol id="GUID-840579AC-73A7-5ED8-BD5A-6A633116CD9B">
+<li id="GUID-B98AD800-6BC7-5100-9F48-EF42647DF9DE"><p>The panic is raised
+on a call to the following function if the process owning the thread performing
+the call is not the creator of the target process or, if a handle is specified,
+the handle is not local. </p> <ul>
+<li id="GUID-D7ACCABB-9E15-542A-8C1F-910421B669D7"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-123AA6AD-CBEB-32E4-A8E9-98751B94AD76"><apiname>RProcess::SetParameter()</apiname></xref>  </p> </li>
+</ul> </li>
+<li id="GUID-962A2C9A-64E8-526A-90C0-D2F91BEDE58D"><p>The panic is raised
+on a call to the following functions if the process owning the thread performing
+the call is not the same as the target process. </p> <ul>
+<li id="GUID-83CF883A-19E0-5996-924B-9837690205A0"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-8E87D3AE-E3F0-34DD-98C6-71B0D0D55FB8"><apiname>RProcess::Kill()</apiname></xref>  </p> </li>
+<li id="GUID-E4AFEF0F-6CC7-512E-B00B-07C75DBBD909"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-3DD41FD4-F389-340F-8E18-8FDEBC953251"><apiname>RProcess::Terminate()</apiname></xref>  </p> </li>
+<li id="GUID-F394B05F-E4C2-5BB7-A65D-65626758C903"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-73C33604-1C83-3931-A10A-B61BC82A16C9"><apiname>RProcess::Panic()</apiname></xref>  </p> </li>
+<li id="GUID-2FDCE3C9-2925-5F44-96AC-DDB071592E1C"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-297A0DA2-077E-3822-9725-FD0190E4A33C"><apiname>RProcess::SetJustInTime()</apiname></xref>  </p> </li>
+<li id="GUID-46D54243-FAE8-5CF1-8729-C19016D22676"><p> <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-33A05D33-6238-3603-B306-7E257B4B026D"><apiname>RProcess::Resume()</apiname></xref>  </p> </li>
+<li id="GUID-6065D82E-61CB-5AEA-98AD-C78606FA4CEE"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-1F717486-784A-32B9-A048-EE4F2450F8C8"><apiname>RThread::Kill()</apiname></xref>  </p> </li>
+<li id="GUID-878E6D04-FAC9-5A14-B594-5F64D5455C1F"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-CE11A762-AF52-3122-86C8-C2F362AEF764"><apiname>RThread::Terminate()</apiname></xref>  </p> </li>
+<li id="GUID-6DCA3DA5-4B0D-5A45-A9DD-DA943CB10203"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8474499C-F510-381D-93D9-8162C38D3B16"><apiname>RThread::Panic()</apiname></xref>  </p> </li>
+<li id="GUID-E487DCA5-6EB4-5CEA-AD17-74934E3C1F98"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-07BD4CE6-D6F4-3162-A4AB-DB16C8C889E5"><apiname>RThread::Suspend()</apiname></xref>  </p> </li>
+<li id="GUID-2F662630-9D49-5ADD-8D85-E2A0061D4D60"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8A8E4F1C-733D-3E0E-900A-AE71B73D613B"><apiname>RThread::Resume()</apiname></xref>  </p> </li>
+<li id="GUID-89B3AF31-660B-5A55-B566-0B038B8E8A4F"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-8E412361-AE54-3585-AF2A-45D4A53F8B03"><apiname>RThread::SetPriority()</apiname></xref>  </p> </li>
+<li id="GUID-39AD9499-6641-5737-A1F8-3ADAB00EF001"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-34A51DFD-CE91-356E-96B1-008121C4E73A"><apiname>RThread::RequestComplete()</apiname></xref>  </p> </li>
+<li id="GUID-8DB5E2E4-99A5-5AFC-B03A-04BEA945A2A1"><p> <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-89D7E757-8F43-37B6-A901-53146E6346B0"><apiname>RThread::RequestSignal()</apiname></xref>  </p> </li>
+</ul> <p>NOTE: the creator of a new process can kill or panic the new process,
+change the new process priority and set the new process startup parameters
+until the process is resumed (which the creator can also do). After the new
+process has been resumed, then it becomes totally independent of its creator,
+and any attempt to panic it, kill it etc will raise the KERN-EXEC 46 panic. </p> </li>
+<li id="GUID-1A7C3FE2-5676-512B-8052-D07A5A315A35"><p>The panic is raised
+on call to the following functions if the calling process does
+not have the <i>PowerMgmt</i> capability (<xref href="GUID-604DA570-08AC-300D-A7CE-1DA984556B10.dita#GUID-604DA570-08AC-300D-A7CE-1DA984556B10/GUID-198F64D5-6E9E-39B2-A0E3-66FEFCEA4F29"><apiname>TCapability::ECapabilityPowerMgmt()</apiname></xref>): </p> <ul>
+<li id="GUID-A14BA75D-E4C0-575C-AF7D-2199FA7A6375"><p> <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-7C6F3F0F-319B-3DEE-81BF-1EB5BB2EAB0A"><apiname>Power::PowerDown()</apiname></xref>  </p> </li>
+<li id="GUID-0F65475A-45A7-58A5-A04E-697D226B7A5F"><p> <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-C49C0A07-EAC7-32CB-956F-1FFEFF2FD326"><apiname>Power::EnableWakeupEvents()</apiname></xref>  </p> </li>
+<li id="GUID-D36965A1-4111-596B-8DEF-9DE4A2CBA9B4"><p> <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-6AFD3865-569A-39C2-A790-B3CAAF925D27"><apiname>Power::DisableWakeupEvents()</apiname></xref>  </p> </li>
+<li id="GUID-DCDEB8B8-EBC1-51F4-949A-0284547840F2"><p> <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-6CFE19D9-249A-3305-8224-823D2FDB1859"><apiname>Power::RequestWakeupEventNotification()</apiname></xref> </p> </li>
+<li id="GUID-D3543A2B-C9EB-5DD5-80DD-F59D955DD2A7"><p> <xref href="GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87.dita#GUID-15D25C07-CFD2-32CE-AD22-E17D512D8E87/GUID-D098A7FB-4A92-3B92-A2CF-E79BF9AE2B38"><apiname>Power::CancelWakeupEventNotification()</apiname></xref> </p> </li>
+</ul> </li>
+<li id="GUID-B265102B-C493-5A22-AF50-A2659DC84862"><p>The panic is raised
+on call to the following functions if the calling process does not have the <i>WriteDeviceData</i> capability
+(<xref href="GUID-604DA570-08AC-300D-A7CE-1DA984556B10.dita#GUID-604DA570-08AC-300D-A7CE-1DA984556B10/GUID-1506A11A-5AF3-34B0-9184-56AB67A161F3"><apiname>TCapability::ECapabilityWriteDeviceData()</apiname></xref>): </p> <ul>
+<li id="GUID-8F76D8E1-6AC5-5364-B29E-2237EC3408B5"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-A5571413-FA54-3C3D-A898-B8F838236FAD"><apiname>User::SetMachineConfiguration()</apiname></xref>  </p> </li>
+<li id="GUID-474D8A77-AA21-53C3-B13C-65519EFF8FC5"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-95B49BD6-AAD8-3AEB-88A2-DD7E934AFAB6"><apiname>User::SetHomeTime()</apiname></xref>  </p> </li>
+<li id="GUID-2C3517E8-5E8E-5302-916F-488D1F3E2ACF"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-145F52E6-2A29-3FF1-8AD1-7009BE0074D7"><apiname>User::SetUTCTime()</apiname></xref>  </p> </li>
+<li id="GUID-7BFC639E-3EBC-5D0E-8D49-4CE109915D1E"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-68D881BA-E4BA-3795-90E0-236E07112325"><apiname>User::SetUTCOffset()</apiname></xref>  </p> </li>
+<li id="GUID-8D43C73E-D0FE-5304-BBA1-4B5B88804933"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-D1A4CF1D-1F4F-3745-BD3D-671925D16CD3"><apiname>User::SetUTCTimeAndOffset()</apiname></xref>  </p> </li>
+</ul> </li>
+<li id="GUID-964A3F2C-ECA1-5EFD-93D2-76ADEFA35946"><p>The panic is raised
+on call to the following function if the calling process does not have the <i>ReadDeviceData</i> capability
+(<xref href="GUID-604DA570-08AC-300D-A7CE-1DA984556B10.dita#GUID-604DA570-08AC-300D-A7CE-1DA984556B10/GUID-BA22B12E-D210-3177-BA37-4857F9C413EF"><apiname>TCapability::ECapabilityReadDeviceData()</apiname></xref>): </p> <ul>
+<li id="GUID-00426D50-700D-513D-A9F9-EC233D4E918B"><p> <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-CF5060E4-13A7-34B2-BCE2-CF0F672AC009"><apiname>User::MachineConfiguration()</apiname></xref>  </p> </li>
+</ul> </li>
+</ol> </entry>
+</row>
+<row>
+<entry><p> <codeph>47</codeph>  </p> </entry>
+<entry><p>This panic is raised when the user issues a request to be notified
+of messages or the availability of space, when a request has already been
+issued and is still outstanding. </p> <p>See <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref>,
+asynchronous message queues. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>48</codeph>  </p> </entry>
+<entry><p>This panic is raised when creating a message queue, and the size
+of the template parameter is invalid. </p> <p>See <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref>,
+asynchronous message queues. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>49</codeph>  </p> </entry>
+<entry><p>This panic is raised when creating a message queue, and the specified
+number of slots is not positive. </p> <p>See <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref>,
+asynchronous message queues. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>50</codeph>  </p> </entry>
+<entry><p>This panic is raised if an attempt is made to cancel an outstanding
+request to be notified of messages or the availability of space, and the cancel
+is being made by a thread in a different process to the one from which the
+request was originally made. </p> <p>See <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref>, asynchronous
+message queues. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>51</codeph>  </p> </entry>
+<entry><p>This panic is raised by <codeph>RProcess::Setparameter()</codeph> if
+a slot value is invalid. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>52</codeph>  </p> </entry>
+<entry><p>This panic is raised by <codeph>RProcess::Setparameter()</codeph> if
+a slot is in use. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>53</codeph>  </p> </entry>
+<entry><p>This panic is raised by <codeph>RProcess::Setparameter()</codeph> if
+the length of the data passed is negative. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>54</codeph>  </p> </entry>
+<entry><p>This panic is raised by <xref href="GUID-D16EF740-78E6-3D08-AE2F-AFA5E812FF2B.dita#GUID-D16EF740-78E6-3D08-AE2F-AFA5E812FF2B/GUID-086FBB57-2C47-3BA0-99C6-98451C591350"><apiname>RCondVar::Wait()</apiname></xref> when
+the current thread does not hold the specified mutex. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>55</codeph>  </p> </entry>
+<entry><p>This panic is raised when a call is made to <codeph>RThread::GetDesMaxLength()</codeph>,
+which is now obsolete. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>56</codeph>  </p> </entry>
+<entry><p>This panic is raised on a process which has not yet been resumed,
+and whose creator has died. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>57</codeph>  </p> </entry>
+<entry><p>This panic is raised when a session receives a message to connect
+to a server when the session is already connected to that server. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>58</codeph>  </p> </entry>
+<entry><p>This panic is raised during an attempt to connect to a server. As
+part of this process, a pointer to an instance of the <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> derived
+class is saved in the instance of the <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref> derived
+class. </p> <p>The panic is caused when the pointer to the session object
+is NULL. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>59</codeph>  </p> </entry>
+<entry><p>This panic is raised during an attempt to connect to a server. As
+part of this process, a pointer to an instance of the <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> derived
+class is saved in the instance of the <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref> derived
+class. </p> <p>This panic is caused when a pointer to the session has previously
+been set. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>60</codeph>  </p> </entry>
+<entry><p>This panic is raised during an attempt to connect to a server. As
+part of this process, a pointer to an instance of the <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> derived
+class is saved in the instance of the <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref> derived
+class. </p> <p>This panic is caused when a pointer to a session is being set,
+and the message is not the connect message. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>61</codeph>  </p> </entry>
+<entry><p>This panic is caused when a real-time thread attempts to execute
+a non-realtime function. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></conbody></concept>

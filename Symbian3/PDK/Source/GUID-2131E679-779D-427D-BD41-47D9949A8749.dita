@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2131E679-779D-427D-BD41-47D9949A8749" xml:lang="en"><title>Disabling
+hardware key shortcuts</title><shortdesc>This document describes how to disable hardware key shortcuts when
+none of the items in a list are highlighted.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If an application has item-specific hardware key shortcuts, they must be
+disabled when there are no visible highlights in lists.</p>
+<ul>
+<li><p>Applications must retrieve the list highlighted state using the <xref href="GUID-019B2B8B-AFAA-3806-B796-3D91B4D79361.dita#GUID-019B2B8B-AFAA-3806-B796-3D91B4D79361/GUID-951D2BAE-C567-362C-9F55-5C3969144F89"><apiname>CEikMenuBar::ItemSpecificCommandsEnabled()</apiname></xref> function.
+The function returns <codeph>ETrue</codeph> when item-specific commands are
+enabled in the menu bar (that is, a list has highlighted options) and <codeph>EFalse</codeph> when
+they are disabled (the list does not have highlighted options). </p><note>Symbian^3
+supports focused items on hybrid devices when the UI is manipulated through
+key events. For details, see <xref href="GUID-28A0E021-C702-4AAF-9C64-B60B09B40176.dita#GUID-28A0E021-C702-4AAF-9C64-B60B09B40176/GUID-D556C1B0-9D9A-4219-BFF8-5CDBA10677CA">Moving
+in hybrid devices</xref></note><p>For example, considering that an application
+supports single-tap, the following code enables the delete action only if
+the call to <codeph>ItemSpecificCommandsEnabled</codeph> indicates that an
+item is currently focused. </p><codeblock xml:space="preserve">TBool CLogsRecentListView::ProcessKeyEventL(
+const TKeyEvent&amp; aKeyEvent,
+TEventCode aType )
+{
+  if( aType == EEventKey )
+  {
+    if( <b>MenuBar()-&gt;ItemSpecificCommandsEnabled()</b> &amp;&amp; aKeyEvent.iCode == EKeyBackspace )
+    {
+      HandleCommandL( ELogsCmdMenuDelete );
+      return ETrue;
+    }
+  }
+}
+</codeblock></li>
+</ul>
+</conbody></concept>

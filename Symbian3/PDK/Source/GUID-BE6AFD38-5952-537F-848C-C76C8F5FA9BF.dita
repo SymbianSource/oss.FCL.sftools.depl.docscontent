@@ -10,41 +10,15 @@ Contributors:
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="GUID-BE6AFD38-5952-537F-848C-C76C8F5FA9BF" xml:lang="en"><title>MMC
-Controller Architecture</title><shortdesc>Describes the library and class architecture of the MMC Controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<section id="GUID-50AB2022-B205-525B-83F9-0DE0275EC3EF"><title>Library architecture</title> <p>Symbian
-platform provides support for MultiMediaCards through the MultiMediaCard controller.
-The controller manages access to the MultiMediaCard hardware on behalf of
-media drivers or any other device driver. </p> <p>The controller is implemented
-as a specialisation of the Symbian OS peripheral bus controller abstraction.
-There are two DLLs that make up the Controller: </p> <ul>
-<li id="GUID-9FAE6679-B1FC-52FA-9276-C406426992C2"><p>a generic DLL, provided
-by Symbian platform; this is called <filepath>epbusm.dll</filepath>. This
-is also referred to as the <i>platform independent layer</i>. </p> </li>
-<li id="GUID-42C30CFD-2EF1-5B98-9939-09879301E936"><p>a variant DLL, containing
-the code that is specific to the hardware; this is usually called <filepath>epbusmv.dll</filepath>.
-This is also referred to as the <i>platform specific layer</i>. </p> </li>
-</ul> <p>The generic DLL is itself split into two layers: </p> <ul>
-<li id="GUID-9184766A-7CE3-5080-B535-0AD27EC7BF48"><p>a generic peripheral
-bus layer that implements behaviour that is common to dealing with all types
-of peripheral bus </p> </li>
-<li id="GUID-FB7150C8-A253-5531-A6CA-8658684482A5"><p>a generic MMC layer
-that implements the more specialized behaviour required for dealing with MultiMediaCards. </p> </li>
-</ul> <fig id="GUID-6F516C8A-9114-50A1-A714-8BA9DD081C08">
-<image href="GUID-18E72D18-F355-5D3A-9469-E4917BFC3058_d0e383204_href.png" placement="inline"/>
-</fig> <p>Both DLLs are implemented as kernel extensions, which means that
-they are loaded very early during system initialisation. </p> <p>The controller
-can be thought of as a server managing access to the MultiMediaCard hardware
-with its clients being the local media device driver and other device drivers.
-The following diagram gives you a simplified picture of data/control flow
-as a result of a file access from the user side. </p> <fig id="GUID-D84379AB-36E2-5679-B154-40FDDF6FE334">
-<image href="GUID-BA217AA7-F21F-5586-8304-FE821E06C86E_d0e383215_href.png" placement="inline"/>
-</fig> <p>The MultiMediaCard media driver defines and implements the standard
-media driver interface derived from <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita"><apiname>DMediaDriver</apiname></xref>. This
-is the client of the MultiMediaCard controller. </p> <fig id="GUID-17F345F3-B579-5D78-BE22-0CA50A88FAAE">
-<image href="GUID-DF3045C7-4BDA-53AF-85E4-A8AAD99F40F7_d0e383227_href.png" placement="inline"/>
+Controller Architecture</title><shortdesc>Describes the class architecture of the MMC Controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-50AB2022-B205-525B-83F9-0DE0275EC3EF"><title>Introduction</title> <p>The
+MultiMediaCard media driver defines and implements the standard media driver
+interface derived from <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita"><apiname>DMediaDriver</apiname></xref>. This is the client
+of the MultiMediaCard controller. </p> <fig id="GUID-6F516C8A-9114-50A1-A714-8BA9DD081C08">
+<image href="GUID-DF3045C7-4BDA-53AF-85E4-A8AAD99F40F7_d0e404951_href.png" placement="inline"/>
 </fig> <p>Requests to the controller can also come from other device drivers.
-This means that the architectural picture can be extended as shown below: </p> <fig id="GUID-53AF7993-0A93-5728-9609-0133E66AED78">
-<image href="GUID-5686E787-537F-5B32-B719-34EF5B7F0D37_d0e383235_href.png" placement="inline"/>
+This means that the architectural picture can be extended as shown below: </p> <fig id="GUID-D84379AB-36E2-5679-B154-40FDDF6FE334">
+<image href="GUID-5686E787-537F-5B32-B719-34EF5B7F0D37_d0e404959_href.png" placement="inline"/>
 </fig> <p>The controller currently supports a single stack capable of holding
 up to 4 cards. In a future development, it may become capable of supporting
 more than 1 stack. Note however, that Symbian platform allows more than one
@@ -54,14 +28,14 @@ outstanding simultaneously, i.e. multiple drivers each with a session engaged
 these requests onto the bus, automatically putting the appropriate card into
 the transfer state etc. </p> <p>A platform containing a card socket is expected
 to provide a means of detecting when a card is inserted or removed from the
-stack (e.g. a media door interrupt). The controller does not attempt to initialise
+stack (e.g. a media door interrupt). The controller does not attempt to initialize
 and identify newly inserted cards immediately. Instead, cards remain unidentified
 until they are interrogated by a client. </p> <p>For hardware interfaces that
 allow multiple cards in a single stack, the MultiMediaCard system supplies
 no means of identifying a particular socket position within the stack. As
 cards are inserted and removed, the potential exists for those cards which
 remain to be allocated different card numbers (and ultimately a different
-drive letter than that allocated previously) once the stack is re-initialised.
+drive letter than that allocated previously) once the stack is re-initialized.
 To avoid this, the controller maintains a fixed card number for a given card
 for as long as it remains in the Symbian platform device (by storing the CID
 of each card present). This means that a card will have a constant drive letter
@@ -72,8 +46,8 @@ number, and therefore, no guarantee that it will have the same drive letter
 as before. </p> </section>
 <section id="GUID-92F5EBE4-C9AD-5D9A-A80E-9AFD1A09B6B3"><title>Class architecture</title> <p>The
 following diagram gives a more detailed view of the MultiMediaCard controller
-in terms of the socket, stack, session, power supply and media change objects. </p> <fig id="GUID-8C814B4E-268A-5007-8D70-DEDF32F4B401">
-<image href="GUID-431A08D4-46DD-5A9D-B2A4-3D58C9B1E9E7_d0e383260_href.png" placement="inline"/>
+in terms of the socket, stack, session, power supply and media change objects. </p> <fig id="GUID-17F345F3-B579-5D78-BE22-0CA50A88FAAE">
+<image href="GUID-431A08D4-46DD-5A9D-B2A4-3D58C9B1E9E7_d0e404984_href.png" placement="inline"/>
 </fig> <p id="GUID-BA12AC03-4A9C-5B1A-BC06-D171BCAB9DB2"><b>The socket</b> </p> <p>The
 Symbian platform implementation of MultiMediaCard uses the idea of a socket.
 A socket corresponds to a physical device on a given peripheral bus. </p> <p>In
@@ -109,23 +83,23 @@ and Request Management</xref> for more background information on this. </p> <p>T
 contains functions for initiating macro functions as laid down by the MultiMediaCard
 Association as well as lower level functions that allow a client to control
 the stack in a more explicit manner. </p> <p id="GUID-65EAFEA0-74A4-514C-82B8-9BD7A4D34FB3"><b>Power supply unit</b> </p> <p>The
-behaviour of the power supply unit (PSU) is represented by the <xref href="GUID-FBCEFDB6-28FF-3201-8E13-F12E3759E36B.dita"><apiname>DMMCPsu</apiname></xref> class. </p> <p>You
-will normally define and implement a derived class in the variant DLL, <filepath>epbusmv.dll</filepath>. </p> <p><b> Media change</b> </p> <p>The behaviour that deals with media change events
+behavior of the power supply unit (PSU) is represented by the <xref href="GUID-FBCEFDB6-28FF-3201-8E13-F12E3759E36B.dita"><apiname>DMMCPsu</apiname></xref> class. </p> <p>You
+will normally define and implement a derived class in the variant DLL, <filepath>epbusmv.dll</filepath>. </p> <p><b> Media change</b> </p> <p>The behavior that deals with media change events
 is represented by the <xref href="GUID-2F974AD8-551B-35F0-B72C-99122913714D.dita"><apiname>DMMCMediaChange</apiname></xref> class. </p> <p>You
 will normally define and implement a derived class in the variant DLL, <filepath>epbusmv.dll</filepath>. </p> <p id="GUID-26CFDD03-A4C4-5C96-88D4-5E750FDF69A3"><b>The controller factory</b> </p> <p>The
 controller factory, also known as the controller interface, is a <xref href="GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A.dita"><apiname>TMMCardControllerInterface</apiname></xref> derived
 class that creates instances of your platform specific: stack class, power
 supply unit class, socket class, and media change class. It also allows you
-to perform platform specific initialisation. </p> <p>You create an instance
+to perform platform specific initialization. </p> <p>You create an instance
 of your factory class in the kernel extension entry point code in your DLL.
 This normally calls <xref href="GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A.dita#GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A/GUID-2C6EA849-1B62-3158-A328-DB2A7149346C"><apiname>TMMCardControllerInterface::Create()</apiname></xref> on
-the object, a Symbian OS supplied function, which calls your implementations
+the object, a Symbian platform supplied function, which calls your implementations
 of the <xref href="GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A.dita"><apiname>TMMCardControllerInterface</apiname></xref> pure virtual functions,
 to create the instances of your classes. </p> <p>Note that these functions
 are only called for sockets that are associated with MultiMediaCard devices. <xref href="GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A.dita#GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A/GUID-2C6EA849-1B62-3158-A328-DB2A7149346C"><apiname>TMMCardControllerInterface::Create()</apiname></xref> iterates
 through all possible socket numbers, from 0 to <xref href="GUID-2C5A5F8F-381C-3B99-AADE-44474E629CC4.dita"><apiname>KMaxPBusSockets</apiname></xref>,
 calling <xref href="GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A.dita#GUID-B1F2C60B-E098-395F-8ED0-FF33E3EC9E4A/GUID-5EC9F2EE-5D14-37F9-9EFE-95BD1062C681"><apiname>TMMCardControllerInterface::IsMMCSocket()</apiname></xref> for each
-socket number to determine whether the socket number is a MultiMediaCard socket. </p> <fig id="GUID-BB5C198A-D635-5F91-9987-79394F270CEC">
-<image href="GUID-13664BB9-7D05-594E-95D4-49C0D31D3734_d0e383410_href.png" placement="inline"/>
+socket number to determine whether the socket number is a MultiMediaCard socket. </p> <fig id="GUID-53AF7993-0A93-5728-9609-0133E66AED78">
+<image href="GUID-13664BB9-7D05-594E-95D4-49C0D31D3734_d0e405134_href.png" placement="inline"/>
 </fig> </section>
 </conbody></concept>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-153E6611-D7BC-4B5B-A5C4-38BCA16C1635" xml:lang="en"><title>Interrupt
+Functions</title><shortdesc>Describes the interrupt functions involved in implementing the
+Symbian platform GPIO class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A common use for a pin is as a hardware interrupt source. The treatment
+of interrupts is platform dependent. Typically, the hardware multiplexes all
+interrupts from a module into a hardware controller: in this case it is part
+of the GPIO implementation to demultiplex the requests. A GPIO implementation
+with the capability to demultiplex will also have the capability to enable
+and disable interrupts and to bind and unbind their handlers.</p>
+<section id="GUID-1ECB1516-C554-4168-AE8C-FA4BDC7BF48F"><title> Implement
+the interrupt functions</title> <ul>
+<li><p>          Implement <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Associate
+the specified interrupt service routine with the          specified pin ID.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref> with return
+value          <xref href="GUID-0BB03881-8862-35FC-8102-48A2932AB738.dita"><apiname>KErrInUse</apiname></xref>.         </p> <p>          Return <xref href="GUID-0BB03881-8862-35FC-8102-48A2932AB738.dita"><apiname>KErrInUse</apiname></xref> if
+an interrupt service          routine is already bound to this interrupt.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Unbind
+the specified interrupt service routine with the specified          pin ID.
+        </p> </li>
+<li><p>          Implement <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Enable the interrupt.         </p> </li>
+<li><p>          Implement <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Disable the interrupt.         </p> </li>
+<li><p>          Implement <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref> with return
+         value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Verify
+that the pin is being used as an interrupt source and that          there
+is an ISR bound to it. Determine the status of the interrupt. If it is   
+      enabled set <codeph>aEnable</codeph> to True and if it is disabled set
+         <xref href="GUID-28B9AB57-B1B6-3D84-A118-FAEA5AD2C23F.dita"><apiname>aEnable</apiname></xref> to False.         </p> </li>
+<li><p>          Implement <xref href="GUID-1F8A4B69-BF3D-31C6-934D-93BF47E3E407.dita"><apiname>ClearInterrupt()</apiname></xref> with return
+value          <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>          Clear
+the interrupt.         </p> <p>          Only implement this if the hardware
+does not automatically clear          the interrupt after reading the interrupt
+status.         </p> </li>
+<li><p>          Implement <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref> with
+         return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>      
+   Read the interrupt state from the GPIO interrupt controller,          probably
+by using a bit mask on a register. Set aActive to True if the          interrupt
+state is active and to False if it is inactive.         </p> </li>
+<li><p>          Implement <xref href="GUID-F5D98B1C-5397-3E2E-AEBC-E492FA0CBF91.dita"><apiname>GetRawInterruptState()</apiname></xref> with
+return          value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.         </p> <p>      
+   Read the interrupt state directly from the pin. Set          <codeph>aActive</codeph> to
+True if the interrupt state is active and to False if          it is inactive.
+        </p> <p>          If the hardware does not allow the raw interrupt
+state to be          read, implement the function to return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> or
+         to return the same value as <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref>.
+        </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>:
+        </p> <ul>
+<li><p>                <xref href="GUID-6C16DEC3-D0F5-37C0-9EBD-19FE64472F38.dita"><apiname>BindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref>           
+  </p> </li>
+</ul> <p>          Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> for these functions
+         if the pin does not support interrupts.         </p> </li>
+<li><p>          Implement these functions with return value          <xref href="GUID-A94AC24A-EADF-3913-8345-708ED637968E.dita"><apiname>KErrGeneral</apiname></xref>:
+        </p> <ul>
+<li><p>                <xref href="GUID-590E49F1-73A2-3770-80D9-14710982B661.dita"><apiname>UnbindInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-34F2BB96-F39A-34D0-AEF4-543C11BD00FB.dita"><apiname>EnableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-E00AE446-FF29-3B97-A38D-5A6B05F51D81.dita"><apiname>DisableInterrupt()</apiname></xref>              </p> </li>
+<li><p>                <xref href="GUID-F8C65BDF-21E9-31C1-B124-8791C0A2E766.dita"><apiname>IsInterruptEnabled()</apiname></xref>           
+  </p> </li>
+</ul> <p>          Return <xref href="GUID-A94AC24A-EADF-3913-8345-708ED637968E.dita"><apiname>KErrGeneral</apiname></xref> for these functions
+if          there is no Interrupt Service Routine bound to the pin.      
+  </p> </li>
+<li><p>          Implement <xref href="GUID-1F8A4B69-BF3D-31C6-934D-93BF47E3E407.dita"><apiname>ClearInterrupt()</apiname></xref> with return
+value          <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p>     
+    Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin does not       
+  support clearing the interrupt signal.         </p> </li>
+<li><p>          Implement <xref href="GUID-3B91EDB8-1BD0-3C13-BF9F-E0A11EC39F84.dita"><apiname>GetMaskedInterruptState()</apiname></xref> with
+         return value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p> 
+        Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading the        
+ interrupt state is not supported.         </p> </li>
+<li><p>          Implement <xref href="GUID-F5D98B1C-5397-3E2E-AEBC-E492FA0CBF91.dita"><apiname>GetRawInterruptState()</apiname></xref> with
+return          value <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.         </p> <p> 
+        Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if reading raw        
+ interrupt states is not supported.         </p> </li>
+</ul> </section>
+</conbody></concept>

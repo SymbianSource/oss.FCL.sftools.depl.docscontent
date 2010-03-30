@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-422F37DF-F93F-443F-86EA-6A696A53E1E6" xml:lang="en"><title>Listening
+for scrollbar touch events</title><shortdesc>If your custom control contains a scrollbar, you need to listen
+for touch events in the scrollbar.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>For custom controls that override <codeph>CCoeControl::HandleScrollEventL()</codeph>,
+you must also call the base class implementation of the function.</p>
+<fig id="GUID-ECD9B9C0-0134-4D8A-B350-A797A5C1BE0F">
+<title>Scrollbar</title>
+<image href="GUID-8C8D6B06-E794-4269-B4DF-D2BE4DDB9E8B_d0e71515_href.png" scale="40" placement="inline"/>
+</fig>
+<p>For an implementation example, see below.</p>
+<codeblock xml:space="preserve">void CMyContainerControl::HandleScrollEventL( CEikScrollBar* aScrollBar, TEikScrollEvent aEventType )
+    {
+    if( !aScrollBar )
+        {
+        return;
+        }
+
+    TInt newPosition = aScrollBar-&gt;ThumbPosition();
+    
+    switch( aEventType )
+        {
+        case EEikScrollUp: // Moving up one step
+            {
+            MoveFocusUpL();
+            break;
+            }
+        case EEikScrollDown: // Moving down one step
+            {
+            MoveFocusDownL();
+            break;
+            }
+        case EEikScrollThumbDragVert: // Drag started
+        case EEikScrollThumbReleaseVert: // Drag released
+            {
+            if( newPosition &lt; iFocusedIndex )
+                {
+                MoveFocusUpL();
+                }
+            else if( newPosition &gt; iFocusedIndex )
+                {
+                MoveFocusDownL();
+                }
+            break;
+            }
+        case EEikScrollPageUp:
+            {
+            while( newPosition &lt; iFocusedIndex )
+                {
+                MoveFocusUpL();
+                }
+            break;
+            }
+        case EEikScrollPageDown:
+            {
+            while( newPosition &gt; iFocusedIndex )
+                {
+                MoveFocusDownL();
+                }
+            break;
+            }
+        default:
+            {
+            break;
+            }
+        }
+    DrawNow();
+    }</codeblock>
+</conbody></concept>

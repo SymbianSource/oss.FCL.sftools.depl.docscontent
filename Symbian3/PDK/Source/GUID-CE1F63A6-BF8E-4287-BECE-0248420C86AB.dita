@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-CE1F63A6-BF8E-4287-BECE-0248420C86AB" xml:lang="en"><title>mtpexampledp:
+MTP Data Provider Example</title><shortdesc>This example demonstrates how an MTP data provider plug-in can
+be created .</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A6DEF7A0-ED6E-4950-B614-5F19B56FD681"><p> </p><title>Purpose</title><p>The
+example shows the following use cases:<ol>
+<li id="GUID-B5E11A63-4A93-49AA-A83A-149C0ABDA31E"><p>How to create a data
+provider plug-in class.</p></li>
+<li id="GUID-A4F2C91D-3EA1-46A0-A9A5-79BA1D64DA3F"><p>How to register it with
+the ECOM plug-in framework.</p></li>
+<li id="GUID-3C709BD4-F4DC-4033-91C2-DD122141CDFB"><p>How to create an MTP
+framework data provider configuration file.</p></li>
+<li id="GUID-F2AA7515-53D6-4464-AA77-532F88E0D287"><p>How to register an MTP
+data provider with the MTP Framework at the time of activation.</p></li>
+<li id="GUID-15C182A0-5996-431F-8D76-F7940D7DB8D9"><p>How to load vendor defined
+operations and support them with the data provider.</p></li>
+<li id="GUID-D72C0EB3-BF09-4790-B2E7-408D5D53A86A"><p>How to process transactions.</p></li>
+</ol></p><p> </p><p>The example delivers the following project: </p><p><filepath>mtpdataproviderexample</filepath>:
+The example data provider plug-in.</p><p> </p></section>
+<section id="GUID-6539B4B0-1A5E-4F08-A69C-810DABB85010"><title>Description</title><p><b>1.
+Creating a data provider plug-in class:</b> A data provider plug-in class
+is created by defining a <xref href="GUID-53D6BD66-D8D3-3202-BD80-95D5CE6FAF4D.dita"><apiname>CMTPExampleDataProvider</apiname></xref> class
+that derives from the<xref href="GUID-710B9980-7EF5-3E20-954B-795241D1D479.dita"><apiname> CMTPDataProviderPlugin</apiname></xref> class. The <xref href="GUID-53D6BD66-D8D3-3202-BD80-95D5CE6FAF4D.dita"><apiname>CMTPExampleDataProvider</apiname></xref> class
+represents a unique data provider that is being created. The example class
+implements all of the pure virtual<xref href="GUID-706C058C-6562-33F6-A923-4AD31C6233E3.dita"><apiname> MMTPDataProvider</apiname></xref> SPI
+methods.</p><p> </p><p><b>2. Registering a data provider plug-in with the
+ECOM plug-in framework: </b><ul>
+<li><p>The example data provider registers itself with the ECOM plug-in framework
+by creating and exporting a standard ECOM plug-in framework registration file.
+The <filepath>mtpexampledp.rss</filepath> file is the required registration
+file for the example data provider.</p></li>
+<li><p>In addition to the registration file the example data provider plug-in
+DLL exports an ECOM implementation proxy table that links the <xref href="GUID-5EB8A621-CFF8-3F53-8697-E124629A2348.dita"><apiname>implementation_uid</apiname></xref> defined
+in the <filepath>mtpexampledp.rss</filepath> file with <xref href="GUID-53D6BD66-D8D3-3202-BD80-95D5CE6FAF4D.dita#GUID-53D6BD66-D8D3-3202-BD80-95D5CE6FAF4D/GUID-62AE2202-C6F5-34F4-8728-8F6F25A8D2CE"><apiname>CMTPExampleDataProvider::NewL()</apiname></xref> function,
+which is used for loading the example.</p></li>
+</ul></p><p> </p><p><b>3. Creating an MTP framework data provider configuration
+file:</b> Along with the ECOM registration file, the example data provider
+has a separate data provider configuration file, which provides information
+on the operational modes supported by the data provider. The file containing
+this information is <filepath>mtpdataproviderpluginexample_config.rss</filepath>.
+The example data provider supports <xref href="GUID-C92AB231-32C4-3F52-BD0F-151C0DAA9ACA.dita"><apiname>KMTPModeMTP</apiname></xref>, which specifies
+it as having an MTP operational mode.</p><p> </p><p><b>4. Registering an MTP
+data provider with the MTP Framework at the time of activation:</b> For registration,
+the example data provider supplies information on the various operations it
+supports and defines them in the implementation of the <xref href="GUID-7EB1EA3B-5EF2-338C-A3D1-3F865028E83E.dita"><apiname>Supported()</apiname></xref> function.
+The example supports two operations, <xref href="GUID-83F80D52-63E5-3F0E-8CA4-D88BB13C826A.dita"><apiname>EMTPOpVendorDefined1</apiname></xref> and <xref href="GUID-7C0EF26F-BCEE-3DE7-AF51-3036F4A89E21.dita"><apiname>EMTPOpVendorDefined2</apiname></xref>,
+defined in<filepath> cmtpexampledpconst.h</filepath>. Any vendor extension
+information for the example data provider is defined by implementing the<xref href="GUID-E865785A-3908-3620-A0F8-B6216C2A59F5.dita"><apiname>SupportedL() </apiname></xref>function.
+The example data provider does not support objects, hence there is no object
+and store enumeration. </p><p> </p><p><b>5. Using vendor defined operations:</b> The
+operations supported specify the functionality of the data provider. The example
+data provider supports <xref href="GUID-83F80D52-63E5-3F0E-8CA4-D88BB13C826A.dita"><apiname>EMTPOpVendorDefined1</apiname></xref> and <xref href="GUID-7C0EF26F-BCEE-3DE7-AF51-3036F4A89E21.dita"><apiname>EMTPOpVendorDefined2</apiname></xref> operations.
+These are dummy operations that send an <xref href="GUID-099793F2-3DD4-3530-B981-D9BE32C3A63E.dita"><apiname>EMTPRespCodeOK</apiname></xref> response
+as and when invoked. These dummy operations are implemented using the <xref href="GUID-C45F88CC-C229-3A06-B8EF-A854CB03F5A6.dita"><apiname>CMTPExampleDpVendorDefinedOp1 </apiname></xref>and <xref href="GUID-318575F3-32D3-39F6-8E39-78805DE695F4.dita"><apiname>CMTPExampleDpVendorDefinedOp2</apiname></xref> classes. Both these classes are derived from the <xref href="GUID-CF4C0DD4-4F45-36F0-8A00-E27C55FF3979.dita"><apiname>CMTPExampleDpRequestProcessor</apiname></xref> class,
+which encapsulates differing operation handling. For handling any unexpected
+operation sent by the PC, the <xref href="GUID-3108685A-D20C-3F58-814B-0F0AE5279B07.dita"><apiname>CMTPRequestUnknown</apiname></xref> class
+has been defined.</p><p>The example data provider implements the <filepath>mtpexamplerequestprocessor.cpp</filepath> file,
+which is designed to dispatch the operations to a concrete request processor.</p><p> </p><p><b>6.
+Transaction processing: </b>The Responder to Initiator data phase is implemented
+where the Responder will send object data to the Initiator.  Here, the example
+data provider plug-in is the responder and the PC acts as an initiator. </p><p>An
+incoming request can be processed using the <xref href="GUID-C5666D10-954A-315D-AAEF-ACBE79E04D88.dita"><apiname>HandleRequestL() </apiname></xref>function
+. Once the request is handled, <xref href="GUID-57A64BE5-04A6-308A-B20F-088FD8DF1979.dita"><apiname>CompleteRequestL()</apiname></xref> is called
+to signal the framework about the completion of the request transaction.</p> </section>
+<section id="GUID-FD878DE5-3565-46BF-BE26-5AA8296DEEA8"><title>Download</title><p>Click
+on the following link to download the example:  <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-c759da23-1dae-4854-b5a1-1e58d2125594 .zip" scope="external">MtpDataProvider.zip</xref>.</p><p>Click  <xref href="guid-c759da23-1dae-4854-b5a1-1e58d2125594.html" scope="peer">browse</xref> to view the example code.</p></section>
+<section id="GUID-F0AB5245-1934-4F8F-84C3-2806C20DF096"><p> </p><title>Building
+and configuring</title><p>You can build the example from your IDE or the command
+line: </p> <ul>
+<li id="GUID-0D86ECCB-1501-52D9-A52E-A016AB6710A2-GENID-1-10-1-24-1-1-6-1-4-1-3-4-4-1"><p> </p><p>If you use an
+IDE, import the <filepath>bld.inf</filepath> file of the example into your
+IDE, and use the build command of the IDE. </p></li>
+<li> <p>If you use the command line, open a command prompt, and set the current
+directory to the source code directory of the example. You can then build
+the example with the SBSv1 build tools using the following commands: </p><ul>
+<li><p><cmdname>bldmake bldfiles</cmdname></p></li>
+<li><p><cmdname>abld build</cmdname></p></li>
+</ul> <p><xref href="GUID-793A5EF9-CC16-5EEB-9011-6431EA76EB15.dita">How to use
+bldmake</xref> and <xref href="GUID-B6B54E07-3B34-5D5C-8815-93383FA8FB4B.dita">How
+to use abld</xref> describe how to use the SBSv1 build tools. </p> </li>
+</ul> <p> The example builds the following DLL:<ul>
+<li><p><filepath>mtpexampledp.dll</filepath> : example data provider plug-in. </p></li>
+</ul></p><p> in the <filepath>epoc32\release\winscw\&lt;udeb or urel&gt;\</filepath> folder. </p><p> </p></section>
+<section id="GUID-9E4754AA-2B3F-421B-A213-0F1EA35C07F5"><title>Running the
+example</title><p>For testing the data provider plug-in functionality the
+DLL needs to be integrated into the MTP Framework.</p><p>For information on
+installing a data provider please refer to these topics:</p><p><xref href="GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85.dita">Data
+provider built in ROM</xref>.</p><p><xref href="GUID-DB82D140-AB1B-5AA9-89CB-A5F68F328C85.dita">Data
+provider installed via SIS file</xref>.</p></section>
+</conbody></concept>

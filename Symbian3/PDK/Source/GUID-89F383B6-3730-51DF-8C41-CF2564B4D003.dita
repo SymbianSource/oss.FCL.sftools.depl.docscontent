@@ -9,4 +9,41 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-89F383B6-3730-51DF-8C41-CF2564B4D003"><title>TParse, TParsePtr and TParsePtrC</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The above three classes are provided for parsing filenames. All provide the same parsing capability (except that the path passed to <codeph>TParsePtrC</codeph> cannot be modified, for example by adding or removing a directory), but they differ in several respects. <codeph>TParse</codeph> uses a 256 byte <codeph>TFileName</codeph> as an internal buffer to store a copy of the fully parsed filename. The other two classes on the other hand do not have any storage space. They should be used in preference to <codeph>TParse</codeph> when minimizing stack usage is a priority. </p> <p>When using <codeph>TParsePtr</codeph> and <codeph>TParsePtrC</codeph> in preference to <codeph>TParse</codeph>, remember that: </p> <ul><li id="GUID-CF940612-A614-5FD6-9E7E-DF7D0885CFD6"><p>unlike <codeph>TParse</codeph>, these classes do not provide an option to disallow the use of wildcards in the filename and extension </p> </li> <li id="GUID-DD86AD7C-9979-5D29-B611-A54DAAAB3BDA"><p>because the path to be parsed is efficiently passed as an argument to the constructor for a <codeph>TParsePtr</codeph> or <codeph>TParsePtrC</codeph>, if this path is invalid, construction will fail and a panic will occur. <codeph>TParse</codeph>, on the other hand, returns an error if the specified path is invalid </p> </li> <li id="GUID-C4460819-95FD-573B-A9CD-4C2E1CE62898"><p>only instances of class <codeph>TParse</codeph> can be passed to calls to <codeph>RFs::Parse()</codeph>  </p> </li> <li id="GUID-C4517734-F446-5F06-9BE3-6DCFE2DD53E0"><p> <codeph>TParsePtrC</codeph> cannot modify the path which is passed to it, for example by adding or removing a directory </p> </li> </ul> <section><title> Filepath limitations</title> <p>If the length of the file path is more than 256 characters, file operations such as rename, copy and delete results in an error. However, it is possible to create a filepath which exceeds 256 character limit as follows: </p> <p>Consider the following path: </p> <codeblock id="GUID-277AC92A-7029-531D-AB57-B41DB1471EEB" xml:space="preserve">C:\Multimedia\AVCodec\testproduct\...\avtests.txt</codeblock> <p>Rename the <filepath>AVCodec</filepath> directory to <filepath>AVCodec123456789123456789</filepath>. If the length of the complete file path, <filepath>C:\Multimedia\AVCodec123456789123456789\testproduct\...\avtests.txt</filepath> exceeds 256 characters, any file operation will fail. Similarly, when you create a file with the filepath more than 256 characters will result in an error. </p> <p>However, on the emulator, the limit may be less than 256 characters. See <xref href="GUID-A0849E58-985F-566C-85DD-2D320FD9071F.dita">Files and locations</xref> section in the Emulator guide. </p> </section> </conbody></concept>
+<concept id="GUID-89F383B6-3730-51DF-8C41-CF2564B4D003" xml:lang="en"><title>TParse,
+TParsePtr and TParsePtrC</title><shortdesc>This topic describes the parsing capabilities of the above said
+functions.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The above three classes are provided for parsing filenames. All provide
+the same parsing capability (except that the path passed to <codeph>TParsePtrC</codeph> cannot
+be modified, for example by adding or removing a directory), but they differ
+in several respects. <codeph>TParse</codeph> uses a 256 byte <codeph>TFileName</codeph> as
+an internal buffer to store a copy of the fully parsed filename. The other
+two classes on the other hand do not have any storage space. They should be
+used in preference to <codeph>TParse</codeph> when minimizing stack usage
+is a priority. </p>
+<p>When using <codeph>TParsePtr</codeph> and <codeph>TParsePtrC</codeph> in
+preference to <codeph>TParse</codeph>, remember that: </p>
+<ul>
+<li id="GUID-CF940612-A614-5FD6-9E7E-DF7D0885CFD6"><p>unlike <codeph>TParse</codeph>,
+these classes do not provide an option to disallow the use of wildcards in
+the filename and extension </p> </li>
+<li id="GUID-DD86AD7C-9979-5D29-B611-A54DAAAB3BDA"><p>because the path to
+be parsed is efficiently passed as an argument to the constructor for a <codeph>TParsePtr</codeph> or <codeph>TParsePtrC</codeph>,
+if this path is invalid, construction will fail and a panic will occur. <codeph>TParse</codeph>,
+on the other hand, returns an error if the specified path is invalid </p> </li>
+<li id="GUID-C4460819-95FD-573B-A9CD-4C2E1CE62898"><p>only instances of class <codeph>TParse</codeph> can
+be passed to calls to <codeph>RFs::Parse()</codeph>  </p> </li>
+<li id="GUID-C4517734-F446-5F06-9BE3-6DCFE2DD53E0"><p> <codeph>TParsePtrC</codeph> cannot
+modify the path which is passed to it, for example by adding or removing a
+directory </p> </li>
+</ul>
+<section id="GUID-D305169C-513B-4D29-B3A9-606427961AE9"><title> Filepath limitations</title> <p>If the length of the file
+path is more than 256 characters, file operations such as rename, copy and
+delete results in an error. However, it is possible to create a filepath which
+exceeds 256 character limit as follows: </p> <p>Consider the following path: </p> <codeblock id="GUID-277AC92A-7029-531D-AB57-B41DB1471EEB" xml:space="preserve">C:\Multimedia\AVCodec\testproduct\...\avtests.txt</codeblock> <p>Rename
+the <filepath>AVCodec</filepath> directory to <filepath>AVCodec123456789123456789</filepath>.
+If the length of the complete file path, <filepath>C:\Multimedia\AVCodec123456789123456789\testproduct\...\avtests.txt</filepath> exceeds
+256 characters, any file operation will fail. Similarly, when you create a
+file with the filepath more than 256 characters will result in an error. </p> <p>However,
+on the emulator, the limit may be less than 256 characters. See <xref href="GUID-A0849E58-985F-566C-85DD-2D320FD9071F.dita">Files
+and locations</xref> section in the Emulator guide. </p> </section>
+</conbody></concept>

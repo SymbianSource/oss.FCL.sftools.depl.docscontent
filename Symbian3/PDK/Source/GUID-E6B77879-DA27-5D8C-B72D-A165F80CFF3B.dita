@@ -9,18 +9,111 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-E6B77879-DA27-5D8C-B72D-A165F80CFF3B"><title>Architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Multimode telephony extends the basic telephony interfaces offered by the core telephony API. Similar to the Core telephony API, the Multimode API take client requests and passes them to the ETel server. The server then passes the request to the telephony driver of the device (<filepath>.TSY</filepath> module), which manages communications with the telephony hardware itself. Depending on the device, the <filepath>.TSY</filepath> may support a single mode for example GSM or be multimode. </p> <p>The following diagram shows these component relationships: </p> <fig id="GUID-9006D69B-605B-554C-9836-155062098DE8"><title>
-          Multimode ETel component architecture 
-        </title> <image href="GUID-E55B3ACD-4651-5FBD-AC9F-511E5CBCC0C9_d0e45703_href.png" placement="inline"/></fig> <p>Much of the functionality defined in Multimode ETel is <i>optional</i>, meaning that a .TSY is not required to support it. Clients should use the capability-checking interfaces supplied by Multimode ETel to ensure that such functionality is available before attempting to use it. </p> <section><title>Description</title> <p>The diagram below shows the key classes in the Core and Multimode APIs and their inheritance relationships. The top package is ETel Core, the lower package is Multimode ETel. </p> <fig id="GUID-90475AD2-04DF-5ECE-BA0D-28FD9500E6AB"><title>
-             Multimode ETel key classes 
-          </title> <image href="GUID-9147F8AF-01B3-5110-8FE7-A6318B5048D9_d0e45722_href.png" placement="inline"/></fig> <p>The key Multimode ETel classes are R-classes. The purpose of these classes is to communicate with the telephony server. All of the classes shown derive, directly or indirectly, from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RTelSubSessionBase</apiname></xref>, which manages a sub-session to the telephony server. </p> <p>The classes are summarised below: </p> <ul><li id="GUID-84A609E9-EF74-5425-9433-7F4F0B9E01FF"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone</apiname></xref> encapsulates the properties of the phone that do not relate to a particular line or call, and derives from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RPhone</apiname></xref> interface of the core telephony API. It provides the following: </p> <ul><li id="GUID-C646F3F5-2D1C-5BE9-8AAC-AB0B3C4C3213"><p>phone capabilities and status </p> </li> <li id="GUID-6F8DF782-57C4-58D3-848D-778AFCDB0344"><p>network settings and status </p> </li> <li id="GUID-43286FE2-8F5F-5DDE-AC78-9EC92AE5B757"><p>phone security settings </p> </li> <li id="GUID-F98DF15E-EC2E-5F03-8202-1F3FFCDB1325"><p>phone-wide settings for a large number of advanced services, such as call forwarding, barring, waiting, and charge information </p> </li> </ul> </li> <li id="GUID-0E707A36-8304-585A-85B4-AD078AB359AB"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileCall</apiname></xref> encapsulates information and functionality for a particular call, and derives from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RCall</apiname></xref> interface of the core telephony. It provides the following: </p> <ul><li id="GUID-14E789FE-386C-54CA-A5C7-6C5311F4AF92"><p>call capabilities and status </p> </li> <li id="GUID-A98E071E-CA6E-524C-BD2A-77A5988376EC"><p>advanced call control, including transferring calls, and putting calls on-hold </p> </li> <li id="GUID-99B5AB50-8557-529F-81BA-7E962EA4E413"><p>extended functionality to support data calls, including HSCSD </p> </li> <li id="GUID-36197642-242C-58C9-AAE4-2A37A7C81854"><p>status information and control functions for calls using Call Completion on Busy (CCBS), and User-To-User Signalling (UUS) services of the GSM. </p> </li> </ul> </li> <li id="GUID-194E1591-BB06-52A6-A983-ED3C466B78FF"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileLine</apiname></xref> derives from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RLine</apiname></xref> interface of the core telephony API, and provides additional line status information, such as if the line is on-hold. </p> </li> <li id="GUID-FA228326-A009-552F-B22E-B4C51A836693"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileConferenceCall</apiname></xref> provides functions to manage a collection of calls as a conference call. </p> </li> <li id="GUID-03219F88-6F34-5828-9DF3-2E43C17D7751"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileSmsMessaging</apiname></xref>, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileBroadcastMessaging</apiname></xref>, and <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileUssdMessaging</apiname></xref> are specialised messaging classes, respectively for SMS, Broadcast messages, and USSD messaging. </p> </li> <li id="GUID-3BCC5489-CB2A-5045-BEAA-CB99C6F9F36F"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhoneStore</apiname></xref> and its derived classes provide management for the various types of information that can be stored on the phone and the ICC card including SMS messages, and address book information. </p> </li> </ul> <p>The API also provides a number of list classes, derived from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>CMobilePhoneListBase</apiname></xref>, which allow clients to retrieve easily groups of settings and information. </p> <p><b>Note on code samples </b> </p> <p>Many of the functions described in this guide are asynchronous, and are used by an active object. For purposes of conciseness, the code samples do not use active objects, but, unrealistically, synchronously wait for the function to return (using <codeph>User::WaitForRequest()</codeph>). </p> </section> <section id="GUID-E065354F-66E6-57B4-A7E7-C4C3A6038939"><title>High-level multimode capabilities</title> <p>A TSY is not required to support all the functionality defined by Multimode telephony although it supports all core telephony functionality. Optional functionality is divided by the API into a number of functional areas, such as, support for Call Waiting, and for SMS messaging. To query a TSY about the functional areas it supports, use <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RTelServer::IsSupportedByModule()</apiname></xref>. </p> <p>Flags for the functional areas are defined in enumerations. <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV1Api</apiname></xref> defines flags for the functional areas defined in the Symbian OS v7.0 release. <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV2Api</apiname></xref>, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV3Api</apiname></xref>, and <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV4Api</apiname></xref> define flags for additional functional areas defined in later releases. </p> <p>Functional areas have individual query functions that offer detailed capability information on that area. For example, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone::GetMultimodeCaps()</apiname></xref> queries for the phone's supported modes. </p> <p><b>Example </b> </p> <p>The following code tests if the TSY supports multimode telephony API at all, by querying using the <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>KETelExtMultimodeV1</apiname></xref> flag. If multimode is supported, then other flags can be used to query for support for particular areas. </p> <p>The code assumes <codeph>iTsyName</codeph> holds the name of the TSY in use. </p> <codeblock id="GUID-6EE6B824-942D-573E-8197-96DB4D5A483B" xml:space="preserve">TInt funcFlags = KETelExtMultimodeV1;
+<concept id="GUID-E6B77879-DA27-5D8C-B72D-A165F80CFF3B" xml:lang="en"><title>Architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Multimode telephony extends the basic telephony interfaces offered by the
+core telephony API. Similar to the Core telephony API, the Multimode API take
+client requests and passes them to the ETel server. The server then passes
+the request to the telephony driver of the device (<filepath>.TSY</filepath> module),
+which manages communications with the telephony hardware itself. Depending
+on the device, the <filepath>.TSY</filepath> may support a single mode for
+example GSM or be multimode. </p>
+<p>The following diagram shows these component relationships: </p>
+<fig id="GUID-9006D69B-605B-554C-9836-155062098DE8">
+<title>           Multimode ETel component architecture          </title>
+<image href="GUID-E55B3ACD-4651-5FBD-AC9F-511E5CBCC0C9_d0e51959_href.png" placement="inline"/>
+</fig>
+<p>Much of the functionality defined in Multimode ETel is <i>optional</i>,
+meaning that a .TSY is not required to support it. Clients should use the
+capability-checking interfaces supplied by Multimode ETel to ensure that such
+functionality is available before attempting to use it. </p>
+<section id="GUID-68CA7D2A-AB2E-4ADC-9286-337D6D15D34F"><title>Description</title> <p>The diagram below shows the key classes
+in the Core and Multimode APIs and their inheritance relationships. The top
+package is ETel Core, the lower package is Multimode ETel. </p> <fig id="GUID-90475AD2-04DF-5ECE-BA0D-28FD9500E6AB">
+<title>              Multimode ETel key classes            </title>
+<image href="GUID-9147F8AF-01B3-5110-8FE7-A6318B5048D9_d0e51980_href.png" placement="inline"/>
+</fig> <p>The key Multimode ETel classes are R-classes. The purpose of these
+classes is to communicate with the telephony server. All of the classes shown
+derive, directly or indirectly, from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RTelSubSessionBase</apiname></xref>,
+which manages a sub-session to the telephony server. </p> <p>The classes are
+summarised below: </p> <ul>
+<li id="GUID-84A609E9-EF74-5425-9433-7F4F0B9E01FF"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone</apiname></xref> encapsulates
+the properties of the phone that do not relate to a particular line or call,
+and derives from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RPhone</apiname></xref> interface of the
+core telephony API. It provides the following: </p> <ul>
+<li id="GUID-C646F3F5-2D1C-5BE9-8AAC-AB0B3C4C3213"><p>phone capabilities and
+status </p> </li>
+<li id="GUID-6F8DF782-57C4-58D3-848D-778AFCDB0344"><p>network settings and
+status </p> </li>
+<li id="GUID-43286FE2-8F5F-5DDE-AC78-9EC92AE5B757"><p>phone security settings </p> </li>
+<li id="GUID-F98DF15E-EC2E-5F03-8202-1F3FFCDB1325"><p>phone-wide settings
+for a large number of advanced services, such as call forwarding, barring,
+waiting, and charge information </p> </li>
+</ul> </li>
+<li id="GUID-0E707A36-8304-585A-85B4-AD078AB359AB"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileCall</apiname></xref> encapsulates
+information and functionality for a particular call, and derives from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RCall</apiname></xref> interface of the core telephony. It provides
+the following: </p> <ul>
+<li id="GUID-14E789FE-386C-54CA-A5C7-6C5311F4AF92"><p>call capabilities and
+status </p> </li>
+<li id="GUID-A98E071E-CA6E-524C-BD2A-77A5988376EC"><p>advanced call control,
+including transferring calls, and putting calls on-hold </p> </li>
+<li id="GUID-99B5AB50-8557-529F-81BA-7E962EA4E413"><p>extended functionality
+to support data calls, including HSCSD </p> </li>
+<li id="GUID-36197642-242C-58C9-AAE4-2A37A7C81854"><p>status information and
+control functions for calls using Call Completion on Busy (CCBS), and User-To-User
+Signalling (UUS) services of the GSM. </p> </li>
+</ul> </li>
+<li id="GUID-194E1591-BB06-52A6-A983-ED3C466B78FF"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileLine</apiname></xref> derives
+from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RLine</apiname></xref> interface of the core telephony
+API, and provides additional line status information, such as if the line
+is on-hold. </p> </li>
+<li id="GUID-FA228326-A009-552F-B22E-B4C51A836693"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileConferenceCall</apiname></xref> provides
+functions to manage a collection of calls as a conference call. </p> </li>
+<li id="GUID-03219F88-6F34-5828-9DF3-2E43C17D7751"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileSmsMessaging</apiname></xref>, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileBroadcastMessaging</apiname></xref>, and <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobileUssdMessaging</apiname></xref> are
+specialised messaging classes, respectively for SMS, Broadcast messages, and
+USSD messaging. </p> </li>
+<li id="GUID-3BCC5489-CB2A-5045-BEAA-CB99C6F9F36F"><p> <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhoneStore</apiname></xref> and
+its derived classes provide management for the various types of information
+that can be stored on the phone and the ICC card including SMS messages, and
+address book information. </p> </li>
+</ul> <p>The API also provides a number of list classes, derived from <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>CMobilePhoneListBase</apiname></xref>, which allow clients to retrieve
+easily groups of settings and information. </p> <p><b>Note on code samples </b> </p> <p>Many of the functions described in this
+guide are asynchronous, and are used by an active object. For purposes of
+conciseness, the code samples do not use active objects, but, unrealistically,
+synchronously wait for the function to return (using <codeph>User::WaitForRequest()</codeph>). </p> </section>
+<section id="GUID-E065354F-66E6-57B4-A7E7-C4C3A6038939"><title>High-level
+multimode capabilities</title> <p>A TSY is not required to support all the
+functionality defined by Multimode telephony although it supports all core
+telephony functionality. Optional functionality is divided by the API into
+a number of functional areas, such as, support for Call Waiting, and for SMS
+messaging. To query a TSY about the functional areas it supports, use <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RTelServer::IsSupportedByModule()</apiname></xref>. </p> <p>Flags
+for the functional areas are defined in enumerations. <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV1Api</apiname></xref> defines
+flags for the functional areas. <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV2Api</apiname></xref>, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV3Api</apiname></xref>, and <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV4Api</apiname></xref> define
+flags for additional functional areas defined in later releases. </p> <p>Functional
+areas have individual query functions that offer detailed capability information
+on that area. For example, <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone::GetMultimodeCaps()</apiname></xref> queries
+for the phone's supported modes. </p> <p><b>Example </b> </p> <p>The following code tests if the TSY supports multimode
+telephony API at all, by querying using the <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>KETelExtMultimodeV1</apiname></xref> flag.
+If multimode is supported, then other flags can be used to query for support
+for particular areas. </p> <p>The code assumes <codeph>iTsyName</codeph> holds
+the name of the TSY in use. </p> <codeblock id="GUID-6EE6B824-942D-573E-8197-96DB4D5A483B" xml:space="preserve">TInt funcFlags = KETelExtMultimodeV1;
 TBool result = EFalse;
 iTelServer.IsSupportedByModule(iTsyName, funcFlags, result);
 if (result)
     // if MM supported...
-</codeblock> <p><b>Notes </b> </p> <p>Some <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV1Api</apiname></xref> flags specify areas common to all modes, others to particular modes. </p> </section> <section id="GUID-BAF464B8-6CFA-5FCB-B488-CD02CD187465"><title>Multimode phone number</title> <p>A phone number for use with the multimode telephony is stored as a <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone::TMobileAddress</apiname></xref> object. This has a buffer that stores the phone number and flags indicating the type of number for example national, international and network specific. It also stores the numbering plan for example national, ISDN and telex formats in which the number is stored. </p> <p><b>Example </b> </p> <p>The following code creates an address object to store an international phone number, formatted using the national number plan. In this example the UK representation of a Swedish number is used. </p> <codeblock id="GUID-77D958D7-0194-5F69-AF3E-6D6B98EA8D23" xml:space="preserve">RMobilePhone::TMobileAddress address;
+</codeblock> <p><b>Notes </b> </p> <p>Some <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>TMultimodeETelV1Api</apiname></xref> flags
+specify areas common to all modes, others to particular modes. </p> </section>
+<section id="GUID-BAF464B8-6CFA-5FCB-B488-CD02CD187465"><title>Multimode phone
+number</title> <p>A phone number for use with the multimode telephony is stored
+as a <xref href="GUID-9CE46AD7-722E-3831-A359-C90A350E931D.dita"><apiname>RMobilePhone::TMobileAddress</apiname></xref> object.
+This has a buffer that stores the phone number and flags indicating the type
+of number for example national, international and network specific. It also
+stores the numbering plan for example national, ISDN and telex formats in
+which the number is stored. </p> <p><b>Example </b> </p> <p>The following code creates an address object to store
+an international phone number, formatted using the national number plan. In
+this example the UK representation of a Swedish number is used. </p> <codeblock id="GUID-77D958D7-0194-5F69-AF3E-6D6B98EA8D23" xml:space="preserve">RMobilePhone::TMobileAddress address;
 _LIT(KANumber, "+46 123 4567");
 address.iTelNumber = KANumber;    
 address.iTypeOfNumber = RMobilePhone::EInternationalNumber;
 address.iNumberPlan = RMobilePhone::ENationalNumberPlan;
-</codeblock> </section> </conbody></concept>
+</codeblock> </section>
+</conbody></concept>

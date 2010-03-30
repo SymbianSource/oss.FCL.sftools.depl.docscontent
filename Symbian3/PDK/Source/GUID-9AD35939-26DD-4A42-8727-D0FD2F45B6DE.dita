@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9AD35939-26DD-4A42-8727-D0FD2F45B6DE" xml:lang="en"><title>Pin
+Mode Functions</title><shortdesc>Describes the pin mode functions involved in implementing the Symbian
+platform GPIO class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Symbian platform GPIO class is specified at the level of the pin and
+so are the modes. A pin has three modes namely, <keyword>Enabled</keyword>, <keyword>Disabled</keyword> and <keyword>Idle</keyword> as
+specified in the enumeration <codeph>TGpioMode</codeph>. The mode of the pin
+affects the mode of the module. When a pin is set to Enabled or Disabled mode,
+the implementation should set the module to the same mode. When a pin is set
+to Idle, the implementation should attempt to set the module to Idle, but
+the state and configuration of the other pins on the module may override this.
+When a module is set to Idle the implementation should set its pins to Idle
+mode.</p>
+<section id="GUID-C8665E28-9AA5-4363-9BF1-5AA1ABA5B598"><title>Implement the
+pin mode functions</title> <ul>
+<li><p>  Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> for each value of the 
+        enumeration <xref href="GUID-BA2AE083-DB8D-327F-85FE-EAB765DAF360.dita"><apiname>TGpioMode</apiname></xref>.  </p> <ul>
+<li><p>Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with <codeph>aMode</codeph> == <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> and
+return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.</p> <p> Enable the pin for GPIO.
+Make any functionality other than  GPIO unavailable. Enable the module if
+it is not already enabled. This  typically requires power and clocks to be
+supplied to the module. </p> </li>
+<li><p> Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with  <codeph>aMode</codeph> == <xref href="GUID-4EC4F5AE-557D-3249-A3D3-31653DECD706.dita"><apiname>EDisabled</apiname></xref> and
+return value <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>. </p> <p> Disable the pin for GPIO.
+Disable the module for GPIO. Only a  all to <xref href="GUID-AF952FD7-0B2F-3985-9B1E-02E87734AC6E.dita"><apiname>SetPinMode</apiname></xref> with <xref href="GUID-1D258A78-63B0-3AAF-8359-CB1C62883F38.dita"><apiname>aMode</apiname></xref> ==
+ <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> should return the pin to the enabled state. If
+ the pin is enabled for another function, that fact is irrelevant.   </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with    
+           <codeph>aMode</codeph> == <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> and return value
+               <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.              </p> <p>        
+       Only implement this if the platform supports the idle state.      
+       </p> <p>                When the pin is set to the idle state, the
+implementation                should also attempt to move the module to the
+idle state.              </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with return
+value                <xref href="GUID-51298FCE-7857-39F8-BFAB-49AF5556D0CC.dita"><apiname>KErrNotReady</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-51298FCE-7857-39F8-BFAB-49AF5556D0CC.dita"><apiname>KErrNotReady</apiname></xref> when a pin which has
+               requested a return to the idle state is not ready to do so.
+             </p> </li>
+<li><p>                Implement <xref href="GUID-47A5FEB0-144E-398B-A3B0-8A524A59B7F2.dita"><apiname>SetPinMode()</apiname></xref> with return
+value                <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.              </p> <p> 
+              Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the pin is   
+            not available for GPIO because it has been assigned an alternative
+function and                also where <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> is passed
+and the platform does not                support an idle state.          
+   </p> </li>
+</ul> </li>
+<li><p>          Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> for each value
+of the          enumeration <xref href="GUID-BA2AE083-DB8D-327F-85FE-EAB765DAF360.dita"><apiname>TGpioMode</apiname></xref>.         </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Verify that the pin is already enabled for GPIO and able to          
+  work according to its configuration. Set <xref href="GUID-1D258A78-63B0-3AAF-8359-CB1C62883F38.dita"><apiname>aMode</apiname></xref> to   
+         <xref href="GUID-500F8E1C-714A-3942-B584-39C44FAF6873.dita"><apiname>EEnabled</apiname></xref>.           </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-4EC4F5AE-557D-3249-A3D3-31653DECD706.dita"><apiname>EDisabled</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Verify that the module is already disabled and the pin cannot        
+    be used for GPIO. If the pin is enabled for another function, that fact
+is             irrelevant.           </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with       
+     <codeph>aMode</codeph> containing <xref href="GUID-89A388CF-9DF5-3CD3-AD5E-D2EE98B7F97E.dita"><apiname>EIdle</apiname></xref> and return
+value             <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>.           </p> <p>        
+    Only implement this if the platform supports the idle state.         
+ </p> <p>             Verify that the module is already in an idle state.
+          </p> </li>
+<li><p>             Implement <xref href="GUID-44CFE638-7ECD-369F-8D06-E2970DF078B7.dita"><apiname>GetPinMode()</apiname></xref> with return
+value             <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>.           </p> <p> 
+           Return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if the platform    
+        does not support reading the pin mode.           </p> </li>
+</ul></section>
+</conbody></concept>

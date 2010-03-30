@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF"><title>Reading Video and Audio Content</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This tutorial describes how to read video and audio content. </p> <section><title>Purpose</title> <p>The purpose of this tutorial is to show you how to read video and audio content synchronously and asynchronously. </p> <p><b>Required background</b> </p> <p>The <xref href="GUID-EF71F4BF-2206-5489-BDB9-2F85ED74D6E2.dita">3GP Library Overview</xref> introduces the 3GP Parser. </p> <p><b>Introduction</b> </p> <p>Video and audio content is read frame by frame. Video and audio frames do not necessarily have to be read in the same order that they are stored in a file. There are separate index counters for video and audio streams, which makes it possible to get all video stream data first, then get the data in the audio stream. Random access to video and audio frames is also possible with other functions provided by the <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse</apiname></xref> class. </p> </section> <section><title>Using frames </title> <p>The following tasks are covered in this tutorial: </p> <ul><li id="GUID-F9080598-D27A-5B02-B61E-6992BF7BA50D"><p><xref href="GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF.dita#GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF/GUID-F7226C7F-F8CB-5441-A3C1-DE0AE2EC1401"> Reading a video frame</xref>  </p> </li> <li id="GUID-2F2AD986-C87C-5919-B584-022A1A8C47FB"><p><xref href="GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF.dita#GUID-EFD05CAF-A8CF-5C2E-B7C9-51023D2438DF/GUID-F898BF2E-78C6-5012-BB02-A2FF740FA68F"> Reading audio frames</xref>  </p> </li> </ul> <p id="GUID-F7226C7F-F8CB-5441-A3C1-DE0AE2EC1401"><b>Reading a video frame</b> </p> <p>To read a video frame, call one of the overloads of <codeph>C3GPParse::ReadVideoFrame()</codeph>: </p> <ul><li id="GUID-187ADC8F-3FEA-5881-8E5D-A56C01AE0826"><p>To read the next video frame from a 3GP file or stream and return it synchronously, call <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::ReadVideoFrame(TDes8, TBool &amp;,
+                  TUint &amp;s, TUint &amp;)</apiname></xref>: </p> <codeblock id="GUID-AF885775-FF45-518E-9A38-F8CB98CBBE02" xml:space="preserve">IMPORT_C TInt ReadVideoFrame(TDes8 &amp;aBuffer, TBool &amp;aKeyFrame, TUint &amp;aTimeStampInMs, TUint &amp;aTimeStampInTimescale) const;</codeblock> <p>The video frame that is read depends on the current position in the input 3GP file. You can use the <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::Seek()</apiname></xref> function to change the current position in the 3GP file. </p> </li> <li id="GUID-87555A14-848C-526E-B694-BF0A46648C14"><p>To read the current video frame from an input file and return it asynchronously, call <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::ReadVideoFrame(M3GPParseCallback
+                  &amp;, TDes8 &amp;)</apiname></xref>: </p> <codeblock id="GUID-10D857F1-3B4E-5446-A426-5F3B32726C8F" xml:space="preserve">IMPORT_C void ReadVideoFrame(M3GPParseCallback &amp;aCallback, TDes8 &amp;aBuffer);</codeblock> <p>Upon completion, successful or otherwise, the callback function <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>M3GPParseCallback::VideoFrameAvailable(TInt, TUints, TUint,
+                  TUint)</apiname></xref> is called. </p> <p> <b>Note</b>: The asynchronous <codeph>C3GPParse::ReadVideoFrame()</codeph> function is not supported when the 3GP Parser is in buffer mode. </p> </li> </ul> <p> <b> Note:</b> There are separate cursors for storing current positions of video and audio streams. Calling <codeph>C3GPParse::ReadVideoFrame()</codeph> does not affect the position of the next audio stream. </p> <p id="GUID-F898BF2E-78C6-5012-BB02-A2FF740FA68F"><b> Reading audio frames</b> </p> <p>To read audio frames, call one of the overloads of <codeph>C3GPParse::ReadAudioFrames()</codeph>: </p> <ul><li id="GUID-2CFE3DC1-8DF3-5A9D-BA2D-EC3CB787D418"><p>To read the audio frames that are stored in the current audio sample from the 3GP file or stream and return them synchronously, call <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::ReadAudioFrames(TDes8 &amp;, TInt &amp;, TUint &amp;,
+                  TUint &amp;)</apiname></xref>: </p> <codeblock id="GUID-002077C9-8163-5E18-89F8-57DFAD76CA35" xml:space="preserve">IMPORT_C TInt ReadAudioFrames(TDes8 &amp;aBuffer, TInt &amp;aReturnedFrames, TUint &amp;aTimeStampInMs, TUint &amp;aTimeStampInTimescale) const;</codeblock> <p>The next frame read depends on the current position in the input 3GP file. You can use the <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::Seek()</apiname></xref> function to change the current position in the 3GP file. </p> </li> <li id="GUID-D15613F3-3F0F-59CC-979C-C94CE0873228"><p>To read the audio frames that are stored in the current audio sample from the 3GP file or stream and return them asynchronously, call <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>C3GPParse::ReadAudioFrames(M3GPParseCallback &amp;, TDes8
+                  &amp;)</apiname></xref>: </p> <codeblock id="GUID-5549A394-9FB3-5393-963F-F5A48DCE2E89" xml:space="preserve">IMPORT_C void ReadAudioFrames(M3GPParseCallback &amp;aCallback, TDes8 &amp;aBuffer);</codeblock> <p>Upon completion, successful or otherwise, the callback function <xref href="GUID-BF3A60C9-0F4C-3712-90E3-ACBD73BE4EB6.dita"><apiname>M3GPParseCallback::AudioFramesAvailable(TInt, TUint, TUint,
+                  TUint)</apiname></xref> is called. </p> <p> <b>Note</b>: The asynchronous <codeph>C3GPParse::ReadAudioFrames()</codeph> function is not supported when the 3GP Parser is in buffer mode. </p> </li> </ul> <p> <b>Note</b>: There are separate cursors for storing current positions for video and audio streams. Calling <codeph>C3GPParse::ReadAudioFrames()</codeph> does not change the current position of the video stream. </p> </section> <section><title>Example</title> <p>The following example shows you how to read video and audio frames: </p> <codeblock id="GUID-167C4870-3062-54C2-A260-8F5BB9E755AB" xml:space="preserve">CMyApp::ReadFileL(const RFile&amp; aFile)
+    {
+    ...
+    // See example code in Setting up a 3GP Parser and Getting Audio and Video Stream Metadata. 
+    ...
+    TInt err = KErrNone;
+    while (err != KErrNotFound)
+        {
+        TInt err = parser-&gt;ReadVideoFrame(...);
+        if (err == KErrNone)
+            {
+            // do something with the video data                        
+            ...
+            }                
+        }
+        
+    err = KErrNone        
+    while (err != KErrNotFound)
+        {
+        // retrieve audio frames
+        TInt err = parser-&gt;ReadAudioFrames(...);
+        if (err == KErrNone)
+            {
+            // do something with the audio data                        
+            ...
+            }                
+
+        ...</codeblock> </section> <section><title>See Also</title> <p><xref href="GUID-4D4A2853-B573-5B16-B9E3-0E4853C90BCD.dita">Setting up a 3GP Parser</xref>  </p> <p><xref href="GUID-12C74671-1988-55E7-8320-FE77024A523C.dita"> Supplying Data to a 3GP Parser</xref>  </p> <p><xref href="GUID-CC4BA8E7-BCAB-58F7-AC5D-BA75A82D04AE.dita">Getting Audio and Video Stream Metadata</xref>  </p> </section> </conbody></concept>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FC308B84-E109-48F3-90F1-78F0C837CC56" xml:lang="en"><title>Creating,
+Replying and Forwarding Email Messages</title><shortdesc>This section describes how to draft, reply and forward email messages
+using Email Client APIs.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-DFD5B648-D3A3-443A-AC0E-622A63E79D70"><p>Perform the steps
+described in <xref href="GUID-1DCB0B64-0B70-4F34-81A7-E00A996AD626.dita">Listing,
+Accessing and Launching Mailboxes</xref>.</p></prereq>
+<context id="GUID-BB5FA642-AF84-41B0-AAD7-B2D32CECC477">       <p>There are
+three ways to create messages:</p><ul>
+<li><p>Creating a draft message by drafting a new email.</p></li>
+<li><p>Creating a reply message by replying to an existing email.</p></li>
+<li><p>Creating a forward message by forwarding an existing email.</p></li>
+</ul>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-10-1-7-1-1-4-1-3-1-5-1-5-1-3-3">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-7-1-1-4-1-3-1-5-1-5-1-3-3-1"><cmd>Create a message.</cmd>
+<info><p>Messages can be created using one of the following methods:</p></info>
+<choices>
+<choice><p>Create a new draft message.</p><codeblock xml:space="preserve">MEmailMailbox* mailbox = mailboxes[i];
+MEmailMessage* message = mailbox-&gt;CreateDraftMessageL();
+CleanupReleasePushL(*message);
+</codeblock></choice>
+<choice><p>Create a reply message.</p><codeblock xml:space="preserve">MEmailMailbox* mailbox = mailboxes[i];
+MEmailMessage* message = mailbox-&gt;CreateReplyMessageL();
+CleanupReleasePushL(*message);
+</codeblock></choice>
+<choice><p>Create a forward message.</p><codeblock xml:space="preserve">MEmailMailbox* mailbox = mailboxes[i];
+MEmailMessage* message = mailbox-&gt;CreateForwardMessageL();
+CleanupReleasePushL(*message);
+</codeblock></choice>
+</choices>
+</step>
+</steps>
+<example><p>The following code snippet shows an example of how to create a
+draft email message.</p><p><codeblock xml:space="preserve">TInt CEmailClientApiTester::CreateDraftMessageL( CItemParser&amp; /*aItem*/ )
+	{
+		
+		TInt ret( KErrNone);
+		MEmailClientApi* mailClient = CreateFactoryAndClientApiLC();
+		RMailboxPtrArray mailboxes;
+		CleanupResetAndRelease&lt;MEmailMailbox&gt;::PushL( mailboxes );
+		mailClient-&gt;GetMailboxesL( mailboxes );
+		for ( TInt i=0;i&lt;mailboxes.Count(); i++) 
+			{
+		    MEmailMailbox* mailbox = mailboxes[i];
+				MEmailMessage* message = mailbox-&gt;CreateDraftMessageL();
+				CleanupReleasePushL( *message );
+	  		MEmailAddress* replyto = message-&gt;ReplyToAddressL();
+				if (replyto)
+				{
+					iLog-&gt;Log( _L( "reply-to: %S %S" ), &amp;replyto-&gt;DisplayName(), replyto-&gt;Address());
+				}
+				REmailAddressArray array;
+				CleanupResetAndRelease&lt;MEmailAddress&gt;::PushL( array );
+				CEmailInterfaceFactory* factory = CEmailInterfaceFactory::NewL();
+				CleanupStack::PushL( factory );
+				MEmailAddress* address = static_cast&lt;MEmailAddress*&gt;(
+				factory-&gt;InterfaceL( KEmailIFUidAddress ) );        
+				CleanupReleasePushL( *address );
+         
+				address-&gt;SetAddressL( _L("abc.sender@xyz.com") );
+				address-&gt;SetDisplayNameL( _L("Abc Sender") );
+				message-&gt;SetReplyToAddressL(*address);        
+				address-&gt;SetAddressL( _L("etu.suku@domain.fi") );
+				address-&gt;SetDisplayNameL( _L("Etu Suku") );
+				array.Append( address );
+				message-&gt;SetRecipientsL( MEmailAddress::ETo, array ); 
+				CleanupStack::PopAndDestroy(); // address
+				message-&gt;SetFlag( EFlag_Important );
+				message-&gt;SetSubjectL( _L("Overlook by night") );
+				message-&gt;SetPlainTextBodyL( _L("Here's Johnny!") );
+				message-&gt;SaveChangesL();
+				iLog-&gt;Log( _L( "%S id=%d " ),&amp;mailbox&gt;MailboxName(),  
+				mailbox-&gt;MailboxId().iId);
+				iLog-&gt;Log( _L( "msgid=%d folderid=%d" ), 
+				message-&gt;MessageId(), 
+				message-&gt;ParentFolderId() );
+				message-&gt;Flags() ); //Message Flags
+				REmailAddressArray array2;
+				CleanupResetAndRelease&lt;MEmailAddress&gt;::PushL( array2 );
+				TInt count = message-&gt;GetRecipientsL( MEmailAddress::EUndefined, array2 );
+				iLog-&gt;Log( _L( "recipient count= %d" ), count);                                   
+				for (TInt i = 0; i &lt; count; i++)
+				{
+					iLog-&gt;Log( _L( "recipient %S %S, role %d" ), &amp;array2[i]-&gt;DisplayName(), &amp;array2[i]-&gt;Address(), array2[i]-&gt;Role());            
+				}
+				MEmailAddress* reply = message-&gt;ReplyToAddressL();
+				iLog-&gt;Log( _L( "reply-to: %S %S" ), &amp;reply-&gt;DisplayName(), &amp;reply-&gt;Address());
+				/* remove the last recipient */
+				message-&gt;RemoveRecipientL(*array2[count-1]);        
+				CleanupStack::PopAndDestroy(); // array2
+				CleanupResetAndRelease&lt;MEmailAddress&gt;::PushL( array2 );
+				TInt respcount = message-&gt;GetRecipientsL( MEmailAddress::EUndefined, array2 );
+				iLog-&gt;Log( _L( "recipient count= %d" ), respcount); 
+                          
+				for (TInt i = 0; i &lt; respcount; i++)
+				{
+				 iLog-&gt;Log( _L( "recipient %S %S, role %d" ), &amp;array2[i]-&gt;DisplayName(), &amp;array2[i]-&gt;Address(), array2[i]-&gt;Role());            
+				}
+				message-&gt;SaveChangesL();
+				CleanupStack::PopAndDestroy(4); // message, array, factory, array2
+	}    
+	CleanupStack::PopAndDestroy( 3 ); // mailboxes, mailclient, factory
+	iLog-&gt;Log( _L( "CreateDraftMessageL ends ret=%d" ), ret );
+	return ret;
+}
+</codeblock></p></example>
+</taskbody><related-links>
+<link href="GUID-B87B9E01-F5EB-40F6-A580-A7E46869AE39.dita"><linktext>Email Client
+API Overview</linktext></link>
+<link href="GUID-1DCB0B64-0B70-4F34-81A7-E00A996AD626.dita"><linktext>Listing,
+Accessing and Launching Mailboxes</linktext></link>
+<link href="GUID-222C2B18-F348-4B16-BB00-E5FAC11AE528.dita"><linktext>Searching
+Email Messages</linktext></link>
+</related-links></task>

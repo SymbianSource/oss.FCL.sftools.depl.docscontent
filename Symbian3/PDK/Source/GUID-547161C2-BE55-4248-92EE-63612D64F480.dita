@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-547161C2-BE55-4248-92EE-63612D64F480" xml:lang="en"><title>SUPL
+Cell-Based Positioning Request</title><shortdesc>Using SUPL to request a cell-based position.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-5296A4BC-4A36-4530-B202-2084AFA11F7F">   
+   <p>SUPL (Secure User Plane Location) enables a device to communicate with
+a SUPL server over an IP connection. </p><p>All the components responsible
+for SUPL positioning run on the Symbian platform. The architecture is based
+on two plug-ins: the SUPL Proxy Protocol module and the SUPL Positioning Message
+interface. The relationship between the Location subsystem and SUPL is illustrated
+below. The plug-ins enable information to pass from the network directly to
+the GPS hardware.</p><fig id="GUID-7F00AED7-1CF7-456E-A24E-A494E4C43ED9">
+<title>Location subsystem and SUPL extension</title>
+<image href="GUID-1D58231A-7DDF-46DB-B5A6-7A326BD954F3_d0e467021_href.png" placement="inline"/>
+</fig> <p>If a client application wants to obtain a position without waiting
+for a GPS service a mobile network can provide a cell-based position, using
+SUPL. </p> <p>A cell-based positioning request using SUPL is shown in the
+following steps.</p>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-10-1-16-1-1-9-1-6-1-10-1-3-2">
+<step id="GUID-E0BA1F47-0751-479D-B341-06C4FAB15A03"><cmd>The client must
+open RPositionServer and open a connection to the server by calling <xref href="GUID-0ADC4654-7F7B-3B53-A2F9-7035670F501B.dita#GUID-0ADC4654-7F7B-3B53-A2F9-7035670F501B/GUID-23285930-A1D5-3A97-AED4-E979BFA96FDD"><apiname>RPositionServer::Connect()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-B3CB8376-2620-4A86-9FD6-92E611146629"><cmd>The client must
+then open RPositioner by calling <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita#GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575/GUID-AF3D9B5F-8025-3AFF-A101-82025520EBD6"><apiname>RPositioner::Open()</apiname></xref> and
+specify the UID of the Network Proxy PSY.</cmd>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-16-1-1-9-1-6-1-10-1-3-2-3"><cmd>The client application
+sends a location request to the Location subsystem by calling <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita#GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575/GUID-321F6046-3551-3ACE-B0A3-26D51FAEB477"><apiname>RPositioner::NotifyPositionUpdate()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-FD076E9C-8A18-4692-920E-D3CAFD64A262-GENID-1-10-1-16-1-1-9-1-6-1-10-1-3-2-4"><cmd>The Location subsystem
+forwards the location request to the SUPL Protocol module by calling <xref href="GUID-479C43CF-8787-3596-93ED-F03A8E5CA2F5.dita#GUID-479C43CF-8787-3596-93ED-F03A8E5CA2F5/GUID-E52AC2F2-6E42-370B-93EB-48389E062E33"><apiname>CLbsNetworkProtocolBase::RequestNetworkLocation()</apiname></xref>.
+(In the default configuration SUPL is used for cell-based positioning).</cmd>
+</step>
+<step id="GUID-C91844EA-4E31-4EAD-981F-6C83EBDD3D67-GENID-1-10-1-16-1-1-9-1-6-1-10-1-3-2-5"><cmd>The SUPL protocol
+module communicates with an external SUPL server and obtains a cell-based
+location. </cmd>
+</step>
+<step id="GUID-C38775F8-AF05-48A0-99A5-AA0AD63055AB-GENID-1-10-1-16-1-1-9-1-6-1-10-1-3-2-6"><cmd>The SUPL Protocol
+Module returns the cell-based position by calling <xref href="GUID-A97ABAA7-46B0-3E26-97C6-123C92CCEEE4.dita#GUID-A97ABAA7-46B0-3E26-97C6-123C92CCEEE4/GUID-CAB9645E-91AD-326B-8803-45F28505CCCC"><apiname>MLbsNetworkProtocolObserver::ProcessLocationUpdate()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-EB292F2E-BA44-4701-A0A7-2E9A5C258568"><cmd>The Location subsystem
+completes the client request.</cmd>
+</step>
+</steps>
+<result id="GUID-AB662FA5-3755-431B-B40A-842B71AC0C6A">The client application
+receives a cell-based position provided by the mobile network.     </result>
+</taskbody><related-links>
+<link href="GUID-299B6CAB-3D4C-4FA5-A00E-244D04F0B6AB.dita"><linktext>Control Plane
+Cell Position Attempt Fallback to SUPL</linktext></link>
+<link href="GUID-3E7FBDE5-B580-4C2D-9815-83E04B7D71E1.dita"><linktext>Switching
+from Cell ID to Terminal-Assisted Positioning</linktext></link>
+</related-links></task>

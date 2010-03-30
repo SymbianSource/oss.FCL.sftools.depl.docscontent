@@ -9,4 +9,56 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-B683496C-652E-5F48-924E-52D2FF3A78A7"><title>Direct file store</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The main characteristic of a direct file store is that streams can be created and objects externalised to them but, once the streams have been committed and closed, they cannot subsequently be changed, i.e. streams cannot be replaced, deleted, extended or changed in any way.</p> <p>A direct file store is useful for the type of application which treats the in-memory copy of its data as its prime copy, such as a word processor which implements the classic load/save paradigm. In this paradigm:</p> <ul><li id="GUID-DE651688-71D8-5E52-BA3A-D3ED93B58F55"><p>application data is first created, in an internal, non-persistent, form — i.e., in RAM</p> </li> <li id="GUID-F6012000-CE82-5940-9CEB-386664FF0EA5"><p>when the file is first saved, the data is externalised to the file store. When saving its data, an application writes the whole object network forming the data to a new direct file store, replacing any existing file of the same name. The last stream written is always the root stream.</p> </li> <li id="GUID-9896F0DD-1D96-5EC7-959F-D3C7EB226BD6"><p>the application can exit</p> </li> <li id="GUID-27B6B647-FA91-52BF-855C-2F6CE31AB0E6"><p>when the application is started again, it can open the file store and read in the persistent data. It need not load the whole object network into memory; the loading of objects can be deferred by using Swizzles. </p> </li> <li id="GUID-1BF73B14-8CB1-57B3-A687-7C76B5100C9E"><p>the data is edited in its internal, non-persistent form</p> </li> <li id="GUID-8FFA6658-0753-5601-979A-2833AD415691"><p>when data is saved again, the old file is erased (or renamed for safety!) and completely rewritten</p> </li> </ul> <p>With a direct file store, a stream may not be appended once it has been written and closed. Writing to different streams may not be interleaved. The root stream must be the last stream to be written. The direct file store is very efficient as the allocation of new streams, and finding existing streams, are trivially mapped onto the most efficient operations of the underlying file system.</p> <p>For this type of application, the most efficient file format is obtained when all the data is written in sequence to the file. Any references within the file are to data which was written earlier. When reading the file back, it is read in several sections starting with a section that is at the <i>end</i> of the file.</p> <p>A typical relationship between a direct file store and its contained streams is shown below. In this stream network streams <i>I</i> and <i>J</i> must be written before stream <i>A</i>; stream <i>K</i> must be written before stream <i>C</i>; streams <i>A</i>,<i>B</i> and <i>C</i> must be written before the root stream.</p> <fig id="GUID-D45A96E3-5900-5817-8B32-8AA74E3DE584"><title/><image href="GUID-DE5FC074-75C1-5833-83B2-D25396F52732_d0e572333_href.png" placement="inline"/></fig> <p>Direct file stores are encapsulated by the <codeph>CDirectFileStore</codeph> class. </p> <section><title>See also</title> <p><xref href="GUID-D7211372-9411-5A18-88F0-615F4983A2E0.dita">Store streams</xref> </p> <p><xref href="GUID-D8CC5B36-41DA-5989-8FA8-3F56306146A3.dita">Introduction to stores</xref> </p> <p><xref href="GUID-53112730-5871-5920-8861-D2F6BF1595BC.dita">Swizzles and deferred loading</xref> </p> </section> </conbody></concept>
+<concept id="GUID-B683496C-652E-5F48-924E-52D2FF3A78A7" xml:lang="en"><title>Direct
+File Store</title><shortdesc>The main characteristic of a direct file store is that streams
+can be created and objects externalized to them but, once the streams have
+been committed and closed, they cannot subsequently be changed.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Once the streams have been committed and closed, they cannot be replaced,
+deleted, extended or changed in any way. A direct file store is useful for
+the type of application which treats the in-memory copy of its data as its
+prime copy, such as a word processor which implements the classic load/save
+paradigm. In this paradigm:</p>
+<ul>
+<li id="GUID-DE651688-71D8-5E52-BA3A-D3ED93B58F55"><p>application data is
+first created, in an internal, non-persistent, form — i.e., in RAM</p> </li>
+<li id="GUID-F6012000-CE82-5940-9CEB-386664FF0EA5"><p>when the file is first
+saved, the data is externalised to the file store. When saving its data, an
+application writes the whole object network forming the data to a new direct
+file store, replacing any existing file of the same name. The last stream
+written is always the root stream.</p> </li>
+<li id="GUID-9896F0DD-1D96-5EC7-959F-D3C7EB226BD6"><p>the application can
+exit</p> </li>
+<li id="GUID-27B6B647-FA91-52BF-855C-2F6CE31AB0E6"><p>when the application
+is started again, it can open the file store and read in the persistent data.
+It need not load the whole object network into memory; the loading of objects
+can be deferred by using Swizzles. </p> </li>
+<li id="GUID-1BF73B14-8CB1-57B3-A687-7C76B5100C9E"><p>the data is edited in
+its internal, non-persistent form</p> </li>
+<li id="GUID-8FFA6658-0753-5601-979A-2833AD415691"><p>when data is saved again,
+the old file is erased (or renamed for safety!) and completely rewritten</p> </li>
+</ul>
+<p>With a direct file store, a stream may not be appended once it has been
+written and closed. Writing to different streams may not be interleaved. The
+root stream must be the last stream to be written. The direct file store is
+very efficient as the allocation of new streams, and finding existing streams,
+are trivially mapped onto the most efficient operations of the underlying
+file system.</p>
+<p>For this type of application, the most efficient file format is obtained
+when all the data is written in sequence to the file. Any references within
+the file are to data which was written earlier. When reading the file back,
+it is read in several sections starting with a section that is at the <i>end</i> of
+the file.</p>
+<p>A typical relationship between a direct file store and its contained streams
+is shown below. In this stream network streams <i>I</i> and <i>J</i> must
+be written before stream <i>A</i>; stream <i>K</i> must be written before
+stream <i>C</i>; streams <i>A</i>,<i>B</i> and <i>C</i> must be written before
+the root stream.</p>
+<fig id="GUID-D45A96E3-5900-5817-8B32-8AA74E3DE584">
+<title>Streams linked in a store</title>
+<image href="GUID-DE5FC074-75C1-5833-83B2-D25396F52732_d0e593572_href.png" placement="inline"/>
+</fig>
+<p>Direct file stores are encapsulated by the <codeph>CDirectFileStore</codeph> class. </p>
+</conbody><related-links>
+<link href="GUID-D7211372-9411-5A18-88F0-615F4983A2E0.dita"><linktext>Store Streams</linktext>
+</link>
+</related-links></concept>
