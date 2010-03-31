@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-D7E279EE-05F5-4E82-AF25-1E10FF50FABA" xml:lang="en"><title>Handling
+the Middle Soft Key and Enter Key in AVKON lists</title><shortdesc>This document describes how to handle the Middle Soft Key (MSK)
+and Enter keys in AVKON lists.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-F94E9859-C7AE-45FA-80DC-F62625C32EA4">       <p>If an application
+handles the list targeted MSK or Enter Key events (<codeph>EKeyOK</codeph> and <codeph>EKeyEnter</codeph>),
+for example, in the <codeph>ProcessKeyEventL()</codeph> function, the handling
+of these key events must be moved to the listbox observer function <codeph>HandleListBoxEventL()</codeph>.
+The MSK or Enter Key event related action must be performed when an <codeph>EEventEnterKeyPressed</codeph> event
+is received. This way the list item-specific action is performed on a key
+event only when there is an option highlighted in the list.</p>     </context>
+<example><ul>
+<li><p>Remove key event handling code from <codeph>ProcessKeyEventL</codeph>.</p><codeblock xml:space="preserve">TBool CLogsDetailView::ProcessKeyEventL(
+const TKeyEvent&amp; aKeyEvent,
+TEventCode aType )
+{
+  if( aType == EEventKey )
+  {
+    switch( aKeyEvent.iCode )
+    {
+      ...
+//------ Remove this code-------------
+<b>// 	case EKeyOK:
+// 	case EKeyEnter:
+//	Select key pressed
+// 	CmdContextMenuL();
+// 	return ETrue;
+
+</b>//--------------------------------------        
+       ...
+        default:
+        break;
+    }
+  }
+</codeblock></li>
+<li><p>Add key event handling code to <codeph>HandleListBoxEventL</codeph>.</p><codeblock xml:space="preserve">void CLogsBaseView::HandleListBoxEventL(
+CEikListBox* aListBox,
+TListBoxEvent aEventType)
+{
+  ...
+    switch ( aEventType )
+  {
+    ...
+//---------Add MSK and enter key handling code----------------<b> 
+      case EEventEnterKeyPressed:
+    {
+      TInt commandId( Cba()-&gt;ButtonGroup()-&gt;CommandId(
+        CEikButtonGroupContainer::EMiddleSoftkeyPosition ) );
+      ProcessCommandL( commandId );
+      break;
+    }
+</b>//-------------------------------------------------------------- 
+ ...
+      default:
+// HW key shortcuts
+      break;
+  }
+}
+
+
+...
+}
+</codeblock></li>
+</ul></example>
+</taskbody></task>

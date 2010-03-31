@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D8D30C70-C6ED-4E4C-9815-BF7993262ABF" xml:lang="en"><title>Using <codeph>GCompletion</codeph></title><shortdesc><codeph>GCompletion</codeph> provides a method for automatic string
+completion using a group of target strings. This is typically used for file
+name completion as is common in many UNIX shells. A possible use of such APIs
+in a mobile device application is the contacts application. For example, if
+all the names that begin with a particular prefix, say "abc", are to be displayed,
+these APIs can be used to get and display all the names that begin with "abc".</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A <codeph>GCompletion</codeph> is created using <codeph>g_completion_new()</codeph>.
+Target items are added using <codeph>g_completion_add_items()</codeph>. This
+API takes a doubly-linked list item, <codeph>GList</codeph>, as a parameter.
+Items are removed using <codeph>g_completion_clear_items()</codeph> and <codeph>g_completion_remove_items()</codeph>.
+A completion attempt is requested using <codeph>g_completion_complete()</codeph> or <codeph>g_completion_complete_utf8()</codeph>.
+A <codeph>GCompletion</codeph> is freed using <codeph>g_completion_free()</codeph>.</p>
+<p>Generally a <codeph>GCompletion</codeph> item is a string. The default
+function used to compare a string is <codeph>strncmp()</codeph>. If a function
+other than it is desired, then it can be set using the function <codeph>g_completion_set_compare()</codeph>.
+If an arbitrary data structure is to be compared, a <codeph>GCompletionFunc</codeph> is
+to be provided to <codeph>g_completion_new()</codeph>.</p>
+<p>The following code demonstrates the usage of <codeph>GCompletion</codeph> APIs.</p>
+<p>In the code a <codeph>GCompletion</codeph> is created using <codeph>g_completion_new()</codeph>.
+Target strings are added using <codeph>g_completion_add_items()</codeph>.
+The comparison function is changed to <codeph>g_ascii_strncasecmp()</codeph> to
+allow matches without the consideration of case. A completion attempt for
+the string “aB” and the same is printed using <codeph>g_print()</codeph>.
+Finally the <codeph>GCompletion</codeph> is freed using <codeph>g_completion_free()</codeph>.</p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+
+int main ()
+{
+	GCompletion *cmp;
+	GList *items;
+	gchar *prefix;
+
+	//create a new GCompletion
+	cmp = g_completion_new (NULL);
+
+	//create a new GList to create a set of target strings.
+	items = NULL;
+	items = g_list_append (items, "AbcDEF");
+	items = g_list_append (items, "bc");
+	items = g_list_append (items, "bd");
+			
+	//add the target strings			
+	g_completion_add_items (cmp, items);
+	
+	//change the comparison API to g_ascii_strncasecmp
+	g_completion_set_compare(cmp,g_ascii_strncasecmp);
+	
+	//find the first match
+	items = g_completion_complete (cmp, "aB", &amp;prefix);
+	
+	g_print("The match for aB is %s",prefix);
+	getchar();
+	
+	g_free (prefix);
+	
+	g_completion_free(cmp);
+	return 0;
+}
+</codeblock>
+</conbody></concept>

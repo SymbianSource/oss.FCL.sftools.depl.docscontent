@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE reference
+  PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="GUID-C1612638-4C5A-5C37-AF1A-16F9EBEF09FD" xml:lang="en"><title>transient:
+transient server example</title><shortdesc>This example demonstrates the use of transient servers that are
+started on demand when a client needs to use the server, and exit after the
+last client has disconnected, sometimes after a short delay. It demonstrates
+how to handle startup and shutdown situations correctly. </shortdesc><prolog><metadata><keywords/></metadata></prolog><refbody>
+<section id="GUID-BF4C4CB4-D495-49D6-8035-F8BA724851B7"><title>Class summary</title><ul>
+<li><p><xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita"><apiname>RSessionBase</apiname></xref> - Client-side handle to a session with
+a server.</p></li>
+<li><p><xref href="GUID-5733DF34-5B54-3044-BBED-3BFECB7ACE7A.dita"><apiname>CTimer</apiname></xref> - Base class for a timer active object.</p></li>
+<li><p><xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref> - Abstract base class for servers (version
+2).</p></li>
+<li><p><xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> - Represents a session (version 2) for
+a client thread on the server-side.</p></li>
+</ul></section>
+<section id="GUID-E688F8C0-0A4A-4D25-B7B4-779CB6A08157"><title>Download</title> <p>Click
+on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-cbf7e18e-3788-4ec1-a225-268ce1a22c51.zip" scope="external">transient.zip</xref></p><p>click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-cbf7e18e-3788-4ec1-a225-268ce1a22c51.html" scope="peer">browse</xref> to view the example code.</p> </section>
+<section id="GUID-87B18963-ACE8-464B-9863-A37ADA57379C"><title>Background</title> <p>The
+client-server framework is an important part of the Symbian platform. There
+is a level of complexity in implementing a server for an application, but
+this example provides client interface code and server code that can be re-used
+in your own implementations. </p> <p>Symbian platform servers are of three
+basic types: </p> <ul>
+<li id="GUID-6D0F8C69-CFEA-5BB1-A0CB-C4D178DFAE25"><p> <b>Transient servers:</b> these
+are started on demand when a client needs the server, and exit after the last
+client has disconnected - sometimes after a short delay, for example, the
+socket server. </p> </li>
+<li id="GUID-5B824584-C8E6-57F7-A83C-564DA256F622"><p> <b>System servers:</b> these
+are started as part of the system boot process, for example, the kernel, the
+file server, the window server etc. </p> </li>
+<li id="GUID-9BE0FD09-B112-5AF6-A5D1-FBDD6A4EC00B"><p> <b>Local servers:</b> these
+are "local" to a process to provide multi-threaded access to thread-specific
+resources, for example, the posix server (in the C Standard Library). </p> </li>
+</ul> </section>
+<section id="GUID-EEA0A38B-F8A6-4308-A50D-B3E74B12420A"><title>Description</title> <p>The
+transient server supplied here runs in a thread in its own process. This gives
+the server independence from its clients. This is important because if the
+client were to create the server as a separate thread within its own process,
+then the server would exit, i.e. terminate, if its owning process terminated.
+This would be true even if clients in other processes were still connected
+to it. </p> <p>Equally as important: </p> <ul>
+<li id="GUID-432FCF7B-2393-5E59-BDE5-0A5B4BAFD155"><p>a client does not explicitly
+need to start the server prior to connecting; this is done by the client interface. </p> </li>
+<li id="GUID-D89C8F48-2CA2-5769-8DB9-42FD8FFA5879"><p>the server terminates
+when not in use shortly after the last client disconnects. </p> </li>
+<li id="GUID-968AB243-908B-5709-BB82-4213860CBC8A"><p>the code handles concurrency
+issues, the most common of which is handling the case where the server is
+closing down or exiting at the same time that another client is trying to
+connect. </p> </li>
+</ul> <p>The example consists of four main parts: </p> <ul>
+<li id="GUID-BC6A15E0-07CB-562C-99E8-0AAF39B0ED26"><p>Client interface: this
+is a DLL (<filepath>t-client.dll</filepath>) that is used by clients. </p> <p>The
+client interface effectively forms the gateway to the server. All requests
+to the server, including requests to connect to it are routed through this. </p> <p>The
+client interface defines just one class: <codeph>RMySession</codeph>, derived
+from <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita"><apiname>RSessionBase</apiname></xref>. An <codeph>RSessionBase</codeph> (derived)
+object represents the client side session and forms a channel of communication
+between the client and the server. Requests to the server, and information
+received from the server are channelled through this object. Note that the
+client side session object is mirrored by a server side session object; an
+instance of a class derived from <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref>, which in this
+server is called <codeph>CMySession</codeph>. </p> <p>The client calls <codeph>Connect()</codeph> to
+set up a connection to the server. This function attempts to start the server
+if necessary and then issues a request to create a session with the server.
+If the server fails to start, or a session cannot be created then this is
+reported back.Simultaneous launching of two server processes is also detected,
+with the second attempt failing with <xref href="GUID-D1D25122-F2B8-3C78-8599-84905BFD47B8.dita"><apiname>KErrAlreadyExists</apiname></xref>.
+On successful completion the connection is established, and a session is created
+with the server. </p> <p>The client uses the <codeph>Send()</codeph> method
+to send messages to the server and the <codeph>Receive()</codeph> method to
+request information from the server. <codeph>Send()</codeph> is implemented
+by calling down to the synchronous variant of <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-479FE087-DD9F-31D7-98F7-9F96535F0584"><apiname>RSessionBase::SendReceive()</apiname></xref> in
+the base class. Synchronous means that it does not return until the server
+has dealt with the request. </p> <p> <codeph>Send()</codeph> passes an operation
+code (or function number) identifying the request and a descriptor containing
+information to the server. The descriptor is wrapped into a <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> object.
+In practice, your client interface would probably be richer, having variants
+of the <codeph>Send()</codeph> function that take more than one parameter.
+You might also choose to have asynchronous variants of <codeph>Send()</codeph>;
+your client code (not the client interface) would then need to use active
+objects to deal with this. </p> <p> <codeph>Receive()</codeph> is implemented
+by calling down to the asynchronous variant of <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-479FE087-DD9F-31D7-98F7-9F96535F0584"><apiname>RSessionBase::SendReceive()</apiname></xref> in
+the base class. Asynchronous means that the call returns immediately, but
+the request itself may not complete until some time later. </p> <p> <codeph>Receive()</codeph> passes
+an operation code (or function number) identifying the request, a descriptor
+into which the server will place the information, and a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object,
+which the server will use to report how the request completes. The descriptor
+is wrapped into a <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> object. Again, you might want
+a richer client interface; perhaps different function names to represent different
+request types. </p> <p> <codeph>CancelReceive()</codeph> allows the client
+to cancel a pending <codeph>Receive()</codeph> request. It is usual to provide
+some mechanism to cancel asynchronous requests. This is implemented by calling
+down into the asynchronous variant of <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-479FE087-DD9F-31D7-98F7-9F96535F0584"><apiname>RSessionBase::SendReceive()</apiname></xref> in
+the base class. Note: the <codeph>Receive()</codeph> method simply passes
+an operation code (or function number) and no data. </p> <p>The operation
+codes (or function numbers) are defined by an enum in the header file <filepath>clientserver.h</filepath>.
+This file is included in both the client interface code and server code as
+both need access to these common symbols. </p> </li>
+<li id="GUID-A76A5A09-CB86-5D58-8771-3DE4131E51B9"><p>Server: this is an EXE
+(<filepath>t-server.exe</filepath>) that runs in its own process, and E32Main()
+is the entry point. After setting up heap checking (in debug builds only)
+the implementation creates a cleanup stack and then executes the main body
+of the code inside a trap harness. </p> <p>The server code implements several
+classes: </p> <p> <codeph>CMyServer</codeph>: this class derives from the
+class <xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref>. The main role of this class is to handle
+messages sent by client threads; this includes requests from clients for connection
+to the server. The connection is established by starting a session with the
+server. The session is represented by a session object, in this case the <xref href="GUID-8B50E9C7-CA33-3E11-A881-16E230A082CB.dita"><apiname>CMySession</apiname></xref> object. </p> <p>Once
+the <codeph>CMyServer</codeph> object has been created, the active scheduler
+can be started by the call to <xref href="GUID-B4C76104-EA1B-3FC3-A31E-86A976598171.dita#GUID-B4C76104-EA1B-3FC3-A31E-86A976598171/GUID-3281C85C-1A45-3049-B711-64CA8BFBC452"><apiname>CActiveScheduler::Start()</apiname></xref>.
+This call will not return until the active scheduler is stopped by the <codeph>CShutdown</codeph> timer,
+which is primed after the last client has disconnected. In simple terms, the
+active scheduler is a wait loop. It sits inactive until it receives a message
+from (potential) clients (or until the timer completes and stops the active
+scheduler). Messages that represent requests for connection result in the
+creation of a session. Other messages are passed to the relevant <codeph>CMySession</codeph> active
+object. </p> <p> <codeph> CMySession</codeph>: one of these objects is created
+for each session, i.e. as a result of a request by a client for connection
+to the server. Once sessions have been created, requests received by <codeph>CMyServer</codeph> are
+then forwarded to the corresponding session, and specifically to the virtual
+function <codeph>ServiceL()</codeph>, which handles <codeph>Send()</codeph>, <codeph>Receive()</codeph> and <codeph>CancelReceive()</codeph> requests. </p> <p> <codeph>CShutdown</codeph>: this class represents a timer that is started
+before the first client has connected, and after the last client has disconnected.
+The timer is stopped once the server has at least one client attached to it.
+If the server has no clients, then there is 2 second interval before the server
+terminates. This is implemented as an active object. </p> </li>
+<li id="GUID-07B2ACEC-C457-547D-B1FE-78FCF980AEEF"><p>Test code:this corresponds
+to the client, and uses the client interface to communicate with the server
+- application developers should make use of the principles applied here and
+include them into their own client code. </p> </li>
+<li id="GUID-91B89143-B380-524D-89CF-918FAE5CE055"><p>bld.inf: which is a
+component description file. </p> </li>
+</ul><p><b>Related APIs</b></p><ul>
+<li><p><xref href="GUID-B4C76104-EA1B-3FC3-A31E-86A976598171.dita#GUID-B4C76104-EA1B-3FC3-A31E-86A976598171/GUID-3281C85C-1A45-3049-B711-64CA8BFBC452"><apiname>CActiveScheduler::Start()</apiname></xref></p></li>
+<li><p><xref href="GUID-8B50E9C7-CA33-3E11-A881-16E230A082CB.dita"><apiname>CMySession</apiname></xref></p></li>
+<li><p><xref href="GUID-8E316AC4-4676-301A-9A23-659E83AA1D1C.dita"><apiname>CServer2</apiname></xref> - Abstract base class for servers (version
+2).</p></li>
+<li><p><xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita"><apiname>CSession2</apiname></xref> - Represents a session (version 2) for
+a client thread on the server-side.</p></li>
+<li><p><xref href="GUID-D1D25122-F2B8-3C78-8599-84905BFD47B8.dita"><apiname>KErrAlreadyExists</apiname></xref> - System wide error code -11 :
+an object already exists.</p></li>
+<li><p><xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita"><apiname>RSessionBase</apiname></xref> - Client-side handle to a session with
+a server.</p></li>
+<li><p><xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-479FE087-DD9F-31D7-98F7-9F96535F0584"><apiname>RSessionBase::SendReceive()</apiname></xref></p></li>
+<li><p><xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> - A Version 2 client/server class that
+clients use to package the arguments to be sent to a server.</p></li>
+<li><p><xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> - Indicates the completion status
+of a request made to a service provider.</p></li>
+</ul> </section>
+<section id="GUID-86D3479E-216B-4D5D-AF57-C4C9963CD9F0"><title>Building and
+configuring</title> <p>To build the example: </p> <ul>
+<li id="GUID-FDC690A6-D68B-58E5-A10D-89220DB9B89E"><p>You can build the example
+from your IDE or the command line. </p> <p>If you use an IDE, import the <filepath>bld.inf</filepath> file
+of the example into your IDE, and use the build command of the IDE. </p> <p>If
+you use the command line, open a command prompt, and set the current directory
+to the source code directory of the example. You can then build the example
+with the SBSv1 build tools with the following commands: </p> <p><userinput>bldmake
+bldfiles</userinput> </p> <p><userinput>abld build</userinput> </p> <p><xref href="GUID-793A5EF9-CC16-5EEB-9011-6431EA76EB15.dita">How to use bldmake</xref> and <xref href="GUID-B6B54E07-3B34-5D5C-8815-93383FA8FB4B.dita">How to use abld</xref> describe
+how to use the SBSv1 build tools. </p> </li>
+<li id="GUID-DD18F4AF-6AB1-5E0F-95C3-9EB899BA99C9"><p>For the emulator, the
+example builds the following executables : </p> <p> <filepath>t-client.dll</filepath> </p> <p> <filepath>t-server.exe</filepath>  </p> <p> <filepath>t-test.exe</filepath> (test executable) </p> <p> <filepath>t-testc.dll</filepath> (test
+client) </p> <p>in the <filepath>epoc32\release\winscw\&lt;udeb or urel&gt;\</filepath> folder. </p> </li>
+</ul> </section>
+</refbody><related-links>
+<link href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita"><linktext>Platform
+security</linktext></link>
+<link href="GUID-B21141D4-3BFE-59C9-8D5F-147A93BE1C95.dita"><linktext>Build tools
+guide</linktext></link>
+<link href="GUID-594488FF-02C9-5066-85DB-5F88A754AE18.dita"><linktext>How     
+           to build DLLs</linktext></link>
+<link href="GUID-BBBB5000-90A2-503A-9521-2FC6DEC69DC8.dita"><linktext>MMP file
+syntax</linktext></link>
+</related-links></reference>

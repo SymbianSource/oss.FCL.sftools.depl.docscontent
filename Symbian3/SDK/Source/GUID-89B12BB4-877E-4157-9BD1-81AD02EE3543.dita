@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-89B12BB4-877E-4157-9BD1-81AD02EE3543" xml:lang="en"><title>Constructing
+the UI controller in the view architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The call on the first phase constructor method of the UI controller
+occurs in the <xref href="GUID-935C59EE-AD66-33FE-987B-BD97F5147CC1.dita"><apiname>CAknDocument</apiname></xref>-derived class of application.
+For more information, see <xref href="GUID-07D2ED79-90B2-4ABC-A61F-108DAEE21955.dita">Implementing
+framework requirements</xref>.</p>
+<p>The methods you need to implement for your <xref href="GUID-26F8606A-0803-3693-A022-3BB620D64C0E.dita"><apiname>CAknViewAppUI</apiname></xref>-derived
+UI controller are as follows:</p>
+<ul>
+<li><p>C++ default constructor, which cannot contain any code that
+might leave. A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-ED243BA0-4466-47F3-8F17-0A901EE29671" xml:space="preserve">CMyViewAppAppUi::CMyViewAppAppUi()
+    {    
+    }</codeblock>
+<p>The class declaration for this constructor in the class header file
+needs to be public to support the construction method required.</p>
+</itemgroup>
+</li>
+<li><p>Symbian 2nd phase constructor with code that might leave.
+A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-6665D735-D20A-4159-98B3-199BF15E7602" xml:space="preserve">
+void CMyViewAppAppUi::ConstructL()
+    {
+    
+    BaseConstructL(EAknEnableSkin); // Use EAknEnableSkin to make the application support themes.
+ 
+    CMyViewAppView* view1 = CMyViewAppView::NewL();
+
+    AddViewL( view1 );        // transfer ownership to CAknViewAppAppUi
+	  iViewId1 = view1-&gt;Id();   // view id to get view from CAknViewAppAppUi
+    
+
+    CMyViewAppView2* view2 = CMyViewAppView2::NewL();
+
+    AddViewL( view2 );      // transfer ownership to CAknViewAppAppUi
+	  iViewId2 = view2-&gt;Id(); // view id to get view from CAknViewAppAppUi
+    
+
+    SetDefaultViewL( *view1 );
+    }</codeblock>
+<p><parmname>ConstructL</parmname> completes the construction of the object.
+It is a public constructor in the header file.</p>
+<p><xref href="GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E.dita#GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E/GUID-BD88511C-84FC-3FF5-BE29-230BE30A75E3"><apiname>CAknViewAppUi::BaseConstructL()</apiname></xref> initializes the application
+UI with necessary UI components , including status and control panes. <xref href="GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E.dita#GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E/GUID-BD88511C-84FC-3FF5-BE29-230BE30A75E3"><apiname>CAknViewAppUi::BaseConstructL()</apiname></xref> can
+accept flags enumerated in <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita"><apiname>CEikAppUi</apiname></xref> and <xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita"><apiname>CAknAppUi</apiname></xref>.
+In particular, the <xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita#GUID-77329067-34D9-3698-B764-294535E660EB/GUID-B0D8013D-5D6F-3A55-9601-A49614B4AAC8"><apiname>CAknAppUi::EAknEnableSkin()</apiname></xref> flag enables <xref href="GUID-A1DBE03F-728E-4F31-BE74-5BDA3906C8DD.dita">themes</xref> in the application.</p>
+<p><parmname>CMyViewAppView* view1 = CMyViewAppView::NewL()</parmname> is
+a two phase constructor for the <xref href="GUID-11967EBB-7439-3775-B287-7560ECA0AF1F.dita"><apiname>CAknView</apiname></xref>-derived view controller.</p>
+<p><xref href="GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E.dita#GUID-2DBA2DA9-3DA7-381C-842C-9F6FEEDF973E/GUID-584748A3-5710-312D-BF76-2BC0BB7349EE"><apiname>CAknViewAppUi::AddViewL()</apiname></xref> registers and adds the
+view controller to the UI controller.</p>
+<p><xref href="GUID-79D1E4D4-A4D7-30B8-B936-F000ACE57507.dita"><apiname>iViewId1 = view1-&gt;Id()</apiname></xref> calls the view controller
+method that provides the UID of the view controller.</p>
+<p><xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-FAF8E2A8-991E-3337-9D88-907448E824FF"><apiname>CCoeAppUi::SetDefaultViewL()</apiname></xref> registers a view as
+the default view of the application. The meaning of the default view varies
+depending on the UI. It is normally the view that is displayed when the application
+is launched. It may also be the view that is displayed when the application
+is brought to the foreground.</p>
+</itemgroup>
+</li>
+</ul>
+<p>You must implement other methods to support <xref href="GUID-E402616A-7ED8-45AC-B836-99C3A3760B33.dita">key
+event handling</xref>, <xref href="GUID-4941C035-C359-4968-9BD5-31F44EE5F810.dita">command
+handling</xref>, and other possible <xref href="GUID-EF7FF39E-929F-4767-B475-5D582D37BB32.dita">events</xref>,
+as well as overriding default <xref href="GUID-5918ED8A-B26B-41A0-94A6-AB6D51BF80A1.dita">control
+pane</xref> and status pane behavior.</p>
+<note>
+<p>Command, key event, and layout change support handling can take place
+at least partially in the view controller.</p>
+</note>
+<section id="GUID-4AA4BB6F-9331-4196-91F5-A3FF479667B2"><title>Scalability</title>
+<p>If you wish to support <xref href="GUID-B02C762B-C452-4184-ABEA-4753E6CD47D2.dita">scalability</xref> in
+your application, then you need to implement <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-7B8E4FA3-29F4-39DF-BBB3-71E7AB2433C4"><apiname>CEikAppUi::HandleResourceChangeL()</apiname></xref> in
+the UI controller , and then a <parmname>HandleClientRectChangeL</parmname> method
+in the view controller.</p>
+<p> A common implementation is:</p>
+<codeblock id="GUID-ADB8DC30-EFF6-4F66-B418-78FD90A1B568" xml:space="preserve">void CMyViewAppAppUi::HandleResourceChangeL( TInt aType )
+    {    	    
+    CAknAppUi::HandleResourceChangeL( aType );	
+
+    
+    if ( aType==KEikDynamicLayoutVariantSwitch )
+        {		
+		((CMyViewAppView*) View( iViewId1) )-&gt;HandleClientRectChange(  );
+		((CMyViewAppView2*) View( iViewId2) )-&gt;HandleClientRectChange(  );	        
+		}	
+	
+    }   </codeblock>
+<p>, where</p>
+<p><xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-7B8E4FA3-29F4-39DF-BBB3-71E7AB2433C4"><apiname>CEikAppUi::HandleResourceChangeL()</apiname></xref> is a <xref href="GUID-DD15F24B-0786-4531-A6C5-A5E70EBE2732.dita">layout
+change event method</xref>.</p>
+<p><parmname>HandleClientRectChangeL</parmname> is a method in the view
+controller for passing the change onto to the control</p>
+</section>
+</conbody></concept>

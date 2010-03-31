@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1F755804-70D6-5635-B2F7-06F03C8D4B74" xml:lang="en"><title>IMAP4
+MTM Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section provides an overview of the Internet Message Access Protocol
+(IMAP4) MTM. </p>
+<section><title>Purpose</title> <p>Provides retrieval and management of email
+on a remote Internet Message Access Protocol (IMAP4) server. </p> </section>
+<section><title>Architectural relationships</title> <p>The Messaging Middleware
+architecture defines a framework in which modules (MTMs) can be implemented
+that provide support for particular messaging protocols. A client MTM provides
+the API for application engines to use the protocol. The IMAP4 MTM API provides
+the Client MTM API, plus supporting classes for IMAP4, see <xref href="GUID-9BB849A2-8F69-580D-8A52-C7002D919521.dita">Email
+Overview</xref>. </p> </section>
+<section><title>Description</title> <p>The API has two key concepts: IMAP4
+Client MTM, and IMAP4 service settings. </p> <p><b>IMAP4 Client MTM</b> </p> <p>The
+IMAP4 Client MTM provides IMAP-specific operations, the most important of
+which are synchronising with a remote server, or folder on a remote server.
+Some generic messaging operations, such as sending messages (for which you
+should use SMTP), are not supported by the MTM. Extra functions are provided
+for obtaining and setting IMAP4 service settings. </p> <p>The IMAP4 Client
+MTM class is <xref href="GUID-2DEC2EBD-EC94-3BAF-AD9D-8900FCD1CABE.dita"><apiname>CImap4ClientMtm</apiname></xref> and it does not support many
+of the generic functions defined by the <xref href="GUID-177AF50B-14EF-3C45-AE22-1FEE5678261D.dita"><apiname>CBaseMtm</apiname></xref> base class.
+The IMAP4 Client MTM implements the standard Client MTM APIs and extensions
+for the following operations: </p> <ul>
+<li id="GUID-BD531DC9-0308-5A6E-A6BD-8A21E7F83DD7"><p> <b>Connecting, disconnecting,
+synchronising, subscribing and unsubscribing folders </b>  </p> <p>These operations
+are accessible as commands available through the <xref href="GUID-41E5C23D-CD5A-3DD3-BFCE-F8C576CE2149.dita"><apiname>InvokeAsyncFunction</apiname></xref> class
+of the Client MTM. They are implemented as calls to the IMAP4 Server MTM. </p> </li>
+<li id="GUID-15A978DB-B7D0-5DD6-BE57-2A79B020B8FA"><p> <b>Send on next connection</b>  </p> <p>If
+the Client MTM gets a request to connect to an email server, it checks for
+the IMAP4 settings. . If the send on next connection option is set, the Client
+MTM launches the <filepath>autosend.exe</filepath> executable that handles
+sending messages waiting in the outbox. </p> </li>
+<li id="GUID-FD1C41EF-2B1D-5850-B14A-DC50CE94A053"><p> <b> Reply to and forward
+messages</b>  </p> <p>These are accessible through the <xref href="GUID-4E0F9B6F-C46B-34BA-BB8C-0A75014D31FD.dita"><apiname>ReplyL()</apiname></xref> and <xref href="GUID-3BBE6922-4F08-36AB-BAA9-2F37D6819794.dita"><apiname>ForwardL()</apiname></xref> classes
+of a Client MTM and are implemented as calls to the email utilities <xref href="GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498.dita"><apiname>CImEmailOperation</apiname></xref> class. </p> </li>
+<li id="GUID-7F025996-0ABD-50DE-BC2F-908AE7D3AB7D"><p> <b>Reply to, forward,
+create new, create receipt and forward as attachment </b>  </p> <p>These are
+accessible as commands available through the <xref href="GUID-41E5C23D-CD5A-3DD3-BFCE-F8C576CE2149.dita"><apiname>InvokeAsyncFunction</apiname></xref> class
+of the Client MTM. They are implemented as calls to <xref href="GUID-3F7DC1AB-D13C-31E9-967B-526AD72CD498.dita"><apiname>CImEmailOperation</apiname></xref>. </p> </li>
+<li id="GUID-78221799-2E57-5082-A66E-FF19BACD90AF"><p> <b>Querying connection
+status</b>  </p> <p>These commands let clients know whether the IMAP4 Server
+MTM is connected to an email server and whether it is currently processing
+a request. They are available through the <xref href="GUID-41E5C23D-CD5A-3DD3-BFCE-F8C576CE2149.dita"><apiname>InvokeAsyncFunction</apiname></xref> class
+of the Client MTM. The Client MTM requests the information from the Server
+MTM. </p> </li>
+<li id="GUID-850927D5-5A35-5468-904A-EA71FE11C5F8"><p> <b>Compound connection
+and synchronisation </b>  </p> <p>The IMAP4 Client MTM provides a compound
+operation that connects and synchronises with an IMAP4 server. This operation
+is implemented as a client-side object that combines requests to the IMAP4
+Server MTM. The client-side operation can complete the client request either:
+after the connection; after the connection and synchronisation; or after the
+connection, synchronisation, and disconnection. The client keeps requesting
+that the inbox be resynchronised at a configurable interval so new messages
+received in the inbox on the server appears under the IMAP4 inbox. The <xref href="GUID-1D7F2733-BC6F-30EA-A40D-C8573545CCB0.dita"><apiname>CImapConnectAndSyncOp</apiname></xref> class
+handles these compound operations. </p> </li>
+<li id="GUID-F666A79F-9623-5E93-8CB0-133CAA07FE83"><p> <b>Compound connect
+and copy, move or populate messages </b>  </p> <p>The IMAP4 Client MTM provides
+a compound operation that connects to an IMAP4 server and copies, moves, or
+populates messages. The implementation is provided by the <xref href="GUID-B9209668-D191-35F0-A02A-DABD6B1A706C.dita"><apiname>CImImap4GetMail</apiname></xref> class
+which makes callbacks into the IMAP4 Client MTM. </p> </li>
+<li id="GUID-1C58BE15-59F9-5915-8F5F-01374C87D071"><p> <b> Offline operations</b>  </p> <p>The
+IMAP4 Client MTM has a command to cancel offline operations. This is available
+through the <xref href="GUID-41E5C23D-CD5A-3DD3-BFCE-F8C576CE2149.dita"><apiname>InvokeAsyncFunction</apiname></xref> API of the Client MTM.
+The Client MTM passes the request to the Server MTM. </p> </li>
+</ul> <p><b>IMAP4 service settings</b> </p> <p>Settings for a service are
+associated with a service-type entry in the Message Server's Message Store.
+IMAP service settings, such as the user name and password, synchronisation
+strategy, and the maximum number of messages to synchronise are specified
+in this object. This is used by many IMAP components. </p> <p>The settings
+are loaded when a connection is made to the server. However, the settings
+are not actually stored in the message store, but in the device's Central
+Repository data store. </p> <p>Encapsulation of service settings is provided
+by the <xref href="GUID-55F11633-988C-39D5-ADE7-23C4966FD995.dita"><apiname>CImImap4Settings</apiname></xref> class. </p> <p><b>Get mail helper</b> </p> <p>The
+helper wraps up many individual IMAP operations into a single call. A large
+number of options are available, which fall into the following groups: </p> <ul>
+<li id="GUID-CFAEF51C-65F1-5AC4-BF2D-DFEACA5899A7"><p>get mail when already
+connected </p> </li>
+<li id="GUID-D9BBC7C4-24C8-5E99-A2A9-CFA1214734C4"><p>connect, get mail and
+then disconnect </p> </li>
+<li id="GUID-C3FB09F4-09F4-5E97-9269-91A0E4AD03E5"><p>connect, get mail and
+then stay online </p> </li>
+</ul> <p>The get mail helper class is <xref href="GUID-B9209668-D191-35F0-A02A-DABD6B1A706C.dita"><apiname>CImImap4GetMail</apiname></xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-8B843382-D27A-5E36-8F60-304903F3AA41.dita"><linktext>Message Type
+Module</linktext></link>
+<link href="GUID-24860917-0FE2-5C8F-B436-96928350996E.dita"><linktext>Bearer Mobility
+Overview</linktext></link>
+<link href="GUID-E56E21A9-B545-5217-A877-E64D30275157.dita"><linktext>Using the
+Policy Evaluator Plug-in</linktext></link>
+<link href="GUID-931F2B0C-0F7D-5819-83AF-8EC2C8988538.dita"><linktext>Email   
+             Settings</linktext></link>
+<link href="GUID-8832AED4-6B9F-5B35-8211-0C6661CD6DCA.dita"><linktext>Email Tutorials</linktext>
+</link>
+<link href="GUID-D73AD200-BE4D-50BF-BCF9-14627DE530B7.dita"><linktext>Example code</linktext>
+</link>
+</related-links></concept>

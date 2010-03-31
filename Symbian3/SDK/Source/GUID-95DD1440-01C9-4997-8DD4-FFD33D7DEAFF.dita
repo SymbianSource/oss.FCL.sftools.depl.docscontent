@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-95DD1440-01C9-4997-8DD4-FFD33D7DEAFF" xml:lang="en"><title>Application-specific
+events</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><xref href="GUID-97BBFFE1-C6C6-3C58-834E-0FF79199F587.dita"><apiname>CCoeAppUi:HandleApplicationSpecificEventL()</apiname></xref> is called
+for application-specific events where event codes are from <xref href="GUID-946FF333-2651-35ED-A2D4-CC417DB32F2A.dita"><apiname>EEventUser</apiname></xref> upwards
+in <parmname>TEventCode</parmname>. You can define a data structure to be
+delivered in the window server event. The data can be accessed through a pointer,
+which can be obtained by calling <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita#GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31/GUID-13CA6935-906D-368D-8AEA-C91722FD4484"><apiname>TWsEvent::EventData()</apiname></xref>.
+The maximum event data size is defined as <xref href="GUID-8BBA005B-EB14-34BA-B965-17F6A2B36D74.dita"><apiname>EWsEventDataSize</apiname></xref>. </p>
+<codeblock id="GUID-80335267-13AB-49C8-8895-B6598F5D59A4" xml:space="preserve">void HandleApplicationSpecificEventL(TInt aType,const TWsEvent&amp; aEvent)
+</codeblock>
+<p>Code example: </p>
+<p>First define a data structure for the event data:</p>
+<codeblock id="GUID-BBC9DCFA-F46C-4AC9-BC7F-B1A2DB39963A" xml:space="preserve">class TEventsEventType
+    {
+    public:
+        // Event iData
+        TBufC&lt; TWsEvent::EWsEventDataSize&gt; data;
+        };
+</codeblock>
+<p>Then create an event and send it to all window groups:</p>
+<codeblock id="GUID-0E8CE3D4-19F2-46D6-9A22-9A7EBC73F5C5" xml:space="preserve">// Create a window server event
+TWsEvent event;
+TEventsEventType eventType;
+// Set event data. eventType.data = KData;
+event.SetType( ETestEvent1 ); // set event type
+event.SetTimeNow(); // set the event time
+event.SetHandle( iWsSession.WsHandle() ); // set window server handle
+*( TEventsEventType* )( event.EventData() ) = eventType; // set event data
+// Send the created event
+User::LeaveIfError( iWsSession.SendEventToAllWindowGroups( event ) );
+</codeblock>
+<p>Catch the event using the following method:</p>
+<codeblock id="GUID-1BF859E7-EC92-4BDA-AFCE-DEB82854C8D7" xml:space="preserve">void CEventsAppUi::HandleApplicationSpecificEventL(TInt aType,const TWsEvent&amp; aEvent)
+    {
+    // Check the event type
+    if( aType == ETestEvent1 )
+        {
+        // Cast to TEventsEventType
+        TEventsEventType event;
+        event = *( TEventsEventType* )aEvent.EventData();
+        // Print the data
+        iEikonEnv-&gt;InfoMsg( event.data );
+        }
+        // Call the base class implementation
+        CEikAppUi::HandleApplicationSpecificEventL( aType, aEvent );
+    }
+</codeblock>
+</conbody></concept>

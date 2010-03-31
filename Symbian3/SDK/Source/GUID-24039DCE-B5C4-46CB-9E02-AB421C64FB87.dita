@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-24039DCE-B5C4-46CB-9E02-AB421C64FB87" xml:lang="en"><title>Relationship
+between window controls</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>When a control draws in the window of another control, the position
+is relative to that window. If a control owns a window that is a child of
+another window, that control's position is relative to the parent window;
+however, if that control is a compound control, its child control's coordinates
+are relative to its own parent control window position. Top-level window-owning
+controls are displayed using a position relative to the display. In other
+words, it uses the physical coordinates of the display.</p>
+<p>The following figure illustrates this relationship.</p>
+<fig id="GUID-9D373EB7-096D-4C84-8060-577F33D462EE"><title>Relative positions of three controls where the top-level parent owns
+the window</title><image href="GUID-61C340D0-9058-45C2-9A90-4AB8E0612872_d0e46589_href.png"/></fig>
+<p>Consider three controls, <b>A</b>, <b>B</b>, and <b>C</b> (shown in
+the figure above):</p>
+<ul>
+<li><p><b>A</b> is a top-level control and owns a window</p>
+</li>
+<li><p>Child controls <b>B</b> and <b>C</b> do not create their
+own windows in this example.</p></li>
+<li><p><b>B</b>, a child control of <b>A</b>, does not create a
+window, and it has a child control, <b>C</b>. </p>
+<itemgroup>
+<p><b>B</b>'s window is set calling the <parmname>CCoeControl::SetContainerWindowL(A)</parmname> method
+and <b>C</b>'s window is set with <parmname>CCoeControl::SetContainerWindowL(B)</parmname>.
+Then <b>C</b>'s position (p) is relative to <b>A</b>, since it is the actual
+window owner. <b>A</b>'s position (m) is relative to the display position.</p>
+</itemgroup>
+</li>
+</ul>
+<p>However, if <b>B</b> is a child control of <b>A</b> but also has a window
+of its own, it is a child window of <b>A</b>'s window (as shown in the following
+figure). Then if <b>C</b> is a child of <b>B</b> and sets its window by calling <parmname>CCoeControl::SetContainerWindowL(B)</parmname>,
+the position of <b>C</b> (p') is relative to <b>B</b>'s window.</p>
+<fig id="GUID-5884BDB6-6ED0-4EF6-A64F-3EEAAAEE2FF0"><title>Relative positions of three controls where a child owns a window</title><image href="GUID-3A506E2A-2999-458B-BBA2-DCC4D2EA5492_d0e46692_href.png"/></fig>
+<p>As the example illustrates, a control position depends on the window
+in which it is drawn. Therefore, you need to know the drawing window for each
+control. It is an important issue when designing a UI layout. There are some
+common controls that optionally may have their own window, such as menus,
+dialogs, and scroll bars. The application framework handles drawing these
+controls, as long as the appropriate resources and flags have been set. The <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-8AF77599-1FE4-36C1-AED8-1FB8A053354F"><apiname>CCoeControl::OwnsWindow()</apiname></xref> call
+can be used to detect whether a control owns a window or not.</p>
+</conbody></concept>

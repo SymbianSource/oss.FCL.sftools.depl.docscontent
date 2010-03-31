@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8C5A65E6-D753-472F-B885-FD0409589036" xml:lang="en"><title>HTTP
+Whole Message Filter Example</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The following diagram illustrates the class relationship between the <codeph>MHTTPDataOptimiser</codeph> interface
+and the <codeph>RHTTPSession</codeph> class: </p>
+<fig id="GUID-25859A19-F3C8-5FBD-B491-C58E5C973424">
+<title>              Class relationship between MHTTPDataOptimiser and   
+          RHTTPSession            </title>
+<image href="GUID-9DCAB1DC-D085-576C-A0B9-713E3BF2CAD5_d0e214846_href.png" placement="inline"/>
+</fig>
+<p>For more information about <xref href="GUID-F34F7481-00CF-3A1B-8D45-D053AD6769A8.dita"><apiname>MHTTPTransactionCallback</apiname></xref>,
+see <xref href="GUID-1D32D093-1B7B-5CE8-B57D-5469C1E8E4B9.dita">A simple HTTP Client
+session</xref>. </p>
+<p>The following code segment illustrates how to define the header file required
+for implementing the HTTP Whole Message Filter APIs: </p>
+<codeblock id="GUID-1D7FA528-68D6-5AEE-B9F3-CBACC03855AB" xml:space="preserve">#include &lt;http.h&gt;
+
+class CMyHTTPClient: public CBase,
+                    public MHTTPTransactionCallback,
+                    public MHttpDataOptimiser
+{
+public: // methods from MHTTPTransactionCallback
+    virtual void MHFRunL(RHTTPTransaction aTransaction, const THTTPEvent&amp; aEvent);
+    virtual TInt MHFRunError(TInt aError, RHTTPTransaction aTransaction, const THTTPEvent&amp; aEvent);
+    
+public: // methods from MHttpDataOptimiser
+    virtual void EncodeL (const TDesC8&amp; aHttpData, HBufC8*&amp; aEncodedData);
+    virtual void DecodeL (const TDesC8&amp; aData, HBufC8*&amp; aHttpData, TBool&amp; aTransFail);
+};</codeblock>
+<p>The following code segment illustrates how HTTP Whole Message Filter APIs
+can be used to enable support for Web Acceleration: </p>
+<codeblock id="GUID-2F062305-2D15-534C-8239-FAE4002DB79E" xml:space="preserve">#include "CMyHTTPClient.h"
+
+//    CMyHTTPClient.cpp
+//
+//    defines CMyHTTPClient class: CMyHTTPClient
+// Literals used in the file
+_LIT8(KHttpAuthenticationUrl,        "http://remix.kwed.org");
+
+
+void CMyHTTPClient::CreateTransactionL()
+    {
+    TUriParser8 up;
+    up.Parse(KHttpAuthenticationUrl);
+
+    RHTTPSession session;
+    RHTTPTransaction trans;
+    
+    // Open the HTTP session
+    session.OpenL();
+    CleanupClosePushL(session);
+
+    RStringPool strP = session.StringPool();
+
+  //To enable MHTTPDataOptimiser for transaction
+
+    // Open a GET transaction, specifying this object as the request body data supplier
+    trans = session.OpenTransactionL(up, *this, strP.StringF(HTTP::EGET,RHTTPSession::GetTable()));
+    CleanupClosePushL(trans);
+    trans.SetupHttpDataOptimiser(*this);
+
+ trans.SubmitL();
+    CleanupStack::PopAndDestroy(&amp;trans);
+    CActiveScheduler::Start();
+    
+    CleanupStack::PopAndDestroy(&amp;session); //Closes the session
+
+    }
+
+TInt CMyHTTPClient::MHFRunError(TInt aError, RHTTPTransaction aTransaction, const THTTPEvent&amp; aEvent)
+    {
+    // Handle Error appropriately
+    }
+
+void CMyHTTPClient::MHFRunL(RHTTPTransaction aTransaction, const THTTPEvent&amp; aEvent)
+    {
+    // Handle events from the framework.
+    switch (aEvent.iStatus)
+        {
+        case KErrHttpOptimiserFailsTrans:
+            {
+            INFO_PRINTF1(_L("Cancelling/Failing Transaction\n"));
+            aTransaction.Fail(THTTPFilterHandle::EProtocolHandler);
+            } break;
+
+        }
+    return;
+    //The following statement is used to eliminate leavescan errors
+    User::Leave(KErrGeneral);
+    }
+
+void CMyHTTPClient::EncodeL (const TDesC8&amp; aHttpData, HBufC8* &amp;aEncodedData)
+    {
+    //Provide your own custom encoding implementation
+    }
+
+void CMyHTTPClient::DecodeL (const TDesC8&amp; aData, HBufC8*&amp; aHttpData, TBool&amp; aTransFail)
+    {
+    //Provide your own custom decoding implementation
+    }</codeblock>
+<p>This code enables the <codeph>MHTTPDataOptimiser</codeph> for a transaction
+by using <codeph>RHTTPTransaction::SetupHTTPDataOptimiser()</codeph> and also
+illustrates where custom encoding and decoding mechanisms are implemented. </p>
+<p> <b>Note:</b> Alternatively, in this code, you can use the following code
+segment to enable <codeph>MHTTPDataOptimiser</codeph> for a particular session. </p>
+<p> <codeph>session.SetupHttpDataOptimiser(*this); </codeph>  </p>
+</conbody></concept>

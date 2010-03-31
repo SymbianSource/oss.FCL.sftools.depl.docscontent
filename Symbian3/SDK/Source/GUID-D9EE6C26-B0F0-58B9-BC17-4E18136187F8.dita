@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-D9EE6C26-B0F0-58B9-BC17-4E18136187F8"><title>Cancelling and closing transactions</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Transactions that have been submitted can be cancelled at any time using <xref href="GUID-2E673024-239B-3965-8880-C47B7CC24EF6.dita#GUID-2E673024-239B-3965-8880-C47B7CC24EF6/GUID-48A73A16-E6EB-39F4-88A5-0D84BD164FF2"><apiname>RHTTPTransaction::Cancel()</apiname></xref>. When this is done, no further events are received for that transaction as originally submitted. </p> <p>An example from <filepath>HTTPEXAMPLECLIENT</filepath>: </p> <codeblock id="GUID-E403CB8C-D262-5AC6-8BD3-FFE0A67EC274" xml:space="preserve">void CHttpEventHandler::MHFRunL(RHTTPTransaction aTransaction, const THTTPEvent&amp; aEvent)
+    {
+    switch (aEvent.iStatus)
+        {
+        case THTTPEvent::EGotResponseHeaders:
+            {
+            ...
+            // If we're cancelling, do it now...
+            if (cancelling)
+                {
+                iUtils.Test().Printf(_L("\nTransaction Cancelled\n"));
+                aTransaction.Close();
+                CActiveScheduler::Stop();
+                }
+...</codeblock> <p>In this case, the transaction is left in a cancelled state. The client now has the option to modify the request if required, and to resubmit the transaction. This might be done, for example, if the HTTP server has indicated with a 400-series status code that there was a client error. </p> <p>When a transaction is resubmitted after cancellation, it is exactly as if it had been submitted for the first time. For example, no preferential treatment is given to it in terms of time-to-service. </p> <p>The process of cancelling in an <codeph>MHFRunL()</codeph> method, modifying the request, and resubmitting is common in filter design. See <xref href="GUID-AA2A730E-A7C9-5647-AD42-11C3BAF4C38D.dita">Filters</xref> for more information. </p> <p>If the client wants to abort a transaction, it can close the transaction using <xref href="GUID-2E673024-239B-3965-8880-C47B7CC24EF6.dita#GUID-2E673024-239B-3965-8880-C47B7CC24EF6/GUID-0ABF9404-EA7F-3CB3-B08B-D9154EF6F2D8"><apiname>RHTTPTransaction::Close()</apiname></xref>. It is not necessary to cancel first, since a <codeph>Cancel()</codeph> is done automatically during the <codeph>Close()</codeph>. Closing the transaction enables HTTP to clean up resources allocated during the execution of that transaction. </p> <p>Once a transaction is closed, it must <i>not</i> be reused. Reusing a closed transaction causes the client to behave unpredictably. </p> </conbody></concept>

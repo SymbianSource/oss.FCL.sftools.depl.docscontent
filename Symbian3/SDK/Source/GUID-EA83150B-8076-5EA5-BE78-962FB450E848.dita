@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-EA83150B-8076-5EA5-BE78-962FB450E848"><title>How to Configure a Port: Tutorial</title><shortdesc>This tutorial shows the basic steps to perform any serial port configuration through the RComm API. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><steps id="GUID-C7AE2DDB-A43B-5049-86B7-719BD8B224E1"><step id="GUID-84194635-B104-5ACD-9350-DF3C0216E744"><cmd/><info>Load the CSY and open a port. </info> </step> <step id="GUID-69055AAE-5757-58E0-8A2A-E36531F4F92C"><cmd/><info>Get the capabilities of the port by calling <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4A6ECC68-EBC7-3B6C-94AE-9272669F6FF2"><apiname>RComm::Caps()</apiname></xref>  </info> </step> <step id="GUID-B1CF56DC-B7B2-59E3-B307-00D1FC28E39A"><cmd>The capabilities of the port are in the <xref href="GUID-076DD315-CE3F-3640-BAB4-0FC51C906820.dita"><apiname>TCommCaps</apiname></xref> structure. For example, <xref href="GUID-B9752D91-7586-3EDB-9A5F-C676512D63BC.dita"><apiname>TCommCapsV01.iRate</apiname></xref> contains a bit field of the bit rates the port can manage. </cmd> <info>Note: A port may be able to manage bit rates higher than those contained in the <xref href="GUID-B9752D91-7586-3EDB-9A5F-C676512D63BC.dita"><apiname>TCommCapsV01.iRate</apiname></xref> bit field. </info> </step> <step id="GUID-90040672-A2C7-5471-ACD7-0E598EDFB96A"><cmd/><info>Create an object of type <xref href="GUID-FA42F645-D2A8-384B-9FE6-6495EACFA479.dita"><apiname>TCommConfigV01</apiname></xref>. </info> </step> <step id="GUID-63322006-F8E5-5D03-8751-3CFA68D83A76"><cmd/><info>Call <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4C38E1D8-EC81-36A3-BAA2-4D4FFECFD995"><apiname>RComm::Config()</apiname></xref> with the <codeph>aConfig</codeph> parameter set to the <codeph>TCommConfigV01</codeph> object to get the port configuration. </info> </step> <step id="GUID-F33722CB-81E9-5FB3-87C2-C1A7267B72DE"><cmd/><info>Set the fields that must be changed in the <codeph>TCommConfigV01</codeph> object. For example, set the <xref href="GUID-4EDA16F3-40B1-3C8A-BD00-C04FF81053BB.dita"><apiname>iSIREnable</apiname></xref> flag to enable Infrared. </info> </step> <step id="GUID-82724FBB-9070-59C6-B3B0-694A9EBA82E6"><cmd/><info>Call <xref href="GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF.dita#GUID-3B4E8ED5-72F7-3E51-B188-3C1045526DDF/GUID-4C38E1D8-EC81-36A3-BAA2-4D4FFECFD995"><apiname>RComm::Config()</apiname></xref> with the <codeph>TCommConfigV01</codeph> object as the <codeph>aConfig</codeph> parameter. </info> <info>The port is now configured. </info> </step> </steps> <example><title>Example</title> <codeblock id="GUID-ABA42505-953A-52BC-9B14-67B642E20055" xml:space="preserve">TCommCaps ourCapabilities;
+User::LeaveIfError(commPort.Caps (ourCapabilities));
+
+ if ((ourCapabilities ().iSIR &amp; KCapsSIR115kbps) ||
+(ourCapabilities ().iSIR &amp; KCapsSIR2400bpsOnly) ||
+(ourCapabilities ().iSIR &amp; KCapsSIR4Mbps))
+{
+   // IR is supported, so enable it
+   TCommConfig portSettings;
+   User::LeaveIfError(commPort.Config (portSettings));
+
+   portSettings ().iSIREnable = ESIREnable;
+   User::LeaveIfError (commPort.SetConfig (portSettings));
+}</codeblock> </example> </taskbody><related-links><link href="GUID-35D49549-1F4D-583F-A45D-9B557A207DD2.dita"><linktext>GlassTerm -
+                glass teletype terminal</linktext> </link> </related-links></task>

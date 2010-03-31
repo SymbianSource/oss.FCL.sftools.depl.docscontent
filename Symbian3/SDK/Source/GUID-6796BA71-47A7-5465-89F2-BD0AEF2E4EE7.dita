@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-6796BA71-47A7-5465-89F2-BD0AEF2E4EE7"><title>Cnvtool Source File</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The source file is a text file which contains a table of mappings between Unicode and a foreign character set. The table consists of tab-separated columns which the <filepath>cnvtool</filepath> uses to create a Charconv converter. </p> <p>The file is case-insensitive. Comments begin with a # and extend to the end of the line. Blank lines and leading and trailing whitespace are ignored. </p> <section><title>Syntax</title> <p> <b>Columns</b>  </p> <p>The first column lists the foreign character code and the second lists the corresponding Unicode character code. Both codes are in hexadecimal. The third column is optional and contains comments prefixed with a comment sign <codeph>#</codeph> to make the file more readable. </p> <codeblock id="GUID-B096F006-A678-5463-BE38-25F943734BE1" xml:space="preserve">0x3E    0x003E    #GREATER-THAN SIGN
+0x3F    0x003F    #QUESTION MARK
+0x40    0x0040    #COMMERCIAL AT
+0x41    0x0041    #LATIN CAPITAL LETTER A
+0x42    0x0042    #LATIN CAPITAL LETTER B
+0x43    0x0043    #LATIN CAPITAL LETTER C</codeblock> <p>Note: The table can contain other hex columns. In such cases the columns for the foreign character code and corresponding Unicode must be specified using the <codeph>-columns</codeph> option of <filepath>cnvtool</filepath>. </p> <p> <b>SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE command</b>  </p> <p>In some cases, the foreign character codes that appear in the source file need to be processed in some way before being used in the binary output file. You can specify how they must be processedby including a <codeph>SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE</codeph> command line in the source file as follows: </p> <codeblock id="GUID-88174B5A-1A94-505C-BC49-87AE18161588" xml:space="preserve">SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE [Perl code]
+</codeblock> <p>All of the characters following the line will be processed using the perl code. You can stop processing using the SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE command with no parameter. </p> <codeblock id="GUID-991AA0BF-F7ED-5E7C-B187-3AFB7655B71D" xml:space="preserve">SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE return $foreignCharacterCode|0x00008080; 
+
+0x2121    0x3000    # IDEOGRAPHIC SPACE
+0x2122    0x3001    # IDEOGRAPHIC COMMA
+0x2123    0x3002    # IDEOGRAPHIC FULL STOP
+...
+SET_FOREIGN_CHARACTER_CODE_PROCESSING_CODE</codeblock> <p> <b>$foreignCharacterCode variable</b>  </p> <p>The <codeph>$foreignCharacterCode</codeph> variable stands for the foreign encoding (the first column). For example, if the high bit of each foreign character is off in the source file but is required to be on in the output file, the Perl code (assuming the foreign character set uses only one byte for each character) is: </p> <codeblock id="GUID-CE7DFA76-DEB8-52B1-8D38-7F33622F3DB0" xml:space="preserve">return $foreignCharacterCode|0x80;</codeblock> </section> </conbody></concept>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-21740D07-5F49-5D9C-9FEA-92958AF3805B"><title>Creating an Absolute Timer</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>You can use an absolute timer to signal a process at an absolute time, for example at 10:00am tomorrow. </p> <p>When you create an absolute timer (or a periodic timer) you can set the timer expiry mechanism as one of the following using the <codeph>sigev_notify</codeph> member of the <xref scope="external" href="http://opengroup.org/onlinepubs/007908799/xsh/signal.h.html">sigevent</xref> structure: </p> <ul><li id="GUID-039A6CB0-2A59-5CFF-A6D3-D98D76BFD7F4"><p> <b>A notification function:</b> Using the notification type, <codeph>SIGEV_THREAD</codeph>. For example, you can configure a thread function as an expiry notification. </p> </li> <li id="GUID-5B5AB3FD-25DA-530C-B1F3-23E3A1C09E47"><p> <b>A queued signal:</b> Using the notification type, <codeph>SIGEV_SIGNAL</codeph>. For example, you can configure a <codeph>SIGUSR1</codeph> signal as an expiry notification. </p> <p> <b>Note:</b> For more information about using signals, see <xref href="GUID-41F33130-7968-5016-9ACE-9E9F906118DB.dita">POSIX Signals</xref>. </p> </li> <li id="GUID-D17F4247-D449-56F0-8C6E-E71CA5660362"><p> <b>No asynchronous notification:</b> Using the notification type, <codeph>SIGEV_NONE</codeph>. In this case nothing happens after timer expiry. </p> </li> </ul> <p> <b>Note:</b> For more information about these notification types, see <xref scope="external" href="http://opengroup.org/onlinepubs/007908799/xsh/signal.h.html">Open Group</xref>. </p> <p>The following example code demonstrates how to create an absolute timer that expires after ten seconds from the time it is set. It also configures the <codeph>SIGUSR1</codeph> signal as an expiry notification using <codeph>SIGEV_SIGNAL</codeph>. </p> <p>The following example code performs the following tasks: </p> <ol id="GUID-FCB2E7FA-0C97-5041-BAA0-00BDE025493D"><li id="GUID-6A563E0E-B9AE-5141-AEE5-4C66B0FD4E28"><p>Creates a signal handling function that must be invoked after timer expiry. </p> </li> <li id="GUID-6DCC64B3-77F7-5ADE-A006-5E5D41183E7A"><p>Creates a timer based on the current system time (<codeph>CLOCK_REALTIME</codeph>) and an asynchronous signal (<codeph>struct sigevent
+             sig</codeph>) that must be invoked when the timer expires. </p> </li> <li id="GUID-09F2C14C-2B04-564A-BB55-1C280DCDC0A5"><p>Gets the current system time and stores it in <codeph>newtime</codeph>. </p> </li> <li id="GUID-7192B210-FE9E-5484-91BF-8FD38F9F0A9D"><p>Defines the input values for <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. (Sets an alarm that expires after ten seconds from the time it is set) </p> </li> <li id="GUID-746DA2F6-9248-5D27-B2EE-E8D7FF44C22D"><p>Sets the absolute timer using <xref href="GUID-344F836B-FAC8-344A-B458-0CEFB714ADEB.dita"><apiname>timer_settime()</apiname></xref>. </p> </li> <li id="GUID-9482E2CC-4CB9-5B4C-A7EA-BF600ED85C95"><p>Uses <codeph>sleep()</codeph> to pause execution until the timer expires. </p> </li> </ol> <codeblock id="GUID-B5CC2E12-5DC8-5893-9767-9136EAB51745" xml:space="preserve">#include &lt;time.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;signal.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;errno.h&gt;
+#include &lt;string.h&gt;
+static int I = 0;
+
+//Signal handler function to be invoked when the absolute timer expires
+void sig_handler (int val)
+    {
+    printf("The timer expired and has entered signal handler: Value: %d\n", val);
+    }
+int main()
+    {
+    int Ret;
+
+    struct sigevent sig;
+    sig.sigev_notify = SIGEV_SIGNAL;
+    sig.sigev_signo = SIGUSR1;
+    signal(SIGUSR1, sig_handler);
+    
+    //create a new timer.
+    timer_t timerid; //Stores the ID of the timer
+    Ret = timer_create(CLOCK_REALTIME, &amp;sig, &amp;timerid);
+    if (Ret == 0)
+        {
+        struct timespec newtime; //Stores the current system time
+        struct itimerspec in, out; //Input values for the timer
+        memset(&amp;newtime, 0, sizeof (struct timespec)); 
+        clock_gettime(CLOCK_REALTIME, &amp;newtime);
+        in.it_value.tv_sec = newtime.tv_sec + 10;
+        in.it_value.tv_nsec = 0;
+        in.it_interval.tv_sec = 0;
+        in.it_interval.tv_nsec = 0;
+        
+        //issue the absolute timer request here.
+        Ret = timer_settime(timerid, 1, &amp;in, &amp;out);
+        if(Ret == 0)
+            sleep(11);
+        else
+            printf("timer_settime() failed with %d\n", errno);
+        //delete the timer.
+        timer_delete(timerid);
+        }
+    else
+    printf("timer_create() failed with %d\n", errno);
+    return Ret;
+}</codeblock> <p>The output of the above program is: </p> <codeblock id="GUID-4A17444A-F748-5A41-B23F-11B751621769" xml:space="preserve">The timer expired and has entered signal handler: Value: 30</codeblock> </conbody><related-links><link href="GUID-29AE56A8-DA08-5FB3-89F1-26B4308336BC.dita"><linktext>Modifying a Clock Time</linktext> </link> <link href="GUID-B4039418-6499-555D-AC24-9B49161299F2.dita"><linktext>Creating a Periodic Timer</linktext> </link> <link href="GUID-04F076C4-AFFF-571C-8B73-B8589B58EC56.dita"><linktext>Limitations of Clocks and
+                Timers</linktext> </link> <link href="GUID-8B37D53D-77E1-58C6-9A44-3376A450228B.dita"><linktext>Shared Memory Tutorial</linktext> </link> </related-links></concept>

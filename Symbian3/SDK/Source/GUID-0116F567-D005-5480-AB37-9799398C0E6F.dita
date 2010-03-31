@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0116F567-D005-5480-AB37-9799398C0E6F" xml:lang="en"><title> Setting
+sub-connection parameters: Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> This topic describes how to set parameters
+on a subconnection. Parameters are set on a subconnection using <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita#GUID-0AFDA357-EE44-3788-9CAB-162B874134BF/GUID-FA1056C6-FAE7-3E0F-9375-9F5A6315AE24"><apiname>RSubConnection::SetParameters()</apiname></xref>.
+The <codeph>SetParameters</codeph> function takes an instance of the <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> class
+as a parameter. <codeph>RSubConParameterBundle</codeph> specifies the parameters. <codeph>RSubConParameterBundle</codeph> is
+a container for at least one <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> object.
+The <codeph>CSubConParameterFamily</codeph> objects are referred to as parameter
+families. </section>
+<section><title>Procedure</title> <p> An <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> is
+updated by filling in an <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> and calling <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita#GUID-0AFDA357-EE44-3788-9CAB-162B874134BF/GUID-FA1056C6-FAE7-3E0F-9375-9F5A6315AE24"><apiname>RSubConnection::SetParameters()</apiname></xref>.
+When the <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> constructor is called,
+it adds the family to the named bundle automatically. The bundle takes ownership
+of the family and when the bundle is destroyed, it will destroy the parameter
+family. </p><p> For example, a particular bundle may contain a QoS family.
+The QoS family may contain (for example) one generic and two extension parameter
+sets. Each of those parameter sets may exist as <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>, <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref>,
+and <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref>. The <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> parameter
+set is created and updated by the underlying communications link and so should
+not be changed by your application. </p> <p> An instance of a parameter bundle
+can only be applied as a single action. That is, if one parameter family is
+added to the bundle and a call is made to <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita#GUID-0AFDA357-EE44-3788-9CAB-162B874134BF/GUID-FA1056C6-FAE7-3E0F-9375-9F5A6315AE24"><apiname>RSubConnection::SetParameters()</apiname></xref>;
+to add another family or an additional extension set to the existing parameter
+family, it must be added to the original <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> instance
+and another call made to <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita#GUID-0AFDA357-EE44-3788-9CAB-162B874134BF/GUID-FA1056C6-FAE7-3E0F-9375-9F5A6315AE24"><apiname>RSubConnection::SetParameters()</apiname></xref>.
+If the original parameter bundle is not available you may create a totally
+new parameter bundle and (optionally) make a call to <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita#GUID-0AFDA357-EE44-3788-9CAB-162B874134BF/GUID-6E4D49A9-CBD3-3A1C-8CDC-C33E8E26928F"><apiname>RSubConnection::GetParameters()</apiname></xref> to
+obtain the current settings. When a family is added to the bundle, the bundle
+will take ownership of that object. All added <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> objects
+will be destroyed when the parameter bundle is destroyed. </p> <p>The <codeph>GetParameters() </codeph> and <codeph>SetParameters()</codeph> methods
+are used to retrieve and set bundles of properties on the sub-connection. <codeph>GetParameters()</codeph> will
+return <xref href="GUID-51298FCE-7857-39F8-BFAB-49AF5556D0CC.dita"><apiname>KErrNotReady</apiname></xref> if no properties have been negotiated.
+This may not happen until the sub-connection has been used. The <codeph>SetParameters()</codeph> method,
+like the <codeph>Add()</codeph> and <codeph>Remove()</codeph> methods returns
+an error code indicating the success or failure of the request to perform
+the action. Upon negotiation of the properties either the <xref href="GUID-AA6CFA1E-0B17-3603-9065-34D05322C0A5.dita"><apiname>CSubConGenEventParamsGranted</apiname></xref> or <xref href="GUID-7103CFA3-2119-3356-9460-B26D88036FEB.dita"><apiname>CSubConGenEventParamsRejected</apiname></xref> event will be notified for each family within the parameter bundle. A call
+to the <codeph>SetParameters()</codeph> method may not result in any negotiation
+until such time as the sub-connection is used. </p> <p>Remember that an <xref href="GUID-0AFDA357-EE44-3788-9CAB-162B874134BF.dita"><apiname>RSubConnection</apiname></xref> is
+updated by filling in an <xref href="GUID-27AA9BD2-9754-3BAE-8C2D-59937E1924CF.dita"><apiname>RSubConParameterBundle</apiname></xref> and calling <codeph>RSubConnection::SetParameters()</codeph>.
+This means that changes to parameter sets will only be applied when <codeph>SetParameters()</codeph> is
+called. Also note that retrieving the <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> parameters
+will only be effective once the sub-connection is used and the <xref href="GUID-AA6CFA1E-0B17-3603-9065-34D05322C0A5.dita"><apiname>CSubConGenEventParamsGranted</apiname></xref> event
+has been sent. </p></section>
+<section/>
+<section><title>Using RSubConParameterBundle</title> <p>The <codeph>AddFamilyL()</codeph> and <codeph>FindFamily()</codeph> methods
+do just as their names suggest. It is unlikely that the <codeph>AddFamilyL()</codeph> call
+will ever be required since the constructor of <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> adds
+the family to the passed in parameter bundle automatically. It is present
+mainly for internal use. </p> <p>The <codeph>ClearAllParameters()</codeph> method
+will clear parameters of the given parameter set type from all families that
+the bundle owns. </p> <p>The <codeph>Load()</codeph> and <codeph>Store()</codeph> methods
+are used for serialisation of the parameter bundle, whilst <codeph>Length()</codeph> will
+return the number of bytes the serialised data will occupy. </p> </section>
+<section><title>Using CSubConParameterFamily</title> <p>An application could
+add a parameter set of the type <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref> to request an
+ideal level of bandwidth and latency, and a parameter set type of <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> could
+be added to indicate the bare minimum required for the application to operate.
+A parameter set of the type <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> must never be added
+by an application. The sub-connection's parameter bundle will be updated with
+parameter sets of this (granted) type when the negotiated settings change,
+such as when the sub-connection is established/used. </p> <p>Before a call
+to <codeph>SetParameters()</codeph> is made on the sub-connection the family
+must at least contain a parameter set of the type <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>.
+If the parameter set type <xref href="GUID-754AF65B-376E-3A75-97F0-8ECF4560BCEF.dita"><apiname>EAcceptable</apiname></xref> is omitted the requested
+values will used as the acceptable values. This means that if you request
+a bandwidth of 256k and only 128k is available, an event will be returned
+saying that the requested bandwidth is not available (<xref href="GUID-7103CFA3-2119-3356-9460-B26D88036FEB.dita"><apiname>CSubConGenEventParamsRejected</apiname></xref>).
+Any parameter sets of the type <xref href="GUID-12DF975A-B43E-336F-817E-FDD099F7060A.dita"><apiname>EGranted</apiname></xref> will be ignored
+by a call to <codeph>SetParameters()</codeph>. </p> <p>When a generic or extension
+set is added to the family, the parameter family object will take ownership
+of that parameter set. All added parameter sets will be deleted along with
+the parameter family. </p> <p>The <codeph>LoadL()</codeph> method is used
+to create a new <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> from a previously
+serialised object. It will be added to the given bundle, which will taken
+ownership of the new family. </p> <p>The <codeph>SetGenericSetL()</codeph> and <codeph>AddExtensionSetL()</codeph> methods
+are used to add parameter sets to the family. If the type of parameter set
+added/set is the same as a parameter set type already contained by the <xref href="GUID-5181C974-94F7-3C7D-9FFE-F38BD11001EB.dita"><apiname>CSubConParameterFamily</apiname></xref> the
+method will leave with <xref href="GUID-D1D25122-F2B8-3C78-8599-84905BFD47B8.dita"><apiname>KErrAlreadyExists</apiname></xref>. For example,
+if an extension set is added for the type <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref>, then
+another extension set (of the same type) is also added for <xref href="GUID-ADF08336-B43B-31CB-9548-E265E1001F27.dita"><apiname>ERequested</apiname></xref> the
+method will leave. </p> <p>The <codeph>GetGenericSet()</codeph> and <codeph>FindExtensionSet()</codeph> methods
+are used to retrieve a parameter set from the parameter family. If there is
+no generic set or extension set of the specified type then NULL is returned. </p> <p>The <codeph>ClearAllParameters()</codeph> method
+will clear both generic and extension parameter sets of the given parameter
+set type from the family. </p> <p> <codeph>Id()</codeph> will return the family
+identifier. </p> <p>The <codeph>Load()</codeph> and <codeph>Store()</codeph> methods
+are used for serialisation of the parameter family, whilst <codeph>Length()</codeph> will
+return the number of bytes the serialised data will occupy. </p> </section>
+<section><title>See Also</title> <p> <xref href="GUID-12C9C36B-8AD4-544E-A6A3-54A799EF0280.dita#GUID-12C9C36B-8AD4-544E-A6A3-54A799EF0280/GUID-7803B89A-6ABF-529C-A0B8-CA06BA410F3B">RSubConnection
+Events</xref> Reference </p> <p> <xref href="GUID-12C9C36B-8AD4-544E-A6A3-54A799EF0280.dita#GUID-12C9C36B-8AD4-544E-A6A3-54A799EF0280/GUID-7F057E16-0E56-5989-8647-7DAFF6E343D3">RSubConnection
+QoS Parameters</xref> Reference </p> </section>
+</conbody></concept>

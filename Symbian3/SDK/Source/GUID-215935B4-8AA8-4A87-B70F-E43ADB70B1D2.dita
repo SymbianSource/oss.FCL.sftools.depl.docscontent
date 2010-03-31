@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-215935B4-8AA8-4A87-B70F-E43ADB70B1D2" xml:lang="en"><title>Constructing
+the UI controller in traditional architecture</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The call on the first phase constructor method of the UI controller
+occurs in the <xref href="GUID-935C59EE-AD66-33FE-987B-BD97F5147CC1.dita"><apiname>CAknDocument</apiname></xref>-derived class of application.
+For more information, see <xref href="GUID-07D2ED79-90B2-4ABC-A61F-108DAEE21955.dita">Implementing
+framework requirements</xref>.</p>
+<p>The methods you need to implement for your <xref href="GUID-6F2BAB12-6273-3314-B9F1-9AA08403F5EF.dita"><apiname>CAknAppUI</apiname></xref>-derived
+UI controller are as follows:</p>
+<ul>
+<li><p>C++ default constructor, which cannot contain any code that
+might leave. A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-277B178E-63D3-4201-A9EB-041E597CA455" xml:space="preserve">CMyAppAppUi::CMyAppAppUi()
+    {
+    // No implementation required
+    }</codeblock>
+<p>The class declaration for this constructor in the class header file
+needs to be public to support the construction method required.</p>
+</itemgroup>
+</li>
+<li><p>Symbian 2nd phase constructor with code that might leave.
+A common implementation is:</p>
+<itemgroup>
+<codeblock id="GUID-D6CB5AB6-012E-43ED-A25A-A903532BB650" xml:space="preserve">
+void CMyAppAppUi::ConstructL()
+    {
+    // Initialise app UI with skins enabled.
+    BaseConstructL(EAknEnableSkin);
+
+    // Create view object
+    iAppView = CMyAppView::NewL( ClientRect() );
+
+    }
+</codeblock>
+<p><xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-7C3B4A9B-7829-39F7-8F52-AFCA30783C46"><apiname>CEikAppUi::ConstructL()</apiname></xref> completes the construction
+of the object. It is a public constructor in the header file.</p>
+<p><xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita#GUID-77329067-34D9-3698-B764-294535E660EB/GUID-04316C10-2C88-3EA5-AE37-48E78C7B5064"><apiname>CAknAppUi::BaseConstructL()</apiname></xref> initializes the application
+with standard Symbian platform UI application values, including the color
+scheme look and feel for all UI controls, the status pane, and the <xref href="GUID-5918ED8A-B26B-41A0-94A6-AB6D51BF80A1.dita">menus</xref> . <xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita#GUID-77329067-34D9-3698-B764-294535E660EB/GUID-04316C10-2C88-3EA5-AE37-48E78C7B5064"><apiname>CAknAppUi::BaseConstructL()</apiname></xref> can accept flags enumerated in <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita"><apiname>CEikAppUi</apiname></xref> and <xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita"><apiname>CAknAppUi</apiname></xref>.
+In particular, the <xref href="GUID-77329067-34D9-3698-B764-294535E660EB.dita#GUID-77329067-34D9-3698-B764-294535E660EB/GUID-B0D8013D-5D6F-3A55-9601-A49614B4AAC8"><apiname>CAknAppUi::EAknEnableSkin()</apiname></xref> flag enables <xref href="GUID-A1DBE03F-728E-4F31-BE74-5BDA3906C8DD.dita">themes</xref> in the application.</p>
+<p><parmname>iAppView = CMyAppView::NewL( ClientRect() )</parmname> where <parmname>NewL</parmname> is
+a two-phase constructor for the view. The view object is owned by the UI controller
+and must be included in the class destructor to free the reserved resources.</p>
+</itemgroup>
+</li>
+</ul>
+<p>The UI controller automatically supports <xref href="GUID-B02C762B-C452-4184-ABEA-4753E6CD47D2.dita">scalability</xref>.</p>
+<p>You must implement other methods to support <xref href="GUID-E402616A-7ED8-45AC-B836-99C3A3760B33.dita">key
+event handling</xref>, <xref href="GUID-4941C035-C359-4968-9BD5-31F44EE5F810.dita">command
+handling</xref>, <xref href="GUID-DD15F24B-0786-4531-A6C5-A5E70EBE2732.dita">layout
+change support</xref>, and other possible <xref href="GUID-EF7FF39E-929F-4767-B475-5D582D37BB32.dita">events</xref>,
+as well as overriding default <xref href="GUID-A4F3738C-CBFD-4151-9132-26FE05966715.dita">control
+pane</xref> and status pane behavior.</p>
+</conbody></concept>

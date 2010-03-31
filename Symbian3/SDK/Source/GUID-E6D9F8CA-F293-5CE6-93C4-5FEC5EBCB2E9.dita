@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E6D9F8CA-F293-5CE6-93C4-5FEC5EBCB2E9" xml:lang="en"><title>Asynchronous
+service provider's responsibilities</title><shortdesc>This document describes the functionality required from an asynchronous
+service provider.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An asynchronous service provider must interact in the following ways with
+its clients:</p>
+<ul>
+<li id="GUID-C140D0C8-0486-5AEF-8AFC-732B34078705"><p>prior to initiating
+a request, a request function must set the value of the passed <codeph>TRequestStatus</codeph> to <codeph>KRequestPending</codeph>,
+which indicates that a request has been issued but not completed.</p> </li>
+<li id="GUID-117EE3F9-A2A9-59FE-ABE2-D8CC9C5856C5"><p>requests must be completed
+by signalling the requesting thread’s request semaphore by calling <codeph>RThread::RequestComplete()</codeph> with
+the <codeph>TRequestStatus</codeph> as the first parameter and the completion
+code as the second parameter (which is placed in the <codeph>TRequestStatus</codeph>).</p> </li>
+<li id="GUID-EBD83E91-B71C-5532-8EB6-F44541D2DC53"><p>there must be a <i>cancel
+function</i> which can cancel an outstanding request. In some cases, calling
+the cancel function does not cause cancellation because the request is already
+complete. In all cases, the request must be complete before the cancel function
+returns.</p> </li>
+<li id="GUID-6F7F7419-9170-50C3-AF76-8F03E4FF43D3"><p>if an asynchronous request
+is made, it must complete precisely once, whether normally, abnormally, or
+through cancellation.</p> </li>
+<li id="GUID-DCC53064-2B63-5532-B2E7-3A48FB9CD630"><p>completion through cancellation
+is often indicated by a <codeph>TRequestStatus</codeph> code of <codeph>KErrCancel</codeph>.</p> </li>
+</ul>
+<section id="GUID-08111F39-8412-40CC-B21D-C97A14B43BF8"><title>See also</title> <p><xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> </p> </section>
+</conbody></concept>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7" xml:lang="en"><title>Building
+a Standard C++ Application or Library</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic describes the required header files and libraries to compile
+and link against to build a Standard C++ application or library on a Symbian
+platform build environment. </p>
+<p>You can build a C++ application or library using one of the following target
+types: </p>
+<ul>
+<li id="GUID-2D0C8AC4-DC70-5F4A-B9D8-BCC61E088C8B"><p><xref href="GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7.dita#GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7/GUID-26AC2BCA-4A4F-5837-BBAD-7964CA0A5BED"> STD target types</xref>  </p> </li>
+<li id="GUID-C9E53DA5-FCDC-5D2A-9F66-60D97415ABCB"><p><xref href="GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7.dita#GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7/GUID-F956CF72-58FC-5D9E-91EC-5B8866EE46C2">Other Symbian target types</xref>  </p> </li>
+</ul>
+<p> <b>Notes:</b>  </p>
+<ul>
+<li id="GUID-CFA90167-E346-51CA-B4CB-A2D3812207EE"><p>The required standard
+C++ header files are available in the <filepath>${EPOCROOT}/epoc32/include/stdapis/stlportv5</filepath> directory. </p> </li>
+<li id="GUID-721CE7A0-A015-5607-90B6-F430F0B8A528"><p>The standard C++ library
+name is <filepath>libstdcppv5.lib</filepath>. </p> </li>
+<li id="GUID-9757C0C6-A141-594B-A29D-19D2E69283B6"><p>You must specify the
+system-include path and library name in the <filepath>.mmp</filepath> file
+associated with the C++ application or library. </p> </li>
+</ul>
+<section id="GUID-26AC2BCA-4A4F-5837-BBAD-7964CA0A5BED"><title> STD target
+types</title> <p>You can develop a C++ application or library using the following
+STD target types: </p> <ul>
+<li id="GUID-52EC8316-33D1-5962-B71A-8F54AC7CC698"><p> <codeph>STDEXE</codeph>  </p> </li>
+<li id="GUID-3B07B0F9-B1CF-5F11-ADB2-DB648D93A60D"><p> <codeph>STDDLL</codeph>  </p> </li>
+<li id="GUID-68E852B9-41F4-5550-990E-256EA37EA337"><p> <codeph>STDLIB</codeph>  </p> </li>
+</ul> <p>These target types enable symbol lookup by name thereby adding the
+symbol information into the executable. </p> <p> <b>Note:</b> For more information
+about STD target types (<codeph>STDEXE</codeph> /<codeph>STDDLL</codeph> /<codeph>STDLIB</codeph>),
+see the <xref href="GUID-1560C4FF-82EC-5E5D-A37D-3BBE046F0A5B.dita">Target Types</xref> section. </p> <p><b>Example</b> </p> <p>The
+following code snippet illustrates the use of the STD target type <codeph>stdexe</codeph>: </p> <codeblock id="GUID-BA167FFD-2F44-5BA4-8C2B-FF388648CC9B" xml:space="preserve">//writing an stdexe, the mmp file may look like follows
+//Start of test_stdexe.mmp
+Target             test_stdexe.exe
+Targettype        stdexe
+Source            test1.cpp
+Systeminclude        /epoc32/include/stdapis/stlportv5
+Library            libstdcppv5.lib
+Capability        all -tcb
+//End of test_stdexe.mmp</codeblock> </section>
+<section id="GUID-F956CF72-58FC-5D9E-91EC-5B8866EE46C2"><title>Other Symbian
+target types</title> <p>You can avoid symbol information overhead while developing
+C++ applications or libraries, by performing the following configurations: </p> <ol id="GUID-95D63170-A738-562C-B648-D5E349E4EE32">
+<li id="GUID-65331FAD-A88C-5D36-BED2-255AED30F99F"><p>Use the other Symbian
+target types such as, <codeph>dll</codeph>, <codeph>lib</codeph>, <codeph>exe</codeph> and
+so on. For more information about other Symbian target types, see the <xref href="GUID-9535CF67-7541-554E-BE5C-9FDDFDB58EA5.dita">targettype</xref> section. </p> </li>
+<li id="GUID-46EE0265-A60A-518C-BB4A-63F6D6FA29F3"><p>In addition, use the
+MMP keyword <codeph>STDCPP</codeph>. </p> </li>
+</ol> <p>You may also have to include <filepath>${EPOCROOT}/epoc32/include/stdapis</filepath> explicitly
+as the standard C headers are required by the standard C++ header. If you
+are referring to Standard C APIs directly or indirectly, you must specify <filepath>libc.lib</filepath> and <filepath>libpthread.lib</filepath> in
+the <filepath>.mmp</filepath> file. </p> <p><b>Example</b> </p> <p>The following
+code snippet illustrates the use of <codeph>STDCPP</codeph> MMP keyword and
+the use of the <codeph>exe</codeph> target type: </p> <codeblock id="GUID-31D4A97F-7809-515E-AB0C-801B60E60455" xml:space="preserve">//test_exe.mmp
+Target             test_exe.exe
+Targettype        exe
+//The STDCPP keyword specifies Standard C++
+STDCPP
+Source            test2.cpp
+Systeminclude        /epoc32/include/stdapis/stlportv5
+Systeminclude        /epoc32/include/stdapis
+Library            libstdcppv5.lib libc.lib
+Staticlibrary        libcrt0.lib
+Capability        all -tcb
+//End of test_exe.mmp</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-D6BEAF0D-844D-51F4-8DB7-FB1D60E17FE3.dita"><linktext>Copyright
+Acknowledgments for Standard C++ (STLport)</linktext></link>
+<link href="GUID-F7FEB759-E64D-5B6D-9017-C5E982E4FC16.dita"><linktext>Standard
+C++ Library Overview</linktext></link>
+<link href="GUID-2CCD1748-9EDE-5383-9941-A3051E06F3E2.dita"><linktext>Standard
+C++ Support on the Symbian Platform</linktext></link>
+<link href="GUID-CDE8CD85-8467-5B36-A0AC-41D1D98151CA.dita"><linktext>Developing
+Applications or Libraries Using Standard C++</linktext></link>
+<link href="GUID-5B3F5296-D6D0-5D25-8362-141DF5927E52.dita"><linktext>Troubleshooting</linktext>
+</link>
+<link href="GUID-D32E52C9-F05C-5F1E-8B49-243D555C353C.dita"><linktext>Known Issues</linktext>
+</link>
+</related-links></concept>

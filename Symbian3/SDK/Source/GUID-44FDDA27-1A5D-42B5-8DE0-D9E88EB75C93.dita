@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-44FDDA27-1A5D-42B5-8DE0-D9E88EB75C93" xml:lang="en"><title>Querying
+for Sensor Channels</title><shortdesc>You can retrieve a list of sensor channels that are available for
+a particular sensor type. Once you get the list of sensor channels that are
+active, you can perform any required operations such as configuring sensor
+channel properties, controlling sensor channels and so on.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-8-1-9-1-1-6-1-4-1-4-1-4-1-3-1">
+<step id="GUID-EE1655E2-D4C4-4593-A0E1-BD1DFACB0351"><cmd>Create an instance
+of <codeph>TSensrvChannelInfo</codeph> and set the required channel type as
+the search criteria. For example, to query for all double tapping channels
+provided by accelerometer sensor, set the channel type as <codeph>KSensrvChannelTypeIdAccelerometerDoubleTappingData</codeph>.</cmd>
+<stepxmp><codeblock xml:space="preserve">TSensrvChannelInfo channelInfo;
+channelInfo.iChannelType = KSensrvChannelTypeIdAccelerometerDoubleTappingData;</codeblock></stepxmp>
+</step>
+<step id="GUID-176936C5-17FE-49A6-A0A7-0E76EB69C5E8"><cmd>Create an instance
+of <codeph>CSensrvChannelFinder</codeph> class and use the <xref href="GUID-5F108D03-C8A6-3EF9-B103-2E8916633602.dita#GUID-5F108D03-C8A6-3EF9-B103-2E8916633602/GUID-E58BAF1B-57AA-3E85-A4F9-8C6C29043FBD"><apiname>CSensrvChannelFinder::FindChannelsL()</apiname></xref> function
+to query for available sensor channels.</cmd>
+<stepxmp><codeblock xml:space="preserve">CSensrvChannelFinder* finder = CSensrvChannelFinder::NewL();
+finder-&gt;FindChannelsL(channelList, searchParameters);</codeblock></stepxmp>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-8-1-9-1-1-6-1-4-1-4-1-4-1-3-1-3"><cmd>Create an instance
+of <codeph>RSensrvChannelInfoList</codeph> to store the list of sensor channels.</cmd>
+<stepxmp><codeblock xml:space="preserve">RSensrvChannelInfoList channelInfoList;</codeblock></stepxmp>
+</step>
+</steps>
+<result id="GUID-F26EFE38-DF01-4531-89AD-191049E31F36">       <p>The <parmname>channelInfoList</parmname> contains
+all the double tapping channels that are found. If several matching channels
+are found, you can select the required channel by examining the content of
+channel information objects inside <parmname>channelInfoList</parmname>.</p> 
+   </result>
+<example><p>This following code shows how to find double tapping channels
+for accelerometer sensor:</p><codeblock xml:space="preserve">.....
+......
+/Construct a channel finder.
+    CSensrvChannelFinder* channelFinder;
+    channelFinder = CSensrvChannelFinder::NewL();
+    CleanupStack::PushL( channelFinder );
+    
+    // to store list of found channels.
+    RSensrvChannelInfoList channelInfoList;
+
+    //Create and fill channel search criteria.
+    //In this example double tapping channel is searched.
+    TSensrvChannelInfo channelInfo;
+    channelInfo.iChannelType = KSensrvChannelTypeIdAccelerometerDoubleTappingData;
+
+    //Find the double tapping channel
+    channelFinder-&gt;FindChannelsL( channelInfoList, channelInfo );
+
+    CleanupStack::PopAndDestroy( channelFinder ); // finder not needed any more
+
+    if( channelInfoList.Count() != 1 )
+        {
+        //The device does not support double tapping channel or
+        //there are several double tapping channels.
+        }
+    else
+        {
+        //double tapping channel found 
+        }
+.....
+....
+</codeblock></example>
+</taskbody></task>

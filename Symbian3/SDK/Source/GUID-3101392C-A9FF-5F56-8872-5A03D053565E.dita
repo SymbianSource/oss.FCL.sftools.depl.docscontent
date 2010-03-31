@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-3101392C-A9FF-5F56-8872-5A03D053565E"><title> Using a Management Plane session to query all Access Points: Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The <xref href="GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2.dita"><apiname>RConnectionServ</apiname></xref> API has to be accessed through the <xref href="GUID-61E0CD76-A2E3-5066-84A8-146EECA8ADCD.dita">Sockets Server</xref> client API, so you need to ensure that <filepath>esock.lib</filepath> is included in the MMP file. </p> <section><title>Querying the status of an Access Point</title> <p>The <xref href="GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2.dita#GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2/GUID-E80C3173-3777-317A-8007-E9C331FAD9AE"><apiname>RConnectionServ::AccessPointStatusQuery()</apiname></xref> function retrieves information about the properties of one or more Access Points from the attached Tier specified earlier using the previous <codeph>Connect()</codeph> function. </p> <p> <xref href="GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2.dita#GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2/GUID-A2ED3E49-53F0-3BFD-8E77-DE543BAADA93"><apiname>RConnectionServ::AccessPointStatusQuery(const
+          CConnectionServParameterBundle&amp; aQuery, CConnectionServParameterBundle&amp;
+          aResult, TRequestStatus&amp; aStatus)</apiname></xref>  </p> <p>The parameter <codeph>aQuery</codeph> is an ‘In’ parameter. It is created and deleted by the caller, <xref href="GUID-A0741C04-7E9D-3E20-96C0-22CEEFCE3238.dita"><apiname>CConnectionServParameterBundle</apiname></xref>, of this function. The parameter will be deleted after completing the Access Point status query. The parameter contains structured data types in <xref href="GUID-9E2F2DFF-2CBE-38E2-BB8D-423C2228C201.dita"><apiname>CConnectionServParameterSetContainers</apiname></xref> and <xref href="GUID-F4D933B7-A0B4-3D58-BD1E-ECAF4D9953D1.dita"><apiname>XParameterSet</apiname></xref> -derived types. These data types specify the group of Access Points to be returned and the information about the Access Points to be queried. </p> <p>The parameter <codeph>aResult</codeph> is an ‘Out’ parameter. It is created and deleted by the caller, <xref href="GUID-A0741C04-7E9D-3E20-96C0-22CEEFCE3238.dita"><apiname>CConnectionServParameterBundle</apiname></xref>, of this function. The parameter will be deleted after completing the Access Point status query. </p> <p>The time taken to complete the query depends on the implementation of the <xref href="GUID-4841AEDF-D22C-57D0-872D-7BD8B6A29CF5.dita">Tiers Manager</xref> stack plug-in that serves the request. It is an asynchronous request. There can only be one outstanding query at a time. Further queries before completion of an outstanding query result in <codeph>KErrInUse</codeph>. </p> </section> <section><title>Cancelling an Access Point status query</title> <p> <xref href="GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2.dita#GUID-55FE59B7-4FA9-3B1A-BD4C-9B7611FE75C2/GUID-BDF7E376-AC0E-3723-A2FC-1C45D1ED56A4"><apiname>RConnectionServ::CancelAccessPointStatusQuery()</apiname></xref>  </p> <p>This function cancels the current Access Point status query. </p> </section> <section><title>Example Code</title> <p>The following example shows how to find information about all the Access Points that are known to the device. </p> <codeblock id="GUID-79A6D545-BFB4-51E3-9C8A-B0608F36A71C" xml:space="preserve">
+// Start the session as mentioned in starting a session
+ 
+// Create bundle (This bundle is owned by this class so the destructor of this class    
+// must delete the bundle)
+iQueryBundle = CConnectionServParameterBundle::NewL();
+
+
+// Set up the filter for our query
+TAccessPointStatusFilter availFilter;
+
+// a) We want to match against this attribute
+availFilter.Configured(EAccessPointFlagMatchTrue);
+
+// b) Don’t even try to find these things out as we’re not interested at present
+availFilter.Restricted(EAccessPointFlagIgnore);
+availFilter.Available(EAccessPointFlagIgnore);
+availFilter.Started(EAccessPointFlagIgnore);
+
+// Call helper function to create query structure
+iQueryBundle-&gt;AddMatchConditionL(availFilter);
+
+// Call helper function to specify what we want to get for each Access Point
+iQueryBundle-&gt;AddParameterSetToReturnL(XAccessPointGenericParameterSet::TypeId());
+
+// Create container for result
+iStatusBundle = CConnectionServParameterBundle::NewL();
+
+// Make call- the iStatus is a TRequestStatus owned by your active object
+iConnServ.AccessPointStatusQuery(*iQueryBundle, *iStatusBundle, iStatus);
+</codeblock> <p>At this point, a return to the Active Scheduler is necessary because the query uses active objects. So the passed in <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> functions are not completed until those active objects have run. </p> <p>The <codeph>RunL()</codeph> of the active object runs on completion of the <codeph>AccessPointStatusQuery()</codeph> call, as shown below: </p> <codeblock id="GUID-EE660CAC-E120-57CE-9AD4-5B60C61FBB36" xml:space="preserve">
+/*virtual*/
+void CMyActiveObjectClass::RunL()
+  {
+  // Some function to handle errors
+  MyErrorHandler(iStatus.Int());
+
+  // Process results
+  CConnectionServParameterSetContainer* parSetCtr;
+  TInt i=0;
+  while(parSetCtr = iStatusBundle-&gt;GetParamSetContainer(i++))
+    {
+XAccessPointGenericParameterSet* genParamSet =
+       XAccessPointGenericParameterSet::FindInParamSetContainer(parSetCtr);
+
+    if(!genParamSet) continue;
+    TUint apId = genParamSet-&gt;AccessPointInfo().AccessPoint();
+    TAccessPointStatus apStatus = genParamSet-&gt;AccessPointStatus();
+
+    // Your function to process result
+    ProcessResult(apId,apStatus);
+  }
+}
+
+// Later, in the destructor of this class, the bundles must be deleted
+delete iQueryBundle;
+delete iStatusBundle;</codeblock> </section> </conbody></concept>

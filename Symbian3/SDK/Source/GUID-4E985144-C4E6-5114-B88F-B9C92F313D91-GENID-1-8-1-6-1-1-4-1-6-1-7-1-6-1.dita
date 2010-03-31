@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4E985144-C4E6-5114-B88F-B9C92F313D91-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1" xml:lang="en"><title>The
+control environment</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The control environment packages the interface to the window server and
+provides an environment for creating controls. It is implemented in a single
+class, <xref href="GUID-12A9389D-363B-3F54-857F-89EE0EDCDF40.dita"><apiname>CCoeEnv</apiname></xref>, which encapsulates active objects and an
+active scheduler for receiving events from the window server. Each application
+has exactly one <xref href="GUID-12A9389D-363B-3F54-857F-89EE0EDCDF40.dita"><apiname>CCoeEnv</apiname></xref> object which is stored in Thread
+Local Storage (TLS). </p>
+<p> <xref href="GUID-12A9389D-363B-3F54-857F-89EE0EDCDF40.dita"><apiname>CCoeEnv</apiname></xref> also provides a number of utilities which are
+useful to most applications. These utilities include: </p>
+<ul>
+<li id="GUID-E6CC6A2A-2B44-586F-B0B3-5CC8E2862490-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-3-1"><p>creating a graphics
+context, the <keyword>system graphics context</keyword>. This is the standard
+graphics context which is normally used for drawing controls. It may be accessed
+using <codeph>CCoeEnv::SystemGc()</codeph>  but controls should get their
+graphics context using <codeph>CCoeControl::SystemGc()</codeph> rather than
+directly from the environment.  </p> </li>
+<li id="GUID-7BDF28EF-D209-51E6-B07E-4DB65045D2FE-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-3-2"><p>access to the <keyword>window
+server session</keyword>  </p> </li>
+<li id="GUID-028E7FCF-255D-5C82-8100-EDF4F2FCD3B1-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-3-3"><p>utilities for using
+fonts </p> </li>
+<li id="GUID-4CE27203-A304-57C9-BA08-CE523F61582A-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-3-4"><p>utilities for reading
+resource values from <keyword>resource files</keyword>  </p> </li>
+<li id="GUID-2875D169-00F7-5C33-AEF7-4C8BB41B74EE-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-3-5"><p>Support for singleton
+(static) objects </p> </li>
+</ul>
+<section id="GUID-C049C06F-8668-44C3-B162-7675CB00515A-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-4"><title>Resource readers and resource files</title> <p> <codeph>CCoeEnv</codeph> maintains
+a list of the resource files used by the application. Files may be added to
+the list using <codeph>AddResourceFileL()</codeph> and removed using <codeph>DeleteResourceFile()</codeph>. </p> <p>The
+utility functions provided by the control environment read resources and resource
+data from the resource files in its list. </p> <p>A resource file consists
+of a list of resources, each identified by a resource ID. Each resource consists
+of a list of resource values in the form of binary data. The order and lengths
+of the values for each resource type are defined in a resource definition
+(generally stored in a file with an <filepath>.rh</filepath> extension). </p> <p>Reading
+data from a resource file requires two stages: </p> <ul>
+<li id="GUID-ADC4F5E4-5FCA-55FA-AB2A-0B607D9350DD-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-4-6-1"><p>read a resource from
+the resource file into a buffer </p> </li>
+<li id="GUID-84FC56CB-F182-52C5-BFA8-79A51ABC4810-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-4-6-2"><p>read values from the
+resource using a resource reader </p> </li>
+</ul> <p> <codeph>CCoeEnv</codeph> provides utility functions to perform the
+first of these stages and functions to create resource readers. </p> <p>An
+application's default resource file, one which has the same name as the application,
+is loaded automatically. </p> <p>It should be noted that stage two can be
+omitted if the resource contains only one value, or if it is read into a formatted
+buffer. In both of these cases the resource data can be read straight from
+the buffer. </p> </section>
+<section id="GUID-4B579429-B1F4-4B8C-9C78-359D2B568303-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-5"><title>Singletons - CCoeStatic</title> <p>The <xref href="GUID-F0C084E2-C683-39E2-A131-77FE3206A02C.dita"><apiname>CCoeStatic</apiname></xref> base
+class is closely associated with <xref href="GUID-12A9389D-363B-3F54-857F-89EE0EDCDF40.dita"><apiname>CCoeEnv</apiname></xref>. Between them
+they allow singleton objects to be created and stored in Thread Local Storage
+(TLS). By doing so they provide an equivalent to writeable global static data. </p> <p>Classes
+derived from <xref href="GUID-F0C084E2-C683-39E2-A131-77FE3206A02C.dita"><apiname>CCoeStatic</apiname></xref> are automatically added to the
+environment when they are instantiated for the first time. Subsequent attempts
+to instantiate an object of the same type will result in a panic (with error
+code <codeph>ECoePanicDuplicateObjectUid</codeph>). </p> <p>Each singleton
+requires a UID and may be given a destruction priority (relative to other
+singletons and the AppUi) and a scope (<codeph>EThread</codeph> or <codeph>EApp</codeph>). </p> <p>Once
+a singleton has been created it may be accessed through the <xref href="GUID-12A9389D-363B-3F54-857F-89EE0EDCDF40.dita"><apiname>CCoeEnv</apiname></xref> API. </p> <codeblock id="GUID-99260739-1E0F-5032-989E-B1D8607ABE2C-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-5-6" xml:space="preserve">// Singleton access
+IMPORT_C static CCoeStatic* Static( TUid aUid ) ;
+IMPORT_C CCoeStatic* FindStatic( TUid aUid ) ;</codeblock> <p> <xref href="GUID-F0C084E2-C683-39E2-A131-77FE3206A02C.dita"><apiname>CCoeStatic</apiname></xref> has
+no public functions. </p> </section>
+<section id="GUID-097FE0A7-2221-46DE-804D-5E25E85F6F96-GENID-1-8-1-6-1-1-4-1-6-1-7-1-6-1-2-6"><title>See also</title> <p> <xref href="GUID-7250950C-5502-5ACE-864B-0EFD5C253053-GENID-1-8-1-3-1-1-7-1-10-1.dita">How
+to create a Singleton</xref>  </p> </section>
+</conbody></concept>

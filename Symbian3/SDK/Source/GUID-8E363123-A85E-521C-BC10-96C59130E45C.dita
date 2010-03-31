@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8E363123-A85E-521C-BC10-96C59130E45C" xml:lang="en"><title>How
+to walk the heap</title><shortdesc>The <codeph>THeapWalk</codeph> class provides behaviour for walking
+the heap. This class is pure virtual and developers must provide a derived
+class in order to use it.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A heap can be checked to make sure that its allocated and free cells are
+in a consistent state and that the heap is not corrupt.</p>
+<p>The <codeph>THeapWalk</codeph> class provides the behaviour for doing this.
+This class is pure virtual and developers must provide a derived class in
+order to use it.</p>
+<p>Simply construct a <codeph>THeapWalk</codeph> derived object, passing a
+reference to the heap which is to be checked in its constructor. Walking the
+heap is initiated by calling <codeph>Walk()</codeph>. This function follows
+the list of allocated and free cells in the heap. The function calls the virtual
+function <codeph>Info()</codeph> for every good cell it finds, passing the
+cell's address and length.</p>
+<p><codeph>Info()</codeph> is a pure virtual function and a derived class
+must provide an implementation for it.</p>
+<p><codeph>Walk()</codeph> terminates when it has successfully followed the
+entire list of free and allocated cells or until it finds the first bad cell.</p>
+<p>As a minimum, a class derived from <codeph>THeapWalk</codeph> might be:</p>
+<codeblock id="GUID-A3AC2314-4C1E-5F1F-9BCB-694893AB47FB" xml:space="preserve">class TMyClass : public THeapWalk
+    {</codeblock>
+<codeblock id="GUID-C45FDA92-5BEE-57A3-BB1B-F4AB203EC0EC" xml:space="preserve">public :
+    TMyClass(RHeap&amp; aHeap);
+    void Info(TCellType aType,TAny *aBase,TInt aLength);
+    }</codeblock>
+<p>where the constructor would be implemented as:</p>
+<codeblock id="GUID-F7B66153-EAFE-570C-997F-42BDBB05DE01" xml:space="preserve">TMyClass::TMyClass(RHeap&amp; aHeap)
+    : THeapWalk(aHeap)
+    {}</codeblock>
+<p>Typically, the <codeph>Info()</codeph> function might consist of a switch
+statement based on the value of <codeph>aType</codeph>:</p>
+<codeblock id="GUID-379F76EF-8FC0-5085-BB05-373E2B64508C" xml:space="preserve">TMyClass::Info(TCellType aType,TAny *aBase,TInt aLength)
+    {
+    switch(aType)
+        {
+    case EGoodAllocatedCell:
+        ...
+        break;
+    case EGoodFreeCell:
+        ...
+        break;
+    case EBadFreeCellAddress:
+        ...
+        break;
+    default:
+        ...
+        }
+    }</codeblock>
+</conbody></concept>

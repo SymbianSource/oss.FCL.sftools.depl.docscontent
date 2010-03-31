@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-930A3ABD-84FB-5D76-938C-79383273DAE6"><title>Processing System Events</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>The following examples give some suggestions about how to process events related to the whole system, rather than individual windows or window groups. </p> <p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref> and <xref href="GUID-F64E6551-670E-5E12-8103-DE504D3EC94F.dita">non-ScreenPlay</xref>. <b>Target audience</b>: Application developers. </p> <section><title>Window group with focus changes</title> <p>To detect if the window group with focus has changed, use the <codeph>EEventFocusGroupChanged</codeph> event type. </p> <p>You can get the handle of the window group with focus by calling the <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-1B9B5EE1-A999-3E5D-BAC5-96438BD27308"><apiname>RWsSession::GetFocusWindowGroup()</apiname></xref> function for the <codeph>iWs</codeph> Window Server session. </p> <codeblock id="GUID-A1E0F429-D06C-57D7-8D40-F43114B7FD80" xml:space="preserve">    // Window group with focus changes
+    case EEventFocusGroupChanged:
+        {
+        // Get the handle of the group with focus
+        TInt handle = iWs.GetFocusWindowGroup();
+        break;
+    }</codeblock> </section> <section><title>Window group destroyed, or changes name</title> <p>To detect if the window group has been destroyed or changed name, use the <codeph>EEventWindowGroupsChanged</codeph> event type. </p> <p>You can get a list of identifiers of window groups in the Window Server session by calling <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-8428FE72-E59F-3350-AE45-81ACB0463FAA"><apiname>RWsSession::WindowGroupList()</apiname></xref>. Call the <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-D9A204BF-192D-3B94-803B-3DABC7E0E074"><apiname>RWsSession::GetWindowGroupNameFromIdentifier()</apiname></xref> function to get the window group name passed to it in the <codeph>windowName</codeph> buffer. </p> <codeblock id="GUID-03531EA6-CAD6-5C75-9B7D-26A4EB66B164" xml:space="preserve">    // Window group destroyed, or changes name
+    case EEventWindowGroupsChanged:
+        {
+        // Get a list of the names and IDs of the all the window groups
+        CArrayFixFlat&lt;Tint&gt;* windowList = new CArrayFixFlat&lt;TInt&gt;(4);
+        CleanupStack::PushL(windowList);
+
+        // Get a list of window group IDs
+        User::LeaveIfError(iWs.WindowGroupList(windowList));
+        TBuf&lt;50&gt;windowName;
+        for (TInt I = 0; I&lt; windowList -&gt; Count(); I++)
+            {
+            // Get the window name for each window group ID
+            iWs.GetWindowGroupNameFromIdentifier( (*windowList)[I], windowName );
+
+            // do something with windowName...
+            // ..
+            }
+            CleanupStack::PopAndDestroy(); // windowList
+            break;
+        }</codeblock> </section> <section><title>Screen size mode changed</title> <p>To detect if screen size or mode changed event has been issued, use the <codeph>EEventScreenDeviceChanged</codeph> event type. </p> <p>You can get the screen rotation and size by calling <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-45FC8DC7-B17F-34E6-806C-B8BA585F4FD6"><apiname>CWsScreenDevice::GetScreenModeSizeAndRotation()</apiname></xref>. Pass as parameters the current screen mode and a <xref href="GUID-1AC86B43-CEAF-337D-A56C-0FFC42D435FD.dita"><apiname>TPixelsTwipsAndRotation</apiname></xref> object to get the orientation of the specified screen mode, and its size in both pixels and twips. </p> <codeblock id="GUID-63A5F00C-FA5D-5826-9217-C96087698394" xml:space="preserve">    // Screen size mode changed
+    case EEventScreenDeviceChanged:
+        {
+        // Get the new screen mode and size
+        TInt newMode = iScreen.CurrentScreenMode();
+        TPixelsTwipsAndRotation sizeAndRotation;
+        iScreen.GetScreenModeSizeAndRotation(newMode, sizeAndRotation);
+        break;
+        }</codeblock> <p>Note that for screen size mode changed events, often after having got the new size and rotation you would set it back on your screen device. </p> <p>In ScreenPlay this event is related to the <xref href="GUID-6426E0A6-35F2-3704-962C-0A8AE8AF7226.dita"><apiname>EEventDisplayChanged</apiname></xref> event. See <xref href="GUID-B1CB6374-2C2B-5D6C-9A7C-6E49D8F235B8.dita">Display Control and Mapping in the Window Server Client</xref> for more information. </p> </section> <section><title>Power on/off events</title> <p>To detect if power on/off events have been issued, use the <codeph>EEventSwitchOn</codeph>, <codeph>EEventSwitchOff</codeph> or <codeph>EEventKeySwitchOff</codeph> event types. </p> <codeblock id="GUID-EDAEABB6-E46A-5B90-A3D1-288782AE2349" xml:space="preserve">    // Power on/off events
+    case EEventSwitchOn:
+    case EEventSwitchOff:
+    case EEventKeySwitchOff:
+        {
+        break;
+        }</codeblock> </section> <section><title>Case open/closed events</title> <p>To detect if case open/closed events have been issued, use the <codeph>EEventCaseOpened</codeph>, <codeph>EEventCaseClosed</codeph> event types. </p> <codeblock id="GUID-4F3002C7-302F-5D3F-80D4-9B3425394E5A" xml:space="preserve">    // Case open/closed events
+    case EEventCaseOpened:
+    case EEventCaseClosed:
+        {
+        break;
+        }</codeblock> </section> <section><title>A Window Server error event message</title> <p>To detect if an error event message has been issued, use the <codeph>EEventErrorMessage</codeph> event type. </p> <p>You can get information about the error event by calling the <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita#GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31/GUID-61587DF0-0AA7-3287-B398-C83E5902E8C4"><apiname>TWsEvent::ErrorMessage()</apiname></xref> function. </p> <codeblock id="GUID-6953396C-B619-5172-8146-6D555AF7DEA1" xml:space="preserve">    // A Window Server error event message
+    case EEventErrorMessage:
+        {
+        // Get error category and code
+        TWsErrorMessage* msg = iWsEvent.ErrorMessage();
+        TWsErrorMessage::TErrorCategory errorCategory = msg -&gt; iErrorCategory;
+        TUint code = msg -&gt; iError;
+        break;
+        }</codeblock> </section> </conbody><related-links><link href="GUID-930A3ABD-84FB-5D76-938C-79383273DAE6.dita"><linktext>Handling General Events</linktext> </link> <link href="GUID-B830A1F7-9220-5879-80BE-C494A4CD155B.dita"><linktext>General Events</linktext> </link> <link href="GUID-B7FF0B9C-3A17-5AAA-A986-7BA4F44DBD41.dita"><linktext>Declaring a
+                Window Server Event-Handling Class</linktext> </link> <link href="GUID-A51D3749-442A-54E8-8EB5-BF907694CD8C.dita"><linktext>Processing Window-Group
+                Events</linktext> </link> <link href="GUID-E1E11C95-3400-548B-AEEE-577DA8FB9ECB.dita"><linktext>Processing Window Events</linktext> </link> </related-links></concept>

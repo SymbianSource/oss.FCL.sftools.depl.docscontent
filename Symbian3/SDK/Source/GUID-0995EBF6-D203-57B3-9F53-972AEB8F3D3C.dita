@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-0995EBF6-D203-57B3-9F53-972AEB8F3D3C"><title>Memory Metrics</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This topic describes the metrics provided by a Comms pond. </p> <p>A Comms pond creates and manages pools of Comms buffers (MBufs). Each pool contain buffers of a specified size. The pond provides information about the size of these buffers and the memory utilisation of the pools. </p> <table id="GUID-4AC39ECB-83A6-576D-B239-2857B791E477"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>Metric method</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-F5B96520-E8A6-3775-9059-DF5A1668043B.dita#GUID-F5B96520-E8A6-3775-9059-DF5A1668043B/GUID-DEFA47F2-5B36-397C-B1FE-3000BD208B08"><apiname>RCommsBufPond::NextBufSize()</apiname></xref>  </p> </entry> <entry><p>Returns the next MBuf size that is strictly larger than the specified parameter, or <codeph>KErrNotFound</codeph> if there is no pool with larger buffers. The return value is independent from the number of free buffers of that size. </p> <p>To obtain the first size, pass 0 as the parameter. </p> </entry> </row> <row><entry><p> <xref href="GUID-F5B96520-E8A6-3775-9059-DF5A1668043B.dita#GUID-F5B96520-E8A6-3775-9059-DF5A1668043B/GUID-AA451DD4-F367-3494-B646-FC9064568F92"><apiname>RCommsBufPond::LargestBufSize()</apiname></xref>  </p> </entry> <entry><p>Returns the largest buffer size in the pond. The return value is independent from the amount of free buffers in the largest-size pool. </p> </entry> </row> <row><entry><p> <xref href="GUID-F5B96520-E8A6-3775-9059-DF5A1668043B.dita#GUID-F5B96520-E8A6-3775-9059-DF5A1668043B/GUID-23667793-9546-3813-9457-C889E33AD342"><apiname>RCommsBufPond::BytesAvailable()</apiname></xref>  </p> </entry> <entry><p>Returns the sum of the amount of available memory in all the pools. </p> </entry> </row> <row><entry><p> <xref href="GUID-F5B96520-E8A6-3775-9059-DF5A1668043B.dita#GUID-F5B96520-E8A6-3775-9059-DF5A1668043B/GUID-D5DE5000-37A1-307E-906C-3BD8D063D6E5"><apiname>RCommsBufPond::BytesAvailable(TInt aSize)</apiname></xref>  </p> </entry> <entry><p>Returns the amount of available memory in the first pool of the specified buffer size. To get the number of free buffers in the pool, divide the return value by the buffer size. </p> </entry> </row> </tbody> </tgroup> </table> <p>To get the list of the existing buffer sizes, call <codeph>NextBufSize()</codeph> as in the following example: </p> <codeblock id="GUID-3CD782B5-CE2D-5172-A895-EF2F5920AC77" xml:space="preserve">
+RMBufAllocator allocator;
+
+TInt size = 0;
+
+do 
+    {
+    // Get the next size
+    size = allocator.NextBufSize(size);
+            
+                // error 
+    if(size &lt;0)
+        {
+        // no pool of bigger buffers, or error: end iteration
+        break;
+        }
+    RDebug::Printf(“%d”,size);
+    }
+while(true);
+</codeblock> <p>Note that the example uses a <xref href="GUID-5E763DBF-2C22-3335-9D80-89783095D5AA.dita"><apiname>RMBufAllocator</apiname></xref> object instead of the pond: this optimisation is explained in the <xref href="GUID-F2E86FB3-C634-5CF9-87B2-EAB18BF25C4B.dita">TLS Look-up Reduction Tutorial</xref>.  </p> </conbody><related-links><link href="GUID-55E4D84B-1B90-5BA4-9CE0-6D26EA208F13.dita"><linktext>Overview</linktext> </link> <link href="GUID-B4F15CA3-CAD4-5A87-9610-A656CA337B72.dita"><linktext>Comms Buffers (MBuf)
+                and Comms Chains</linktext> </link> <link href="GUID-F0891698-F714-55AA-A089-790BB0B07AE4.dita"><linktext>Allocation tutorial</linktext> </link> </related-links></concept>

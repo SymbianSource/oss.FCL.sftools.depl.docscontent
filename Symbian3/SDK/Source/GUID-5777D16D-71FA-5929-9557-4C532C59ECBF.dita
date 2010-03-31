@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5777D16D-71FA-5929-9557-4C532C59ECBF" xml:lang="en"><title>Platform
+Security Considerations</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Symbian platform v9.1 introduced <xref href="GUID-4BFEDD79-9502-526A-BA7B-97550A6F0601.dita">Platform
+Security</xref> (the concept of Capabilities, Signing and Data Caging) to
+protect a phone against malicious code. Granting a program certain capabilities
+enables it to use protected operating system functionality, and signing an
+installation file enables it to be installed onto different phones. </p>
+<p>A program using the P.I.P.S. libraries may need certain capabilities in
+order to use protected functionality to be available. The capabilities required
+are listed in the program's makefile (or an MMP file on the Symbian
+platform). For example, the following line added to a Symbian MMP file will
+grant network access to a program. </p>
+<codeblock id="GUID-4D511177-F8F2-56A1-AB6C-91B3B1F04FE5" xml:space="preserve">CAPABILITY     NetworkServices</codeblock>
+<p>Each Symbian program has access to a private area of storage in a <filepath>/private/&lt;secureid&gt;/</filepath> directory
+where <codeph>secureid</codeph> is an identifier specified in the MMP file.
+If a <codeph>secureid</codeph> is not specified in the MMP file, the <codeph>secureid</codeph> is
+set from the program's third UID (Unique Identifier). Some extra capabilities
+are required if the program wishes to have access to another program's private
+area. Also it is worth noting that P.I.P.S. does not allow file descriptors
+in private directories to be inherited. </p>
+<section id="GUID-A4D36A90-314A-5EEA-A025-7135A9A60177"><title>Capabilities
+supported for P.I.P.S. APIs</title> <p>The following table provides details
+of the P.I.P.S. APIs and the capabilities that may need to be added. </p> <table id="GUID-4DF992C4-AE1E-56BC-B97F-BC411D02E3FF">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>P.I.P.S. API</b>  </p> </entry>
+<entry><p> <b>Capabilities required</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D926453F-9D3F-3604-B6E1-9782C3779DDF.dita"><apiname>lstat()</apiname></xref>, <xref href="GUID-A89FA772-80F2-39E8-AEFB-B9B4E833A1FA.dita"><apiname>stat()</apiname></xref>, <xref href="GUID-BEE67FC6-54F4-3711-B367-87EF751472A7.dita"><apiname>tmpnam()</apiname></xref>, <xref href="GUID-C8EA1CF0-D221-3A9D-84B1-5ED8A6DA933F.dita"><apiname>tempnam()</apiname></xref>, <xref href="GUID-875BC63B-B23B-374C-A932-24701D8C8220.dita"><apiname>wstat()</apiname></xref>  </p> </entry>
+<entry><p> <codeph>None</codeph> if the path is not in the protected /sys/
+or /private/ directory. </p> <p> <codeph>AllFiles</codeph> if the path contains
+the protected /sys/ directory. </p> <p> <codeph>AllFiles</codeph> if the path
+contains the protected /private/ directory using another program's Secure
+Identifier. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-A9330ABF-23DD-3DAE-BCB5-1B2448EF34E3.dita"><apiname>open()</apiname></xref>, <xref href="GUID-FA8FEC6E-622F-3F06-B15F-7B9769616149.dita"><apiname>wfopen()</apiname></xref>  </p> </entry>
+<entry><p> <codeph>None</codeph> if the path is not in the protected /sys/
+or /private/ directory. </p> <p> <codeph>AllFiles</codeph> if the path contains
+the protected /sys/ directory and read mode is specified. </p> <p> <codeph>TCB</codeph> if
+the path contains the protected /sys/ directory and write mode is specified.
+P.I.P.S. libraries do not have the TCB capability, and so it is not possible
+to write to this directory. </p> <p> <codeph>AllFiles</codeph> if the path
+contains the protected /private/ directory using another program's Secure
+Identifier. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-9AE17F91-D9F7-3DD5-8D6C-AC6BDD0BBF7D.dita"><apiname>access()</apiname></xref>, <xref href="GUID-96A8BB01-07F4-3701-8390-858E47B11068.dita"><apiname>chdir()</apiname></xref>, <xref href="GUID-F5DE6335-1C8B-31F6-A70F-DCA12C050836.dita"><apiname>chmod()</apiname></xref>, <xref href="GUID-7AE53522-A016-3CF2-9394-38A65A628FDF.dita"><apiname>creat()</apiname></xref>, <xref href="GUID-D441A5DF-C7B8-38A7-B386-62DB47D95DE2.dita"><apiname>fchmod()</apiname></xref>, <xref href="GUID-A745D453-FD35-36AC-B2A6-1B118FC0ECE7.dita"><apiname>ftok()</apiname></xref>, <xref href="GUID-5EA72F64-E826-3B15-9468-902BD57F6AA7.dita"><apiname>mkdir()</apiname></xref>, <xref href="GUID-F4749DAA-1B29-3D1D-A3AA-0D52B851E501.dita"><apiname>mkfifo()</apiname></xref>, <xref href="GUID-28E8C6E1-93F6-326B-8B10-6EFCC19A71B8.dita"><apiname>rename()</apiname></xref>, <xref href="GUID-0A4E12DC-191F-3093-8FCC-1F09BC057EF8.dita"><apiname>rmdir()</apiname></xref>, <xref href="GUID-D8A63E18-878B-3AD4-863D-269E974ED8B2.dita"><apiname>utimes()</apiname></xref>, <xref href="GUID-7F392C01-C20D-3625-A964-F41BB925A5CC.dita"><apiname>waccess()</apiname></xref>, <xref href="GUID-13413FF7-5CAB-38DB-97FC-A4E45E076696.dita"><apiname>wchdir()</apiname></xref>, <xref href="GUID-48438139-E717-3E86-ACD4-E81D6482B659.dita"><apiname>wcreat()</apiname></xref>, <xref href="GUID-F173F204-ECCE-3FC8-B3BF-4F58513A7D0C.dita"><apiname>wmkdir()</apiname></xref>, <xref href="GUID-16518B7B-C146-32E6-9360-A4EEF268CA98.dita"><apiname>wrmdir()</apiname></xref>, <xref href="GUID-F33C1971-5E72-331A-B699-CC32D36B7584.dita"><apiname>wunlink()</apiname></xref>, <xref href="GUID-5F612E71-362E-37D8-A457-8AF1AB545496.dita"><apiname>unlink()</apiname></xref>, <xref href="GUID-234DE8F8-1D41-3BE0-980B-37ACF281DDA6.dita"><apiname>utime()</apiname></xref>  </p> </entry>
+<entry><p> <codeph>None</codeph> if the path is not in the protected /sys/,
+/resource/ or /private/ directory. </p> <p> <codeph>TCB</codeph> if the path
+contains the protected /sys/ or /resource/ directory. P.I.P.S. libraries do
+not have the TCB capability, and so it is not possible to write to this directory. </p> <p> <codeph>AllFiles</codeph> if
+the path contains the protected /private/ directory using another program's
+Secure Identifier. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-8B08EBCD-937C-3704-8E6A-08A45881F70D.dita"><apiname>accept()</apiname></xref>, <xref href="GUID-DD961B2B-AAEE-3A83-81E2-0B9F7BE58BE6.dita"><apiname>bind()</apiname></xref>, <xref href="GUID-B1E46044-267D-3F35-9712-F1A0D7E8F03F.dita"><apiname>connect()</apiname></xref>, <xref href="GUID-F923CE02-3850-3494-95FE-094506318F10.dita"><apiname>ioctl()</apiname></xref>, <xref href="GUID-4BE12A23-0E4D-37CC-891C-6B9931CA2E7A.dita"><apiname>recv()</apiname></xref>, <xref href="GUID-45F73DAA-7E14-307A-BE55-FFCAEA898A86.dita"><apiname>recvfrom()</apiname></xref>, <xref href="GUID-0D328B4A-15D0-36EB-B92E-E285A11F1ABC.dita"><apiname>send()</apiname></xref>, <xref href="GUID-2E55A695-EE36-37F3-A088-2BA282B8EA9F.dita"><apiname>sendto()</apiname></xref>, <xref href="GUID-CCE203C4-7985-3FF7-829B-CF3873D62098.dita"><apiname>recvmsg()</apiname></xref>, <xref href="GUID-F580A280-7797-3D55-B1C3-1CACC0429830.dita"><apiname>sendmsg()</apiname></xref>  </p> </entry>
+<entry><p> <codeph>None</codeph> if the descriptor does not refer to a socket. </p> <p> <codeph>NetworkServices</codeph> if
+the descriptor is a socket. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<example><title>A P.I.P.S. platform security example</title> <p>The following
+code illustrates how P.I.P.S. conforms to Data Caging rules while creating
+a file with and without capabilities. </p> <codeblock id="GUID-680669E9-0261-5A1C-9A20-67A5148C440B" xml:space="preserve">#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+   FILE* file;
+   
+   //Create the file in another program's private directory
+   file = fopen("/private/10004902/out.file", "w");
+   if (file == NULL)
+   {
+      int I = errno;
+   
+      //Error occurred
+      printf("\nError creating file, error=%d", errno);    
+      return EXIT_FAILURE;
+   }
+   else
+   {
+      //File created
+      fprintf(file, "Sample File Output");
+      fclose(file);
+      
+      printf("\nFile created");    
+   }
+
+   return EXIT_SUCCESS;
+}</codeblock> <p>If no capabilities are provided, the code will print out
+an error message due to the attempted use of <xref href="GUID-64886CC6-072F-3542-855A-5D733FC761E8.dita"><apiname>fopen()</apiname></xref> on
+another program's <filepath>/private/</filepath> directory. The error code
+displayed will be <xref href="GUID-3148D2B9-FF17-35E1-A74B-50EBF1B79679.dita"><apiname>EACCESS</apiname></xref>, showing a security error. </p> <p>If,
+however, the <codeph>AllFiles</codeph> capability is listed in the program's
+MMP file, the file will be generated successfully. </p> <p> <b>Note:</b> Here, <codeph>AllFiles</codeph> represents
+a system capability and is not something your application should require or
+use, in most of the cases. </p> </example>
+</conbody></concept>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-78FB26E2-AA60-5531-B2FE-4FA6C88F2D47"><title>Selecting and Using a Font</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>To select a font you must create a specification that defines the characteristics of the font that you require. The fonts available are specific to the current graphics device (normally the screen device). The graphics device uses the Font and Bitmap server to access the Font Store. The Font Store finds the best match from the fonts installed. </p> <p>The current font is part of the current graphics context. Once the font system has selected a font to match your specification you must update the current context to use the new font. </p> <ol id="GUID-C4671145-FEDE-5A82-8085-7E5802545DE9"><li id="GUID-66508D29-FC01-5B64-A043-759503EC04FF"><p>Set up a font specification (<codeph>TFontSpec</codeph>). </p> </li> <li id="GUID-E6F70C38-003C-5AFF-B73D-67244058FFCF"><p>Create a <codeph>CFont</codeph> pointer. The font itself will be allocated by FBServ on the shared heap. This pointer will not be used to allocate or free any memory. </p> </li> <li id="GUID-93C743E0-2689-5AA3-8F24-937C38D7A7BB"><p>Use the font spec and the font pointer to obtain a font from the Font Store. This must be done through the screen device. </p> </li> <li id="GUID-9DB15BD2-8014-59AC-94CA-30161E3DB553"><p>Set the graphic context's current font to the <codeph>CFont</codeph> obtained from the Font Store. </p> </li> <li id="GUID-2F9586D4-5C1C-5ADC-A816-4AE7C29CA44A"><p>Use the font. </p> </li> <li id="GUID-DAB05CE0-1710-5B79-A921-41BFDEF8B1FD"><p>Tidy up by discarding the font from the graphics context and releasing it from the graphics device. </p> </li> </ol> <codeblock id="GUID-D37CB9EF-CED1-59EB-95AE-D50E020D2FF8" xml:space="preserve">// Create a font specification
+_LIT( KMyFontName,"Swiss") ;
+const TInt KMyFontHeightInTwips = 240 ; // 12 point
+TFontSpec myFontSpec( KMyFontName, KMyFontHeightInTwips ) ; 
+    
+// Create a font pointer (the font itself is on the FBServ shared heap)
+CFont* myFont ;
+    
+// Fonts are graphics device specific.  In this case the graphics device is the screen
+CGraphicsDevice* screenDevice = iCoeEnv-&gt;ScreenDevice() ;
+    
+// Get the font that most closely matches the font spec.
+screenDevice-&gt;GetNearestFontToMaxHeightInTwips( myFont , myFontSpec ) ;
+    
+// Pass the font to the current graphics context
+CWindowGc&amp; gc = SystemGc() ;
+gc.UseFont( myFont ) ;
+    
+// Use the gc to draw text.  Use the most appropriate CGraphicsContext::DrawText() function.
+TPoint textPos( 0, myFont-&gt;AscentInPixels() ) ; // left hand end of baseline.
+_LIT( KMyText, "Some text to write" ) ;
+    
+gc.DrawText( KMyText, textPos ) ; // Uses current pen etc.
+    
+// Tidy up.  Discard and release the font
+gc.DiscardFont() ;
+screenDevice-&gt;ReleaseFont( myFont ) ;</codeblock> <p>There are a number of <codeph>DrawText()</codeph> function in <xref href="GUID-DAD09DCF-3123-38B4-99E9-91FB24B92138.dita"><apiname>CGraphicsContext</apiname></xref> that you can use for positioning text at a specified position or within a rectangle. The pen and brush are those in the current context. </p> <p>You can query the metrics of the font using <xref href="GUID-2A12FE3B-47F2-3016-8161-A971CA506491.dita"><apiname>CFont</apiname></xref> to ensure that your text is correctly located. You can also establish the size of individual characters and text strings. </p> <p> <b>Note:</b>  <xref href="GUID-2A12FE3B-47F2-3016-8161-A971CA506491.dita"><apiname>CFont</apiname></xref> is an abstract base class. You can use it to query a font supplied by the font system but you cannot instantiate it. </p> <codeblock id="GUID-996A661A-581B-50A4-B844-91DE4514F1EA" xml:space="preserve">class CFont  // CFont is an abstract class.
+    {
+    
+public:
+    TUid TypeUid() const;
+    TInt HeightInPixels() const;
+    TInt AscentInPixels() const;
+    TInt DescentInPixels() const;
+    TInt CharWidthInPixels(TChar aChar) const;
+    TInt TextWidthInPixels(const TDesC&amp; aText) const;
+    TInt BaselineOffsetInPixels() const;
+    TInt TextCount(const TDesC&amp; aText,TInt aWidthInPixels) const;
+    TInt TextCount(const TDesC&amp; aText,TInt aWidthInPixels,
+                   TInt&amp; aExcessWidthInPixels) const;
+    
+    TInt MaxCharWidthInPixels() const;
+    TInt MaxNormalCharWidthInPixels() const;
+    TFontSpec FontSpecInTwips() const;
+    TCharacterDataAvailability GetCharacterData(TUint aCode, 
+                   TOpenFontCharMetrics&amp; aMetrics,
+                   const TUint8*&amp; aBitmap,
+                   TSize&amp; aBitmapSize) const;
+    
+    TBool GetCharacterPosition(TPositionParam&amp; aParam) const;
+    TInt WidthZeroInPixels() const;
+    TInt MeasureText(const TDesC&amp; aText, 
+                   const TMeasureTextInput* aInput = NULL, 
+                   TMeasureTextOutput* aOutput = NULL) const;
+    
+    static TBool CharactersJoin(TInt aLeftCharacter, TInt aRightCharacter);
+    TInt ExtendedFunction(TUid aFunctionId, TAny* aParam = NULL) const;
+    TBool GetCharacterPosition2(TPositionParam&amp; aParam, RShapeInfo&amp; aShapeInfo) const;
+    TInt TextWidthInPixels(const TDesC&amp; aText,const TMeasureTextInput* aParam) const;
+    ....</codeblock> </conbody><related-links><link href="GUID-C1B080D9-9C6C-520B-B73E-4EB344B1FC5E.dita"><linktext>GDI Collection Overview</linktext> </link> <link href="GUID-90644B52-69D7-595C-95E3-D6F7A30C060D.dita"><linktext> Font and Text Services Collection
+                Overview</linktext> </link> <link href="GUID-71DADA82-3ABC-52D2-8360-33FAEB2E5DE9.dita"><linktext> Font and Bitmap Server Component Overview
+                </linktext> </link> <link href="GUID-416A3756-B5D5-5BCD-830E-2371C5F6B502.dita"><linktext>Font Store Component Overview</linktext> </link> </related-links></concept>

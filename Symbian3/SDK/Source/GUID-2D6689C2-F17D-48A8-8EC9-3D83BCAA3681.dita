@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-2D6689C2-F17D-48A8-8EC9-3D83BCAA3681" xml:lang="en"><title>Activate
+a view</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>Activation is the process of switching or linking to a
+view. When the new view is activated, the old view is deactivated, and the
+new view is marked as the current view. Applications can have only a single
+view active at any given point of time. The current active view is the view
+that interacts with the user and receives events and menu choices.</p>   
+ <p>Activation of a view is done using any of the following methods: </p><ul>
+<li><p>View activation without custom message. </p><codeblock xml:space="preserve">CCoeAppUi::ActivateViewL( TVwsViewId&amp; aViewId )
+</codeblock></li>
+<li><p>View activation with custom message.</p><codeblock xml:space="preserve">CCoeAppUi::ActivateViewL( TVwsViewId&amp; aViewId TUid aCustomMessageId,
+                          TDesC8&amp; CustomMessage )</codeblock></li>
+</ul><note> Deactivation of view is necessary before exiting from the application,
+if the application UI has an active view. This can be done using the <codeph>CCoeAppUi::DeactivateActiveViewL(
+)</codeph> function.</note><p>The following code snippet shows activating
+a view:</p><codeblock xml:space="preserve">void CNewAppUi::ActivateViewL(const TVwsViewId&amp; aViewId,TUid aCustomMessageId,const TDesC16&amp; aCustomMessage)
+    {
+    HBufC8* narrowMessage = HBufC8::NewLC( aCustomMessage.Size() );
+    TPtr8 ptr=narrowMessage-&gt;Des();
+    ptr.Copy( ( TUint8* )aCustomMessage.Ptr(), aCustomMessage.Size() );
+    CCoeAppUi::ActivateViewL( aViewId,aCustomMessageId,narrowMessage-&gt;Des() );
+    iCCoeAppUi-&gt;NotifyNextActivation( *iViewActivationObserver_Notify );
+    CleanupStack::PopAndDestroy( narrowMessage );
+    }</codeblock></context>
+</taskbody></task>

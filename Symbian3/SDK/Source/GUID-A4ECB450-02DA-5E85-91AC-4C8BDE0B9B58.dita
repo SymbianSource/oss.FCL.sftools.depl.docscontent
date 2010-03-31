@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A4ECB450-02DA-5E85-91AC-4C8BDE0B9B58"><title>Writing, Reading and Seeking from a Shared Memory</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Use the <xref href="GUID-4BABB86A-966A-3535-BD35-568338359825.dita"><apiname>write()</apiname></xref> function to write to shared memory </p> <p>Use the <xref href="GUID-99F32AF6-7248-37B7-901A-76FA23DBCD8A.dita"><apiname>read()</apiname></xref> function to read data from shared memory. </p> <p>Use the <xref href="GUID-84F93A85-9DD3-3D5A-98A7-769E6EDA77D1.dita"><apiname>lseek()</apiname></xref> function to set the file offset associated with a shared memory file descriptor </p> <p>Example: </p> <codeblock id="GUID-60F8E5BB-57F5-5520-A061-43D71436543D" xml:space="preserve">#include &lt;stdio.h&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;errno.h&gt;
+int main(void)
+    {
+    int fd; //File descriptor
+    int ret = 0;
+    if((fd = shm_open("page", O_RDWR|O_CREAT, 0666)) &lt; 0)
+        {
+        printf("Shared memory creation failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Shared memory creation was successful\n");
+        }
+    if((ret = write(fd, "symbian", 7)) &lt; 0)
+        {
+        printf("Writing into shared memory failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Writing into shared memory was successful\n");
+        }
+    if((ret = lseek(fd, -6, SEEK_END)) &lt; 0)
+        {
+        printf("Seeking from end failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("lseek was successful\n");
+        }
+    char buf[7];
+    if((ret = read(fd, (void*)buf, 6)) &lt; 0)
+        {
+        printf("Reading from shared memory failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Reading from shared memory was successful\n");
+        printf("Buffer read = %s\n", buf);
+        }
+    close(fd);//closing the file descriptor
+    if((ret = shm_unlink("page")) &lt; 0) 
+        {
+        printf("Shared memory unlinking failed with errno %d\n", errno);
+        }
+    else
+        {
+        printf("Shared memory unlinking was successful\n");
+        }
+    return ret;
+    }</codeblock> </conbody><related-links><link href="GUID-9AC6774A-41E9-5298-8696-0A317A09E1E9.dita"><linktext>Librt Overview</linktext> </link> <link href="GUID-BE70DCBF-366A-5054-B0F1-7FCEF45FC735.dita"><linktext>Creating and Unlinking a File
+                Descriptor from a Shared Memory</linktext> </link> <link href="GUID-8F6D6934-8FF0-5045-8AB1-74384BE792EA.dita"><linktext>Retrieving Information about a
+                Shared Memory Object</linktext> </link> <link href="GUID-66402932-5C44-556B-A7AC-1C2D245C8B05.dita"><linktext>Clocks and Timers Tutorial</linktext> </link> </related-links></concept>

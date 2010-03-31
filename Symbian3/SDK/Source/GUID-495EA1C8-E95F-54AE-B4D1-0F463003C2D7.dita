@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7" xml:lang="en"><title>External
+Surfaces Overview</title><shortdesc>This topic provides an introduction to displaying an external surface
+on a window. The surface is then known as a background surface. This feature
+is available in ScreenPlay only. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target
+audience</b>: Device creators. </p>
+<p>There are two main use cases for using external surfaces in this way. One
+is to display a video, in which case DevVideo renders the content. The other
+main use case is an OpenGL ES background surface, in which case the client
+issues OpenGL ES rendering commands. This topic covers how to get the surface
+onto the screen and not rendering the content to the surface. </p>
+<section><title> Key concepts</title> <p>The following diagram illustrates
+some of the key concepts that are used in the documentation of surfaces. </p> <fig id="GUID-F134C262-EC19-5925-A188-2C7C2CD5EEEA">
+<title>Composition of the UI surface and an external surface, showing the
+             viewport and extent</title>
+<image href="GUID-2468821F-6C66-5761-AE56-CEC942A2EE95_d0e199962_href.png" placement="inline"/>
+</fig> <dl>
+<dlentry>
+<dt>Graphics surface</dt>
+<dd><p>A graphics surface (usually simply called a <i>surface</i>) is a hardware-independent
+memory buffer for holding an image or part of a scene. A surface has a set
+of attributes, the most important of which is its ID (which is a <xref href="GUID-11F60AEB-003B-3E8D-BDB9-D97F698627DF.dita"><apiname>TSurfaceId</apiname></xref>). </p> </dd>
+</dlentry>
+<dlentry>
+<dt>UI surface</dt>
+<dd><p>The UI surface is a special surface onto which the Window Server renders
+all of the UI content. It is created automatically during system start up
+and corresponds to the frame buffer in the non-ScreenPlay variant. The UI
+surface is semi-transparent and is always the topmost layer.</p> </dd>
+</dlentry>
+<dlentry>
+<dt>External surface</dt>
+<dd><p>An external surface is any surface other than the UI surface—for example,
+a surface that holds a video or to which OpenGL ES content is rendered. External
+surfaces are always opaque. When an external surface is attached to a window,
+the Window Server creates a transparent hole in the UI surface to reveal the
+external surface. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Viewport</dt>
+<dd><p>The viewport is a rectangular area of an external surface all or part
+of which is to be displayed. You can think of the viewport as the source. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Extent</dt>
+<dd><p>The extent is a rectangular area in the composition scene in which
+all or part of the viewport is placed. The content of the viewport can be
+scaled and rotated within the extent relative to its normal size and orientation.
+The extent is normally a window to which the external surface is attached. </p> </dd>
+</dlentry>
+</dl> <p>The following diagram provides a cross-section view through the surfaces
+shown in the previous figure. Notice that the UI surface is the topmost layer
+and that it contains a hole through which the external surface
+can be seen.</p> <fig id="GUID-4DB99814-988F-5D51-A1A7-E864B6DA6DFB">
+<title>              A cross section through the surfaces, showing the display
+output            </title>
+<image href="GUID-78B63C44-7765-5408-A611-DFE8709196F8_d0e200040_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-F9D7659B-1325-5DC2-9D7A-9B6C0DFB8A62"><title>Supported Uses</title> <p>You
+can: </p> <ul>
+<li id="GUID-97CAD13E-1C70-59FF-B271-F3E77198086A"><p>Display an external
+surface (for example, video content or a viewfinder image) within a window. </p> </li>
+<li id="GUID-BD8FFB28-D56C-581B-9E1C-B2BD97FDAFBC"><p>Dynamically set or remove
+a background surface across multiple windows on the same screen without having
+to register and unregister the surface. This reduces resource churn and content
+transfer. </p> </li>
+<li id="GUID-0A3FD92E-7E99-5961-BC5A-3FBB970A7889"><p>Reconfigure the attributes
+of the surface such as its extent, viewport and orientation, after it is set
+as a background. </p> </li>
+<li id="GUID-6E962607-1E7D-516E-B855-15A1A67923B6"><p>Reposition the displayed
+surface on the window. </p> </li>
+<li id="GUID-26E561E7-92BB-5EBA-A3B9-F660507A258D"><p>Zoom in and out of the
+contents of the surface. </p> </li>
+<li id="GUID-287D3286-209B-5E01-B1C6-2373A2B07172"><p>Place the surface content
+in a specified window area rather than filling the entire window. </p> </li>
+<li id="GUID-6F2DCF0C-32D7-53CD-A2DD-4DBE662015B5"><p>Crop the surface content
+rather than using the entire surface. </p> </li>
+<li id="GUID-8E49A7FB-0709-5127-8C94-104C512EA6AC"><p>Rotate the contents
+of the background surface by quadrant angles. </p> </li>
+<li id="GUID-5631047A-A8AD-59DF-82FF-021964BA571D"><p>Flip the background
+surface from top to bottom and rotate it by 180° to achieve a mirroring effect. </p> </li>
+</ul> <p>The following diagrams shows some surface configuration use cases. </p> <fig id="GUID-FF25ED24-7A3D-5C4B-A711-D6AEA53E972F">
+<title>              Surface configuration use cases            </title>
+<image href="GUID-D04DD8E6-804F-539E-8BD1-146210F4A51C_d0e200107_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-7EAB8F5D-6290-5B63-B396-8A1FAE7D91A5"><title> Configuration</title> <p>There
+are a number of ways in which dynamically updated content can be configured
+to appear on a window. </p> <p><b>A single content surface filling the window </b> </p> <p>External
+content can be fitted onto a Window Server window. Each axis of the surface
+can be stretched independently of the other axis. The window must be a visible
+client window: <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> or <xref href="GUID-A5DFCFA7-7B2D-3872-B6D0-4526DF743630.dita"><apiname>RBlankWindow</apiname></xref>. </p> <p><b>Placement
+of a single surface on a selected area of the window </b> </p> <p>The position
+and display size for the external content can be specified as an area within
+the Window Server window, rather than filling the window. The window must
+be a visible client (<xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> or <xref href="GUID-A5DFCFA7-7B2D-3872-B6D0-4526DF743630.dita"><apiname>RBlankWindow</apiname></xref>)
+as before. You specify the area by using <xref href="GUID-59A10068-E37A-37CF-85C9-36D8DA6619FA.dita#GUID-59A10068-E37A-37CF-85C9-36D8DA6619FA/GUID-8984E1F8-2807-301D-B82B-A52CC4254B04"><apiname>TSurfaceConfiguration::SetExtent(const
+TRect&amp;           aExtent)</apiname></xref>. </p> <p>After the extent is specified,
+its size does not change if the window size changes but its position moves
+to maintain its relative position on the window. </p> <p><b>Clipping of a
+surface </b> </p> <p>Video sometimes needs to appear cropped, so that a sub-area
+of the video is displayed instead of the full image. The crop viewport is
+specified in surface co-ordinates. The cropped viewport fills the output extent
+(or the window when the extent is not specified). The content appears scaled
+if the size of the viewport does not match the size of the extent (or the
+window). </p> <p><b>Scaling </b> </p> <p>It is possible to arbitrarily scale
+a surface to user specifications using the extent and viewport features. Each
+axis is scaled independently. When the extent and viewport are coincident,
+no scaling occurs. Filtering can be applied by the implementation of stretching
+and shrinking. </p> <p><b>Rotation </b> </p> <p>The viewport can be displayed
+rotated relative to its normal orientation. For example, if there is a fixed
+camera on the front of a device and the device is rotated by 90°, the image
+captured by the camera needs to be rotated by 90° in the other direction to
+get the expected result. The orientation is always relative to the current
+device orientation. </p> <p><b>Flipping </b> </p> <p>An external surface can
+be flipped from top to bottom around the x axis. </p> <p><b>Atomic combination
+of these operations </b> </p> <p>All the above mentioned configurations can
+be specified and combined unambiguously for a particular content on a particular
+window. You can specify parameters for a combination of these configurations
+in a single operation. </p> <p><b>Changing surfaces </b> </p> <p>The surface
+assigned to a window can be changed. </p> <p><b>Reconfiguring </b> </p> <p>It
+is possible to change the configuration options applied to a surface without
+re-assigning the surface. </p> <p><b>Sharing surfaces </b> </p> <p>Content
+surfaces are transferable and sharable between windows. </p> <p>The initial
+registration step ensures that any resources allocated to the content surface
+are held while the surface is removed from one window and added to another.
+This reduces the likelihood of failure between operations. </p> </section>
+<section><title>API Summary</title> <p>This section provides a summary of
+the classes and functions that you use to manage surfaces: </p> <ul>
+<li id="GUID-D7C9343C-BFAB-5153-B3E6-E5EBA5859570"><p><xref href="GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7.dita#GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7/GUID-3E1EF2ED-7E9C-541F-A439-F2CBA5B6F211">RWindowBase</xref>  </p> </li>
+<li id="GUID-5AD3B9D5-60E8-5A2A-9C6B-4C914540FE9E"><p><xref href="GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7.dita#GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7/GUID-1DC9E4DF-248F-59A6-92A9-F756F73414B3">TSurfaceConfiguration</xref>  </p> </li>
+<li id="GUID-2627F547-B979-5682-A69A-97D89969F9B3"><p><xref href="GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7.dita#GUID-495EA1C8-E95F-54AE-B4D1-0F463003C2D7/GUID-E2A62988-58F8-5021-BA44-25AE3C3D95B5">RWsSession</xref>  </p> </li>
+</ul> </section>
+<section id="GUID-3E1EF2ED-7E9C-541F-A439-F2CBA5B6F211"><title>RWindowBase </title> <ul>
+<li id="GUID-7A5D0A6F-C0B6-5D87-B0F4-99C92FA8227B"><p> <codeph>SetBackgroundSurface(const
+TSurfaceConfiguration                 &amp;,TBool)</codeph> sets the background
+of the window to be a given surface. The <xref href="GUID-59A10068-E37A-37CF-85C9-36D8DA6619FA.dita"><apiname>TSurfaceConfiguration</apiname></xref> argument
+contains the surface ID and the configuration attributes. Another form of
+the function simply takes a surface ID as an argument, which provides less
+control and auto-stretches the surface to fill the window. </p> </li>
+<li id="GUID-C86F37F7-5017-56F3-9B14-E3B8E0EC0E8A"><p> <codeph>RemoveBackgroundSurface()</codeph> removes
+any background surface that has been set to the window. </p> </li>
+<li id="GUID-11ABFBDE-556F-5096-810E-6BBA2C81C4B1"><p> <codeph>GetBackgroundSurface()</codeph> retrieves
+a copy of the current configuration for the background surface attached to
+the window. </p> </li>
+</ul> <p>See <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita"><apiname>RWindowBase</apiname></xref>. </p> </section>
+<section id="GUID-1DC9E4DF-248F-59A6-92A9-F756F73414B3"><title> TSurfaceConfiguration</title> <p>This
+class encapsulates the surface configuration attributes that can be specified
+while setting the background surface of a window. If the values for the attributes
+are not set, the default values for the corresponding attribute are used. </p> <p>Symbian
+recommends that the client validates the surface configuration data before
+passing it on to the server. Invalid data that inadvertently slips through
+the client-side validation mechanism, or maliciously bypasses it, causes a
+panic. </p> <p>See <xref href="GUID-59A10068-E37A-37CF-85C9-36D8DA6619FA.dita"><apiname>TSurfaceConfiguration</apiname></xref>. </p> </section>
+<section id="GUID-E2A62988-58F8-5021-BA44-25AE3C3D95B5"><title> RWsSession</title> <ul>
+<li id="GUID-B1A1CE19-6E12-5BA7-B79A-A6D7C44F5920"><p> <codeph>RegisterSurface()</codeph> registers
+a surface for use in composition on the screen associated with this device
+within this session. </p> </li>
+<li id="GUID-6678C53D-F0B5-5ADD-BCC7-43FC31E81FEE"><p> <codeph>UnregisterSurface()</codeph> removes
+the surface from the session’s register of surfaces that are used in composition
+on the screen associated with this device. </p> </li>
+<li id="GUID-9F5FF304-794C-5BC3-B16E-F036C859F1E2"><p> <codeph>PreferredSurfaceConfigurationSize()</codeph> returns
+the window server’s preferred size for the <codeph>TSurfaceConfiguration</codeph> object,
+used for <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-AC4FBD36-8CC7-3191-B266-1805DEDE6D50"><apiname>RWindow::SetBackgroundSurface()</apiname></xref>. </p> </li>
+</ul> <p>See <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RWsSession</apiname></xref>. </p> </section>
+<section><title>Example</title> <p>This code snippet is provided for illustrative
+purposes only. A Window Server client application wants to run a 3D game full-screen
+at the native physical resolution of the display (either current or selected
+using a display controlling system application). This example assumes that
+the <xref href="GUID-BA6FEFAE-8891-3286-A38F-2EA522D7A27E.dita"><apiname>MDisplayMapping</apiname></xref> interface has already been obtained,
+as shown in <xref href="GUID-B1CB6374-2C2B-5D6C-9A7C-6E49D8F235B8.dita">Display
+Control and Mapping in the Window Server Client</xref>. </p> <codeblock id="GUID-DE5C6DB0-1096-5BA3-8BB7-78AE3B6619B1" xml:space="preserve">// Establish connection and get display mapping interface.
+RWindowGroup group = RWindowGroup(iSession);
+RWindow window(iSession);
+    
+group.Construct(1, iScreenDevice);
+window.Construct(group, 2);
+    
+TRect winExtent;
+iDisplayMapping.GetMaximumWindowExtent(winExtent);
+window.SetExtent(winExtent);
+    
+// Map window size to composition coordinates
+TRect surfaceExtent;
+iDisplayMapping.MapCoordinates(EApplicationSpace, winExtent,
+    ECompositionSpace, surfaceExtent);
+    
+RSurfaceManager::TSurfaceCreationAttributes attribs;
+attribs.iSize = surfaceExtent.Size();
+    
+// Set up other attributes and create surface
+    
+window.SetBackgroundSurface(surface);
+    
+window.Activate();
+</codeblock> <p>A similar approach can be used by other surface content providers,
+such as video. </p> </section>
+</conbody><related-links>
+<link href="GUID-859CAA08-59C9-5FD3-98DE-6BDD0D6ED50B.dita"><linktext>Graphics
+Composition</linktext></link>
+
+<link href="GUID-1F9A47CE-7F4C-52BD-8823-25D5D1BEF42F.dita"><linktext>Window Server
+Client-Side Library Concepts</linktext></link>
+<link href="GUID-0EBE5733-A267-5F4A-85AD-87C3ECF80731.dita"><linktext>Dynamic Resolution
+Switching</linktext></link>
+<link href="GUID-652DA0DD-AB1D-58A4-A6D2-27B5BAA506FF.dita"><linktext>Flipping
+and Rotating an External  Surface</linktext></link>
+</related-links></concept>

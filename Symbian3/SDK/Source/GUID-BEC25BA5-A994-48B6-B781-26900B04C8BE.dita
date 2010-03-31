@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BEC25BA5-A994-48B6-B781-26900B04C8BE" xml:lang="en"><title>Introduction
+to GLib Low Memory Handler</title><shortdesc>The default behavior of GLib in Linux is such that in case of a
+memory allocation failure, the GLib memory allocation API will call abort
+and hence terminate the application.  </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Memory allocation failures are more likely on a mobile device and aborting
+the application in such cases is undesirable. Therefore, the implementation
+of GLib for Symbian platform has been modified so that the GLib memory allocation
+APIs return NULL and do not call <codeph>abort()</codeph>. This requires the
+application written using GLib to start handling memory allocation failures
+which they are currently not doing.</p>
+<p>If the user, for example, wants to change the first character of a string
+with z and return the string to the caller a GLib code for this can be written
+as follows:  </p>
+<codeblock xml:space="preserve">gchar * f1(gchar * x) 
+{ 
+ 	  gchar *temp; 
+    temp = g_strdup(x); 
+    temp[0] = ‘z’; 
+    return temp; 
+}</codeblock>
+<p>If there is a memory allocation failure in Linux, the call to <codeph>g_strdup</codeph> which
+internally uses <codeph>g_malloc</codeph> will cause the application to abort.
+However, in Symbian platform the <codeph>g_malloc()</codeph> function will
+return NULL, but the implementation of <codeph>g_strdup()</codeph> is such
+that the return value of <codeph>g_malloc()</codeph> is not checked for NULL.
+This causes the<codeph> g_strdup()</codeph> API to panic or crash the application.
+Thus, a mechanism to deal with the failures, panics or crash resulting from
+low memory situations within Symbian platform is needed.</p>
+<section id="GUID-003701F2-1AFE-4780-995F-A17FBA777A52">       <title>Illustration
+of the mechanism to handle a memory allocation failure scenario</title>  
+    <p>The user needs to initialize the framework which handles the low memory
+scenarios using the below-mentioned macros:</p><ol>
+<li id="GUID-5093158D-046C-4964-B220-E03B8D8DCF9B"><p><b><codeph>SET_LOW_MEMORY_TRAP(failure_value)</codeph>:</b> This
+macro will set a trap handler for low memory cases. In case there is an allocation
+failure, the failure value will be returned from the function where the trap
+handler is set.</p></li>
+<li id="GUID-E7809DD2-865E-48FE-99DE-863B7BF8C776"><p><b><codeph>SET_LOW_MEMORY_TRAP_VOID()</codeph>:</b> This
+will do the same as the above except that the function where this is set will
+just return. This will typically be used by functions which return void. In
+this case, however, the caller must check the <codeph>errno</codeph> value.
+If it is <codeph>ENOMEM</codeph>, then the user must handle things appropriately.</p></li>
+<li id="GUID-46A09236-E182-4780-B7C4-4FF31823CC37"><p><b><codeph>REMOVE_LOW_MEMORY_TRAP()</codeph>:</b> This
+will remove the trap handler which was set. </p></li>
+</ol><p>The function <codeph>f1()</codeph> will now be rewritten as:</p><codeblock xml:space="preserve">#include &lt;glowmem&gt;
+gchar * f1(gchar * x) 
+{ 
+	gchar *temp; 
+  SET_LOW_MEMORY_TRAP(NULL); 
+  temp = g_strdup(x); 
+	temp[0] = ‘z’; 
+	REMOVE_LOW_MEMORY_TRAP(): 
+	return temp; 
+} </codeblock><p>If there is a memory allocation failure when the above function <codeph>f1()</codeph> is
+called, then <codeph>f1()</codeph> will return NULL to its caller. The caller
+of <codeph>f1()</codeph> is expected to check the failure value of <codeph>f1()</codeph> instead
+of ignoring the same. </p><p><b>Some words of caution</b>: The
+macro <codeph>SET_LOW_MEMORY_TRAP()</codeph> defines a variable so it is necessary
+to make the call after all the local variables declarations in C. <codeph>REMOVE_LOW_MEMORY_TRAP()</codeph> must
+be called just before the return from the function, which means that if there
+are four return statements in the function then all of them must be preceded
+with a call to <codeph>REMOVE_LOW_MEMORY_TRAP()</codeph>.</p></section>
+</conbody></concept>

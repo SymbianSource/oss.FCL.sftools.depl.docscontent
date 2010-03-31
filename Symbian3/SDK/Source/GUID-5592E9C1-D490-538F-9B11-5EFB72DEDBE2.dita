@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5592E9C1-D490-538F-9B11-5EFB72DEDBE2" xml:lang="en"><title>File
+Based Dictionary Store</title><shortdesc><codeph>CDictionaryFileStore</codeph> is a concrete implementation
+of a dictionary store and uses a file store in its implementation.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Although the need for a file based dictionary store is driven by the application
+architecture, the following code fragments illustrate the way this store can
+be used.</p>
+<p>The code fragments shown here create and read a file based dictionary store.
+This dictionary store is differentiated from other dictionary stores by the
+UID whose value is <codeph>0x0001</codeph>.</p>
+<p>It should be noted that the values assigned to the UIDs are purely <i>arbitrary</i> and
+are used for <i>illustrative purposes only</i>.</p>
+<section id="GUID-819A7F9D-92C0-49AC-BD0B-ED4C66B59C15"><title>Creating the
+dictionary store</title> <p>This code fragment constructs an object of type <codeph>TClass</codeph> and
+stores it in the dictionary store, associating the stream with the UID whose
+value is 0x0002.</p> <p>Note that a dictionary write stream is needed to write
+streams to a dictionary store.</p> <codeblock id="GUID-AF74B440-E5A9-5A47-84E1-09E2243BB911" xml:space="preserve">_LIT(KFileName,"C:\\data\\stdict.dat");
+_LIT(KTxtData,"Text type data"):
+TParse dictionaryname;
+...
+fsSession.Parse(KFileName,dictionaryname);
+... 
+           // Open the dictionary store (create if it doesn't exist)
+CDictionaryStore* dictstore = CDictionaryFileStore::OpenLC (fsSession, dictionaryname.FullName(),TUid::Uid(0x0001) );
+
+           // Construct a TClass and put some data into it
+TClass thedata;
+thedata.iFixBuf    = KTxtData;
+thedata.iUintValue = 1;
+thedata.iIntValue  = -2; 
+thedata.iRealValue = 3.4;
+
+           // construct the dictionary write stream and
+           // associate the stream with the UID
+           // whose value is 0x0002
+RDictionaryWriteStream out;
+out.AssignLC(*dictstore,TUid::Uid(0x0002));
+
+           // write the TClass data to the stream
+out &lt;&lt; thedata;
+ 
+           // Commit changes to the stream
+out.CommitL(); 
+
+           // Cleanup the dictionary stream object
+CleanupStack::PopAndDestroy();
+
+           // Now commit all changes to the store
+dictstore-&gt;CommitL();
+
+           // Close the dictionary store (closes the
+           // associated file and destroys the 
+           // dictionary store object)
+CleanupStack::PopAndDestroy(); </codeblock> </section>
+<section id="GUID-549EA1EF-A892-41FF-B5CE-F83AECA266B4"><title>Reopening the
+dictionary store</title><p>This code fragment re-opens the dictionary store
+and restores the &lt;code&gt;TClass&lt;/code&gt; object from the stream associated
+with the UID whose value  is &lt;code&gt;0x0002&lt;/code&gt; </p><codeph>0x0002</codeph><codeblock xml:space="preserve">_LIT(KFileName,"C:\\data\\stdict.dat");
+TParse dictionaryname;
+...
+fsSession.Parse(KFileName,dictionaryname);
+...
+           // Open the dictionary store 
+CDictionaryStore* dictstore=CDictionaryFileStore::OpenLC(fsSession, dictionaryname.FullName(), TUid::Uid(0x0001) );
+
+           // construct the dictionary read stream.
+           // Prepare to read the stream associated with
+           // the unique identifier whose value is 0x0002
+RDictionaryReadStream in;
+in.OpenLC(*dictstore,TUid::Uid(0x0002));
+
+            // Construct a TClass object ...
+TClass thedata;
+
+            // ... and read data from the stream
+in &gt;&gt; thedata;
+
+            // Cleanup the dictionary stream object
+            // and ...
+            // Close the dictionary store
+            // (closes the associated file and destroys the
+            // dictionary store object)
+CleanupStack::PopAndDestroy(2);
+</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-79F39C97-75E8-5DB1-B976-8FE76E6E60C9.dita"><linktext>Dictionary
+stores</linktext></link>
+</related-links></concept>

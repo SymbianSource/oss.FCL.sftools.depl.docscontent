@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6CEAFE12-EB30-5231-94F4-2D097E79BFE0-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1" xml:lang="en"><title>Implementing
+the FEP API</title><shortdesc>This topic describes various implementations of FEP.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D0CB0202-D4B6-422B-84AA-F70974DDF7F3-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-1"><title>Post-platform
+security – the ECom plugin interface</title><p>In the secure platform, FEPs
+must be implemented as ECom plug-ins. ECom provides a secure environment for
+loading FEPs that cannot be achieved using standard, non-ECom polymorphic
+DLLs. The main tasks that are specific to implementing a FEP as an ECom plug-in
+are described in this section. Note that the differences between pre- and
+post-platform security FEPs are imposed by the change from old-style, standard
+polymorphic DLLs to ECom plugins. The C++ APIs involved in FEP creation, which
+are defined in <filepath>fepbase.h</filepath>, are unchanged. </p> </section>
+<section id="GUID-97C929BB-0523-45F4-8100-D8065B9A53D5-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-2"><title>Define a class
+that implements the CCoeFepPlugIn interface</title><p>This class must implement
+the <codeph>NewFepL()</codeph> and <codeph>SynchronouslyExecuteSettingsDialogL()</codeph> functions
+that were, pre-platform security, the first and second exports from the DLL.
+Note that these functions have been redefined and no longer take the const <codeph>TDesC&amp;
+aFullFileNameOfDll </codeph> argument: the ECom plugin implementation is identified
+by a UID rather than a filename. This means that the implementation of <codeph>SynchronouslyExecuteSettingsDialogL()</codeph> is
+now responsible for locating the resource file needed to execute the settings
+dialog itself. </p> <codeblock id="GUID-310F5ADC-B9CB-5A3B-878F-AF13C4C4C08B-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-2-3" xml:space="preserve">class CCoeFepPlugIn : public CBase
+    {
+public:
+    inline static CCoeFepPlugIn* NewL(TUid aFepUid);
+    virtual ~CCoeFepPlugIn();
+public:
+    virtual CCoeFep* NewFepL(CCoeEnv&amp; aConeEnvironment, const CCoeFepParameters&amp; aFepParameters) = 0;
+    virtual void SynchronouslyExecuteSettingsDialogL(CCoeEnv&amp; aConeEnvironment) = 0;
+    };
+</codeblock> </section>
+<section id="GUID-939614DA-C3EF-43FD-924A-805596AEC2FD-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-3"><title>Provide the
+factory code required to instantiate the derived class </title> <p>FEPs must
+provide the standard factory code required by every ECom plugin. For more
+information, see “Using ECom” in the Symbian Developer Library. For example,
+(the following code is taken from <filepath>TFEP1PlugIn.cpp</filepath>): </p> <codeblock id="GUID-88F37824-8CAA-53B8-BD69-AB5B17B9BBB5-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-3-3" xml:space="preserve">const TInt KTstFepPlugInImplementationValue = 0x102024D0;
+const TImplementationProxy ImplementationTable[] = 
+    {
+    IMPLEMENTATION_PROXY_ENTRY(KTstFepPlugInImplementationValue, CTstFepPlugIn::NewL )
+    };
+EXPORT_C const TImplementationProxy* ImplementationGroupProxy(TInt&amp; aTableCount)
+    {
+    aTableCount = sizeof(ImplementationTable) / sizeof(TImplementationProxy);
+    return ImplementationTable;
+    }
+CTstFepPlugIn* CTstFepPlugIn::NewL()
+    { // static
+    return new(ELeave) CTstFepPlugIn;
+    }
+</codeblock></section>
+<section id="GUID-FC0B99AB-B579-42A2-8A0C-3A36BE648616-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-4"><title>Create an ECom
+resource file</title> <p>Each FEP must have an ECom resource file. Its interface
+UID must be 0x1020233f, or CONE will not be able to find the FEP. For example, </p> <codeblock id="GUID-5CBDB731-EBAD-5326-909C-4DF78E7AC360-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-4-3" xml:space="preserve">#include &lt;RegistryInfo.rh&gt;
+
+RESOURCE REGISTRY_INFO theInfo
+    {
+    dll_uid = 0x102024D0; // UID3 of the DLL
+    interfaces = 
+        {
+        INTERFACE_INFO
+            {
+            interface_uid = 0x1020233F; // Same for every FEP
+            implementations = 
+                {
+                IMPLEMENTATION_INFO
+                    {
+                    implementation_uid = 0x102024D0;
+                    version_no = 1;
+                    display_name = "FEPNAME";
+                    default_data = "";
+                    opaque_data = "";
+                    }
+                };
+            }
+        };
+    }</codeblock></section>
+<section id="GUID-BEDE8AA4-843E-405E-A8F9-EC80893D7D59-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-5"><title>The CCoeFep
+class</title> <p>The parts of <xref href="GUID-ADAA039A-7BF3-3B06-8486-2E3604C2633D.dita"><apiname>CCoeFep</apiname></xref> relevant to classes
+deriving from it are shown below: </p> <codeblock id="GUID-14B6DFB4-02DE-5D12-BBFB-0665F6B089E0-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-5-3" xml:space="preserve">class CCoeFep : public CBase, protected MFepAttributeStorer, public MCoeForegroundObserver, public MCoeFocusObserver
+{
+public:
+    enum TEventResponse
+        {
+        EEventWasNotConsumed,
+        EEventWasConsumed
+        };
+    class MDeferredFunctionCall
+        {
+    public:
+        virtual void ExecuteFunctionL()=0;
+        };
+    class MModifiedCharacter
+        {
+    public:
+        virtual TUint CharacterCode() const=0;
+        virtual TUint ModifierMask() const=0;
+        virtual TUint ModifierValues() const=0;
+        };
+public:
+    IMPORT_C virtual ~CCoeFep();
+    virtual void CancelTransaction()=0;
+protected:
+    IMPORT_C CCoeFep(CCoeEnv&amp; aConeEnvironment);
+    IMPORT_C void BaseConstructL(const CCoeFepParameters&amp; aFepParameters);
+    IMPORT_C void ReadAllAttributesL();
+    IMPORT_C void MakeDeferredFunctionCall(MDeferredFunctionCall&amp; aDeferredFunctionCall);
+    IMPORT_C void SimulateKeyEventsL(const TArray&lt;TUint&gt;&amp; aArrayOfCharacters);
+    IMPORT_C void SimulateKeyEventsL(const TArray&lt;MModifiedCharacter&gt;&amp; aArrayOfModifiedCharacters);
+    IMPORT_C void WriteAttributeDataAndBroadcastL(TUid aAttributeUid);
+    IMPORT_C void WriteAttributeDataAndBroadcastL(const TArray&lt;TUid&gt;&amp; aAttributeUids);
+    IMPORT_C TBool IsOn() const;
+private:
+    virtual void IsOnHasChangedState()=0;
+    virtual void OfferKeyEventL(TEventResponse&amp; aEventResponse, const TKeyEvent&amp; aKeyEvent, TEventCode aEventCode)=0;
+    virtual void OfferPointerEventL(TEventResponse&amp; aEventResponse, const TPointerEvent&amp; aPointerEvent, const CCoeControl* aWindowOwningControl)=0;
+    virtual void OfferPointerBufferReadyEventL(TEventResponse&amp; aEventResponse, const CCoeControl* aWindowOwningControl)=0;
+    };
+</codeblock> <p>Note that <xref href="GUID-ADAA039A-7BF3-3B06-8486-2E3604C2633D.dita"><apiname>CCoeFep</apiname></xref> inherits, but does not
+override, some pure virtual functions from its base classes <xref href="GUID-270424BB-124B-39FF-9CDA-5CAFB5407FAE.dita"><apiname>MFepAttributeStorer</apiname></xref>, <xref href="GUID-2CAC79B0-8BD3-3961-A162-75B004AEE5FC.dita"><apiname>MCoeForegroundObserver</apiname></xref> and <xref href="GUID-E591B7D7-ED56-3CEF-883F-7091D5833731.dita"><apiname>MCoeFocusObserver</apiname></xref>. These therefore need to be overridden in addition
+to <xref href="GUID-ADAA039A-7BF3-3B06-8486-2E3604C2633D.dita"><apiname>CCoeFep</apiname></xref> ’s own pure virtual member functions. The details
+of the member functions of <xref href="GUID-ADAA039A-7BF3-3B06-8486-2E3604C2633D.dita"><apiname>CCoeFep</apiname></xref> and its base classes
+are explained in various sections of this document. </p></section>
+<section id="GUID-ECA1F4AE-1B25-4079-B249-AC8ECF3D3F90-GENID-1-8-1-6-1-1-4-1-8-1-4-1-4-1-3-6"><title>The CCoeControl
+class</title><p>The <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita"><apiname>CCoeControl</apiname></xref> class (defined in <filepath>epoc32\include\COECNTRL.H</filepath>)
+provides many useful features for implementing a FEP, such as functions for
+handling window server events. In fact, for FEPs wishing to intercept key
+events, writing a class that derives from <codeph>CCoeControl</codeph> is
+a necessity because of the need to use the control stack (see <xref href="GUID-CFC70204-1AD4-5DF0-ADDC-CDE4B39CFF96-GENID-1-8-1-3-1-1-9-1-4-1-6-1.dita#GUID-CFC70204-1AD4-5DF0-ADDC-CDE4B39CFF96-GENID-1-8-1-3-1-1-9-1-4-1-6-1/GUID-1B15C661-851B-5922-B8BC-7A772232DBD2-GENID-1-8-1-3-1-1-9-1-4-1-6-1-2-2">Intercepting key events</xref>, below). Thus although deriving from <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita"><apiname>CCoeControl</apiname></xref> is
+not explicitly demanded by the FEP architecture, it is assumed throughout
+this document that the object of the <xref href="GUID-ADAA039A-7BF3-3B06-8486-2E3604C2633D.dita"><apiname>CCoeFep</apiname></xref> derived
+class owns an object of a <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita"><apiname>CCoeControl</apiname></xref> derived class. </p></section>
+</conbody></concept>

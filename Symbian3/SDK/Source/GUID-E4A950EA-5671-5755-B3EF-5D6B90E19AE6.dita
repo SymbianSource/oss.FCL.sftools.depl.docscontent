@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E4A950EA-5671-5755-B3EF-5D6B90E19AE6" xml:lang="en"><title>Maintaining
+Log Events </title><shortdesc>This tutorial describes how to maintain events using Log Engine. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-9230A593-9E3C-52B2-81F3-6C54F7E6015E"><p>You maintain a
+log by adding, changing and deleting events with the appropriate calls to
+the <xref href="GUID-51C67545-12BA-326D-BD8F-662B24C68ED2.dita"><apiname>CLogClient</apiname></xref> member of your application. When you are
+adding or changing events, the arguments are a <xref href="GUID-CDFB61A7-1C74-3F63-9FDF-5A3B8603A010.dita"><apiname>CLogEvent</apiname></xref> and
+a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object to hold the return value. When
+you are deleting, they are a <xref href="GUID-CDFB61A7-1C74-3F63-9FDF-5A3B8603A010.dita"><apiname>CLogEvent</apiname></xref> and a <xref href="GUID-271367A8-DD4F-3A82-AD88-F3E94F2AA980.dita"><apiname>TLogId</apiname></xref>. </p> <p>It
+is sometimes necessary to create a custom event type. If you want to log events
+of a custom created event type, you need to initialize a <xref href="GUID-E7CCB043-770E-3722-B735-92B65CC7A0D8.dita"><apiname>CLogEventType</apiname></xref> object
+and add it to the log. You add the event type when you install your application,
+and delete it if you uninstall the application. You add, change and delete
+custom event types by calling the appropriate functions of a <xref href="GUID-51C67545-12BA-326D-BD8F-662B24C68ED2.dita"><apiname>CLogClient</apiname></xref> object: </p> <p> <codeph>iLogClient-&gt;AddEventType(*iLogEventType,
+iStatus);</codeph>  </p> <p> <codeph>iLogClient-&gt;ChangeEventType(*iLogEventType,
+iStatus);</codeph>  </p> <p> <codeph>iLogClient-&gt;DeleteEventType(aId, iStatus);</codeph>  </p> <p>The
+arguments are a <xref href="GUID-E7CCB043-770E-3722-B735-92B65CC7A0D8.dita"><apiname>CLogEventType</apiname></xref> (or <xref href="GUID-530281E6-29FC-33F2-BC9B-610FBA389444.dita"><apiname>TUid</apiname></xref> when
+deleting) and a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> object. </p><p> To maintain
+log events, do the following:  </p> </context>
+<steps id="GUID-41BB11DF-8016-58A1-9291-674C9CE396C3">
+<step id="GUID-474DF156-F653-569E-B038-446B11A788A4"><cmd>declare an event
+as a member of your log client class </cmd>
+<stepxmp><codeblock id="GUID-EA8E98C3-B225-5AFD-A107-5C62603F87D8" xml:space="preserve">CLogEvent* iCurrentEvent;</codeblock> </stepxmp>
+</step>
+<step id="GUID-09506C94-0251-503D-96CF-03F13296EB8E"><cmd/>
+<info>initialize the event using its member functions </info>
+<stepxmp><codeblock id="GUID-4300C98A-EEB4-5041-871F-5B76702D6061" xml:space="preserve">iCurrentLogEvent = CLogEvent::NewL();
+...
+iCurrentLogEvent-&gt;SetTime(time);</codeblock> </stepxmp>
+</step>
+<step id="GUID-18909AB0-6248-5FE5-A7ED-397F611AD412"><cmd/>
+<info>add an event to a log with the <xref href="GUID-91804418-6DCC-3ACF-BA1E-399B112285A3.dita"><apiname>AddEvent()</apiname></xref> function
+of a <xref href="GUID-51C67545-12BA-326D-BD8F-662B24C68ED2.dita"><apiname>CLogClient</apiname></xref> object </info>
+<stepxmp><codeblock id="GUID-8048721D-C397-5DE3-8B94-113DA2801605" xml:space="preserve">iLogClient-&gt;AddEvent(*iLogEvent, iStatus);</codeblock> </stepxmp>
+<info> <xref href="GUID-91804418-6DCC-3ACF-BA1E-399B112285A3.dita"><apiname>AddEvent()</apiname></xref> creates an asynchronous request and no
+other asynchronous request must be outstanding when you call it. For this
+reason, the <xref href="GUID-CDFB61A7-1C74-3F63-9FDF-5A3B8603A010.dita"><apiname>CLogEvent</apiname></xref> argument is typically read off a
+queue of events waiting to be processed. </info>
+</step>
+<step id="GUID-4AB54E42-D28E-5806-B8F4-2F2A7B69880B"><cmd/>
+<info>change an event record with the <xref href="GUID-C8F2B567-6B68-3460-9799-6658DF3771A8.dita"><apiname>ChangeEvent()</apiname></xref> function. </info>
+<stepxmp><codeblock id="GUID-B9D07568-3A3B-5A1D-8F91-B470CB95281F" xml:space="preserve">iLogClient-&gt;ChangeEvent(*iLogEvent, iStatus);</codeblock> </stepxmp>
+</step>
+</steps>
+<result id="GUID-306D0963-3299-59BB-BBCA-B0DDFD945F93"><p> Note that it is
+not possible to change the event type of an event after  it has been added
+to the log.  </p><p>The events specified by the log engine clients are maintained. </p> </result>
+<postreq id="GUID-E9031A12-D139-5D86-A54D-99174D9A8012"><p>You do not normally
+need to delete an event. A log has a maximum size which the log engine maintains
+automatically by deleting the oldest events when newly added events would
+cause the maximum to be exceeded. If you want to delete an event for other
+reasons you call the <codeph>DeleteEvent()</codeph> function. <codeph>iLogClient-&gt;DeleteEvent(aLogId,
+iStatus);</codeph>  </p> <p>It is important to know that deleting an event
+type and deleting the actual events of that type are two separate actions.
+If you just delete the type and not the events, the events will remain in
+the log but have no type. </p> <p> </p> </postreq>
+</taskbody><related-links>
+<link href="GUID-BE65B3A7-04E8-5406-B46A-09E2608E0F1F.dita"><linktext>Requesting
+Log Engine Notifications</linktext></link>
+<link href="GUID-2022F702-9899-5798-8932-D70119C7177D.dita"><linktext>Setting Up
+A Log Engine Client</linktext></link>
+<link href="GUID-55ECBCF5-FC29-5A4A-A3C6-1CB1C0D562CE.dita"><linktext>Displaying
+Log Events</linktext></link>
+<link href="GUID-BCB0E50F-B22E-5964-BB68-BEE1870D9C79.dita"><linktext>Configuring
+Log Engine </linktext></link>
+</related-links></task>

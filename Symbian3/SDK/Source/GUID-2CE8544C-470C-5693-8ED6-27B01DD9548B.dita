@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2CE8544C-470C-5693-8ED6-27B01DD9548B" xml:lang="en"><title>How
+to parse a pathname</title><shortdesc>This topic describes how to parse a path name for
+the individual components</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-ACFF7E09-21DC-46BE-A79E-811CD22C0B86"><title>Retrieving individual components</title> <p>The following
+code fragment shows how the individual components are extracted using the <codeph>TParseBase</codeph> functions:</p> <codeblock id="GUID-B1605907-E17B-57F6-B9BB-8D977E02376A" xml:space="preserve">_LIT(KPath,"c:\\wrd\\meeting.wrd");
+...
+TParse p;
+p.Set(KPath,NULL,NULL);
+p.Name();       // gives "meeting"
+p.NameAndExt(); // gives "meeting.wrd"
+...</codeblock> </section>
+<section id="GUID-CC0F6F19-B61F-43BE-88F4-169A06BCA01C"><title>Component masking</title> <p><codeph>TParse</codeph> can be
+used to select components from different file and path specifications. The <codeph>Set()</codeph> function
+takes three arguments. They are each parsed into four components: drive, path,
+filename and extension.</p> <p>The example below sets up the <codeph>TParse</codeph> object
+so that it can be used to yield useful information.</p> <codeblock id="GUID-14D77BE2-C607-5018-A9B5-E7E4A54FB0F1" xml:space="preserve">_LIT(KSpec,"A:file1");
+_LIT(KRelated,"C:\\path1\\related.xxx");
+TParse fp;
+fp.Set(KSpec,&amp;KRelated,NULL);</codeblock> <table id="GUID-31958460-AEB8-5876-806B-08982A62FE97">
+<tgroup cols="5"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><colspec colname="col4"/>
+<tbody>
+<row>
+<entry/>
+<entry><p>drive</p> </entry>
+<entry><p>path</p> </entry>
+<entry><p>filename</p> </entry>
+<entry><p>extension</p> </entry>
+</row>
+<row>
+<entry><p>file specification</p> </entry>
+<entry><p><filepath>A:</filepath> </p> </entry>
+<entry/>
+<entry><p><filepath>file1</filepath> </p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p>related name</p> </entry>
+<entry><p><filepath>C:</filepath> </p> </entry>
+<entry><p><filepath>\path1\</filepath> </p> </entry>
+<entry><p><filepath>related</filepath> </p> </entry>
+<entry><p><filepath>.xxx</filepath> </p> </entry>
+</row>
+<row>
+<entry><p>default name</p> </entry>
+<entry/>
+<entry/>
+<entry/>
+<entry/>
+</row>
+<row>
+<entry><p>result</p> </entry>
+<entry><p><filepath>A:</filepath> </p> </entry>
+<entry><p><filepath>\path1\</filepath> </p> </entry>
+<entry><p><filepath>file1</filepath> </p> </entry>
+<entry><p><filepath>.xxx</filepath> </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The resulting <codeph>fp.fullname</codeph> will be <codeph>A:\path1\file1.xxx.</codeph> All
+the components that are specified in the file specification (drive and filename)
+are put into the result; any missing components (path and extension) are taken
+from the related file specification which has next order of precedence; nothing
+is specified in the default.</p> <p>The second example shows how wildcards
+are allowed in the filename and extension.</p> <codeblock id="GUID-17D1D396-FC67-5097-9165-B159F549BFC1" xml:space="preserve">    TParse fp;
+    _LIT(KSpec,"A:file1");
+    _LIT(KDefault,"C:\\path1\\*.*");
+    fp.Set(KSpec,NULL,&amp;KDefault);</codeblock> <table id="GUID-9CEADC99-16FE-50FD-B401-AB595B91D48C">
+<tgroup cols="5"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><colspec colname="col4"/>
+<tbody>
+<row>
+<entry><p>  </p> </entry>
+<entry><p>drive</p> </entry>
+<entry><p>path</p> </entry>
+<entry><p>filename</p> </entry>
+<entry><p>extension</p> </entry>
+</row>
+<row>
+<entry><p>file specification</p> </entry>
+<entry><p><filepath>A:</filepath> </p> </entry>
+<entry/>
+<entry><p><filepath>file1</filepath> </p> </entry>
+<entry/>
+</row>
+<row>
+<entry><p>related filename</p> </entry>
+<entry/>
+<entry/>
+<entry/>
+<entry/>
+</row>
+<row>
+<entry><p>default filename</p> </entry>
+<entry><p><filepath>C:</filepath> </p> </entry>
+<entry><p><filepath>\path1\</filepath> </p> </entry>
+<entry><p><filepath>*</filepath> </p> </entry>
+<entry><p><filepath>.*</filepath> </p> </entry>
+</row>
+<row>
+<entry><p>result</p> </entry>
+<entry><p><filepath>A:</filepath> </p> </entry>
+<entry><p><filepath>\path1\</filepath> </p> </entry>
+<entry><p><filepath>file1</filepath> </p> </entry>
+<entry><p><filepath>.*</filepath> </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The resulting <codeph>fp.fullname</codeph> will be <codeph>A:\path1\file1.*</codeph> </p> <p><b>Parsing with reference to the session default directory</b> </p> <p><codeph>TParse</codeph> operations
+occur without reference to the file server. Two <codeph>RFs::Parse()</codeph> functions
+perform a <codeph>TParse::Set()</codeph> using the session path as the <codeph>aDefault</codeph> argument :
+one of these variants specifies an <codeph>aRelated</codeph>, the other does
+not. Use these <codeph>RFs::Parse()</codeph> functions to parse filenames
+with reference to the session path.</p> </section>
+<section id="GUID-A63EEB1D-B5D7-4225-8EF3-328EF25F5C5B"><title>Wildcard characters</title> <p>The <codeph>?</codeph> and <codeph>*</codeph> wildcard
+characters are supported to indicate a single character, and any sequence
+of characters. Both wildcard characters can be used any number of times in
+any part of any component of the file specification, except the drive. Although
+there is no intention that these will ever change, they are defined as the
+constants <codeph>KMatchOne</codeph> and <codeph>KMatchAny</codeph>.</p> </section>
+<section id="GUID-50525BCE-995E-4265-B821-4BA6FC704019"><title>Illegal paths</title> <p>The following restrictions apply
+to path components. If any are violated, <codeph>TParse</codeph> will return <codeph>KErrBadName</codeph>: </p> <ul>
+<li id="GUID-A1BF9F97-F77C-54D1-AF22-EDB4E06699B6"><p>a path component which
+is followed by a trailing backslash must also be preceded by a backslash.
+For example, the following code will return an error because <filepath>DIR\</filepath> is
+neither a directory nor a file.</p> </li>
+</ul> <codeblock id="GUID-C7988B04-ECA0-5BED-B90E-2415C66F141B" xml:space="preserve">_LIT(KText,"DIR\\");
+...
+TInt r=parse.Set(KText,NULL,NULL);</codeblock> <ul>
+<li id="GUID-8B2C6A24-A7AD-5210-8B33-F4E4C328BA57"><p>the length of any component
+(and the total path length) must not exceed 256 characters</p> </li>
+<li id="GUID-A10B9251-BF06-5FB3-A74F-E2E9F2B9A0EE"><p>spaces between the drive
+and the first directory in the path are illegal, although there may be spaces
+between other path components, for instance between the path or drive and
+filename, or within path components. The following code will return an error:</p> </li>
+</ul> <codeblock id="GUID-7036B814-8A5F-549F-B580-13383E424B20" xml:space="preserve">_LIT(KBadText,"C: \\DIR\\");
+...
+r=parse.Set(KBadText,NULL,NULL);</codeblock> <ul>
+<li id="GUID-83462E03-77BF-5692-90AF-729ACE4B7C8E"><p>when using <codeph>TParse::SetNoWild()</codeph> no
+wildcard character may be present in the filename or extension.</p> </li>
+</ul> </section>
+</conbody></concept>

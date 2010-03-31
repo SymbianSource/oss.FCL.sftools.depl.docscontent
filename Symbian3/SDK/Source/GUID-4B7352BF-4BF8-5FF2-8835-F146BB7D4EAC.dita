@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4B7352BF-4BF8-5FF2-8835-F146BB7D4EAC" xml:lang="en"><title>Generating
+a File Name from the URI</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial describes the steps to generate a file name from URI. </p>
+<section><title>Introduction</title> <p> <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita"><apiname>TUriC8</apiname></xref> provides
+functionality to generate a fully qualified file name from a file URI object.
+This function supports only URIs with file scheme. </p> <p><b> URI path component </b> </p> <p>The <codeph>path</codeph> component
+encodes the file's location on the file system. The generic path component
+is of the form: </p> <p>"/" [<i>keyword</i> "/" ] [<i>drive</i> *("/"<i>keyword</i>)["/"<i>filename</i> ]] </p> <p>where, </p> <ul>
+<li id="GUID-44ABA994-B265-50EB-9529-D8D319C27CDD"><p> <i>keyword</i> indicates
+path limitations. The only valid value of this is <i>private</i>, which indicates
+that the path is to be resolved relative to the application’s private directory. </p> </li>
+<li id="GUID-FCFB99C0-8331-5D20-989E-384DC5B9B395"><p> <i>drive</i> is either
+the drive letter (upper or lowercase), or the term “ext-media”, indicating
+that the file is on a removable drive. </p> </li>
+</ul> <p>Examples of file names resolved from variants of URIs using <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita#GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74/GUID-AD8DC94E-743B-3347-9AC4-B37AE23AA786"><apiname>TUriC8::GetFileNameL()</apiname></xref> are
+as follows: </p> <table id="GUID-EBAA947D-9DC1-5727-BFE1-7071E23ACCB6">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry>File type</entry>
+<entry>File URI</entry>
+<entry>File name after resolving</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>File on a fixed drive </p> </entry>
+<entry><p> <filepath>file:///c/path/to/file/name.ext</filepath>  </p> </entry>
+<entry><p> <filepath>c:\path\to\file\name.ext</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p>File on a removable media drive </p> </entry>
+<entry><p> <filepath> file:///ext-media/path/to/file/name.ext</filepath>  </p> </entry>
+<entry><p> <filepath>f:\path\to\file\name.ext</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p>Private file on a fixed drive </p> </entry>
+<entry><p> <filepath>file:///private/c/path/to/file/name.ext</filepath>  </p> </entry>
+<entry><p> <filepath>c:\private\0x1001234f\path\to\file\name.ext</filepath>  </p> </entry>
+</row>
+<row>
+<entry><p>Private file on a removable drive </p> </entry>
+<entry><p>f<filepath>ile:///private/ext-media/path/to/file/name.ext</filepath>  </p> </entry>
+<entry><p> <filepath> h:\private\0x1001234f\path\to\file\name.ext</filepath>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Procedure </title> <p>The following code generates the file
+name from the file URI provided. </p> <codeblock id="GUID-34C6DFA2-379C-5BE8-8968-D1467C4AACA7" xml:space="preserve">//Parse the URI descriptor
+TUriParser8* uriComponent; 
+_LIT8( KUriDes,"http://web.intra/Dev/SysDoc/devlib.htm" );  
+uriComponent-&gt;Parse( KUriDes );
+// Extract the file name from the file URI
+HBufC* fileName = uriComponent-&gt;GetFileNameL();  //returns the string 'devlib.htm'</codeblock> <p>Another
+variant of <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita#GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74/GUID-AD8DC94E-743B-3347-9AC4-B37AE23AA786"><apiname>TUriC8::GetFileNameL()</apiname></xref> is used to get either
+the full file name, only the file path or only the file name. </p> <codeblock id="GUID-AE92CAAB-E00C-5708-8A2A-3116CBC3601E" xml:space="preserve">HBufC16* filename = HBufC* TUriC8::GetFileNameL( EUriFileNameFull )    </codeblock> <p>The
+code returns a full file name. </p> <p> <b>Note</b>: <xref href="GUID-1FBE2971-8486-34FE-AA20-D7D4A920C18D.dita#GUID-1FBE2971-8486-34FE-AA20-D7D4A920C18D/GUID-4E851A12-C61C-39A6-9C34-DF445A402429"><apiname>UriC8::GetFileNameL()</apiname></xref> can
+be used only for file URIs and will leave if used on any other scheme. </p> <p>Other
+two options available are as follows: </p> <ol id="GUID-CEA2464C-5273-50D3-B1FA-2918A5660368">
+<li id="GUID-83ECAC38-CF24-5980-8C62-8B52DBF6FF89"><p> <codeph>EUriFileNamePath</codeph> generates
+the filename containing only the path component. </p> <p>For example, <codeph>http://www.foo.com/MyDir/MyFiles/MyFile.doc;param1;param2</codeph> retrieves <filepath>MyDir\MyFiles\MyFile.doc</filepath>. </p> </li>
+<li id="GUID-722BEC57-07AF-5B32-8C30-FE0B0C738CB1"><p> <codeph>EUriFileNameTail</codeph> generates
+the file name containing just the file name. </p> <p>For example, <codeph>http://www.foo.com/MyDir/MyFiles/MyFile.doc;param1;param2</codeph> retrieves <filepath>MyFile.doc</filepath>. </p> </li>
+</ol> </section>
+</conbody><related-links>
+<link href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita"><linktext>HTTP Utilities
+Library Overview</linktext></link>
+</related-links></concept>

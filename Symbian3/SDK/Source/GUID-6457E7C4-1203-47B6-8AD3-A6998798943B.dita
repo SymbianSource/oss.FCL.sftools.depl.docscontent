@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6457E7C4-1203-47B6-8AD3-A6998798943B" xml:lang="en"><title>Alarm
+server events</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Alarm Server sends notifications to applications when alarm settings
+change; this includes indications when an alarm goes off. A client-side API
+for the alarm server is <xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita"><apiname>RASCliSession</apiname></xref>. It is a standard
+asynchronous service provider, and the client application should implement
+an active object to receive events. </p>
+<p>To be able to use the Alarm Server services, client applications must
+first be connected to the server.</p>
+<codeblock id="GUID-6F5DAB79-F391-4DDD-A85C-EE1C0663E766" xml:space="preserve">User::LeaveIfError( iAlarmServer.Connect() );
+</codeblock>
+<p>To receive events, the <parmname>NotifyChange( TRequestStatus &amp;aStatus,
+TAlarmId &amp;aAlarmId</parmname> ) function is called and the active object
+is set active.</p>
+<codeblock id="GUID-6B9CCD08-AE3C-440E-A220-BB3C1766E432" xml:space="preserve">iAlarmServer.NotifyChange( iStatus, iAlarmId ); SetActive();</codeblock>
+<p>Notifications are cancelled by calling the <parmname>NotifyOnChangeCancel()</parmname> function.</p>
+<codeblock id="GUID-CC3EF80B-FF85-4F7C-9665-04C350E5F110" xml:space="preserve"> iAlarmServer.NotifyChangeCancel();</codeblock>
+<p>When alarm settings change, the <parmname>RunL()</parmname> function
+of the active object is called. Alarms in the alarm server database can be
+retrieved using the <parmname>GetAlarmIdListL()</parmname> function, which
+fills an array of alarm IDs.</p>
+<codeblock id="GUID-C583D59A-28BB-46D1-A929-82B748B2CAED" xml:space="preserve">void GetAlarmIdListL( RArray&lt; TAlarmId &gt; &amp;aAlarmIds )</codeblock>
+<p>When using <parmname>RArray</parmname>, remember to call <parmname>Close()</parmname> or <parmname>Reset()</parmname> on
+it when it is not needed anymore. The <parmname>RASCliSession::GetAlarmDetails()</parmname> function
+returns the <parmname>TASShdAlarm</parmname> structure for a specific alarm,
+which is identified by the alarm ID. </p>
+<codeblock id="GUID-4870E0F6-42D2-489E-B1AF-2E65D852AEA1" xml:space="preserve">TInt GetAlarmDetails( TAlarmId aAlarmId, TASShdAlarm &amp;aAlarm )</codeblock>
+<p>The <parmname>TASShdAlarm</parmname> structure contains information
+about an alarm, and information is accessed through simple inline functions.
+See the <parmname>ASShdAlarm.h</parmname> header file for further information.</p>
+</conbody></concept>

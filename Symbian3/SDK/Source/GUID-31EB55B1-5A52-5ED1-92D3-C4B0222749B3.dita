@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-31EB55B1-5A52-5ED1-92D3-C4B0222749B3"><title>How to externalise and internalise descriptors</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Use the templated stream operators to externalise and internalise a descriptor. Taking a class, <codeph>TSimple</codeph>, as an example:</p> <codeblock id="GUID-4FE680C8-4225-528F-BC66-B63E4AC33B78" xml:space="preserve">class TSimple
+      {
+public :
+      void ExternalizeL(RWriteStream&amp; aStream) const;
+      ...
+      HBufC*        iBufPtr;
+      TBuf&lt;32&gt;      iBuffer;
+      };
+</codeblock> <section><title>Externalising Descriptors </title> <p>The <codeph>ExternalizeL()</codeph> member function of <codeph>TSimple</codeph> can be implemented as:</p> <codeblock id="GUID-64DDAEC2-8BC6-5762-9C5A-3D3D99814936" xml:space="preserve">void TSimple::ExternalizeL(RWriteStream&amp; aStream) const
+      {
+      aStream &lt;&lt; *iBufPtr;
+      aStream &lt;&lt; iBuffer;
+      }
+</codeblock> <p>In some circumstances, it may be desirable to externalise the maximum length value of the heap descriptor to the stream and to use this value when allocating and internalising that descriptor. To do this, change the <codeph>ExternalizeL()</codeph> member function to:</p> <codeblock id="GUID-B17302A5-43C2-5C1A-8631-F71F5E2541B9" xml:space="preserve">void TSimple::ExternalizeL(RWriteStream&amp; aStream) const
+    {
+    aStream.WriteInt32L(iBufPtr-&gt;Des().MaxLength());
+    aStream &lt;&lt; *iBufPtr;
+    aStream &lt;&lt; iBuffer;
+    }</codeblock> </section> <section><title>Internalising descriptors</title> <p>The <codeph>InternalizeL()</codeph> member function of <codeph>TSimple</codeph> can be implemented as:</p> <codeblock id="GUID-5C387905-4225-5DC7-9391-82E54B0935AB" xml:space="preserve">void TSimple::InternalizeL(RReadStream&amp; aStream)
+    {
+    iBufPtr =  HBufC::NewL(aStream,KMaxlen);
+    aStream &gt;&gt; iBuffer;
+    }</codeblock> <p>where <codeph>KMaxlen</codeph> is some constant defining the maximum length for the heap descriptor.</p> <p>If the maximum length value of the heap descriptor had been externalised, then the <codeph>InternalizeL()</codeph> member function could be changed to:</p> <codeblock id="GUID-2812E5FE-DF3F-520C-99F4-8590E8686570" xml:space="preserve">void TSimple::InternalizeL(RReadStream&amp; aStream)
+    {
+    TInt maxlen;
+    maxlen  =  aStream.ReadInt32L();
+    iBufPtr =  HBufC::NewL(aStream,maxlen);
+    aStream &gt;&gt; iBuffer;
+    }</codeblock> </section> </conbody></concept>

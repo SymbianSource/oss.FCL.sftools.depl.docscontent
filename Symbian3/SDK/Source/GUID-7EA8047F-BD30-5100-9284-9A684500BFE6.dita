@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-7EA8047F-BD30-5100-9284-9A684500BFE6" xml:lang="en"><title>Registration
+Status Tutorial</title><shortdesc>This tutorial describes how to get the registration information
+with the telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The information about the network service like Roaming, Busy,
+Emergency calls only or No service is provided to the client applications. </p></context>
+
+
+<steps id="GUID-DB410EC7-09ED-5E05-892B-23333B678FB4">
+<step id="GUID-0AF5395D-6D56-5E83-BA77-BFF6EB2D2DEC"><cmd/>
+<info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info>
+</step>
+<step id="GUID-F781DB86-2235-5A24-A2B7-C4F6C85C0340"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetNetworkRegistrationStatus()</apiname></xref> to
+get the registration status information from the network </info>
+</step>
+<step id="GUID-0712E5C9-233B-5371-81C4-48A67AC38891"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EGetNetworkRegistrationStatusCancel</apiname></xref> to
+cancel the asynchronous request </info>
+</step>
+<step id="GUID-D8A225B1-ED33-5AE4-B3DB-1826C796DB21"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::ENetworkRegistrationStatusChange</apiname></xref> to
+get the notification of any changes to the registration status </info>
+</step>
+<step id="GUID-4CD5ED70-89D5-55AB-972F-26B1AC7C8205"><cmd/>
+<info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::ENetworkRegistrationStatusChangeCancel</apiname></xref> to
+cancel the notification request. </info>
+</step>
+</steps>
+<example id="GUID-E42753A5-EF76-5B98-8E9E-8734C9ABFB66"><title>Registration
+status example</title> <codeblock id="GUID-84333DC0-97D7-5D8B-BFE7-F72793F38C6D" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TNetworkRegistrationV1 iNetworkRegistrationV1;
+    CTelephony::TNetworkRegistrationV1Pckg iNetworkRegistrationV1Pckg;
+
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+    };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iNetworkRegistrationV1Pckg(iNetworkRegistrationV1)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;GetNetworkRegistrationStatus(iStatus, iNetworkRegistrationV1Pckg);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {
+       CTelephony::TRegistrationStatus regStatus = iNetworkRegistrationV1.iRegStatus;
+       }
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EGetNetworkRegistrationStatusCancel);
+    }</codeblock> </example>
+</taskbody></task>

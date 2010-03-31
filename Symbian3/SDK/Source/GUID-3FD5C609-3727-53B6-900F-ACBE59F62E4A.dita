@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3FD5C609-3727-53B6-900F-ACBE59F62E4A" xml:lang="en"><title>Storing
+Downloaded Email Messages</title><shortdesc>This tutorial explains how to store incoming email messages.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+<section><title>Introduction</title> <p>You can store and restore the incoming
+email message using the <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref> or <xref href="GUID-440FF2B4-353B-3097-A2BA-5887D10B8B23.dita"><apiname>TDesC16</apiname></xref> function.
+Ensure that you follow these guidelines while using these functions: </p> <ul>
+<li id="GUID-DC272C83-2B74-5A28-A903-1D3385F6E52B"><p>If you want to store
+the downloaded email message data as 16 bit, then storing is slow as the downloaded
+message in 8 bit should be converted to 16 bit before it is stored. However,
+reading and displaying is fast as the email message data is in 16 bit. </p> </li>
+<li id="GUID-50565679-0520-5CE4-9414-888ED2C80C78"><p>If you want to store
+the downloaded email message data as 8-bit, then reading and displaying it
+is slow as the 8 bit email message data should be converted to 16 bit before
+it is displayed. However, storing is fast. </p> </li>
+</ul> </section>
+<section><title>Procedure</title> <ol id="GUID-C6687B65-351F-5E3F-85CC-7F3BA5058BC6">
+<li id="GUID-4BDBAD7C-275B-5D41-A6CC-3DDE93892DF2"><p>For the MTM to use <xref href="GUID-6A4CAFB0-262A-3721-B91B-07F2C3B64B5F.dita"><apiname>CMsvPlainBodyText</apiname></xref> for
+storing downloaded email messages, get the <xref href="GUID-6A4CAFB0-262A-3721-B91B-07F2C3B64B5F.dita"><apiname>CMsvPlainBodyText</apiname></xref> object
+using the <xref href="GUID-226C5C17-3AE6-3CAB-BF30-39DCB981574A.dita"><apiname>InitialisePlainBodyTextForWriteL()</apiname></xref> method of <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref>. </p> </li>
+<li id="GUID-F43981C5-C9B3-5108-AA8A-A2BBF2745DF3"><p>Set <xref href="GUID-8CB90FA2-A6CF-3FA2-81FF-7D22EFD9C2CE.dita"><apiname>CMsvStore</apiname></xref> to
+the ID of the email message that needs to be stored, and open it in the write
+mode. </p> </li>
+<li id="GUID-FE93A682-CF5C-584F-AA86-B089E6F9581C"><p>Use any of the following <xref href="GUID-6A4CAFB0-262A-3721-B91B-07F2C3B64B5F.dita#GUID-6A4CAFB0-262A-3721-B91B-07F2C3B64B5F/GUID-D1CC07ED-0108-348B-88F4-C89CAB093FE4"><apiname>CMsvPlainBodyText::StoreChunkL()</apiname></xref> methods
+to store incoming data: </p> <ol id="GUID-A6AB4C6B-FFB3-5DBE-BC42-F4F12004C7C1">
+<li id="GUID-535BC8A3-3AFB-564C-A53B-322330B0AF86"><p> <codeph>const</codeph>  <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref> <codeph> 
+                    &amp;aChunk, </codeph> <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> <codeph> &amp;aStatus
+                     </codeph>  </p> </li>
+<li id="GUID-33DC423A-A302-5FDC-A0F3-B7F89D226C37"><p> <codeph>const</codeph>  <xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref> <codeph>&amp;aChunk</codeph>  </p> </li>
+<li id="GUID-0478F9EA-B31D-54E6-9CE4-5EC9C7711F86"><p> <codeph>const</codeph>  <xref href="GUID-440FF2B4-353B-3097-A2BA-5887D10B8B23.dita"><apiname>TDesC16</apiname></xref> <codeph> 
+                    &amp;aChunk, </codeph> <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> <codeph> &amp;aStatus
+                     </codeph>  </p> </li>
+<li id="GUID-F7175033-3CC1-501A-B795-9FFB1875BE7A"><p> <codeph>const</codeph>  <xref href="GUID-440FF2B4-353B-3097-A2BA-5887D10B8B23.dita"><apiname>TDesC16</apiname></xref> <codeph>&amp;aChunk</codeph>  </p> </li>
+</ol> </li>
+<li id="GUID-6BBBDB91-BC15-584B-82A2-ED08D7E2EBD3"><p>After the entire email
+message has been received from the external server, the MTM must call the <xref href="GUID-D7D5B755-456D-3774-ACF9-E4ABC07E5C40.dita"><apiname>CommitL()</apiname></xref> method
+of <xref href="GUID-6A4CAFB0-262A-3721-B91B-07F2C3B64B5F.dita"><apiname>CMsvPlainBodyText</apiname></xref> to complete the store operation. </p> </li>
+</ol> <note> The email server MTM can store the email message that is received
+from the external server either as 8 or 16 bit. When the MTM calls the 16
+bit version of the <codeph>StoreChunkL()</codeph> function, and based on the
+charset information, it must convert the data to Unicode.</note><p>If the
+8 bit version of the<codeph>StoreChunkL()</codeph> function is used for storing,
+and if the MTM wants the email message to be stored as 16 bit (this is indicated
+by the <codeph>TBoolaIs8Bit</codeph> parameter of <codeph>InitialisePlainBodyTextForWriteL()</codeph>), <codeph>CMsvPlainBodyText</codeph> converts
+and stores the email message in 16 bit based on the charset information provided
+while initialising <codeph>CMsvPlainBodyText</codeph>.</p></section>
+</conbody><related-links>
+<link href="GUID-62166BC9-D0BC-5070-BC57-2A1F4948BAFE.dita"><linktext>Restoring
+Email Messages</linktext></link>
+<link href="GUID-2C8653F9-8873-59E8-9FD2-4215F6877ABC.dita"><linktext>Chunk Method
+to Process Emails</linktext></link>
+<link href="GUID-D73AD200-BE4D-50BF-BCF9-14627DE530B7.dita"><linktext>Imap4Example:
+An Email manager using IMAP4 and SMTP</linktext></link>
+<link href="GUID-BB35DBCC-FE56-547F-BADA-9EF854691ADC.dita"><linktext>Pop3Example:
+An Email manager using POP3 and SMTP</linktext></link>
+</related-links></concept>

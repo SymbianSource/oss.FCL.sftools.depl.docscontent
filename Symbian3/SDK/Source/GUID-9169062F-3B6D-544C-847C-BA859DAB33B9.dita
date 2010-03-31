@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9169062F-3B6D-544C-847C-BA859DAB33B9" xml:lang="en"><title>Sessions
+and requests</title><shortdesc>Describes communication between the client and the server in the
+client-server framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Communication between client and server is represented by a <i>session</i>;
+this is initiated by the client. A client thread may have several sessions
+with a server. A session can also be shared by all the client threads in a
+process, if supported by the server, and also by all threads across all processes,
+again if supported by the server. </p>
+<p>Sessions are maintained by the Kernel and the important points are: </p>
+<ul>
+<li id="GUID-C8D3B5F7-6BCE-5AB2-A11D-F0436F8CE20C"><p>The client has an <codeph>RSessionBase</codeph> handle
+to the session. </p> </li>
+<li id="GUID-80F84FC0-AA11-5C5E-A067-A23D6069DE00"><p>The server uses a <codeph>CSession2</codeph> -derived
+class to represent the session. </p> </li>
+<li id="GUID-B6405FDE-1ECB-543E-BA11-6280A5CD8DF8"><p>A session may be sharable
+between the threads in the client process, between all threads across all
+processes, or it can be restricted to the thread connecting to the server. </p> </li>
+</ul>
+<p>If a call to the client interface requires a service from the server, the
+client interface must set up and send a message. The message has a 32-bit
+operation code to identify the request, and up to four 32-bit parameters.
+The message is encapsulated within a <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> object. The
+process can be summarised as follows: </p>
+<ul>
+<li id="GUID-2810FEA1-D51E-534E-963C-425D9A3B09C0"><p>The client sends the
+message to the server using <codeph>RSessionBase::SendReceive()</codeph>.
+This call eventually returns with the completion code. </p> </li>
+<li id="GUID-785468D3-7D69-5A2C-818D-5961DCCB7FCA"><p>The Kernel packages
+the operation code and parameters and delivers an <codeph>RMessage2</codeph> to
+the server. </p> </li>
+<li id="GUID-7BF7D799-7999-51C8-BEBF-88822703F113"><p>The server delivers
+the message to the appropriate <codeph>CSession2</codeph> object, which deals
+with the request. The request is handled by <xref href="GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51.dita#GUID-D5A30C75-E22C-34E8-913B-7D2CA6AD5C51/GUID-B37413F7-D8FD-35AD-A037-99023D7CE986"><apiname>CSession2::ServiceL()</apiname></xref>.
+This is defined as pure virtual in <codeph>CSession2</codeph>, and is implemented
+by the class derived from <codeph>CSession2</codeph>. When the session has
+finished dealing with the request, it calls <codeph>RMessage2::Complete()</codeph> to
+indicate that the service has been performed and to return a 32-bit result
+to the client - this is returned from the <codeph>SendReceive()</codeph>. </p> </li>
+</ul>
+<p>The client-server framework also supports the sending of requests asynchronously
+to the server. </p>
+<p>The following diagram illustrates this: </p>
+<fig id="GUID-97810C53-3BF6-5ECF-B413-86EEE99E68DA">
+<image href="GUID-08E31D57-A84D-5B6B-B16F-3F7025A763E9_d0e240610_href.png" placement="inline"/>
+<p>Sending messages asynchronously to the server</p>
+</fig>
+<p>A server can support multiple connections from a client in a number of
+distinct ways: </p>
+<ul>
+<li id="GUID-DFBDEB83-48DE-5A94-A07B-B9BA1715FDE7"><p>The client may have
+a number of concurrent sessions with a particular server. </p> </li>
+<li id="GUID-C382BBE4-A94B-593E-9C9E-1E2E4DA60587"><p>Each session is independent
+of any other within the client thread; <codeph>Connect()</codeph> must be
+called to initialise each new connection. </p> </li>
+<li id="GUID-343295A2-AAE6-51AA-AFCF-5CD3CD39A510"><p>The client may create
+a number of <i>subsessions</i> within a single session. </p> </li>
+<li id="GUID-7228AA13-B73F-5996-8535-0C959B7C7788"><p>Each <i>client subsession </i> corresponds
+to a <i>subsession object</i> in the server. The client subsession contains
+a handle to this subsession object. All communication is via the owning session;
+the handle is used to match up corresponding client subsessions and subsession
+objects. </p> </li>
+<li id="GUID-8D01708B-CCC3-5B6C-9C26-4A4BE26A3D0C"><p>Subsessions use fewer
+Kernel resources than sessions, although they are slightly more complex to
+use. </p> </li>
+</ul>
+<p>A server can support the creation of sharable sessions allowing either
+all the threads in a client process to share a single session, or allowing
+all threads across all processes to share a single session. The important
+points are: </p>
+<ul>
+<li id="GUID-81929E38-1251-51C9-A3B0-CD82AD519D82"><p>The server must support
+the sharing of sessions. </p> </li>
+<li id="GUID-AE8DF750-FABF-55CE-A633-41E96A50413B"><p>The connecting thread
+can make the session sharable after creation, or it can create the session
+as sharable. </p> </li>
+<li id="GUID-E1962030-B977-5A90-AC3C-5419C2FAAF68"><p>Up to 255 threads can
+be concurrently attached to a session. </p> </li>
+</ul>
+<section id="GUID-8C971096-BD4A-408A-AF20-15810FAB9D4C"><title>See also</title> <p> <xref href="GUID-1CC6FEF0-7D1E-5329-8276-22ACFE3DE362.dita">Subsessions
+within a session</xref>  </p> </section>
+</conbody></concept>

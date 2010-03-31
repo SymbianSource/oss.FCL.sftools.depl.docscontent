@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-837EF355-9154-506B-AE4F-4290FC9DBDC9" xml:lang="en"><title>Using
+CAsyncOneShot</title><shortdesc>This document descrbes the use of the <codeph>CAsyncOneShot</codeph> class
+in scheduling.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An instance of a class derived from the <xref href="GUID-619AF4A9-4DAF-3FA4-A704-717DB30B5389.dita"><apiname>CAsyncOneShot</apiname></xref> class
+can be used to perform one-off processing when no higher-priority active objects
+are ready to run.</p>
+<p>While it has many uses, a common usage is to use it to unload a library.
+A typical <codeph>CAsyncOneShot</codeph> derived class is defined as:</p>
+<codeblock id="GUID-6C063D5F-15FD-575E-8184-BED08FEE4BAA" xml:space="preserve">class CLibUnloader : public CAsyncOneShot
+    {
+public:
+    static CLibUnloader* NewL(RLibrary&amp; aLibrary);
+    inline void Unload();
+protected:
+    CLibUnloader();
+    ~CLibUnloader();
+    virtual void RunL();
+private:
+    RLibrary iLib;
+    };</codeblock>
+<p>The static <codeph>NewL()</codeph> function takes a reference to an existing
+open <xref href="GUID-25327159-83D6-3507-B187-09EA4BB3727F.dita"><apiname>RLibrary</apiname></xref> object and creates a new <codeph>CLibUnloader</codeph> object:</p>
+<codeblock id="GUID-2D743CF1-106E-5051-83E7-FFBD9F55148E" xml:space="preserve">CLibUnloader* CLibUnloader::NewL(RLibrary&amp; aLibrary)
+    {
+    CLibUnloader* u=new(ELeave)CLibUnloader;
+    u-&gt;iLib=aLibrary;
+    return u;
+    }</codeblock>
+<p>The remaining functions are implemented as follows:</p>
+<ul>
+<li id="GUID-CFE3C110-43B5-5E04-AACF-A6389EE374B5"><p>Constructor sets a low
+active object priority</p> <codeblock id="GUID-2961B2D0-E615-5529-9248-7389D3DE4E3E" xml:space="preserve">CLibUnloader::CLibUnloader()
+     :CAsyncOneShot(E_a_very_low_priority)
+     {}</codeblock> </li>
+<li id="GUID-6FCA9BDB-7D15-5AB6-B776-40BB18E17052"><p>Calling <codeph>Unload()</codeph> activates
+the active object; the active scheduler will call its <codeph>RunL()</codeph> function
+as soon as there are no other higher priority active objects ready to run.</p> <codeblock id="GUID-95E3596B-FC18-524E-B9EC-8F04702715A6" xml:space="preserve">void CLibUnloader::Unload()
+    {
+    Call();
+    }</codeblock> </li>
+<li id="GUID-691CD813-6A05-5BCA-8B90-FFDEFA3623E6"><p>The active scheduler
+calls <codeph>RunL()</codeph>, which, in this example, simply deletes the
+active object. This causes the destructor to be called which closes the library.
+It also has the effect of removing the active object from the active scheduler
+through the <xref href="GUID-067293BF-B28C-3CEC-92F4-1351A795EA7F.dita"><apiname>CActive</apiname></xref> base class destructor. </p> <codeblock id="GUID-366FF87F-D994-5ED9-9DE8-0A195F4745D9" xml:space="preserve">void CLibUnloader::RunL()
+    {
+    delete this;
+    }</codeblock> <codeblock id="GUID-DBBF0C78-A941-5B62-A89B-698EA5CFB972" xml:space="preserve">CLibUnloader::~CLibUnloader()
+    {
+    Cancel();
+    iLib.Close();
+    }</codeblock> </li>
+</ul>
+<p>In other uses of <xref href="GUID-619AF4A9-4DAF-3FA4-A704-717DB30B5389.dita"><apiname>CAsyncOneShot</apiname></xref>, <codeph>RunL()</codeph> could
+do more complex processing, and indeed could re-queue the active object with
+another call to <xref href="GUID-619AF4A9-4DAF-3FA4-A704-717DB30B5389.dita#GUID-619AF4A9-4DAF-3FA4-A704-717DB30B5389/GUID-A7955FDB-B030-392F-B5D8-13F7EEDF4337"><apiname>CAsyncOneShot::Call()</apiname></xref>. </p>
+</conbody></concept>

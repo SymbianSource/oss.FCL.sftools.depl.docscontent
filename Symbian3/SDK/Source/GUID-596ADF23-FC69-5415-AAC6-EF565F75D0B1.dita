@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-596ADF23-FC69-5415-AAC6-EF565F75D0B1" xml:lang="en"><title>Choices
+with buffers</title><shortdesc>Explains when to use dynamic buffers and whether to select flat
+or segmented type of buffer.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Dynamic buffers present two choices to potential users:</p>
+<ol id="GUID-9759CE0C-F6E9-50E5-BA88-CC900ADB9D97">
+<li id="GUID-434CA252-2933-5C7C-B122-84D7130F0FA8"><p>is it worth using dynamic
+buffers at all?</p> </li>
+<li id="GUID-A069A411-61D4-5A27-8C96-589005AA77E6"><p>if so, is it better
+to use flat or segmented buffers?</p> </li>
+</ol>
+<section id="GUID-1384B166-534A-4E97-8736-A5F9F7FEF44C"><title>Dynamic buffers or other storage?</title> <p>Use a more conventional
+scheme, such as a descriptor if:</p> <ul>
+<li id="GUID-CAB88D90-0052-5AC5-A92B-6889ACC4B80B"><p>the exact size of your
+data is known at compile time, or in any case before the data begins to be
+read into memory</p> </li>
+<li id="GUID-0B860F24-1053-5FAC-864B-EF017251E0AF"><p>the exact size is not
+known, but its maximum limit is known, and that limit is sufficiently small
+that it involves little waste</p> </li>
+<li id="GUID-8BCE0EAE-9BDE-5C7F-959E-1F0F1732DB6A"><p>the functions you require
+are provided by the descriptor classes</p> </li>
+</ul> <p>On the other hand, use dynamic buffers if:</p> <ul>
+<li id="GUID-010F488A-1D0B-5971-AFB0-A3324F0B170D"><p>the exact size of your
+data is not known and it’s possible that the data may grow significantly during
+its lifetime</p> </li>
+<li id="GUID-B812CBBD-924D-5B55-8F2D-26572285B30E"><p>the class you are working
+with requires the use of buffers — for example, the array classes derived
+from <codeph>CArrayFixBase</codeph>, <codeph>CArrayVarBase</codeph> and <codeph>CArrayPakBase</codeph> use
+buffers in their implementation.</p> </li>
+</ul> <p>The dynamic buffer classes are a general solution for requirements
+such as these. In some quite specialised cases, the particular requirements
+of the problem are more exacting than those met by dynamic buffers, and a
+specialised buffer scheme may be necessary.</p> </section>
+<section id="GUID-E11053B5-A588-42F7-B143-483414108CE2"><title>Flat or segmented buffers?</title> <p>If dynamic buffers are
+appropriate, use flat buffers if:</p> <ul>
+<li id="GUID-799B7113-F676-5AF2-A0A9-F3D7A0069F9B"><p>efficiency in transforming
+between buffer position and memory address is very important</p> </li>
+<li id="GUID-150BC797-DA33-58F2-A62D-6568992F1289"><p>the re-allocations needed
+to extend the buffer are sufficiently rare that they do not cause intolerable
+amounts of data copying or heap fragmentation</p> </li>
+<li id="GUID-1C634D8F-4566-5C21-8EB5-350C453C6AC5"><p>there is an upper bound
+on the size limit, and can reserve sufficient room, using <codeph>SetReserveL()</codeph> before
+inserting (this is typically followed by call to <codeph>InsertL()</codeph>).</p> </li>
+</ul> <p>On the other hand, use segmented buffers:</p> <ul>
+<li id="GUID-7B3DA8E1-86BD-5252-B4B4-6F6D69EADC77"><p>to minimise the heap
+thrashing and copying that can be associated with re-allocating a single flat
+buffer</p> </li>
+<li id="GUID-D0843F86-B168-576B-9E73-AB017DAABFFB"><p>if there is a concern
+about the performance of frequent insertions and deletions, which even without
+much heap allocation, can be better with segmented buffers as not all data
+after the insertion/deletion point needs to be shuffled to complete the operation.</p> </li>
+</ul> </section>
+</conbody></concept>

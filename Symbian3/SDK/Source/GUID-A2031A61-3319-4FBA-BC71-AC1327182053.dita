@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A2031A61-3319-4FBA-BC71-AC1327182053" xml:lang="en"><title>Getting
+started with C++ Standard Library</title><shortdesc>The Standard C++ library depends on P.I.P.S.. The user must have
+the P.I.P.S. components installed before using the library.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D42A187D-603E-4D66-BAA8-86782B9C2717"><title>C++ IOstream
+and Standard Template Library Documentation</title><p>C++ IOStream library
+documentation can be found at <xref href="http://www.slac.stanford.edu/comp/unix/gnu-info/iostream_toc.html" scope="external">http://www.slac.stanford.edu/comp/unix/gnu-info/iostream_toc.html</xref>.</p><p>Similarly,
+Standard Template Library (STL) documentation can be found at <xref href="http://www.informatik.uni-freiburg.de/~danlee/fun/STL-doc/STL.html" scope="external">http://www.informatik.uni-freiburg.de/~danlee/fun/STL-doc/STL.html</xref>.</p></section>
+<section id="GUID-BF521201-7BE5-4AC5-8D35-1E15AC4887C7-GENID-1-8-1-11-1-1-9-1-5-1-3-2"><title>Changes to
+the MMP file</title><p><b>Add needed libraries used by the MMP file structure: </b></p><p>If
+developers want to use any of Standard C++ library, they must link to the
+corresponding library in the MMP file using the <codeph>LIBRARY</codeph> keyword.</p><p>If
+the application has <codeph>main()</codeph> as the entry point, the library <filepath>libcrt0.lib</filepath> must
+be specified as the first library otherwise, it results in linker errors.
+The user must link to the Symbian platform <filepath>euser.dll</filepath>.
+This is required since the static library uses some of the services of the
+Symbian platform, such as, creating cleanup stack, and having a top level
+TRAP. All these details are hidden from the developer. The developer will
+write the application as if it were for the UNIX environment.</p><codeblock xml:space="preserve">STATICLIBRARY  libcrt0.lib
+LIBRARY        libc.lib 
+LIBRARY        euser.lib  // Needed in order to use Symbian services
+</codeblock><p>The <filepath>libcrt0.lib</filepath> library is required for
+writing to <codeph>E32Main</codeph> within our application (EXE). This static
+library has an implementation of <codeph>E32Main</codeph> within which it
+calls the library initialization method followed by calling main written by
+the developer. This static library also retrieves command-line arguments and
+passes the same to main.</p><p>If the application has <codeph>E32Main()</codeph> as
+an entry point, there is no need to link to <filepath>libcrt0.lib</filepath> like
+in the example below.</p><codeblock xml:space="preserve">LIBRARY         libc.lib 
+LIBRARY         euser.lib</codeblock><p><b>Add required include paths</b></p><codeblock xml:space="preserve">SYSTEMINCLUDE   \epoc32\include\stdapis
+SYSTEMINCLUDE   \epoc32\include\stdapis\sys
+SYSTEMINCLUDE   \epoc32\include\stdapis\stlport 
+</codeblock><p><b>Linking of <codeph>libstdcpp</codeph></b></p><p>Following
+snippet shows how to perform the linking to <codeph>libstdcpp</codeph> on
+an emulator: </p><codeblock xml:space="preserve">#ifdef EPOC32
+LIBRARY  libstdcpp.lib
+#else
+FIRSTLIB ../udeb/libstdcpp.lib
+STATICLIBRARY    eexe.lib 
+#endif</codeblock><p>Add the below option and macro in the MMP file</p><codeblock xml:space="preserve">//This is required even if the wchar type is not used.
+OPTION CW -wchar_t on 
+MACRO  _WCHAR_T_DECLARED</codeblock><note> Standard C++ applications may require
+more stack space. The recommended stack size is 10K. To set the stack size
+to 10K add: </note><codeblock xml:space="preserve">EPOCSTACKSIZE 0x10000</codeblock><p>in the MMP
+file.</p></section>
+<section id="GUID-BF521201-7BE5-4AC5-8D35-1E15AC4887C7-GENID-1-8-1-11-1-1-9-1-5-1-3-3"><title>Example using <codeph>main()</codeph></title> 
+     <p>A simple example using <codeph>main()</codeph> as an entry point is
+described below. The example writes a text to a console.</p><ul>
+<li><p>Modify the MMP file as mentioned before.</p></li>
+<li><p>Do usual C++ style coding.</p></li>
+</ul><codeblock xml:space="preserve">//  Include Files  
+#include &lt;iostream&gt;
+#include &lt;cstring&gt;
+// This is a GCCE toolchain workaround needed when compiling with GCCE
+// and using main() entry point
+#ifdef __GCCE__
+
+// This is a GCCE toolchain workaround needed when compiling with GCCE
+// and using main() entry point
+#ifdef __GCCE__
+
+#include &lt;staticlibinit_gcce.h&gt;
+#endif
+
+using namespace std;
+
+class myclass {
+public:
+  void show(){cout&lt;&lt;"Hello World\n"; }
+} ;
+
+int main()
+{
+  myclass obj;
+  obj.show();
+  cout&lt;&lt;"Press a character to exit!";
+  int c = getchar();
+  return 0;
+}
+</codeblock></section>
+</conbody></concept>

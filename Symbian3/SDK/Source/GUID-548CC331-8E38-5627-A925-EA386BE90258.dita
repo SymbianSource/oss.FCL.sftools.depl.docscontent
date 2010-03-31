@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-548CC331-8E38-5627-A925-EA386BE90258" xml:lang="en"><title>Compressing
+and Decompressing File - GZip Format </title><abstract><shortdesc>The Zip Compression Library, EZLib provides file compression
+and decompression functionality for the Symbian platforms. The files can be
+compressed to two formats namely zip and gzip. gzip is normally used to compress
+single files. </shortdesc> <p/> </abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-48E514AC-C78B-570F-A96C-389BABA02472"><p>Compression and
+Decompression are performed iteratively, till the completion of required task. </p> </context>
+<steps id="GUID-2D2DC7F3-64FA-5C96-95DE-615650E10160">
+<step id="GUID-C384EAE0-B1EE-5098-A557-1231D35F8A2A"><cmd/>
+<info>Input the source file and the name of the target gzip file to an instance
+of the <xref href="GUID-417AB4E0-FF07-34CB-A4A8-CEF31C48A162.dita"><apiname>CEZFileToGZip</apiname></xref> class. </info>
+</step>
+<step id="GUID-2A30A687-A777-5790-8145-5AE956F35FFC"><cmd/>
+<info> <xref href="GUID-417AB4E0-FF07-34CB-A4A8-CEF31C48A162.dita#GUID-417AB4E0-FF07-34CB-A4A8-CEF31C48A162/GUID-4E51D7C5-C624-3F27-A5CD-01E92F96F72B"><apiname>CEZFileToGZip::DeflateL()</apiname></xref> is used to compress the
+file. </info>
+</step>
+</steps>
+<example><p>The code below depicts how the source file "input.doc" file is
+converted to target file "output.gz". </p><codeblock xml:space="preserve">/*
+ * If input and output file names are not specified then it is assumed that 
+ * the file names are contained in a provided .ini file.
+ */
+
+void CEZlibEZipTests::DoEZlibGZipDeflateL()
+    {
+    
+
+ RFs iFs;
+ iFS.connect();
+    
+
+    //Open the source file in read mode
+_LIT(KInputFileLocation, "c:\\private\\E80000B7\\zip\\input\\input.doc");
+TFileName inputFile(KInputFileLocation);
+
+    RFile input;
+    err = input.Open(iFS, inputFile, EFileStream | EFileRead | EFileShareExclusive);
+
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KOpenFileError);
+        User::Leave(err);
+        }   
+    
+    
+    //create a target file
+
+_LIT(KOutputFileLocation, "c:\\private\\E80000B7\\zip\\input\\output.gz");
+TFileName outputFile(KOutputFileLocation);
+
+
+    
+    CEZFileToGZip *compressor = CEZFileToGZip::NewLC(iFs, outputFile, input);
+
+    
+    while(compressor-&gt;DeflateL())
+        {       
+        }   
+input.Close();
+    iFS.Close();
+        
+    
+    }
+</codeblock></example>
+<postreq><p>The decompression of a gzip file can be achieved through the following
+the steps: </p> <ol id="GUID-A4771CC4-2704-56E3-BBD5-4AB2A58F9468">
+<li id="GUID-4E130CBF-C626-5CD0-9A83-A2F138B12B68"><p>Pass the file to the
+constructor of the <xref href="GUID-8DE05785-D058-3855-A11F-7132EB4DE078.dita"><apiname>CEZGZipToFile</apiname></xref> class. </p> </li>
+<li id="GUID-CB642B02-8A19-5CB9-96E4-80AB7596F6E1"><p> <xref href="GUID-8DE05785-D058-3855-A11F-7132EB4DE078.dita#GUID-8DE05785-D058-3855-A11F-7132EB4DE078/GUID-4A30D99E-EC51-359F-90B5-9CFA3841A538"><apiname>CEZGZipToFile::InflateL()</apiname></xref> is
+called repeatedly to complete the decompression. </p> </li>
+</ol> <p>The code below depicts how "output.gz" is decompressed to "input.doc". </p> <codeblock id="GUID-01545D8D-CE1F-5903-9558-CE35D4C3067E" xml:space="preserve">/*
+ *  If  input and output file names are not specified then it is assumed that 
+ * the file names are contained in a provided .ini file.
+ */
+void CEZlibEZipTests::DoEZlibGZipInflateL()
+    {
+      RFs iFs;
+  iFS.connect();
+    
+
+    //open output file
+
+_LIT(KOutputFile, "c:\\private\\E80000B7\\zip\\input\\input.doc");
+TFileName outputFile(KOutputFile);
+    RFile output;
+    err = output.Replace(iFs, outputFile, EFileStream | EFileWrite | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KCreateFileError);
+        User::Leave(err);
+        }    
+        
+
+//input file
+
+
+_LIT(KInputFileLocation, "c:\\private\\E80000B7\\zip\\input\\output.gz");
+TFileName inputFile(KInputFileLocation);
+
+    CEZGZipToFile *decompressor = CEZGZipToFile::NewLC(iFs, inputFile, output);
+
+        while(decompressor-&gt;InflateL())
+        {        
+        }    
+
+        output.Close();
+    iFS.Close();
+    ;
+    }</codeblock> </postreq>
+</taskbody></task>

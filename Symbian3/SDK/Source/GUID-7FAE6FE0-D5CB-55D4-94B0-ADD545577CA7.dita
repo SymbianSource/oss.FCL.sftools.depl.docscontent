@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-7FAE6FE0-D5CB-55D4-94B0-ADD545577CA7"><title> Creating and setting properties for a Sub-Connection: Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This tutorial shows how an application can create Quality of Service properties and assign them to a sub-connection. </p> <p>Error handling is not included to aid clarity. </p> <codeblock id="GUID-F9A41E8A-D15B-5028-ABC4-DB400EF0DB19" xml:space="preserve">// Create the container for all sub connection parameters
+RSubConParameterBundle subconParams;
+CleanupClosePushL(subconParams);
+
+// Create a container for QoS sub connection parameters (Param bundle takes ownership)
+CSubConParameterFamily* qosFamily = CSubConParameterFamily::NewL(subconParams,
+    KSubConQoSFamily);
+
+// Create the requested generic parameter set for QoS (Qos family takes ownership)
+CSubConQosGenericParamSet* reqGenericParams = CSubConQosGenericParamSet::NewL(*qosFamily,                               
+    CSubConParameterFamily::ERequested);
+
+// Set the requested Generic Parameters
+reqGenericParams-&gt;SetDownlinkBandwidth(128);
+reqGenericParams-&gt;SetUplinkBandwidth(64);
+
+// Create the acceptable generic parameter set for QoS (Qos family takes ownership)
+CSubConQosGenericParamSet* accGenericParams = CSubConQosGenericParamSet::NewL(*qosFamily,                               
+    CSubConParameterFamily::EAcceptable);
+
+// Set the acceptable Generic Parameters
+accGenericParams-&gt;SetDownlinkBandwidth(48);
+accGenericParams-&gt;SetUplinkBandwidth(32);
+
+// Create a requested technology specific parameter set for QoS (Qos family takes ownership)
+CSubConQosR99ParamSet* reqRel99Params = CSubConQosR99ParamSet::NewL(*qosFamily,
+    CSubConParameterFamily::ERequested);
+
+// Set the requested Technology Specific Params
+reqRel99Params-&gt;SetMaxSDUSize(1024);
+
+// Create a acceptable technology specific parameter set for QoS (Qos family takes ownership)
+CSubConQosR99ParamSet* accRel99Params = CSubConQosR99ParamSet::NewL(*qosFamily,
+    CSubConParameterFamily::EAcceptable);
+
+// Set the acceptable Technology Specific Params
+accRel99Params-&gt;SetMaxSDUSize(512);
+
+// Now open the sub-connection as normal…
+………
+………
+// Create a new sub-connection
+subconn.Open(ss, RSubConnection::ECreateNew, conn);
+
+// Set Properties of the sub-connection
+subconn.SetParameters(subconParams);
+
+// Destroy parameters
+CleanupStack::PopAndDestroy();         // subconParams
+
+// Open a TCP socket on the sub-connection
+sock.Open(ss, KAfInet, KSockStream, KProtocolInetTcp, subconn);
+
+_LIT(KRasAddr,"10.159.24.13");
+const TInt KEchoPort = 7;
+
+TInetAddr destAddr;
+destAddr.Input(KRasAddr);
+destAddr.SetPort(KEchoPort);
+
+// Connect the Socket to the destination over the sub-connection
+sock.Connect(destAddr, status);
+User::WaitForRequest(status);
+
+// Fetch the granted qos
+RSubConParameterBundle grantedParams;
+subconn.GetParameters(grantedParams);
+</codeblock> </conbody></concept>

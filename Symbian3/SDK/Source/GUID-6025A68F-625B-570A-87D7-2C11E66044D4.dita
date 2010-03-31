@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6025A68F-625B-570A-87D7-2C11E66044D4" xml:lang="en"><title>Build
+FAQ</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This page gives some quick answers to problems and issues you may encounter
+when building code. </p>
+<p><b>Why do applications build to the Symbian Emulator's Z: drive? </b> </p>
+<p>The build tools were originally designed for building ROM-based applications,
+and so assume that applications should be placed in the emulated ROM area
+(i.e. <filepath>epoc32\release\winscw\udeb\ or urel\</filepath>). Third party
+applications intended to loaded on disk are also built to this location, but
+this doesn't mean they can only be installed in ROM or have any other impact
+on them. (Note that your code should not assume that it will be installed
+on any particular drive, as this is choice is best left to the user). </p>
+<p><b>Why does abld makefile give a WARNING: Can't find following headers
+in System Include Path message, even though I export the header(s) in my bld.inf? </b> </p>
+<p>You can specify that headers from your project should be copied into the
+system headers directory, <filepath>epoc32\include</filepath>, by using a <xref href="GUID-3A05CD69-0AB6-5549-B18A-842F49C06874.dita">prj_exports</xref> statement
+in the <filepath>bld.inf</filepath> file. The header is not actually copied
+though until an <systemoutput>abld export</systemoutput> command, or a command
+that calls this, such as <systemoutput>abld   build</systemoutput> is executed.
+The solution is to call <systemoutput>abld  export</systemoutput> before <codeph>abld
+makefile</codeph>. </p>
+<p><b>What Symbian platform tools can I cause to be invoked through a project
+file keywords? </b> </p>
+<p>The chief purpose of a project (<filepath>.mmp</filepath>) file is to specify
+the source files and options to pass to the appropriate compiler toolchain
+for the platform. In many cases though, you will want to create a number of
+additional, Symbian platform-specific, support files as part of the project
+build. You can invoke the tools to create such files by specifying a number
+of project file keywords: </p>
+<ul>
+<li id="GUID-333315F5-A398-558A-AA84-9D4DBAE692E7"><p><xref href="GUID-5280EC0E-1A1F-5777-ACB1-CF4791EE2147.dita">start
+resource</xref> to compile resource files </p> </li>
+<li id="GUID-D5B552A6-7FA8-5355-BEA5-1292982FD8F2"><p><xref href="GUID-B707887A-E0FA-5DF6-A906-A91E31E17321.dita">start
+bitmap</xref> to compile multi-bitmap files. </p> </li>
+</ul>
+<p>Of the other commonly used Symbian platform tools, the project file does
+not specify keywords that invoke the: </p>
+<ul>
+<li id="GUID-9F52256D-11AD-5074-8F33-F3570E32686A"><p><xref href="GUID-4BDC9F63-83A1-53A5-91A0-B092AA821755.dita">Installation
+File Generator</xref> (<filepath>makesis</filepath>) </p> </li>
+<li id="GUID-905AD8FA-29DE-5DE1-85FA-D22C64658C5A"><p><xref href="GUID-3170F958-137A-5DD5-A6DD-D5474ABECD22.dita">Certification
+Generator</xref> (<filepath>makekeys</filepath>) </p> </li>
+<li id="GUID-DB06BD93-6521-5B4F-BFEB-72235B396200"><p><b>Context
+Sensitive Help Compiler</b> (<filepath>cshlpcmp</filepath>)</p></li>
+</ul>
+<p>Note though you can invoke these, and any other tools, through <xref href="GUID-60B98AFE-6DE6-5086-B70C-F377562E60D9.dita">extension
+makefiles</xref>. </p>
+<p><b>What are edll.obj and eexe.obj? </b> </p>
+<p>The build process builds into each <filepath>.exe</filepath> file a small
+object file, <filepath>eexe.lib</filepath>, which contains a small amount
+of code to manage process startup. Similiarly, each DLL has an object file <filepath>edll.lib</filepath> built
+into it. </p>
+<p><b>Why does the build give a message diff: &lt;file-path-and-name&gt;: No
+such file or directory? </b> </p>
+<p>This message appears when building a project's resource or multi-bitmap
+file for the first time. It can be ignored. </p>
+<p><b>Why do I get a LNK2001: unresolved external symbol __chkstk error? </b> </p>
+<p>The program exceeds the stack space available, e.g. by creating a large <codeph>TBuf</codeph> on
+the stack. The solution is to reduce the use of stack space by using the heap
+appropriately. </p>
+<p><b>How can I change the libraries for a project open in an IDE? </b> </p>
+<p>To change a project's libraries, you should edit the <filepath>.mmp</filepath> file's <xref href="GUID-36AA53D2-A117-5D80-A5B4-67EF865DC40E.dita">library</xref> statement
+as normal, and then regenerate the IDE workspace using <systemoutput>abld
+makefile</systemoutput>. </p>
+<p><b>Where are the .lib files for ARM debug builds? </b> </p>
+<p>The <filepath>.lib</filepath> files required for ARM debug builds are identical
+to those for release builds, so the build tools use a single copy of the libs
+in the <filepath>urel</filepath> directory. </p>
+<p><b>Why do I get an error from petran when I build for ARM, when the WINS/WINSCW
+build is fine? </b> </p>
+<p> <filepath>petran</filepath> is a tool that is invoked only at the final
+stage of the build process for ARM targets. It will give an error if you build
+a DLL that contains writeable static data. See <xref href="GUID-5BDE6462-E6CA-5738-A587-C7D875574789.dita">Static
+data</xref> for more information. </p>
+</conbody></concept>

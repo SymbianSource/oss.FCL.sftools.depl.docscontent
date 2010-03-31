@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-72511204-FC90-54AA-9E2E-833318020318" xml:lang="en"><title>Reading
+to a Buffer</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial describes how to read the data from the table into a buffer. </p>
+<section id="GUID-2FC55195-ADCC-486A-8F48-6C199545436B"><title>Introduction</title> <p>This query allows you to retrieve
+the data in a field. You can retrieve one entry or multiple entries in the
+same column by executing the query in a loop. </p> </section>
+<section id="GUID-6221B43F-E095-43A6-8779-A95FBFEBFE5F"><title>Basic procedure</title> <p>The high level steps to read the
+data into the buffer are shown here: </p> <ol id="GUID-3E8A8F9B-DFC3-5809-93FF-899287668CC3">
+<li id="GUID-E42FA395-D5D4-5CE5-B6C2-4F81049D1973"><p>Configure the SQL statement. </p> </li>
+<li id="GUID-5C982F27-27E8-5AA1-A555-B7C54D3EB92F"><p>Allocate memory and
+copy data. </p> </li>
+<li id="GUID-CC3E796C-4637-50BF-BA10-559F72E9AD2D"><p>Deallocate memory. </p> </li>
+</ol> </section>
+<section id="GUID-B53573AE-EEF9-4477-8088-12059025054A"><title>Detailed steps</title> <p>The steps to read data to a buffer
+are as follows: </p> <p><b>Configure
+the SQL statement</b> </p> <p>Instantiate an <xref href="GUID-0176BF07-DF94-3259-8F90-DE030E35CE9A.dita"><apiname>RSqlStatement</apiname></xref> object
+and declare the variables as required. </p> <codeblock id="GUID-1948DBCA-AA3A-5856-B749-16A8A26FF4BC" xml:space="preserve">RSqlStatement myStatement;
+TInt err;</codeblock> <p><b>Allocate
+memory and copy data</b> </p> <p>To retrieve all the entries, use a loop.
+The steps to be performed within the loop are as described below: </p> <ol id="GUID-350EBCA3-166E-5B94-BACF-9A3FDF0B0E1D">
+<li id="GUID-F7E93B5F-793C-53C5-B97C-206589FC33AA"><p>Instantiate an object
+of the <xref href="GUID-BFBC574B-EFF6-37A4-9189-B71DA1505BC8.dita"><apiname>RBuf</apiname></xref> class. </p> <codeblock id="GUID-E2DB2F48-B1D6-5496-BF41-108E39F1C938" xml:space="preserve">while((err = myStatement.Next()) == KSqlAtRow)
+    {
+    RBuf myBuffer;</codeblock> </li>
+<li id="GUID-3E3552E9-42F2-5715-B5CB-1D0412B62D09"><p>Allocate enough memory
+to hold the column data using the <codeph>CreateL()</codeph> function as shown
+below. </p> <codeblock id="GUID-FD2C9AB5-BD1E-5FFF-A77F-27DD437663DA" xml:space="preserve">err = myBuffer.CreateL(myStatement.ColumnSize(columnIndex));</codeblock> </li>
+<li id="GUID-8E9C1C93-B5B2-5963-B418-FF16C1B873E7"><p>Copy the data from the
+table into the buffer using <xref href="GUID-58179FB4-4D5B-3FC4-BF51-1221D8EE4D71.dita"><apiname>ColumnBinary()</apiname></xref> function. </p> <codeblock id="GUID-B0EDB685-F549-5B67-ACFE-DEEF636E0066" xml:space="preserve">    err = myStatement.ColumnBinary(myColumnIndex,myBuffer);
+    ...
+    // process data</codeblock> </li>
+</ol> <p><b>Deallocate
+memory</b> </p> <p>Deallocate the memory assigned to the <codeph>RBuf</codeph> object. </p> <codeblock id="GUID-6C46064D-7B65-520E-B378-0BD689D4FD8F" xml:space="preserve">myBuffer.Close();
+    }</codeblock> </section>
+<section id="GUID-F0F18DB6-7D49-4515-8419-11830C5B22F7"><title>See also</title> <p><xref href="GUID-C60DAE3D-7FB9-5619-9E5D-476A430705AF.dita">Querying
+a Database</xref>  </p> <p> <xref href="GUID-B61EA8C5-0966-51DE-AC73-01DD34C7D3CC.dita">Deleting
+Rows from a Table</xref>  </p> <p>Reading to a buffer - This document </p> <p> <xref href="GUID-3CCA6503-54DA-5558-85DC-93A22A81F565.dita">Reading to Memory</xref>  </p> <p> <xref href="GUID-183280EE-0C57-54FE-8ABB-E1CC3BDE525B.dita">Reading to a Data Stream</xref>  </p> <p> <xref href="GUID-B9A3B17E-BDEB-5F66-968C-080335A721AC.dita">Writing to a Data Stream</xref>  </p> <p> <xref href="GUID-C474376E-1766-5781-B5BF-3786C5B4D72E.dita">Performing Scalar Queries</xref>  </p> </section>
+</conbody></concept>

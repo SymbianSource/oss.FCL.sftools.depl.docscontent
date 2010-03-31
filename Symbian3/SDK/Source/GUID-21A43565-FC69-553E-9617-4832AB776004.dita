@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-21A43565-FC69-553E-9617-4832AB776004" xml:lang="en"><title>Introduction
+to Threads and Processes</title><shortdesc>Programs consist of a number of processes, each of which contains
+one or more conceptually concurrent threads of execution.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p/>
+<p>A thread is the unit of execution within a process. Every time a process
+is initialized, a primary thread is created. For many applications the primary
+thread is the only one that the application requires; however, processes can
+create additional threads.</p>
+<p>Each user process has its own private address space, i.e. a collection
+of memory regions which that process can access. A user process cannot directly
+address memory areas in the address space of another process. There is also
+a special process, the Kernel process, whose threads run at supervisor privilege
+level. This process normally contains two threads:</p>
+<ul>
+<li id="GUID-00725755-A077-58CA-9AFE-1EDABCD56274"><p>the Kernel server thread,
+which is the initial thread whose execution begins at the reset vector, and
+which is used to implement all Kernel functions requiring allocation or de-allocation
+on the Kernel heap. This is the highest priority thread in the system.</p> </li>
+<li id="GUID-085FA786-6536-5778-A041-FD06BEF5D200"><p>the null thread, which
+runs only when no other threads are ready to run. The null thread places the
+processor into idle mode to save power.</p> </li>
+</ul>
+<p>Threads execute individually and are unaware of other threads in a process.
+The scheduling of threads is pre-emptive, i.e. a currently executing thread
+may be suspended at any time to allow another thread to run. </p>
+<p>Each thread is assigned a priority; at any time, the thread running is
+the highest priority thread which is ready to run. Threads with equal priority
+are time-sliced on a round-robin basis. Context switching between threads
+involves saving and restoring the state of threads. This state includes not
+only the processor registers (the thread context) but also the address space
+accessible to the thread (the process context). The process context only needs
+switching if a reschedule is between threads in different processes.</p>
+<p>Compare this with active objects which allow non pre-emptive multi-tasking
+within a single thread.</p>
+<p>A thread can suspend, resume, panic and kill another thread.</p>
+<p>When a thread is created it is put into a suspended state, it does not
+begin to run until that thread’s <codeph>Resume()</codeph> member function
+is called.</p>
+<p>When a thread is created, it is given the priority <codeph>EPriorityNormal</codeph> by
+default. The fact that a thread is initially put into a suspended state means
+that the thread priority can be changed (RThread::SetPriority()) before the
+thread is started (RThread::Resume()).</p>
+</conbody><related-links>
+<link href="GUID-5FBA9BB1-94A2-470C-9932-C4255E3774C0.dita"><linktext>Use Of Shared
+Memory Between Threads</linktext></link>
+</related-links></concept>

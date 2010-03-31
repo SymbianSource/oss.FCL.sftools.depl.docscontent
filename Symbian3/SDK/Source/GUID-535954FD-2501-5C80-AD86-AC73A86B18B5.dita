@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-535954FD-2501-5C80-AD86-AC73A86B18B5"><title>Internalising a Swizzle</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Internalising a Swizzle from a stream has assignment semantics.</p> <p>The process of internalisation assumes that the current position within the stream contains the external representation of a stream ID. The stream which corresponds to this ID contains the external representation of some object.</p> <p>The result is a Swizzle which represents the object by stream ID.</p> <p>The following code fragments illustrate the process. </p> <p><codeph>iB</codeph> is a <codeph>CClassB</codeph> type component of a class <codeph>CClassABC</codeph>, and is represented by a Swizzle. The data member is defined as:</p> <codeblock id="GUID-9941EE1B-A10C-5258-BA35-C78701B15A64" xml:space="preserve">class CCClassABC : public CBase
+    {
+    ...
+    TSwizzle&lt;CClassB&gt; iB;
+    ...
+    }
+</codeblock> <p>The example assumes that the stream ID of the swizzled object has been externalised as in <xref href="GUID-074F3499-54FE-58BC-A0F4-D8EA632AF76B.dita">Externalizing a Swizzle</xref>.</p> <p>CClassB's RestoreL() and InternalizeL() functions are implemented as:</p> <codeblock id="GUID-B3DD1B09-465F-5421-ACF4-768E12C8E6E2" xml:space="preserve">void CClassABC::RestoreL()
+          {
+          RStoreReadStream stream;
+          stream.OpenLC(iStore,iId);
+          InternalizeL(stream);
+          CleanupStack::PopAndDestroy();
+          }</codeblock> <codeblock id="GUID-3A9A58AD-A0F7-5707-B1CF-7F40B6C9ADC8" xml:space="preserve">void CClassABC::InternalizeL(RReadStream&amp; aStream)
+          {
+          ...
+          aStream &gt;&gt; iB; // internalises Swizzle from stream
+          ...
+          }</codeblock> <p>Here, <codeph>iId</codeph> is the stream ID containing <codeph>CClassABC</codeph> data.</p> <fig id="GUID-96F9A1CC-91BE-52A2-B9AE-F5BDC5308210"><image href="GUID-A89A50B6-2A3B-54E1-8157-6CC86AFE4A57_d0e363720_href.png" placement="inline"/></fig> </conbody></concept>

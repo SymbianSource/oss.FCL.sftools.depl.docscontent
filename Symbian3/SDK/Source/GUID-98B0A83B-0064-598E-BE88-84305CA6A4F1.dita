@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-98B0A83B-0064-598E-BE88-84305CA6A4F1" xml:lang="en"><title>Finding
+Keys</title><abstract><shortdesc>You can find a specific set of keys using the unified
+keystore. This section explains the process of finding keys. </shortdesc> <p>The
+unified keystore allows you to search all keys on a device regardless of which
+keystore they are in. </p> <p>You can specify a filter object that determines
+which keys are returned. The criteria by which you can filter the keys are
+as follows:<table id="GUID-3DF1621B-E407-43D7-B5EC-AE40FC7A9F27">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><b>Filter Criteria</b></entry>
+<entry><b>Description</b></entry>
+</row>
+<row>
+<entry>The key identifier</entry>
+<entry>Used when searching for a particular key.</entry>
+</row>
+<row>
+<entry>The key usage</entry>
+<entry>Used when searching for a key usage, for example encryption. </entry>
+</row>
+<row>
+<entry>The key owner UID</entry>
+<entry>Used when searching for a key owner.<p>Applications must use this to
+prevent them seeing insecure keys  that might have been added by a malicious
+application. </p></entry>
+</row>
+<row>
+<entry>The key algorithm</entry>
+<entry>Used when searching for a particular key algorithm, for example RSA.</entry>
+</row>
+</tbody>
+</tgroup>
+</table> </p> </abstract><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The following steps explain the process of finding keys in a keystore:</p></context>
+<steps id="GUID-E1B35E8F-3E58-4B3B-A816-CDEE0602224E">
+<step id="GUID-3781197E-1F7E-43C7-BD97-47EE3322C38E"><cmd>Create a file system
+session using an RFs object.</cmd>
+</step>
+<step id="GUID-29A3C0CB-A9B8-42CC-8A32-353664BCF8B6"><cmd>Create an object
+of type CUnifiedKeyStore using CUnifiedKeyStore::NewL() or CUnifiedKeyStore::NewLC(). </cmd>
+</step>
+<step id="GUID-EFE9A46D-CDF9-444E-B1DF-9BB78AEA4553"><cmd>Initialize the member
+functions and keystore using the asynchronous function CUnifiedKeyStore::Initialize().</cmd>
+</step>
+<step id="GUID-8A6A6604-F452-47CF-87C4-991444BB52C0"><cmd>Specify a filter
+object corresponding to the type of keys that are to be returned. </cmd>
+</step>
+<step id="GUID-A67D52B9-39FD-4BAE-80F0-BC53E6D985FE"><cmd>Use the CUnifiedKeyStore::List()
+function to list the filtered keys.</cmd>
+</step>
+</steps>
+<result><p>Keys are listed based on the specified filter criteria. </p> </result>
+<example><title>Example</title> <p>The following code snippet shows how to
+set a file system session object, initialize the keystore and its member functions,
+specify filter criteria for the types of keys to be listed, and then list
+the specific set of keys. </p> <codeblock id="GUID-2513B075-350E-5EE1-94CC-EC386D7C09A8" xml:space="preserve">
+
+//Create a file system session object
+RFs iFs;
+CleanupClosePushL(&amp;iFs);
+
+
+//Initialise the keystore and member functions
+CUnifiedKeyStore* keyStore = CUnifiedKeyStore::NewL(iFs);
+keyStore-&gt;Initialize(iStatus); //iStatus is a TRequestStatus object
+
+
+//Specify the filter criteria
+RPointerArray&lt;CCTKeyInfo&gt; iKeys; // This variable will contain the keys found
+TCTKeyAttributeFilter filter;
+filter.iOwner = KApplicationUID; // The UID of the key owner application
+filter.iUsage = EPKCS15UsageSign;    
+filter.iKeyAlgorithm = CCTKeyInfo::EDSA;
+
+
+//List keys based on specified filter criteria
+iKeyStore-&gt;List(iKeys, filter, iStatus);
+
+
+//Clean up
+CleanupStack::PopAndDestroy(); // iFs</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-C4389D60-2A8D-532D-9D92-E57B0CCD14CF.dita"><linktext>Unified Keystore</linktext>
+</link>
+</related-links></task>

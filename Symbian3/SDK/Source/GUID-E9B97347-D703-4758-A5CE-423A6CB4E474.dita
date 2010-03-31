@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E9B97347-D703-4758-A5CE-423A6CB4E474" xml:lang="en"><title>Embedding
+camera applications</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>In your applications, you can embed other applications that provide services,
+such as image capture and voice recording. For example, a multimedia messaging
+service (MMS) editor could embed the camera application to capture images
+and insert them in multimedia messages.</p>
+<p>Use the New File Service Client API to create a service client.</p>
+<note><p>The binary compatibility of the API plug-ins is not guaranteed either
+between platform versions or within a platform version. Test your application
+on each device model that the application can be installed on to ensure the
+best possible user experience. To prevent application installation on other
+than tested devices, define the product IDs (also called manufacturer IDs)
+in the <xref href="GUID-7F1B2577-2FEF-45F9-B32F-745DFE0F0D95.dita">package file</xref>.
+For more information, see <xref href="jar:GUID-35228542-8C95-4849-A73F-2B4F082F0C44.jar!/sdk/doc_source/ToolsAndUtilities94/Installing-ref/PKG_format/PKG_dependency.html" format="application/java-archive">Hardware/UI platform dependency</xref>.</p></note>
+<section id="GUID-A7CFB0D3-0F64-4BCA-93F1-28D7F2F892A0"><title>To embed camera
+applications</title><ol>
+<li id="GUID-B945513D-1DBA-46A5-BE66-20F36EF8E4B4"><p>Use the <codeph>CNewFileServiceClient</codeph> method
+to create a new file service client. </p><codeblock xml:space="preserve">CNewFileServiceClient* fileClient = NewFileServiceFactory::NewClientL();
+CleanupStack::PushL( fileClient );
+</codeblock></li>
+<li id="GUID-3CADBF28-0A9F-44C4-B7AF-AF9628E8F659"><p>Create an array to hold
+the file names for the resulting files.</p><codeblock xml:space="preserve">CDesCArray* fileNames = new ( ELeave ) CDesCArrayFlat( 1 );
+CleanupStack::PushL( fileNames );
+
+</codeblock></li>
+<li id="GUID-1D168D25-1D05-4A19-9811-1DA4394F0B1E"><p>Use generic parameters
+to control the service.</p><codeblock xml:space="preserve">CAiwGenericParamList* paramList = CAiwGenericParamList::NewLC();</codeblock></li>
+<li id="GUID-B4CDA320-B9F5-47F6-828B-91EC5B8820ED"><p>Specify image resolution.
+The application matches the value that you enter to the closest resolution
+supported (in pixels). Use the value (0,0) for the default MMS resolution,
+which is the lowest quality.</p><codeblock xml:space="preserve">TSize resolution( 1600, 1200 ); // 2 megapixels
+</codeblock><p>If the device has two cameras, the camera available at the
+time of launching the service client is used. You cannot select whether to
+launch the primary or secondary camera. Users cannot switch from the primary
+camera to the secondary one after launching the service client. The secondary
+camera always uses a fixed resolution that you cannot specify.</p></li>
+<li id="GUID-DBB7629D-604E-40B7-8C2E-BA3D439C77F9"><p>Package the object.</p><codeblock xml:space="preserve">TPckgBuf&lt;TSize&gt; buffer( resolution );
+TAiwVariant resolutionVariant( buffer );
+TAiwGenericParam param( EGenericParamResolution, resolutionVariant );
+paramList-&gt;AppendL( param );
+</codeblock></li>
+<li id="GUID-206F9549-5A8E-42D1-841E-6DA9A28A061D"><p>Specify the application
+to launch. The application UID identifies the application to be started as
+a server application. </p><codeblock xml:space="preserve">const TUid KUidCamera = { 0x101F857A }; // Camera UID for S60 5th edition
+
+...
+
+TBool result = fileClient-&gt;NewFileL( KUidCamera, *fileNames, paramList,
+                               ENewFileServiceImage, EFalse );
+</codeblock></li>
+<li id="GUID-4C0A3DB0-F8AA-4E75-974E-2AA062268480"><p>Access the images. The <codeph>fileNames</codeph> array
+can hold more than one item.</p><codeblock xml:space="preserve">if ( result )
+    {
+    CEikonEnv::InfoWinL(_L("Success"),_L(""));
+    for(TInt i=0;iCount();i++)
+       {
+       TPtrC fileName=fileNames-&gt;MdcaPoint(i);
+       ...
+}
+else
+    {
+    CEikonEnv::InfoWinL(_L("Failed"),_L(""));
+    }
+
+CleanupStack::PopAndDestroy( fileClient );
+CleanupStack::PopAndDestroy( paramList );
+CleanupStack::PopAndDestroy( fileNames );</codeblock></li>
+</ol></section>
+</conbody></concept>

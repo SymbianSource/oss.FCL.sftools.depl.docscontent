@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3631971E-424B-5B10-B44C-98FB7C265843" xml:lang="en"><title>Kernel
+services</title><shortdesc>Describes asynchronous services provided by the kernel.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Many asynchronous services are provided to user threads by the kernel.</p>
+<p>The <codeph>RTimer</codeph> class is an example. It includes functions
+such as:</p>
+<codeblock id="GUID-9BF774FC-9DA2-5426-A4C5-F6A9DCB7E889" xml:space="preserve">After(TRequestStatus &amp;aStatus,TTimeIntervalMicroSeconds32 anInterval);</codeblock>
+<p>This makes a timer request that completes after a given number of microseconds.</p>
+<p>The <codeph>RTimer</codeph> class is a client-side handle to the kernel’s
+timer service. When an <codeph>RTimer</codeph> is opened, using its <codeph>CreateLocal()</codeph> function,
+a Kernel object is created which holds the state of the timer and the ID of
+the client’s thread. When a request function is issued, the client-side handle:</p>
+<ul>
+<li id="GUID-D7D4F444-C1CB-5FEA-B885-FDC6764CE093"><p>sets the passed <codeph>TRequestStatus</codeph> to <codeph>KRequestPending</codeph> </p> </li>
+<li id="GUID-0CB9A142-ED99-5455-B503-B9AB78F43993"><p>sends a message to the
+Kernel identifying the <codeph>RTimer</codeph> client-side handle, the <codeph>TRequestStatus</codeph> object
+and the time interval in microseconds.</p> </li>
+<li id="GUID-04280A19-96A4-526A-9E5A-7295112A16F0"><p>returns to the caller.</p> </li>
+</ul>
+<p>When the Kernel side timer completes, it posts the <codeph>TRequestStatus</codeph> with
+a completion code, normally <codeph>KErrNone</codeph>, and uses the thread
+id stored with the Kernel side timer object to signal the thread’s request
+semaphore.</p>
+<p>Provision of asynchronous services by the Kernel involves sending messages
+between the client thread and the Kernel.</p>
+<p>The Kernel provides the most basic services available. Its main services
+are defined in <filepath>e32std.h</filepath>, including timing, notification
+and the classes used in the client-server framework.</p>
+</conbody></concept>

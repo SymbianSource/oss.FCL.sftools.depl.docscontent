@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-F2E86FB3-C634-5CF9-87B2-EAB18BF25C4B"><title> TLS Look-up Reduction Tutorial </title><shortdesc>This task describes how to reduce Thread Local Storage (TLS) look-ups when allocating MBufs. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context id="GUID-67DCAC1D-896C-55B3-96E8-C38A93B7EFDE"><p>If you allocate an MBuf with a simple <codeph>RMBufChain::Alloc()</codeph> or <codeph>RMBufChain::Alloc(size)</codeph> call, the thread performs a context-switch to retrieve the pointer to the Comms pond from the TLS. The context-switch is a processor-intensive operation. To reduce the number of TLS look-ups, use a <xref href="GUID-5E763DBF-2C22-3335-9D80-89783095D5AA.dita"><apiname>RMBufAllocator</apiname></xref> object, which keeps a local copy of the pointer to the pond. </p> <p>The <codeph>RMBufAllocator</codeph> acts as a cache so that the allocation methods do not need to perform a TLS look-up each time they are called. </p> <p>The classes that frequently allocate Comms chains define the <codeph>RMBufAllocator</codeph> object as a member, instantiate it once, and then pass it to the methods of the <xref href="GUID-E0ADB108-D3B2-3670-907D-2AE595BECE3F.dita"><apiname>RMBuf</apiname></xref> and <xref href="GUID-F024208C-ED19-3301-85C1-53F397C9910F.dita"><apiname>RMBufChain</apiname></xref> classes. For most of the methods that may cause an allocation, such as <codeph>Alloc()</codeph>, <codeph>Append()</codeph> or <codeph>Split()</codeph>, you should call the overloaded version that passes a <codeph>RMBufAllocator</codeph> parameter. There is no TLS look-up when you call these functions. </p> </context> <example id="GUID-6C44C52D-BEA1-5350-8872-27A3D83A46BF"><title>Reduce TLS look-up example</title> <p>The following example creates an <xref href="GUID-5E763DBF-2C22-3335-9D80-89783095D5AA.dita"><apiname>RMBufAllocator</apiname></xref> object and uses it when allocating MBufs: </p> <codeblock id="GUID-C8598472-3A6C-5122-99B8-BAFA49658A12" xml:space="preserve">class RDataSource {
+   private:     
+      // [...]
+      RMBufAllocator iAllocator;
+                        RMBufChain iReceived;
+
+public: 
+      // [...]
+      TInt InitBuffer();
+
+}
+
+// [...]
+
+TInt InitBuffer()
+{
+   // Request buffer and provide the allocator
+   iReceived.Alloc(1204,iAllocator);
+}
+
+</codeblock> <p>See the reference documentation of <xref href="GUID-E0ADB108-D3B2-3670-907D-2AE595BECE3F.dita"><apiname>RMBuf</apiname></xref>, <xref href="GUID-F024208C-ED19-3301-85C1-53F397C9910F.dita"><apiname>RMBufChain</apiname></xref>, <xref href="GUID-4FB33BFE-DCF7-3B77-A447-F9C049DF86CB.dita"><apiname>RCommsBuf</apiname></xref>, and <xref href="GUID-107ADE6D-7AFF-3B07-9606-BCA33A3B63EF.dita"><apiname>RCommsBufChain</apiname></xref> for the list of methods passing an allocator. </p> </example> </taskbody><related-links><link href="GUID-55E4D84B-1B90-5BA4-9CE0-6D26EA208F13.dita"><linktext>Overview</linktext> </link> <link href="GUID-B4F15CA3-CAD4-5A87-9610-A656CA337B72.dita"><linktext>Comms Buffers (MBuf)
+                and Comms Chains</linktext> </link> <link href="GUID-F0891698-F714-55AA-A089-790BB0B07AE4.dita"><linktext>Allocation tutorial</linktext> </link> </related-links></task>

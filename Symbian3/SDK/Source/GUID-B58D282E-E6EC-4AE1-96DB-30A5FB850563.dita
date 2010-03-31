@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B58D282E-E6EC-4AE1-96DB-30A5FB850563" xml:lang="en"><title><codeph>exec()</codeph> without
+forking using <codeph>posix_spawn()</codeph></title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A UNIX® program may exec without forking. The result is that the calling
+process executes another binary, but inherits certain properties, for example,
+file descriptors.  </p>
+<p>The P.I.P.S. equivalent would be to call <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref> and
+pass any inherited data via <codeph>argv</codeph> parameters.  </p>
+<p>Note that if a parent process is waiting for the child to terminate then
+the termination of the newly created task must be synchronised. Therefore
+a <xref href="GUID-8F5C89A4-7813-32C7-973E-F7F0F3690BC6.dita"><apiname>waitpid()</apiname></xref> call should follow the <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref> call
+so that it does not exit prematurely. Otherwise <xref href="GUID-FED685F4-5FAD-39F4-9812-3B0A85D8718C.dita"><apiname>exit()</apiname></xref> can
+be called after the posix_spawn().  </p>
+<p>Also, note that if the process which formerly executed and which now uses <xref href="GUID-E7C4DE71-BC5B-34AE-ACB3-C34A0DB1FC16.dita"><apiname>posix_spawn()</apiname></xref> stores
+its PID (for example, in the file system) to allow other processes to target
+it, then care must be taken to store the relevant PID (Process ID). This is
+because the PID for the newly spawned process may need to be stored instead.</p>
+</conbody></concept>

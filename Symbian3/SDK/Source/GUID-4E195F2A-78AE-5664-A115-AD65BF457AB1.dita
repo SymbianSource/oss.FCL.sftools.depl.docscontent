@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4E195F2A-78AE-5664-A115-AD65BF457AB1" xml:lang="en"><title>System
+Monitor</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The System Monitor (SysMon) provides a Process Monitor and Restart service.
+Its clients are typically the System Starter and After Market Starter which
+use information in static and dynamic startup configurations (SSC &amp; DSC)
+to set the restart parameters. </p>
+<p>An application or process may also add itself to the System Monitor's list. </p>
+<p>Use of the System Monitor API is restricted by capabilites of the client: </p>
+<ul>
+<li id="GUID-8F39C454-1FDB-5907-B189-234EE3F61EF1"><p> <b>WriteDeviceData</b> is
+required to request a process restart, </p> </li>
+<li id="GUID-0DB11E09-A380-5522-8385-5D439CCC9774"><p> <b>ProtServ</b> is
+required to request an OS restart into Normal mode </p> </li>
+<li id="GUID-82701B6E-BBBE-5925-8D20-871C21AB94D5"><p> <b> PowerMgmt</b> is
+required to request a restart into Startup mode </p> </li>
+</ul>
+<p>The system monitor API is simple and self explanatory. A client must instantiate
+an <xref href="GUID-19467402-8575-33F0-817D-339D39982D39.dita"><apiname>RSysMonSession</apiname></xref>, connect to the SysMon server and open
+[the session]. </p>
+<codeblock id="GUID-2017D6A5-BA32-5DAC-820A-A862A0F381B8" xml:space="preserve">
+// sysmonclisess.h
+//
+// Copyright (c) 2006 Symbian Software Ltd.  All rights reserved.
+//
+
+#include &lt;e32std.h&gt;
+#include &lt;e32base.h&gt;
+#include &lt;startupproperties.h&gt;
+#include "startup.hrh"
+
+class RSysMonSession : public RSessionBase
+{
+public:
+    IMPORT_C TInt Open() ;
+    IMPORT_C void Close() ;
+    
+    IMPORT_C TInt MonitorL(CStartupProperties&amp; aStartupProperties, RProcess&amp; aProcess) ;    
+    
+    IMPORT_C TInt MonitorSelfL(CStartupProperties&amp; aStartupProperties) ;
+    IMPORT_C TInt CancelMonitorSelf() ;    
+        
+} ;</codeblock>
+<p>Monitoring is started with a call to <codeph>MonitorL()</codeph> or <codeph>MonitorSelfL()</codeph>.
+Before calling one of these functions, however, a <xref href="GUID-90F95A8A-A901-3987-99ED-57F1A57F1C09.dita"><apiname>CStartupProperties</apiname></xref> object
+must be created and populated with the desired monitoring and restart configuration. </p>
+<p> <xref href="GUID-90F95A8A-A901-3987-99ED-57F1A57F1C09.dita"><apiname>CStartupProperties</apiname></xref> has a series of <codeph>Set...()</codeph> functions
+which are used to determine the monitoring and restart behaviour for the application
+or process to be monitored. It has a version number (returned by the <codeph>Version()</codeph> function)
+as it is designed to remain compatible with future Symbian extensions. </p>
+<p>The following snippet shows how a process might add itself to SysMon, specifying
+that it should be restarted in the event of failure and that, if it cannot
+be restarted, the device should be rebooted. </p>
+<codeblock id="GUID-AE7B448B-BDC6-53D3-A429-3B28E5638DD5" xml:space="preserve">
+...
+// Add this application to SysMon.
+
+// (Note that this is normally done by SysStart or AmaStarter using information in an SSC or DSC.)
+
+RSysMonSession sysMon ;
+TInt err = sysMon.Connect() ;
+   // handle error
+
+err = sysMon.Open() ;
+   // handle error
+
+_LIT( KFileName, "Z:\\sys\\bin\\myServ.exe" ) ;
+_LIT( KRestartArg, "-restart" ) ; 
+
+CStartupProperties startupProperties = CStartupProperties::NewLC( KFileName, KRestartArg ) ;
+
+startupProperties-&gt;SetStartupType( EStartProcess) ; // TStartupType
+startupProperties-&gt;SetStartMethod( EWaitForStart ) ; // TStartMethod
+startupProperties-&gt;SetNumberOfRetries( KRetryCount ) ;
+startupProperties-&gt;SetTimeout( KRestartTimeout ) ; // timeout in milliseconds
+startupProperties-&gt;SetRecoveryParams( ERestartOS , KNormalMode ) ;  // TRecoveryMethod, modes are device specific  
+startupProperties-&gt;SetMonitored( ETrue ) ; // montoring enabled
+startupProperties-&gt;SetViewless( ETrue ) ;
+startupProperties-&gt;SetStartInBackground( ETrue ) ;
+
+
+err = sysMon.MonitorSelfL( *startupProperties ) ;
+   // handle error
+
+CleanupStack::PopAndDestroy( startupProperties ) ;
+sysMon.Close() ;
+...
+
+</codeblock>
+<p><b>Setting up Monitoring in an SSC </b> </p>
+<p>Process monitoring is normally configured for processes and applications
+using <xref href="GUID-F118988C-47C9-3AF0-BCD2-150CAA5508C3.dita"><apiname>START_PROCESS_INFO2</apiname></xref> and <xref href="GUID-FFC386AF-61B6-39F8-90BB-5AD94190E5D6.dita"><apiname>START_APP_INFO2</apiname></xref> resources
+in an SSC. These are defined in <filepath>sysstart.rh</filepath>. </p>
+<p>Note that these structures add <b>monitor</b>, <b>startup mode</b> and
+a <b>localisable error message</b> to <xref href="GUID-41FDADC6-D207-341F-BA5E-BF7F9CF99601.dita"><apiname>START_PROCESS_INFO</apiname></xref> and <xref href="GUID-4CE505AC-FDD9-3155-8141-C54C5EEB259E.dita"><apiname>START_APP_INFO</apiname></xref>. </p>
+<codeblock id="GUID-5E4F5ED2-DE43-51D1-A99C-A8864376C2BC" xml:space="preserve">
+STRUCT START_PROCESS_INFO2                  // For starting processes
+    {
+    WORD type = EStartupProcess2;           // do not change
+    LTEXT path = "";                        // VALUE REQUIRED
+    LTEXT args = "";                        // Passed to the command line of the started process
+    WORD start_method = EFireAndForget;     // can also be EWaitForStart or EDeferredWaitForStart
+    LONG timeout = 0;                       // In milliseconds only used for EWaitForStart
+    WORD retry_failure_recovery_method = ERestartOS;     // can be EIgnoreCommandFailure
+    WORD no_of_retries_on_failure = 0;      // only used for EWaitForStart
+    WORD monitor = 0;                       // can be 1 if monitoring required
+    WORD retry_failure_recovery_startup_mode = -1;
+    LTEXT localisable_resource_file="";
+    LONG localisable_resource_id=0;         // used when fail_on_error= EinformUserOnFailure
+    }
+</codeblock>
+<codeblock id="GUID-73B02FE6-928F-55DF-9139-93355D04CFC5" xml:space="preserve">
+STRUCT START_APP_INFO2                      // For starting apps
+    {
+    WORD type = EStartupApp2;               // do not change
+    LTEXT path = "";                        // VALUE REQUIRED
+    LTEXT args = "";                        // Ignored
+    WORD start_method = EFireAndForget;     // can also be EWaitForStart or EDeferredWaitForStart
+    WORD viewless = 0;                      // can be 1
+    WORD start_in_background = 0;           // can be 1
+    LONG timeout = 0;                       // In milliseconds only used for EWaitForStart
+    WORD retry_failure_recovery_method = ERestartOS;     // can be EIgnoreCommandFailure
+    WORD no_of_retries_on_failure = 0;      // only used for EWaitForStart
+
+    WORD monitor = 0;                       // can be 1 if monitoring required
+    WORD retry_failure_recovery_startup_mode = -1;
+    LTEXT localisable_resource_file="";
+    LONG localisable_resource_id=0;         // used when fail_on_error= EinformUserOnFailure
+    }
+</codeblock>
+
+
+</conbody></concept>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5B3F5296-D6D0-5D25-8362-141DF5927E52" xml:lang="en"><title>Troubleshooting</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic describes how to troubleshoot issues that you may face while
+writing or building Std C++ code on the Symbian platform. </p>
+<section id="GUID-04238416-930E-4286-9610-F39C34A52CBD"><title>Errors while building Std C++ Code </title> <p> <b>Problem</b>  </p> <p>You
+may get a build error when you create a static library as illustrated in the
+following code and link it with an <codeph>STDEXE</codeph>. </p> <p>The <filepath>.mmp</filepath> file
+of the static library: </p> <codeblock id="GUID-24E1CFD7-2B90-5608-A0B4-49A0D4730B22" xml:space="preserve">//operator_new_failure_example_lib.mmp
+Target             operator_new_failure_example_lib.lib
+Targettype        lib
+Source            op_new_in_lib.cpp
+Systeminclude        /epoc32/include/stdapis/stlportv5
+Systeminclude        /epoc32/include/stdapis</codeblock> <p>The <filepath>.cpp</filepath> file
+of <codeph>operator new</codeph> reference in the static library example: </p> <codeblock id="GUID-53202569-286A-5E39-9530-6077E2E1F740" xml:space="preserve">// op_new_in_lib.cpp contents
+#include &lt;new&gt;
+int doSomething()
+    {
+    try
+        {
+        int *ptr = new int(0); // This refers the StdC++ operator new
+        //do something more…
+        }
+        catch (std::bad_alloc)
+        {
+        return 1;
+        }
+    delete ptr;
+    return 0;
+    }</codeblock> <p>The <filepath>.mmp</filepath> file of the <codeph>STDEXE</codeph> that
+links with the static library: </p> <codeblock id="GUID-7A60B16A-3AD8-50B2-8F17-84338291A4E8" xml:space="preserve">//operator_new_failure_example.mmp
+Target             operator_new_failure_example.exe
+Targettype        stdexe
+Source            op_new_in_stdexe.cpp
+Systeminclude        /epoc32/include/stdapis/stlportv5
+Systeminclude        /epoc32/include/stdapis
+Library            libstdcppv5.lib libc.lib
+Staticlibrary        operator_new_failure_example_lib.lib
+Capability        all -tcb</codeblock> <p>The <filepath>.cpp</filepath> file
+of <codeph>operator new</codeph> reference in static library example: </p> <codeblock id="GUID-53419423-2116-5B6C-A3A7-6AFBD039321C" xml:space="preserve">// op_new_in_stdexe.cpp contents looks as follows:
+int main()
+    {
+    // the doSomething function is defined in the static library operator_new_failure_example_lib.lib that this exe is linking against.
+    return doSomething();
+    }</codeblock> <p> <b>Solution</b>  </p> <p>The build error is caused because
+this code violates rule 5 under the <xref href="GUID-C9D4D586-58BF-5676-A53F-9C3A51101430.dita">Guidelines
+for Writing Standard C++ Libraries</xref> section. As per the rule, a static
+library of target type <codeph>LIB</codeph> cannot be linked against an <codeph>STDEXE</codeph> or <codeph>STDDLL</codeph>,
+unless it has the <codeph>MMP</codeph> keyword, STDCPP in its <filepath>.mmp</filepath> file. </p> <p>You
+can fix the build error by adding <codeph>STDCPP</codeph> in the <filepath>operator_new_failure_example_lib.mmp</filepath> file
+as shown in the following code: </p> <codeblock id="GUID-8EA4BD46-ADBC-5243-9B3A-14BCA2767424" xml:space="preserve">//operator_new_failure_example_lib.mmp
+Target             operator_new_failure_example_lib.lib
+Targettype        lib
+//The STDCPP keyword specifies Standard C++ 
+STDCPP
+Source            op_new_in_lib.cpp
+Systeminclude        /epoc32/include/stdapis/stlportv5
+Systeminclude        /epoc32/include/stdapis</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-D6BEAF0D-844D-51F4-8DB7-FB1D60E17FE3.dita"><linktext>Copyright
+Acknowledgments for Standard C++                 (STLport)</linktext></link>
+<link href="GUID-F7FEB759-E64D-5B6D-9017-C5E982E4FC16.dita"><linktext>Standard
+C++ Library Overview</linktext></link>
+<link href="GUID-2CCD1748-9EDE-5383-9941-A3051E06F3E2.dita"><linktext>Standard
+C++ Support on the Symbian Platform</linktext></link>
+<link href="GUID-CDE8CD85-8467-5B36-A0AC-41D1D98151CA.dita"><linktext> Developing
+Applications or Libraries                 Using Standard C++</linktext></link>
+<link href="GUID-E331B72B-84AF-558A-9B8F-73E5E50B58C7.dita"><linktext>Building
+a Standard C++ Application or                 Library</linktext></link>
+<link href="GUID-D32E52C9-F05C-5F1E-8B49-243D555C353C.dita"><linktext>Known Issues</linktext>
+</link>
+</related-links></concept>

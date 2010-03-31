@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-788031A5-75C1-420E-9E2B-71E09FF08ADF" xml:lang="en"><title>Example
+using <codeph>E32Main()</codeph></title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A simple example using <codeph>E32Main()</codeph> as an entry point is
+described below. The example writes a text to a file. </p>
+<ul>
+<li><p>Modify the MMP file as mentioned earlier.</p></li>
+<li><p>Create a trap handler using <xref href="GUID-17AC7BAD-1C03-3729-BCC6-F5B28B32E99D.dita"><apiname>CTrapCleanup</apiname></xref>.</p></li>
+<li><p>Call the method within <codeph>TRAPD</codeph>.</p></li>
+<li><p>Delete the trap handler. </p></li>
+</ul>
+<codeblock xml:space="preserve">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;e32base.h&gt;
+
+void doExampleL(void)
+{
+    FILE* fd;
+    char* fileName = "C:\\test.txt";
+    char *buf = "Hello world from E32Main()";
+    fd = fopen(fileName, "w");
+    if (fd == NULL)
+    {
+        printf("Unable to open the file (%s)", fileName);
+        return;
+    }
+    if (fwrite(buf, sizeof(char), strlen(buf), fd) &lt; 0 )
+    {
+        perror("write fails.");
+    }
+    fclose(fd);
+}
+
+GLDEF_C TInt E32Main()
+    {
+    CTrapCleanup* cleanup=CTrapCleanup::New();
+    TRAPD(error,doExampleL());
+    delete cleanup; // destroy cleanup stack
+    return 0; // and return
+    }
+</codeblock>
+</conbody></concept>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0371FD21-D988-4560-891F-2840C36AB2E2" xml:lang="en"><title>Out
+of Memory Error</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An Out of Memory (OOM) error occurs if an application allocates large amount
+of RAM in too short time. In such situations, the free RAM level drops as
+the application allocates RAM faster than the OOM Monitor can release RAM
+from other applications.</p>
+<p>To avoid this OOM Monitor has the <codeph>KOomMaxAllocationWithoutPermission</codeph> constant.
+It defines the maximum amount of RAM that an application can safely allocate
+within two seconds without OOM Monitor's permission.</p>
+<p> The <codeph>KOomMaxAllocationWithoutPermission</codeph> value defined
+in the OOM Monitor header file cannot not be modified. The RAM can be allocated
+quickly in small pieces as long as the total amount of allocated RAM within
+two seconds is less than <codeph>KOomMaxAllocationWithoutPermission</codeph>. </p>
+<p>If an application needs to allocate more RAM than <codeph>KOomMaxAllocationWithoutPermission</codeph> value,
+it must request permission from the OOM Monitor. OOM Monitor provides two
+different methods for this purpose. <ul>
+<li><p><xref href="GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73.dita#GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73/GUID-BE322080-5193-3D8E-9425-C6BEA920ED2E"><apiname>ROomMonitorSession::RequestFreeMemory()</apiname></xref> is used
+for mandatory RAM allocation. For more information, refer to <xref href="GUID-50CA5439-29A1-426C-83BA-EC048FE86CDE.dita">Allowing
+Large Memory Allocation</xref>.</p></li>
+<li><p><xref href="GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73.dita#GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73/GUID-D0AD593E-3C07-34B5-B8A2-24AABA42AFD7"><apiname>ROomMonitorSession::RequestOptionalRam()</apiname></xref> is used
+for optional RAM allocation. For more information, refer to <xref href="GUID-217C992B-AC56-42A7-9920-DEC891D233A5.dita">Allowing
+Optional RAM Allocation</xref>.</p></li>
+</ul> OOM error can still occur in the following situations:</p>
+<ul>
+<li><p>An application allocates more than <codeph>KOomMaxAllocationWithoutPermission</codeph> amount
+of RAM within two seconds without OOM Monitor's permission. And the OOM Monitor
+cannot release the RAM fast enough for the application.</p></li>
+<li><p>An application allocates less than <codeph>KOomMaxAllocationWithoutPermission</codeph> amount
+of RAM within two seconds but </p><ul>
+<li><p>some applications do not release RAM quickly enough when requested
+(OR)</p></li>
+<li><p>several applications allocate RAM at the same time.</p></li>
+</ul></li>
+</ul>
+<p>Therefore it is important that all applications are prepared to handle
+OOM errors. </p>
+<section id="GUID-77B379F3-1ECA-4C62-A9C9-720C8882ED43"><title>Closing an
+application on the OOM Monitor request</title><p>To avoid an OOM error, applications
+must terminate itself without any delay whenever the OOM Monitor requests
+so. Otherwise the time of free RAM amount below <keyword>LOW_RAM_THRESHOLD</keyword> gets
+longer and another application can allocate RAM during that time resulting
+in an OOM error.</p><p>Applications when closed by the OOM Monitor receives <codeph>EEikCmdExit</codeph> event.</p></section>
+</conbody></concept>

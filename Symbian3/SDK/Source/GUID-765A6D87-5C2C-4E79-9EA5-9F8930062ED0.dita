@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-765A6D87-5C2C-4E79-9EA5-9F8930062ED0" xml:lang="en"><title>Enabling
+MHTTPDataOptimiser for a session</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You must use the <codeph>RHTTPSession::SetupHTTPDataOptimiser()</codeph> function
+of the <codeph>RHTTPSession</codeph> class to enable the <codeph>MHTTPDataOptimiser</codeph> implementation
+for a session. The following code illustrates the <codeph>RHTTPSession</codeph> class: </p>
+<codeblock id="GUID-1635E0AC-8119-5575-934F-A292D7C04D40" xml:space="preserve">class RHTTPSession 
+{
+public:
+……    
+
+RHTTPSession::SetupHTTPDataOptimiser (MHTTPDataOptimiser&amp; aHTTPOptimiser);
+
+MHTTPDataOptimiser* RHTTPSession::HTTPDataOptimiser ();
+
+};</codeblock>
+<p>For a session, if you want to prevent a transaction from using the MHTTPDataOptimiser
+implementation, see the <xref href="GUID-F0ABCDE5-F818-526A-81EB-E2D4D87E3231.dita#GUID-F0ABCDE5-F818-526A-81EB-E2D4D87E3231/GUID-BF90ED54-70D7-574C-8A4D-1C74270A3883">Overriding
+the optimiser for a session</xref> section. </p>
+<p> <b>Note:</b> For more information about how to enable the <codeph>MHTTPDataOptimiser</codeph> implementation
+for a session, see the <xref href="GUID-F0ABCDE5-F818-526A-81EB-E2D4D87E3231.dita#GUID-F0ABCDE5-F818-526A-81EB-E2D4D87E3231/GUID-F8AA1DE9-791E-5954-84E8-ACCBDFB8D3E3">HTTP
+Whole Message Filter example</xref> section. </p>
+<section id="GUID-A527468C-12FE-56FB-8FA2-6EF75E3B31D5"><title>Overriding
+the optimiser for a session</title> <p>By default, if the <codeph>MHTTPDataOptimiser</codeph> implementation
+is enabled for a session, it applies to all transactions within the session
+when the <codeph>MHTTPDataOptimiser</codeph> implementation is not enabled
+for individual transactions. In a scenario where you want to prevent a particular
+transaction (for which <codeph>MHTTPDataOptimiser</codeph> implementation
+is not enabled) of a session from using the <codeph>MHTTPDataOptimiser</codeph> implementation
+of the session, set the <codeph>EHTTPTransOptimiser</codeph> property with
+the value <b>EDisableHTTPTransOptimiser</b> on that transaction. </p> <p>The
+following code illustrates how to set the <codeph>EHTTPTransOptimiser</codeph> property: </p> <codeblock id="GUID-0813EB6E-29B7-56D1-9AFC-60E7EDB8AE18" xml:space="preserve">// HTTP session object
+RHTTPSession sess; 
+
+// The MHTTPDataOptimiser implementation is enabled for a session.
+sess.SetupHttpDataOptimiser(*this); 
+
+// HTTP transaction object
+RHTTPTransaction trans = sess.OpenTransactionL(const TUriC8&amp;, MHTTPTransactionCallback&amp;, RStringF);
+THTTPHdrVal disableOptimiser(sess.StringPool().StringF(HTTP::EDisableHTTPTransOptimiser,    RHTTPSession::GetTable()));
+trans.PropertySet().SetPropertyL(sess.StringPool().StringF(HTTP::EHTTPTransOptimiser,    RHTTPSession::GetTable()), disableOptimiser);
+</codeblock> </section>
+</conbody></concept>

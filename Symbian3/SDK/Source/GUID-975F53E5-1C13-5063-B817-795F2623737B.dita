@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-975F53E5-1C13-5063-B817-795F2623737B" xml:lang="en"><title>Sharable
+sessions</title><shortdesc>Describes how a session can be shared by threads.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A session can be shared by threads provided the server is marked as supporting
+shared sessions. </p>
+<section id="GUID-33D699D4-50DD-4B46-BFEA-8E9AD46C66C1"><title>Sharing</title> <p>Once a server has started, and a client
+has connected to that server (by creating a session), then the client thread
+can make the session sharable. There are two types of sharing: </p> <ul>
+<li id="GUID-4AF39204-BA70-50CB-9D13-185655322A1D"><p>where the session is
+sharable among all threads belonging to the same process as the originating
+thread. </p> </li>
+<li id="GUID-69DFB418-D434-58B0-A27E-57C053C822A5"><p>where the session is
+sharable among all threads in the system, i.e. across all processes. </p> </li>
+</ul> <p>A server must support the creation of sharable sessions, otherwise
+an attempt to make a session sharable panics the calling thread. Servers can
+be created to be either unsharable, sharable among threads in the same process,
+or sharable among all threads in the system. </p> <p><b>Sharing
+a session among threads in a single process</b> </p> <p>There are two ways
+of doing this: </p> <ul>
+<li id="GUID-285E2AE9-DEB7-502E-B8B2-47D3B45F50EB"><p>if the session has already
+been created, then call <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-0A453CA9-9DF7-35B8-963E-D75763626136"><apiname>RSessionBase::ShareAuto()</apiname></xref>, which
+has the effect of mutating the handle from a thread relative handle to a process
+relative handle. The handle can then be shared by the threads. Until this
+function is called, the session is specific to the originating thread, and
+cannot be used by any other thread. </p> </li>
+<li id="GUID-BD414669-EE7A-5821-A591-12D77CD0FBA9"><p>if the session has not
+yet been created, then create the session as sharable from the beginning using
+one of the overloads of <codeph>RSessionBase::CreateSession()</codeph> that
+takes a <codeph>TIpcSessionType</codeph> argument - <i>this is the preferred
+method</i>  </p> </li>
+</ul> <b>Sharing
+a session among threads across all processes</b><p> There are two ways of
+doing this:<ul>
+<li><p>if the session has already been created, then call <xref href="GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6.dita#GUID-6D8A458C-9A39-3000-A3BC-060A2A3663E6/GUID-943BCB86-1497-3940-BDA5-6DB1767DA395"><apiname>RSessionBase::ShareProtected()</apiname></xref>,
+which has the effect of mutating the handle from a thread relative handle
+to a process relative handle; this is also protected and can be passed to
+another process. The handle can then be shared by the threads. Until this
+function is called, the session is specific to the originating thread, and
+cannot be used by any other thread.</p></li>
+<li><p>if the session has not yet been created, then create the session as
+sharable from the beginning using one of the overloads of <codeph>RSessionBase::CreateSession()</codeph> that
+takes a <codeph>TIpcSessionType</codeph> argument - <i>this is the preferred
+method</i></p></li>
+</ul></p> </section>
+<section id="GUID-49F7BFC0-2DD3-4AA5-A105-18ACFE702789"><title>Server exit</title> <p>If the server terminates, all outstanding
+messages which have been sent to it are completed with a <codeph>KErrServerTerminated</codeph> code.
+Any attempt to send further messages, or to share session, fail immediately
+with <codeph>KErrServerTerminated</codeph>. The only valid operation on such
+a session is to close it. </p> </section>
+<section id="GUID-20F18655-D04E-40CE-8199-058DA9AD1585"><title>Session closure</title> <p>If <codeph>Close()</codeph> is
+called on a session, any outstanding messages on the session may not be completed
+for the client. Following this, the only message that the server receives
+from the session is the disconnect message. </p> </section>
+<section id="GUID-C4508E0A-50FC-4780-AEAA-08018CF2AB7F"><title>Client thread exit</title> <p>If a session has not been shared,
+then the session is closed as part of normal thread cleanup. </p> <p>If a
+session has been shared, the session handle is owned by the process and is
+not automatically cleaned up with the thread. In addition, the server is not
+informed that the thread has terminated. </p> <p>The only way to free resources
+owned by the session is to explicitly close the session, or to terminate the
+client process. Note that this makes it possible for a session to have no
+client threads ! </p> </section>
+<section id="GUID-9F7C4330-C524-4D8E-A78D-B519CF737D7D"><title>Message slots</title> <p>The maximum number of message slots
+that can be allocated to a session, or the maximum number that can be dynamically
+acquired from the system-wide pool, is 255. </p> </section>
+</conbody></concept>

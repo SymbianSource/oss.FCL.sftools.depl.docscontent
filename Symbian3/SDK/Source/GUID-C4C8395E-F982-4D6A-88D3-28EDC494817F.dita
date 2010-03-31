@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-C4C8395E-F982-4D6A-88D3-28EDC494817F" xml:lang="en"><title>Requesting
+RAM Asynchronously</title><shortdesc>This section describes how an application can request for free
+RAM asynchronously.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-6C258B11-CE78-42F2-828D-E9C68598C193"><p>Perform the steps
+described in <xref href="GUID-50CA5439-29A1-426C-83BA-EC048FE86CDE.dita">Allowing
+Large Memory Allocation</xref>.</p></prereq>
+<context id="GUID-D36C0590-A436-458B-B7A6-F2E8577E26C6">       <p>Requesting
+free RAM asynchronously is recommended as the application is not blocked during
+the method call handling.</p>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-5-1-3-3">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-5-1-3-3-1"><cmd>Start an asynchronous
+request for a block of memory.</cmd>
+<info><codeblock xml:space="preserve">CMemoryAllocatingObject::StartFunctionalityRequiringAllocationL()
+    {
+    User::LeaveIfError(iOomMonitorSession.Connect());
+    iMemoryRequester = CMemoryRequester::NewL(iOomMonitorSession, *this);
+    iMemoryRequester-&gt;Start(KLargeValueToAllocate);
+    }
+</codeblock></info>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-5-1-3-3-2"><cmd>Implement the active
+object and request for free memory.</cmd>
+<info><codeblock xml:space="preserve">void CMemoryRequester::Start(TInt aBytesRequested)
+    {
+    iOomMonitorSession.RequestFreeMemory(aBytesRequested, iStatus);    
+    SetActive();
+    }
+</codeblock></info>
+</step>
+</steps>
+<example><p>The following code snippet illustrates an asynchronous request
+for free RAM allocation: </p><codeblock xml:space="preserve">const TInt KLargeValueToAllocate = 2097152; //2MB
+
+// Start an asynchronous request for block of memory
+CMemoryAllocatingObject::StartFunctionalityRequiringAllocationL()
+    {
+    User::LeaveIfError(iOomMonitorSession.Connect());
+    iMemoryRequester = CMemoryRequester::NewL(iOomMonitorSession, *this);
+    iMemoryRequester-&gt;Start(KLargeValueToAllocate);
+    }
+
+// Called when the asynchronous request is completed
+CMemoryAllocatingObject::MemoryRequestCompleteL(TInt aResult)
+    {
+    if (aResult == KErrNone)
+        {
+        DoFunctionRequiring_KLargeValueToAllocate_BytesL();
+        }
+    iOomMonitorSession.Close();
+    }
+The active object implementation is the following:
+
+// Start an asynchronous request for block of memory
+void CMemoryRequester::Start(TInt aBytesRequested)
+    {
+    iOomMonitorSession.RequestFreeMemory(aBytesRequested, iStatus);    
+    SetActive();
+    }
+    
+
+// Called when the asynchronous request is completed
+void CMemoryRequester::RunL()
+    {
+    iObserver.MemoryRequestCompleteL(iStatus.Int());
+    }
+</codeblock></example>
+</taskbody><related-links>
+<link href="GUID-CE308C71-D8B2-43B3-97FD-B868285ED5FB.dita"><linktext>OOM Monitor
+Priority</linktext></link>
+<link href="GUID-39A8FBC9-5FD6-4F92-B71E-5C5438ECFD46.dita"><linktext>OOM Monitor
+Overview</linktext></link>
+<link href="GUID-88752800-83BD-4845-80A0-6B65D8D81924.dita"><linktext>OOM Monitor
+Reference</linktext></link>
+</related-links></task>

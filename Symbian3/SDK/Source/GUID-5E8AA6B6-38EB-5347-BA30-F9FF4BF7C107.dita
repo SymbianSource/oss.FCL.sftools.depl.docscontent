@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5E8AA6B6-38EB-5347-BA30-F9FF4BF7C107" xml:lang="en"><title>Index</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Messaging Server maintains an index entry in memory. A copy of the index
+entry of all message types is stored in the SQL database, so that it can be
+restored in the event of a system reset or Messaging Server failure. </p>
+<p>Some fields only apply to particular types of entry (such as messages or
+services); other fields can be interpreted differently for different entry
+types. </p>
+<section id="GUID-10265557-F31B-50B3-A955-A548A5A78D7B"><title>Operating with
+the SQL database</title> <p>The SQL database is used to store each <xref href="GUID-5A23B804-2C06-3407-9D48-1BFB212D699F.dita"><apiname>TMsvEntry</apiname></xref> (index
+entry) as a row of an SQL table in the SQL database. It caches entries, and
+maintains the most recently accessed entries in the RAM. Entries are cached
+in the RAM, and are loaded only when required. The RAM usage is controlled
+by emptying the oldest entry in the cache when it is full. For more information
+on caching, see <xref href="GUID-2FAB8281-569A-52BE-8BC8-A2D378068706.dita">Caching</xref>.
+The following illustration shows the architecture of the Message Server with
+the SQL database. </p> <fig id="GUID-57F87249-8F4F-59B4-902C-2A577A120F1A">
+<title>              Message Server architecture with the SQL database   
+        </title>
+<image href="GUID-38089CC3-D969-5501-9FDA-BB0369D5D6A9_d0e283948_href.png" placement="inline"/>
+</fig><note> Write operations like updating, creating and deleting entries
+require disk operation to retrieve <xref href="GUID-5A23B804-2C06-3407-9D48-1BFB212D699F.dita"><apiname>TMsvEntry</apiname></xref> from database,
+because the entry cache is always in synchronisation with the corresponding
+entry in the database.</note> <p><b>Advantages</b> </p> <p>The following are
+the advantages of using the SQL database to store index entries: </p> <ul>
+<li id="GUID-49050952-7EB4-52A9-BEB3-0D1F467BFD42"><p>Reduces the amount of
+RAM used by messaging, as the message the index file is not used. </p> </li>
+<li id="GUID-AE0A5FA5-4588-5C28-A261-8ADD8917D56B"><p>Enables more messages
+to be stored on the device, as the number of messages stored is not restricted
+to the amount of RAM available to store the message index file. </p> </li>
+<li id="GUID-565D30B2-9249-5C9D-9DFD-B67C83BFAC35"><p>Enables controlled usage
+of RAM, as index entries are loaded on a need basis. </p> </li>
+<li id="GUID-E5CC0C68-A23F-5F99-BFBB-1AD1A3775454"><p>Eliminates the possibility
+of the message index file getting damaged and messages stored on the device
+getting deleted. </p> </li>
+<li id="GUID-148420E8-C23D-5678-8870-B8AA1CD8ED15"><p>Provides advanced search
+and sort capabilities for searching messages. </p> </li>
+<li id="GUID-0E1A2485-A90C-565B-B927-487EE3FB7E4C"><p>Accesses and manages
+message entries on one or more drives at the same time. </p> </li>
+</ul> </section>
+<section id="GUID-887B217A-0344-5764-800A-CD31481B1493"><title>Index fields</title> <p>The
+following information is stored for each index entry. Some fields only apply
+to particular types of entry, such as, messages or services; other fields
+can be interpreted differently for different entry types. </p> <table id="GUID-B0A760AE-DD82-56E5-A826-7AA0D4F522CD">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Attachment flag </p> </entry>
+<entry><p>Indicates that the message has an attachment </p> </entry>
+</row>
+<row>
+<entry><p>BIO </p> </entry>
+<entry><p><xref href="GUID-17DE7D55-00C9-5D40-8AE4-39BDB20FCC5B.dita">BIO message</xref> type </p> </entry>
+</row>
+<row>
+<entry><p>Complete flag </p> </entry>
+<entry><p>Indicates that the message is complete (for example download has
+completed. </p> </entry>
+</row>
+<row>
+<entry><p>Connected flag </p> </entry>
+<entry><p>For a service: indicates whether it is currently connected to a
+remote server </p> </entry>
+</row>
+<row>
+<entry><p>Deleted flag </p> </entry>
+<entry><p>Indicates that the entry has been deleted. The entry is not removed
+until any PC synchronisation tools have been informed of the deletion. </p> </entry>
+</row>
+<row>
+<entry><p>Description </p> </entry>
+<entry><p>A text string, usually giving the subject of the message </p> </entry>
+</row>
+<row>
+<entry><p>Details </p> </entry>
+<entry><p>A text string, as follows: </p> <p>Message: For received messages,
+this is the sender; for outgoing messages, it is the recipient </p> <p>Attachment:
+The name of the attachment </p> <p>Folder: The name of the folder </p> <p>Service:
+The name of the service </p> </entry>
+</row>
+<row>
+<entry><p>Error </p> </entry>
+<entry><p>A system-wide or MTM-specific error code </p> </entry>
+</row>
+<row>
+<entry><p>Flag </p> </entry>
+<entry><p>Use </p> </entry>
+</row>
+<row>
+<entry><p>Failed flag </p> </entry>
+<entry><p>For an outgoing message: indicates that sending failed </p> </entry>
+</row>
+<row>
+<entry><p>Identifier </p> </entry>
+<entry><p>An integer that uniquely identifies the entry in the Index </p> </entry>
+</row>
+<row>
+<entry><p>In preparation </p> </entry>
+<entry><p>Entry deleted if server restarts </p> </entry>
+</row>
+<row>
+<entry><p>MTM </p> </entry>
+<entry><p>A unique identifier specifying the MTM associated with the entry </p> </entry>
+</row>
+<row>
+<entry><p>MTM Data </p> </entry>
+<entry><p>Three integer fields for MTM-specific use </p> </entry>
+</row>
+<row>
+<entry><p>Multiple Recipients flag </p> </entry>
+<entry><p>Indicates the message has multiple recipients that require separate
+transmissions (for example, a fax going to two people) </p> </entry>
+</row>
+<row>
+<entry><p>New flag </p> </entry>
+<entry><p>Indicates a new message in a folder </p> </entry>
+</row>
+<row>
+<entry><p>Owner flag </p> </entry>
+<entry><p>Indicates that the entry owns other entries (that it is a parent) </p> </entry>
+</row>
+<row>
+<entry><p>Parent </p> </entry>
+<entry><p>An integer giving the identifier of the entry’s parent </p> </entry>
+</row>
+<row>
+<entry><p>Priority </p> </entry>
+<entry><p>An integer giving the message priority </p> </entry>
+</row>
+<row>
+<entry><p>Read flag </p> </entry>
+<entry><p>Indicates that a message has been read </p> </entry>
+</row>
+<row>
+<entry><p>Read Only flag </p> </entry>
+<entry><p>Indicates that the entry is read-only </p> </entry>
+</row>
+<row>
+<entry><p>Related folder </p> </entry>
+<entry><p>The identifier of a target folder for copying or moving entries </p> </entry>
+</row>
+<row>
+<entry><p>Sending state </p> </entry>
+<entry><p>Describes the state the message is in, for example "Sending", "Failed"
+and "Sent" </p> </entry>
+</row>
+<row>
+<entry><p>Service </p> </entry>
+<entry><p>The identifier of the service by which the message is to be sent
+or from which it was received </p> </entry>
+</row>
+<row>
+<entry><p>Size </p> </entry>
+<entry><p>An integer giving the size of the message </p> </entry>
+</row>
+<row>
+<entry><p>Standard Folder flag </p> </entry>
+<entry><p>Identifies standard folders so that they can be properly sorted
+and stops them being changed/deleted </p> </entry>
+</row>
+<row>
+<entry><p>Time </p> </entry>
+<entry><p>The time when the message was last edited, sent, or received. Includes
+date. </p> </entry>
+</row>
+<row>
+<entry><p>Type </p> </entry>
+<entry><p>A unique identifier giving the type (service, folder, message, and
+attachment) of the entry </p> </entry>
+</row>
+<row>
+<entry><p>Visibility flag </p> </entry>
+<entry><p>Indicates the intended visibility of the entry to users of message
+client applications </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

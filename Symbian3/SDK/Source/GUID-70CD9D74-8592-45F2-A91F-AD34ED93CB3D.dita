@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-70CD9D74-8592-45F2-A91F-AD34ED93CB3D" xml:lang="en"><title>Adding
+an Alarm</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>You can add or queue an alarm to the Alarm Server either
+by Synchronous or Asynchronous method:</p><ul>
+<li><p><b>Synchronous method</b> (<codeph>RASCliSession::AlarmAdd</codeph>)
+- This method allocates a unique identifier (a <codeph>TAlarmId</codeph> object)
+for the alarm, adds the alarm to the queue, and returns. Follow the steps
+given below to add alarm synchronously:  </p><ol>
+<li id="GUID-0FA7FE18-3C1D-42D9-A24A-F0EFA22A916D"><p>Create an alarm object.</p><codeblock xml:space="preserve">TASShdAlarm alarm;</codeblock></li>
+<li id="GUID-BBCA5506-2C84-44BE-AE4E-D6595E01F937"><p>Set the alarm properties such as Category, Repeat Definition, Message,
+Next Due Time and Sound Name. For more information on the alarm properties,
+refer to <xref href="GUID-7BCA8B7A-E250-5452-9837-26C60F71F14F.dita">Alarm Properties</xref>.</p><codeblock xml:space="preserve">alarm.Category() = KASCliCategoryClock;
+alarm.RepeatDefinition() = EAlarmRepeatDefintionRepeatDaily;
+_LIT( KAlarmTestInit, "This is an alarm message - alarm 1" );
+alarm.Message() = KAlarmTestInit;alarm.NextDueTime().HomeTime();
+alarm.NextDueTime() += TTimeIntervalMinutes( 1 );
+_LIT( KAlarmTestSoundName, "Arf Arf Woop" );
+alarm.SoundName() = KAlarmTestSoundName;</codeblock></li>
+<li id="GUID-6084D3F8-4AAE-4183-A8AF-8A8248906B58"><p>Add the alarm object to Alarm Server.</p><codeblock xml:space="preserve">TInt ret = TheAlarmServerSession.AlarmAdd( alarm );</codeblock></li>
+<li id="GUID-84B488F6-6752-40F2-8E1C-D1940A1457A1"><p>Retrieve the alarm ID.</p><codeblock xml:space="preserve">TAlarmId alarmId = alarm.Id();</codeblock></li>
+</ol></li>
+<li><p><b>Asynchronous method</b> (<codeph>RASCliSession::AlarmAddWithNotification</codeph>)
+- The steps are similar to the Synchronous method, except, when either the
+alarm expires or is cancelled, the Alarm Server notifies the client by completing
+the outstanding request, the <codeph>TRequestStatus</codeph> object.</p></li>
+</ul><p>When adding a new alarm to the Alarm Server, some validation is required
+to ensure the integrity of the Alarm Server. Therefore, no alarm that is to
+be added must be session-specific and have a repeat definition other than <codeph>TAlarmRepeatDefinition::AlarmRepeatDefintionRepeatOnce</codeph>.
+ </p><note> If an alarm is set having a repeat definition of <codeph>TAlarmRepeatDefinition::EAlarmRepeatDefintionRepeatWorkday</codeph>,
+the system-wide (<codeph>TLocale</codeph>-based) work days must be defined
+first. If the system-wide workdays are not defined, the alarm is added to
+the Alarm Server queue with status as <codeph>TAlarmStatus::EAlarmStatusDisabled</codeph>.
+When a change in the workday is detected (caused by a change in locale), the
+alarm will be enabled.</note><p>The alarm time can be set with the accuracy
+of a minute. If an alarm is set in the past, the user is notified immediately.</p></context>
+</taskbody></task>

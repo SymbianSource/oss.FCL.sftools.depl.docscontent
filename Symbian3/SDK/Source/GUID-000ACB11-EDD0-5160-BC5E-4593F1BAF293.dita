@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-000ACB11-EDD0-5160-BC5E-4593F1BAF293" xml:lang="en"><title>Message
+Queue Overview</title><shortdesc>This topic describes the message queue overview.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A message queue is a mechanism for passing data: </p>
+<ul>
+<li id="GUID-B4740898-D06D-5B19-A3AD-E8FE3B72C397"><p>between threads within
+a process </p> </li>
+<li id="GUID-F9F8E8FF-02F7-5E11-BC57-61FFE1122DB1"><p>between threads that
+run in separate processes. </p> </li>
+</ul>
+<p>The mechanism provides a way to send data (messages) to an interested party
+without needing to know whether anyone is listening nor needing to know the
+identity of a recipient. </p>
+<p>A message is an object, usually an instance of a class, that is placed
+into a queue for delivery to recipients. A queue is normally created to deal
+with messages of a given type. This means that a queue is created to deal
+with messages of a defined (fixed) length. The size of a queue, i.e. the maximum
+number of messages, or slots, it can contain is defined and fixed when the
+queue is created. The size of message for which a queue is created, and the
+size of the queue is arbitrary, being limited only by system resources. </p>
+<p>A single queue can be shared by many readers and writers. Several threads
+may be reading from and writing to the same message queue, but only one thread
+can access the queue at a time. If multiple clients attempt to read from the
+message queue a panic will be raised. </p>
+<p>A message queue is represented by a <codeph>DMsgQueue</codeph> kernel side
+object, to which the reader and the writer can open a handle, a <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref> object.
+A message queue is a reference counted object, being derived from <codeph>CObject</codeph>,
+which means that it is not persistent; it is deleted when the last handle
+to it is closed. The queue itself is simply a block of memory divided into
+slots, managed by the <codeph>DMsgQueue</codeph> object. </p>
+<fig id="GUID-BDA4A786-57B2-529D-BDFB-72D2B2B30670">
+<image href="GUID-7C061090-83A8-5E0F-B42B-2D722BE054EE_d0e246744_href.png" placement="inline"/>
+</fig>
+<section id="GUID-1D2EF848-8068-56B9-850B-56AE88E192DE"><title>Handle to a
+message queue</title> <p>A message queue is created, opened, written to and
+read from through a message queue handle, an <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref> object.
+This is a templated class, where the template parameter defines the message
+type. </p> <p> <xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname>RMsgQueue</apiname></xref> is derived from <xref href="GUID-2DCEE7F5-9EA3-3546-8779-7299318176E2.dita"><apiname>RMsgQueueBase</apiname></xref>,
+which together form a thin template class/base class pair. <codeph>RMsgQueueBase</codeph> provides
+the implementation, while <codeph>RMsgQueue</codeph> provides type safety.
+An <codeph>RMsgQueueBase</codeph> object is a valid message queue handle,
+but does not offer the type safety that <codeph>RMsgQueue</codeph> does. </p> <fig id="GUID-B9685695-0E07-5CC1-AFED-0ABF4DC93ACB">
+<image href="GUID-2F6EF388-CA87-5AAD-A4C5-37FC3CE15331_d0e246783_href.png" placement="inline"/>
+</fig> <p>Message queues are used for one-way, one to one communications only.
+The message queue is therefore unicast. If there are multiple readers of the
+message queue only one will receive the message. </p> </section>
+<section id="GUID-910216A9-EE2D-5C45-8AB3-E1CBEF3B7514"><title>Visibility
+of a message queue</title> <p>A message queue can be: </p> <ul>
+<li id="GUID-A773AF82-EACC-57DB-9A6F-31F74A9EDF94"><p>named and be visible
+to all processes - a global queue </p> </li>
+<li id="GUID-9EFB0165-798F-5B5F-8537-199C9C16CE33"><p>local to the current
+process, i.e. not visible to any other process - a local queue </p> </li>
+</ul> </section>
+</conbody></concept>

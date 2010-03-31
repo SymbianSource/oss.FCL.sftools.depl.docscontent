@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A5F65344-BE05-5295-85BB-E8114505FB82" xml:lang="en"><title>Alarm
+Sound Play Control</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section explains the use of sound, which is one of the several ways
+that the Alarm Server can notify the user. </p>
+<section><title>Alarm Play Interval Configuration</title> <p>The alarm sound
+play definition (<xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita"><apiname>TASCliSoundPlayDefinition</apiname></xref>) is set using
+the <xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita"><apiname>RASCliSession</apiname></xref> class. Alarm sounds are played according
+to intervals that consist of a duration and an offset. The <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita"><apiname>TASCliSoundPlayDefinition</apiname></xref> class
+defines when alarm sounds are to be played, and for how long. </p> <p>The
+purpose of configuring alarm sound play is to enable the Alarm Server to perform
+the following operations: </p> <ul>
+<li id="GUID-954909FC-2690-50A6-A967-AB4E3C97A319"><p>set the alarm sound
+state to ON or OFF (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-EE45EA45-0289-3946-ACB8-25971D32FDC7"><apiname>RASCliSession::SetAlarmSoundState()</apiname></xref>). </p> </li>
+<li id="GUID-B8D77E1F-0F9C-5AA2-8269-68A04CD73525"><p>silence all alarms until
+a specific time (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-C15F814F-AFB6-3FE4-8674-B961A1EFA6F2"><apiname>RASCliSession::SetAlarmSoundsSilentUntil()</apiname></xref>).
+No sound is played for any alarm that is notified before this time. </p> </li>
+<li id="GUID-7359767C-FFC6-5903-B4C1-099C55EB0C3E"><p>silence all alarms for
+a specified interval (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-D86F97E4-3407-32C9-ADBA-0FD44D5A3ED3"><apiname>RASCliSession::SetAlarmSoundsSilentFor()</apiname></xref>).
+No alarm sound is played for any alarm notified during this period. </p> </li>
+<li id="GUID-79917BFC-C399-5FCB-A1B3-9E3CA16250F7"><p>cancel the silent period,
+turning the alarm sounds ON (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-92A4C2FD-46B9-36CA-A624-002EEFA9671C"><apiname>RASCliSession::CancelAlarmSilence()</apiname></xref>). </p> </li>
+<li id="GUID-D701C819-91AC-55F6-8A2B-99A3B95BB22D"><p>configure alarm sound
+play intervals (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-BB9A298E-C3AE-3E98-A677-E7A028F67602"><apiname>RASCliSession::SetAlarmPlayIntervalsL()</apiname></xref>),
+which specify the duration of the ‘play/silence/play’ when an alarm expires. </p> </li>
+<li id="GUID-4FCCE100-C356-5F22-8300-C4BFD6A64F0B"><p>determine whether the
+alarm server has temporarily silenced the sounds (<xref href="GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4.dita#GUID-3598EAEE-0EF4-35A2-89E5-F3B2555B1AB4/GUID-EB8DC5EB-ABA9-3AB9-9D1B-E37DA612C0BB"><apiname>RASCliSession::AlarmSoundsTemporarilySilenced()</apiname></xref>).
+This returns <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> if alarm sound playing is temporarily
+silenced, else <xref href="GUID-A759CA2D-8327-348F-9337-4886E619D920.dita"><apiname>EFalse</apiname></xref> is specified. </p> </li>
+</ul> <p> <b>NOTE</b>: These APIs can be used <i>only</i> if the alarm sound
+play control is enabled from the Alarm Server side. </p> <p>To perform these
+operations, the Alarm Server uses a resource file, which defines the sound
+play intervals and durations. </p> <p><b>Resource File</b> </p> <p>The alarm
+play intervals are defined in <codeph>AlarmServer.rss</codeph> resource file.
+The compiled resource file (configuration file) must be named as <codeph>alarmserver.rsc</codeph> and
+be placed in the Alarm Server’s private directory (<codeph>C:\private\101F5027</codeph> on
+emulator, or <codeph>Z:\private\101F5027</codeph> on target platforms). </p> <p>The
+resource file must start with the necessary include directives, resource name,
+and standard signature entry as illustrated in the following code fragment: </p> <codeblock id="GUID-A6885AA2-38C0-54BA-8765-9B10A20B0478" xml:space="preserve">#include &lt;badef.rh&gt;
+#include &lt;alarmserver.rh&gt;
+
+NAME ASRV
+RESOURCE BA_RSS_SIGNATURE
+    {
+    signature = 1;
+    }</codeblock> <p>The resource file specifies only the Offset (in minutes)
+and Duration (in seconds) of the Alarm play intervals. It is used only for
+initial configuration. </p> <p>At runtime, Alarm Server configurations are
+backed up to a file called as <filepath>AlarmServer.ini</filepath>, on the
+PC side. The backup operation performed can be one of the following types: </p> <ul>
+<li id="GUID-46E046BC-44CB-5B8C-90DD-4E022F258145"><p> <b>Secure Backup</b> -
+In this method, <codeph>backuprestorenotification.lib</codeph> (provides a
+notification mechanism) is used for backing and restoring operation to and
+from <codeph>C:\private\101F5027\AlarmServer.ini</codeph>. </p> </li>
+<li id="GUID-B17FCD6F-500A-5D49-9FC2-389B7F41E810"><p> <b>Passive Backup</b> -
+In this method, the required backup behavior is mentioned in a backup registration
+file called <filepath>backup_registration.xml</filepath>, placed in its private
+directory. The list of private directories and files that must be backed up
+are mentioned in this backup registration file. </p> </li>
+</ul> <p> <b>NOTE</b>: The backup file takes precedence over the resource
+file the next time the Alarm Server is started. Therefore, if changes are
+made to the resource file, <filepath>AlarmServer.ini</filepath> must be deleted
+manually before restarting the Alarm Server. </p> <p><b>Alarm Sound Play Intervals
+and Durations</b> </p> <p>The following diagram illustrates the alarm sound
+play intervals: </p> <fig id="GUID-477088D0-57BD-58BF-91BC-BF05E3EF2162">
+<title>                 ALARM SOUND PLAY INTERVALS               </title>
+<image href="GUID-3E23788D-4D67-5E9B-961F-B67D7471BB71_d0e139735_href.png" placement="inline"/>
+</fig> <p>Alarm play intervals define the toggling of alarm sound playing/stopping
+and alarm dialog show/hide when an alarm expires. It consists of a duration
+and an offset. The offset is the time, in minutes, from the beginning alarm
+time or the end of the last snooze. The duration is the time period, in seconds,
+during which the alarm sound is played. </p> <p>At each offset, the Alarm
+Server makes a request to the Alarm Alert server to display the alarm dialog
+and play the alarm sound. At the end of each duration period, the Alarm Server
+makes a request to the Alarm Alert server to hide the alarm and stop playing
+the alarm sound. </p> <p>The following is an example code fragment that plays
+the sound for 30 seconds, then pauses for 30 seconds, and repeats the pattern
+two more times: </p> <codeblock id="GUID-7ECBB50D-0C81-5059-A334-81BC979A04B2" xml:space="preserve">RESOURCE sound_controller
+    {
+    intervals =
+        {
+        SOUND_INTERVAL { offset = 0; duration = 30; },
+        SOUND_INTERVAL { offset = 1; duration = 30; },
+        SOUND_INTERVAL { offset = 2; duration = 30; };
+        };
+    }</codeblock> <p>An interval must have an offset of zero if more than
+one offset is specified. </p> <p> <b>NOTE</b>: The <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita"><apiname>TASCliSoundPlayDefinition</apiname></xref> class
+is the runtime equivalent of the sound intervals array. It defines <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita#GUID-0075C5BA-8084-33EB-A246-7EED717E2B88/GUID-79792213-24E6-3862-BEF5-832F8C34BF5A"><apiname>TASCliSoundPlayDefinition::Offset()</apiname></xref> length
+in minutes and defines <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita#GUID-0075C5BA-8084-33EB-A246-7EED717E2B88/GUID-1900BA63-48B2-32A6-93DB-F77CC7AA3E39"><apiname>TASCliSoundPlayDefinition::Duration()</apiname></xref> length
+in seconds. The API to set a <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita"><apiname>TASCliSoundPlayDefinition</apiname></xref> array
+is <xref href="GUID-0075C5BA-8084-33EB-A246-7EED717E2B88.dita#GUID-0075C5BA-8084-33EB-A246-7EED717E2B88/GUID-AB1E72B5-D9CE-3BAD-860D-6C1F443442E8"><apiname>TASCliSoundPlayDefinition::SetAlarmPlayIntervalsL()</apiname></xref>. </p> </section>
+<section><title>Alarm Play Sequence Repeat Option</title> <p>The resource
+file provides an option to repeat the sequence when the end of the alarm play
+sequence is reached. </p> <p>For backward compatibility, the default behavior
+is to restart the sequence when the end of the alarm play sequence is reached
+(see <xref href="GUID-0056DE57-61FD-3452-B65B-EFADC0069B8F.dita"><apiname>EAlarmSoundRepeatSettingStop</apiname></xref>). This occurs if there
+is no resource file, or if the resource file does not specify an option. There
+are two more end-of-sequence options: </p> <ul>
+<li id="GUID-73A1D734-2938-5477-81F7-B17F5237C374"><p> <xref href="GUID-41015640-AD70-3D56-9D89-AFAF67E15BCA.dita"><apiname>EAlarmSoundRepeatSettingLoop</apiname></xref> -
+stop when the end of sequence reached. </p> </li>
+<li id="GUID-F531E88D-AAD6-5F8D-9CDE-B153467D4DB1"><p> <xref href="GUID-98CE95CB-96F7-37A5-8C49-0B11D7CAEE6B.dita"><apiname>EAlarmSoundRepeatSettingRepeatLast</apiname></xref> -
+repeat last interval indefinitely. This is an optional entry in the resource
+file. </p> </li>
+</ul> <p>The following is a resource file example illustrating the use of
+an option to repeat the alarm play sequence: </p> <codeblock id="GUID-07ADF881-C2CE-558A-9237-2BF0E4E28064" xml:space="preserve">RESOURCE sound_controller
+    {
+    option = EAlarmSoundRepeatSettingRepeatLast;
+    intervals = 
+        {
+         ...
+        }
+    }</codeblock> </section>
+<section><title>See also</title> <p><xref href="GUID-59D2B677-63D7-5FE7-98F4-549D9C235E56.dita">Playing
+Alarm Sound Continuously</xref> </p> </section>
+</conbody></concept>

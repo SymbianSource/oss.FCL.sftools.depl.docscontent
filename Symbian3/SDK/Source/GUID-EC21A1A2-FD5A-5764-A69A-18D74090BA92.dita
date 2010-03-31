@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EC21A1A2-FD5A-5764-A69A-18D74090BA92" xml:lang="en"><title>Format
+string syntax</title><shortdesc><codeph>TDes8::Format()</codeph>, <codeph>TDes16::Format()</codeph> and
+some other functions take a format string containing literal text embedded
+with directives for converting a trailing list of arguments into text.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> Each formatting directive consumes a number of arguments from the trailing
+list. Directives have the following syntax: </p>
+<codeblock xml:space="preserve">format directive
+escaped-percent
+simple-conversion
+padded-conversion
+aligned-conversion
+escaped percent
+%%</codeblock>
+<p>Formatting directives begin with a "<codeph>%</codeph> ". To insert a percentage
+sign, use the digraph "<codeph>%%</codeph> ". </p>
+<p>Examples of how to use format string syntax are provided in <xref href="GUID-0B6C97D3-0E2D-5BBE-B8AC-985902715160.dita#GUID-0B6C97D3-0E2D-5BBE-B8AC-985902715160/GUID-E0D95020-9E74-5FE1-8A84-74FFE8C2CB1E">Formatting text</xref>. </p>
+<section id="GUID-E6DF6CA4-D6BA-494B-A2B1-CCD63B3DC4A3"><title>Unpadded, dynamic-width
+formatting </title><codeblock xml:space="preserve">simple-conversion
+%
+conversion-specifier</codeblock><p>Data from the argument list is converted
+without padding, and only occupies the space required. The <codeph>conversion
+specifier</codeph> describes how the data is to be formatted into a string. </p></section>
+<section id="GUID-35FE3AB2-8B3D-4459-9A8F-8E3688216066"><title>Fixed-width,
+padded formatting </title><codeblock xml:space="preserve">padded-conversion
+%
+zero-or-space-pad
+field-width
+precision
+conversion-specifier
+0</codeblock><p>Data from the argument list is converted, but may not occupy
+more space than specified. If the width of the formatted data is less than
+the field width, the field is padded to the left with the specified character.
+If the width of the formatted string is greater than the field width, the
+result depends on the <codeph>conversion specifier</codeph> as follows: </p><ul>
+<li id="GUID-25BEB2AC-3A2C-5917-B417-61627F0FB9FC"><p>If the conversion specifier
+is either: 'e', 'E', 'f', or 'F', i.e. the source data is a real number, then
+the value of the width is ignored and all generated characters are accepted.
+However, the maximum number of characters can never exceed the value of <codeph>KMaxRealWidth</codeph>. </p> </li>
+<li id="GUID-878BB7DB-D66A-5965-AC0A-D058A3455413"><p>If the conversion specifier
+is either 'g' or 'G', i.e. the source data is a real number, then the value
+of the width is ignored and all generated characters are accepted. However,
+the maximum number of characters can never exceed the value of <xref href="GUID-A6F9D2A1-51D7-366A-9F41-90FEBB476B05.dita"><apiname>KDefaultRealWidth</apiname></xref>. </p> </li>
+<li id="GUID-E4398EC7-16CF-5484-9A2D-A4A337F12A9B"><p>If the conversion specifier
+is anything else, then the number of converted characters is limited to the
+width value. </p> </li>
+</ul></section>
+<section id="GUID-C4A3149B-B791-4CD8-9E2F-F8BA7D27C0BD"><title>Formatting
+with alignment, arbitrary pad character and a specified field width </title><p>Note
+that for this formatting conversion, only a zero or a space is permitted for
+the pad character. </p><codeblock xml:space="preserve">aligned-conversion
+alignment	[pad]
+field-width		[precision]
+conversion-specifier</codeblock><p>The full <codeph>aligned-conversion</codeph> is
+verbose, but in addition to the zero and space characters, it permits non-numeric
+characters to be specified as the padding character. It also permits its value
+to be aligned within the field. </p><p>Undefined terms are discussed below. </p></section>
+<section id="GUID-0E226EE4-FDF2-4ED0-8F4F-82862EEAFE4A"><title>Alignment specifiers</title> <p>Formatted
+data whose width in characters is less than the width of the field can optionally
+be aligned to the left, or to the centre of the field. The default is right-alignment. </p> <p>The <codeph>alignment</codeph> specifier
+is a single character with one of the following values: </p> <table id="GUID-D728B8E3-380B-5A78-B4A7-70EBAAB4ACF2">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Spec</entry>
+<entry>Alignment</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <codeph>+</codeph> </p> </entry>
+<entry><p>Right alignment </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>-</codeph> </p> </entry>
+<entry><p>Left alignment </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>=</codeph> </p> </entry>
+<entry><p>Centre alignment </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-80251801-E0A5-4733-AB94-D3311F005F0D"><title>Field width
+specifiers</title> <p>Data may be formatted into a field with a fixed or a
+dynamic width. Fixed field widths require an extra argument. </p> <p>The <codeph>field-width</codeph> specifier
+is either a sequence of decimal digits which explicitly define the size of
+the field to be occupied by the converted data, or an asterisk ('<codeph>*</codeph>')
+character. An asterisk indicates that the size of the field is taken from
+the next <xref href="GUID-F9432D7B-41C9-3048-AC50-B5BCF8BE11D0.dita"><apiname>TUint</apiname></xref> value in the argument list. </p> </section>
+<section id="GUID-A7B658B7-E137-4FE0-B70C-F2F439A3E33F"><title>Pad characters</title> <p>Formatted
+data whose width in characters is less than the width of the field can optionally
+be padded with as many characters as are needed. </p> <p>The <codeph>pad</codeph> character
+may be any non-numeric character (although "<codeph>0</codeph> " can be specified).
+If the pad character is an asterisk ("<codeph>*</codeph> "), then the next
+argument in the list is read, interpreted as a <codeph>TUint</codeph>, and
+used as the pad character. </p> </section>
+<section id="GUID-D7578AD1-9749-441E-B7E3-13170B961F1C"><title>Precision specifiers</title> <p>A
+dot after a field width introduces a precision specifier. This is only useful
+when formatting real values. Precision specifiers are integers whose decimal
+values specify the number of decimal places to use when formatting the data. </p> <p>If
+the precision specifier is omitted, conversion defaults to <codeph>KDefaultPrecision</codeph> decimal
+places. </p> </section>
+<section id="GUID-B317D693-E5B6-4F6F-90D3-5576B894DEAD"><title>Variable argument
+positions</title> <p>The format string syntax was extended in v7.0 to include
+a way of specifying which argument or argument block should correspond to
+a conversion specifier. </p> <p>Immediately after the initial <codeph>%</codeph> character
+preceding every conversion specifier, <codeph>$</codeph> <i>x</i> <codeph>$</codeph> may
+optionally be specified, where <i>x</i> is an integer greater than zero. This
+integer is used as a one-based index indicating which argument or block of
+arguments in the argument list should be used for that conversion specifier.
+Note that arguments in the argument list may be grouped into argument blocks.
+For instance an integer field width argument and the data to insert into the
+field are an argument block and share the same index. </p> <p>Examples of
+this are provided in <xref href="GUID-0B6C97D3-0E2D-5BBE-B8AC-985902715160.dita#GUID-0B6C97D3-0E2D-5BBE-B8AC-985902715160/GUID-E0D95020-9E74-5FE1-8A84-74FFE8C2CB1E">Formatting
+text</xref>. </p> </section>
+<section id="GUID-8B1B622B-4FA4-5B31-908B-7B03F8B851F0"><title>Conversion
+specifiers</title> <p>The conversion of argument data is dictated by the value
+of the <i>conversion specifier</i> which can consist of one or more characters;
+most of the conversion specifiers are just a single character. For some of
+these specifiers, the case is significant. </p> <p>The possible values for <codeph>conversion-specifier</codeph> are
+as follows: </p> <table id="GUID-9ECD5627-3AA7-560C-B8CB-93E2EA43CDF0">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Spec</entry>
+<entry>Interpretation and formatting</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>b</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert it
+to its binary character representation. This specifier is case insensitive. </p> </entry>
+</row>
+<row>
+<entry><p>o</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert it
+to its octal character representation. This specifier is case insensitive. </p> </entry>
+</row>
+<row>
+<entry><p>d</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TInt</codeph> and convert it
+to its signed decimal representation. This specifier is case insensitive. </p> <p>If
+the value is negative, the representation will be prefixed by a minus sign. </p> </entry>
+</row>
+<row>
+<entry><p>Ld </p> </entry>
+<entry><p>Interpret the argument as a <codeph>TInt64</codeph> and convert
+it to its signed decimal representation. The second character of this specifier
+is case insensitive, so that the character pair <i>LD</i> has the same meaning. </p> <p>If
+the value is negative, the representation will be prefixed by a minus sign. </p> </entry>
+</row>
+<row>
+<entry><p>LD </p> </entry>
+<entry><p>This is the same as <i>Ld</i> above, i.e. interpret the argument
+as a <codeph>TInt64</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>i</p> </entry>
+<entry><p>This is the same as <i>d</i> above, i.e. interpret the argument
+as a <codeph>TInt</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>Li </p> </entry>
+<entry><p>This is the same as <i>Ld</i> above, i.e. interpret the argument
+as a <codeph>TInt64</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>LI </p> </entry>
+<entry><p>This is the same as <i>LD</i> above, i.e. interpret the argument
+as a <codeph>TInt64</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>e</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TReal</codeph> and convert it
+to exponent format representation. Three digit exponents are allowed. (See
+also <codeph>TRealFormat</codeph>). </p> <p>(Note the lower case) </p> </entry>
+</row>
+<row>
+<entry><p>E</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TRealX</codeph>, and convert
+it to exponent format representation. Three digit exponents are allowed (See
+also <codeph>TRealFormat</codeph>). </p> <p>(Note the upper case) </p> </entry>
+</row>
+<row>
+<entry><p>f</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TReal</codeph> and convert it
+to fixed format representation (See <codeph>TRealFormat</codeph>). </p> <p>(Note
+the lower case) </p> </entry>
+</row>
+<row>
+<entry><p>F</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TRealX</codeph>, and convert
+it to fixed format representation (See <codeph>TRealFormat</codeph>). </p> <p>(Note
+the upper case) </p> </entry>
+</row>
+<row>
+<entry><p>g</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TReal</codeph> and convert it
+to either fixed or exponent format representation, whichever format can present
+the greater number of significant digits. </p> <p>If the exponent format is
+chosen, three digit exponents are allowed. (See also <codeph>TRealFormat</codeph>). </p> <p>(Note
+the lower case) </p> </entry>
+</row>
+<row>
+<entry><p>G</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TRealX</codeph>, and convert
+it to either fixed or exponent format representation, whichever format can
+present the greater number of significant digits. </p> <p>If the exponent
+format is chosen, three digit exponents are allowed. (See also <codeph>TRealFormat</codeph>). </p> <p>(Note
+the upper case) </p> </entry>
+</row>
+<row>
+<entry><p>u</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert it
+to its unsigned decimal representation. This specifier is case insensitive. </p> </entry>
+</row>
+<row>
+<entry><p>Lu </p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint64</codeph> and convert
+it to its unsigned decimal representation. The second character of this specifier
+is case insensitive, so that the character pair LU has the same meaning. </p> </entry>
+</row>
+<row>
+<entry><p>LU </p> </entry>
+<entry><p>This is the same as <i>Lu</i> above. </p> </entry>
+</row>
+<row>
+<entry><p>x</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert it
+to its hexadecimal representation. This specifier is case insensitive. </p> </entry>
+</row>
+<row>
+<entry><p>p</p> </entry>
+<entry><p>Generate the required number of pad characters. No arguments are
+accessed. This specifier is case insensitive. </p> <p>For this directive to
+be useful, a field with should be specified. </p> </entry>
+</row>
+<row>
+<entry><p>c</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> value and convert
+it to a single character value. This specifier is case insensitive. </p> </entry>
+</row>
+<row>
+<entry><p>s</p> </entry>
+<entry><p>Interpret the argument as a pointer to a <codeph>TUint16</codeph> type,
+for 16 bit descriptors, or a <codeph>TUint8</codeph> type, for 8 bit descriptors,
+and copy all data starting at this location up to, but not including the location
+which contains a zero value. </p> <p>(Note the lower case). </p> </entry>
+</row>
+<row>
+<entry><p>S</p> </entry>
+<entry><p>In 16 bit descriptors, interpret the argument as a pointer to a
+16 bit descriptor, and copy the data from it; in 8 bit descriptors, interpret
+the argument as a pointer to an 8 bit descriptor, and copy the data from it. </p> <p>(Note
+the upper case). </p> </entry>
+</row>
+<row>
+<entry><p>w</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert the
+value to a two byte binary numeric representation with the least significant
+byte first. The generated output is two bytes. </p> <p>(Note the lower case). </p> </entry>
+</row>
+<row>
+<entry><p>W</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert the
+value to a four byte binary numeric representation with the least significant
+byte first. The generated output is four bytes. </p> <p>(Note the upper case). </p> </entry>
+</row>
+<row>
+<entry><p>m</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert the
+value to a two byte binary numeric representation with the most significant
+byte first. The generated output is two bytes. </p> <p>(Note the lower case). </p> </entry>
+</row>
+<row>
+<entry><p>M</p> </entry>
+<entry><p>Interpret the argument as a <codeph>TUint</codeph> and convert the
+value to a four byte binary numeric representation with the most significant
+byte first. The generated output is four bytes. </p> <p>(Note the upper case). </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-D2A688DE-C73C-4086-946A-9A9724D04252"><title>Notes</title> <p>Using
+an asterisk for both <codeph>field-width</codeph> and <codeph>pad</codeph> means
+that the width value and the pad character will be taken from the argument
+list. Note that the first '<codeph>*</codeph>' will be interpreted as representing
+the width only if it is preceded by one of the alignment characters '<codeph>+</codeph>'
+'<codeph>-</codeph>' or '<codeph>=</codeph>'. </p> <p>If <codeph>precision</codeph> is
+specified when the data to be converted is not a real number, then it is ignored. </p><b>Related
+APIs</b> <ul>
+<li><p><xref href="GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD.dita#GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD/GUID-D7E07487-DCE6-39D9-B4A2-BA7E5BD4A4B9"><apiname>TDes16::AppendFormat()</apiname></xref></p></li>
+<li><p><xref href="GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD.dita#GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD/GUID-F3ED8A38-74C5-3C4D-AEAF-B405A0C5807D"><apiname>TDes16::Format()</apiname></xref></p></li>
+<li><p><xref href="GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD.dita#GUID-C04A9A0C-DBA7-37DA-B744-54FBF3D544CD/GUID-3939029A-12DF-3CBB-9408-B1FF4A1287E6"><apiname>TDes16::AppendFormatList()</apiname></xref></p></li>
+<li><p><xref href="GUID-BF093552-3EB5-3E0C-BA2B-2DDD11DAE38A.dita#GUID-BF093552-3EB5-3E0C-BA2B-2DDD11DAE38A/GUID-6811EC39-AB32-3BE6-A8BB-0EEFE0F4F683"><apiname>Des16::FormatList()</apiname></xref></p></li>
+<li><p><xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita#GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507/GUID-E8BE9DD1-2D96-3E8E-943A-CD2ECFD78333"><apiname>TDes8::AppendFormat()</apiname></xref></p></li>
+<li><p><xref href="GUID-262C74C7-AAF9-3A57-AA33-FE69F460A5C7.dita"><apiname>TDes8:Format()</apiname></xref></p></li>
+<li><p><xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita#GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507/GUID-8B605683-979A-3505-9755-FEA085BD5427"><apiname>TDes8::AppendFormatList()</apiname></xref></p></li>
+<li><p><xref href="GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507.dita#GUID-445B19E5-E2EE-32E2-8D6C-C7D6A9B3C507/GUID-1380E737-F4C4-3D6F-9B9B-B0ED267B6BFF"><apiname>TDes8::FormatList()</apiname></xref></p></li>
+</ul></section>
+</conbody></concept>

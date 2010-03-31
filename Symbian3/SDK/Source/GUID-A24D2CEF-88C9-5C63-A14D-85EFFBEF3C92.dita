@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A24D2CEF-88C9-5C63-A14D-85EFFBEF3C92" xml:lang="en"><title>Connecting
+and Transferring Data to a Remote Device</title><shortdesc>Once the device and service have been established, you can connect
+to the remote service and start using it.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-74919616-F8D3-4BE6-A928-8BA62FC32BB3"><title>How to Communicate with a Remote Device</title> <p>Connect
+to the device through the <codeph>Connect()</codeph> function of the generic
+Symbian platform socket interface <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref>.
+Bluetooth sockets can be opened using the L2CAP and RFCOMM protocols. For
+an L2CAP Bluetooth socket, the "port" is the Protocol/Service Multiplexer
+(PSM) to which to connect; for an RFCOMM the port is the server channel. Where
+these values are not known, they can be read from the service attribute <codeph>ProtocolDescriptorList</codeph>.
+See <xref href="GUID-8D5E17DA-8EF1-52B4-9706-9836B8D6CE43.dita">Using Bluetooth
+Service Discovery Agent</xref> for details. </p> <p>You can read and write
+data using the socket in whatever format the target service expects (AT commands,
+text, HTTP, PPP etc). </p> <p><b>Example </b> </p> <codeblock id="GUID-A5B48D01-EBBA-59E1-8016-72655F7683E7" xml:space="preserve">
+// Assume have a TInquirySockAddr object, addr, with relevant device info
+
+// Connect an L2CAP socket
+RSocket socket;
+// although CBluetoothSocket may be a better option.
+RSocketServ socketServ;
+TRequestStatus status;
+User::LeaveIfError(socket.Open(socketServ,KBTAddrFamily,KSockSeqPacket,KL2CAP));
+User::LeaveIfError(socket.Connect(addr,status));
+User::WaitForRequest(status);
+
+if (status == KErrNone)
+    {
+    // Write some simple data
+    _LIT8(KDataToWrite,"01234");
+    socket.Write(KDataToWrite,status);
+    User::WaitForRequest(status);
+    }
+
+// Close socket
+socket.Close();
+</codeblock> <p><b>Notes </b> </p> <ul>
+<li id="GUID-29346F87-A859-52D6-851D-45956A92C78A"><p>For both the RFCOMM
+and L2CAP protocols, no data can be sent or received in the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>Connect()</apiname></xref> and <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>Shutdown()</apiname></xref> calls. The versions of these calls that
+take extra data panic. </p> </li>
+<li id="GUID-5548E996-442E-5DF6-A82B-3027FEE78FD0"><p>RFCOMM uses sockets
+of the stream socket (<xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockStream</apiname></xref>) type. </p> </li>
+<li id="GUID-B0B91FCD-E794-5BDD-B0E7-4E09AEFA5A10"><p>L2CAP uses sockets of
+the sequenced packet (<xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockSeqPacket</apiname></xref>)
+type. </p> </li>
+</ul> </section>
+<section id="GUID-B656FC5A-A7DF-43DD-AC90-AE5A5DC2B2B4"><title>Where Next?</title> <p>This tutorial set takes you through
+all the steps involved in setting up and communicating over a Bluetooth connection. </p> <ul>
+<li id="GUID-C29A5CAD-04E7-5A51-98D2-4E7131633D1E"><p> <xref href="GUID-301488F8-B6D8-569A-B05E-19B740FE4C00.dita">Selecting
+a Remote Device</xref>  </p> </li>
+<li id="GUID-EE602D07-9849-5E45-B5D9-FEB8020C2F04"><p> <xref href="GUID-CED041C8-D68D-55D1-957E-1A48EEFFF851.dita">Inquiring
+About Remote Devices</xref>  </p> </li>
+<li id="GUID-8D4E47A9-B098-5B76-8BAC-BB3F7932CC5E"><p> <xref href="GUID-A13494B9-C1E4-506A-B236-8AE0A6D6D557.dita">Inquiring
+About Services on a Remote Device</xref>  </p> </li>
+<li id="GUID-ED85B28C-845F-5394-A186-6D60901D50BB"><p> <b>Connecting and Transferring
+Data to a Remote Device</b> - This document </p> </li>
+<li id="GUID-8246800D-5362-5179-9CB2-4C5168D17934"><p> <xref href="GUID-4F0C4B9D-AA42-59C4-900A-7045FEAAF2F4.dita">Using
+security on outgoing sockets</xref>  </p> </li>
+</ul> </section>
+</conbody></concept>

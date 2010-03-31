@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-542550FA-F9F1-46D6-8182-6E7FAA013572" xml:lang="en"><title>Receiving
+key event data in your application</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <xref href="GUID-FD2CDEB8-0784-4BE5-A775-170F57D71BBC.dita">UI controller </xref>is
+the default handler for key events. In order for other <xref href="GUID-5944FFF1-79C6-4F5E-95C8-F4833AFC64AB.dita">controls</xref> to
+receive events, you must register them with the control stack with <xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-3CB7F46F-FF5D-3F96-B478-1E83CC7CDE17"><apiname>CCoeAppUi::AddToStackL()</apiname></xref>.
+Controls are usually added to the control stack in the second phase constructor.</p>
+<p>The options are as follows:</p>
+<ul>
+<li><p>In a <xref href="GUID-B5DE1C86-2B16-4B22-887F-7079E54A8ED6.dita">traditional
+Symbian UI application architecture</xref>, this is done in the UI controller
+construction phase. An example of an implementation is as follows:</p>
+<itemgroup>
+<codeblock id="GUID-CC069DFD-545E-43BF-97A2-F76D2D0F903F" xml:space="preserve">void CAddressBookAppUi::ConstructL()
+    {
+    BaseConstructL();
+    iCurrentView = CMyAppMainView::NewL( ClientRect() );
+    AddToStackL( iCurrentView );
+    }
+</codeblock>
+<p>This places <parmname>iCurrentView</parmname> on top of the control
+stack, which means the UI controller is underneath it in the stack. When the
+application framework passes an event to the application, the framework first
+requests that <parmname>iCurrentView</parmname> handle it. If this control
+does not consume the event, then the framework calls the method for the UI
+controller to handle the event.</p>
+<p><xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-3CB7F46F-FF5D-3F96-B478-1E83CC7CDE17"><apiname>CCoeAppUi::AddToStackL()</apiname></xref> offers a parameter to set
+the stack priority of a UI control.</p>
+<p>You should use <xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-E036CC0E-D93E-36E4-BA5C-2A1B51CC37E3"><apiname>CCoeAppUi::RemoveFromStackL()</apiname></xref> to remove
+a control from the control stack when it should no longer receive events.</p>
+</itemgroup>
+</li>
+<li><p>In an <xref href="GUID-68B999C2-0993-4804-9624-42C3D88BE5C7.dita">Symbian
+view architecture</xref>, this is typically done with <xref href="GUID-11967EBB-7439-3775-B287-7560ECA0AF1F.dita#GUID-11967EBB-7439-3775-B287-7560ECA0AF1F/GUID-F6105D54-1C2A-36C0-8522-50DAB45FEF67"><apiname>CAknView::DoActivateL()</apiname></xref> when
+the UI controls are constructed. An example of an implementation for this
+approach is as follows:</p>
+<itemgroup>
+<codeblock id="GUID-4DEDAE29-C6D9-4004-9687-530398F84E4A" xml:space="preserve">void CMyView::DoActivateL(const TVwsViewId&amp;, TUid , const TDesC8&amp;)
+    {
+    if (!iUIControl)
+        {
+        iUIControl = CMyUiControl::NewL( this, ClientRect() );
+        AppUi()-&gt;AddToStackL( *this, iUiControl );
+        } 
+   }
+</codeblock>
+<p>This places <parmname>iUiControl</parmname> on top of the control stack,
+which means the UI controller is underneath it in the stack. When the application
+framework passes an event to the application, the framework first requests
+that <parmname>iUIControl</parmname> handle it. If this control does not consume
+the event, then the framework calls the method for the UI controller to handle
+the event.</p>
+<p><xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-3CB7F46F-FF5D-3F96-B478-1E83CC7CDE17"><apiname>CCoeAppUi::AddToStackL()</apiname></xref> offers a parameter to set
+the stack priority for a UI control.</p>
+<p>You should use <xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-E036CC0E-D93E-36E4-BA5C-2A1B51CC37E3"><apiname>CCoeAppUi::RemoveFromStackL()</apiname></xref> to remove
+a control from the control stack when it should no longer receive events.</p>
+</itemgroup>
+</li>
+</ul>
+</conbody></concept>

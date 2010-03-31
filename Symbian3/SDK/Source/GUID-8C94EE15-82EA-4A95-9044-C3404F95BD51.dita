@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-8C94EE15-82EA-4A95-9044-C3404F95BD51" xml:lang="en"><title>Using
+Clipboard</title><shortdesc>Clipboard allows applications to read and write data to and from
+a shared clipboard. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>       <p>The clipboard is implemented as a direct file store, as
+defined in the File Store API. Data placed on the clipboard is in streams.
+Every data type placed on the clipboard is identified by a UID. The store
+has a stream dictionary to allow an application to retrieve the data by specifying
+its UID. </p> <p>The clipboard class, <xref href="GUID-9C1E9536-01E8-3C0E-B1C5-F0A597ED0CA3.dita"><apiname>CClipboard</apiname></xref>, provides
+operations to get the clipboard file store and stream dictionary. Applications
+then read or write data using the standard store and stream interfaces. It
+also provides special support for copying and pasting a <codeph>TReal</codeph> to
+and from the clipboard. </p> <p>To place data on the clipboard, construct
+a <codeph>CClipboard</codeph> object and prepare it for the data to be written,
+using the <codeph>NewForWritingLC()</codeph> static member function as illustrated
+in the following code fragment: </p> <codeblock id="GUID-9A1E8DF1-2BA9-5DFE-BFEA-749592A35E84" xml:space="preserve">CClipboard* cb = CClipboard::NewForWritingLC( fsSession );</codeblock> <p>The function requires a file server session. </p> <p>The file associated
+with the clipboard's store may or may not exist. If it already exists, any
+existing content is discarded; if the file does not exist, it is created.
+In either event, <codeph>NewForWritingLC()</codeph> results in an empty clipboard. </p> <p>Once
+the <codeph>CClipboard</codeph> object has been created, data is stored into
+the clipboard 's store. Both the store (<codeph>CStreamStore</codeph>) and
+the stream dictionary (<codeph>CStreamDictionary</codeph>), which the example
+needs to access, are encapsulated by <codeph>CClipboard</codeph>. The class,
+therefore, provides the <codeph>Store()</codeph> and <codeph>StreamDictionary()</codeph> member
+functions to return suitable references. </p>      </context>
+<steps-unordered>
+<step id="GUID-4A467DE0-7F8F-4F49-BFA6-90A6BA1DCF73"><cmd><b>Creating the
+data for the clipboard</b>.</cmd>
+<substeps id="GUID-D2D6C0A3-9B55-4CBC-8650-9CAB416C5C38">
+<substep id="GUID-B6BE715A-6282-4161-93AF-1E5B9CCC09E0"><cmd>Prepare a new
+stream for writing using the <codeph>CreateLC()</codeph> member function of <codeph>RStoreWriteStream</codeph>. </cmd>
+<info><p>The CClipboard's store is to contain the new stream and so <codeph>cb-&gt;Store()</codeph> is
+passed as a parameter to <codeph>CreateLC()</codeph>. The item object is externalised.
+The stream is committed.   The resulting <codeph>streamId</codeph> and the <codeph>UID</codeph>,
+which identifies the data type, i.e. stid and <codeph>KExampleClipUid</codeph>,
+respectively, are placed in the stream dictionary using the stream dictionary's <codeph>AssignL()</codeph> member
+function.  </p></info>
+</substep>
+<substep id="GUID-513EA674-9E19-4020-AA8F-5C7E88221400"><cmd>Conclude by calling <codeph>CClipboard's
+CommitL()</codeph> member function to store the dictionary store as the root
+stream of the store and to commit all changes to the store.</cmd>
+<info><p>Deleting the <codeph>CClipboard</codeph> object causes the file associated
+with the clipboard's store to be closed, allowing other applications to access
+it.  </p></info>
+</substep>
+</substeps>
+</step>
+<step id="GUID-2F30C4DD-1601-4D67-B18B-50F52DD211C0"><cmd><b>Pasting the data
+from clipboard </b></cmd>
+<info><p>To attempt to retrieve data from the clipboard, construct a <codeph>CClipboard</codeph> object
+and prepare it for reading using either <codeph>NewForReadingL()</codeph> or <codeph>NewForReadingLC()</codeph>.</p><codeblock xml:space="preserve">// Create clipboard object
+TRAPD( ret,cb=CClipboard::NewForReadingL( fsSession ) );
+CleanupStack::PushL( cb );
+_LIT( KNoPaste,"Nothing to paste" );
+if ( ret!=KErrNone )
+    {
+    doShow( KNoPaste,NULL );
+    User::Leave( ret );
+    }
+// Get stream from store
+TStreamId stid = ( cb-&gt;StreamDictionary() ).At( KExampleClipUid );
+if ( stid == KNullStreamId )
+    {
+    doShow( KNoPaste,NULL );
+    User::Leave( 0 );
+    }
+// Read stream
+RStoreReadStream stream;
+stream.OpenLC( cb-&gt;Store(),stid );
+stream &gt;&gt; *item;</codeblock></info>
+</step>
+<step id="GUID-0780BA8D-A141-4061-B5D1-BE9F73C3B349"><cmd><b>Copying and pasting
+real numbers</b> </cmd>
+<info><p>Use <codeph>CopyToL( TReal )</codeph> to place a <codeph>TReal</codeph> on
+the clipboard and use <codeph>PasteFromL( TReal&amp; )</codeph> to fetch a <codeph>TReal</codeph> from
+the clipboard, if there is any data.</p><p> Applications that use these functions
+to copy and paste <codeph>TReal</codeph> objects need not concern themselves
+with the UID used to identify the corresponding stream in the clipboard store.</p><p> It
+must be noted that applications which use <codeph>CopyToL( TReal )</codeph>,
+must still call <codeph>CClipboard's CommitL()</codeph> member function before
+deleting the <codeph>CClipboard</codeph> object.  </p></info>
+</step>
+</steps-unordered>
+<example><p>Following is an example on how to create data for clipboard. In
+this example, the data to be placed on the clipboard's store is a single object
+item:</p><codeblock xml:space="preserve">RStoreWriteStream  stream;
+TStreamId stid = stream.CreateLC( cb-&gt;Store() );
+stream &lt;&lt; *item;
+stream.CommitL();
+( cb-&gt;StreamDictionary() ).AssignL( KExampleClipUid,stid );
+CleanupStack::PopAndDestroy(); // stream
+cb-&gt;CommitL();
+CleanupStack::PopAndDestroy(); // cb</codeblock></example>
+</taskbody></task>

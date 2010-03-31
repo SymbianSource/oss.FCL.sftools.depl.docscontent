@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-D37576D8-1BD6-520B-9C69-60F2F89E4452"><title>WINSCW-specific errors and warnings</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>When you compile code for the WINSCW target, you may get errors and warnings that were not present when building for WINS or ARM targets. This page explains some possible causes of this. </p> <section><title>#pragma for disabling warnings</title> <p> <i>Issue:</i> CodeWarrior compiler ignores the <codeph>#pragma
+          warning(...)</codeph> statements that are used to disable specific Microsoft VC++ warnings. </p> <p> <i>Resolution:</i> consult the CodeWarrior manuals for equivalent CodeWarrior <codeph>#pragma</codeph> controls over specific warnings. </p> </section> <section><title>Expression evaluation order</title> <p>The C++ Standard explicitly states that the order of evaluation of expressions is undefined. For example, for the line, </p> <codeblock id="GUID-0DDAD2D7-123D-5079-8EDD-028C94218FCB" xml:space="preserve">x = fn1(param1) + fn2(param2);</codeblock> <p>some compilers may evaluate <codeph>fn1(param1)</codeph> first, while others may evaluate <codeph>fn2(param2)</codeph> first. Symbian have in fact found cases where CodeWarrior, and Microsoft VC++ and GCC, differ in this behaviour. You should therefore never assume a particular order of evaluation. Note that this error may be hard to find, as program behaviour can be altered, but no compiler warnings are given. </p> </section> <section><title>friend statements</title> <p> <i>Issue:</i>  <systemoutput>illegal 'friend' declaration</systemoutput> compiler errors for statements of the form <codeph>friend MyClass;</codeph>. </p> <p> <i>Resolution:</i> use the syntax <codeph>friend class
+          MyClass;</codeph>. </p> </section> <section><title>Identifier names not, or, and, etc.</title> <p> <i>Issue:</i> compiler errors when using identifiers with the names <codeph>not</codeph>, <codeph>or</codeph>, <codeph>and</codeph>, <codeph>bitor</codeph>, <codeph>xor</codeph>, <codeph>compl</codeph>, <codeph>bitand</codeph>, <codeph>and_eq</codeph>, <codeph>xor_eq</codeph>, <codeph>or_eq</codeph>, or <codeph>not_eq</codeph>. </p> <p>This is because these are C++ keywords (alternative token representations for some operators and punctuators). </p> <p> <i>Resolution:</i> modify the identifier name. </p> </section> <section><title>illegal empty declaration warnings</title> <p> <i>Issue:</i> warnings caused by unneeded semi-colons, for example, </p> <codeblock id="GUID-5DDB29A5-6A50-5063-9525-3C6493AAC129" xml:space="preserve">class CMyClass
+    {
+public:;</codeblock> <p> <i>Resolution:</i> remove unneeded semi-colons. </p> </section> <section><title>Inline assembler hex constants</title> <p> <i>Issue:</i> compiler errors for inline assembler hex constants specified with a trailing h, for example, 0001ah. </p> <p> <i>Resolution:</i> specify such constants using the C++ 0xnnnn notation. </p> </section> <section><title>Inline assembler labels</title> <p> <i>Issue:</i> compiler errors for assembler labels of the form <codeph>_asm label:</codeph>. </p> <p> <i>Resolution:</i> use C++ labels. </p> </section> <section><title>Member functions that include the class name</title> <p> <i>Issue:</i>  <systemoutput>illegal access/using declaration</systemoutput> compiler errors for class member functions whose declarations include the class name, for example: </p> <codeblock id="GUID-EF132BD8-ACED-596C-937C-06F3F968DEA4" xml:space="preserve">class CMyClass
+    {
+    void CMyClass::MyFunction();
+    };</codeblock> <p> <i>Resolution:</i> remove the class name from the function declaration. </p> </section> <section><title>Mismatched char* and unsigned char* in .c files</title> <p> <i>Issue:</i>  <codeph>illegal implicit conversion from 'unsigned
+          char*' to 'const char*'</codeph> compiler errors when attempting to pass an <codeph>unsigned char*</codeph> where a <codeph>const char*</codeph> is required. </p> <p>CodeWarrior marks this as an error for both .c files and .cpp files; MS Visual C++ only marks it as an error for .cpp files. </p> <p> <i>Resolution:</i> change the declaration or call to use matching types. Alternatively, to tell CodeWarrior not to warn on this issue, use the directive: </p> <codeblock id="GUID-DAD55174-25A1-500B-AC25-55FDA9E921E7" xml:space="preserve">#pragma mpwc_relax on</codeblock> </section> <section><title>possible unwanted ';' warnings</title> <p> <i>Issue:</i> this warns you that a loop has no body, for example, as in the following: </p> <codeblock id="GUID-D6AB57AD-BEB2-5791-9F5A-57E2E46715EE" xml:space="preserve">for (TInt i=0; i&lt;10; i++); // loop ends here
+        f(i);</codeblock> <p> <i>Resolution:</i> if a loop has no body intentionally, the warning can be removed by adding an empty body, for example, </p> <codeblock id="GUID-FD53F42D-A3EC-5A4C-AE66-AD70D64CE422" xml:space="preserve">while (f) {};</codeblock> </section> <section><title>References to enumerated values declared later</title> <p> <i>Issue:</i>  <systemoutput>undefined identifier</systemoutput> compiler errors for usage such as </p> <codeblock id="GUID-3F1BB058-2ED9-5BAC-9C0F-8C25DF8B8508" xml:space="preserve">class CMyClass
+    {
+    void MyFunction(TInt a=EMyVal1); // EMyVal1 not yet defined
+    enum
+        {
+        EMyVal1
+        };
+    };</codeblock> <p> <i>Resolution:</i> move the enumerator's declaration to before its first usage. </p> </section> <section><title>References to pointers to const objects</title> <p> <i>Issue:</i>  <systemoutput>non-const '&amp;' reference initialized to
+          temporary</systemoutput> compiler errors for use of a reference to a pointer to a non-const object, where a reference to a pointer to a const object is required, for example: </p> <codeblock id="GUID-625E9C6B-70D5-5EB8-846A-AB680066E8A5" xml:space="preserve">void f(const TInt64*&amp; aNum);
+
+void f1()
+    {
+    TInt64* ptr;
+    f(ptr);
+    }</codeblock> <p> <i>Resolution:</i> the compiler correctly cannot add const-ness at this level of indirection, as the <codeph>aNum</codeph> value could then be modified through the <codeph>ptr</codeph> pointer. Modify the code to conform with the const-ness rules. </p> </section> <section><title>Reuse of variables declared in for</title> <p> <i>Issue:</i> CodeWarrior follows the C++ standard in limiting the lifetime of a variable declared in a <codeph>for</codeph> statement to the loop block. The following code thus gives an <systemoutput>undefined identifier</systemoutput> error for the use of <codeph>i</codeph> in the second <codeph>for</codeph> statement. </p> <codeblock id="GUID-3CDC86A2-14EE-5388-A3EE-A715F5254761" xml:space="preserve">for (TInt i=0; i&lt;10; i++)
+    {
+    ...
+    }
+for (i=0; i&lt;20; i++)
+    {
+    ...</codeblock> <p> <i>Resolution:</i> as Microsoft Visual C++ gives an error if, in the above case, <codeph>i</codeph> were to be redeclared in the second <codeph>for</codeph> statement. To be compatible with both compilers, declare the loop variable outside the <codeph>for</codeph> loop. </p> </section> <section><title>sizeof(&lt;non-static class member&gt;) not in the context of an object of that class</title> <p> <i>Issue:</i>  <systemoutput>illegal use of non-static member</systemoutput> warning for such code as: </p> <codeblock id="GUID-EC13BC0F-13A8-505A-AABC-142C444111B6" xml:space="preserve">class CMyClass
+    {
+public:
+    int iNonStaticMember;
+    };
+
+int main()
+    {
+    printf("%d\n", sizeof(CMyClass::iNonStaticMember));
+    }</codeblock> <p>The error is produced because <codeph>CMyClass::iNonStaticMember</codeph> is not the name of a type, nor an expression. </p> <p> <i>Resolution:</i> a possible resolution is to provide a dummy object to produce a valid expression: for example, </p> <codeblock id="GUID-E5892D84-2310-52E2-8256-BDF0EBC59B1F" xml:space="preserve">sizeof(((CMyClass*)0)-&gt;iStaticMember)</codeblock> </section> <section><title>Uninitialised variable warnings</title> <p> <i>Issue:</i> extra warnings of the form <systemoutput>variable
+          'myvariable' is not initialized before being used</systemoutput>. </p> <p> <i>Resolution:</i> the warnings are correct, and the code should be corrected. </p> </section> <section><title>USER 42 panics when allocating and deleting arrays</title> <p> <i>Issue:</i> the program panics with USER 42 when allocating and deleting arrays. </p> <p> <i>Resolution:</i> see <xref href="GUID-011D0974-CC37-5335-A8EB-7ECF4FC30F93.dita">Cleanup for heap arrays</xref> for details of code techniques to prevent such panics. </p> </section> <section id="GUID-4856CFCB-C576-5073-AE85-B6045443C8F0"><title>Single process and memory protection</title> <p>The S in WINS and WINSCW stands for "single process". WINS/WINSCW supports multiple threads, but only a single process. This causes slight differences between WINS/WINSCW and target machines. </p> <p>As WINS/WINSCW only has a single process, each process has access to each other’s memory. This means that bad pointers may corrupt another process’s memory, resulting in bugs which would not occur on a multi-process Symbian platform implementation. Also, design bugs such as using pointers across processes do not show until code is first run on a multi-process platform. </p> </section> </conbody></concept>

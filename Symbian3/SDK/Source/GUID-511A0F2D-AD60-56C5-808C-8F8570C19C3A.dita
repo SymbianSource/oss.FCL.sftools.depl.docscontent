@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-511A0F2D-AD60-56C5-808C-8F8570C19C3A" xml:lang="en"><title>Battery
+Charger Tutorial </title><shortdesc>This tutorial describes how to get the battery charger information. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context>The client applications must check if the device can detect and provide
+the charger information.</context>
+
+
+<steps id="GUID-9A643716-8B35-56DC-B59D-EFEC27E5E2D3">
+<step id="GUID-EE1614C7-B385-55E2-BE5E-1317CFD9F6F9"><cmd/>
+<info>create an instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info>
+</step>
+<step id="GUID-3CA05094-4CDC-5EAC-AEB8-7C89B1D8B969"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetIndicator()</apiname></xref> to
+get the charger information </info>
+</step>
+<step id="GUID-CD574AFD-9C1B-5E29-953F-1E294037C578"><cmd/>
+<info>the <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>GetIndicator()</apiname></xref> returns a
+packaged descriptor <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TIndicatorV1</apiname></xref> </info>
+<info> <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>TIndicatorV1</apiname></xref> enables the client
+application to determine if the device can detect a charger connection. If
+the device can detect a charger connection then the clients can determine
+the status of the charger </info>
+</step>
+<step id="GUID-4CCCBF36-D337-562E-B3D2-5A242A9E6AF4"><cmd/>
+<info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>                 CTelephony::EGetIndicatorCancel</apiname></xref> to
+cancel the asynchronous <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>GetIndicator()</apiname></xref> request. </info>
+</step>
+</steps>
+<example id="GUID-6504744C-BA63-52E0-AD9C-EA3E4186EBD8"><title>Battery charger
+example</title> <codeblock id="GUID-861ED86D-A73E-5499-9534-BB40870487C8" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TIndicatorV1 iIndicatorV1;
+    CTelephony::TIndicatorV1Pckg iIndicatorV1Pckg;
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iIndicatorV1Pckg(iIndicatorV1)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;GetIndicator(iStatus, iIndicatorV1Pckg);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {
+       if(iIndicatorV1.iCapabilities &amp; CTelephony::KIndChargerConnected)
+          {
+          // We can detect when a charger is connected
+          if(iIndicatorV1.iIndicator &amp; CTelephony::KIndChargerConnected)
+             {} // Charger is connected
+          else
+             {} // Charger is not connected
+          }
+       else
+          {} // We do not know whether a charger is connected
+       }
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EGetIndicatorCancel);
+    }</codeblock> </example>
+</taskbody></task>

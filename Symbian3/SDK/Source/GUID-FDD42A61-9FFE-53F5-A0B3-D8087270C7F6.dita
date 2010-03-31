@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FDD42A61-9FFE-53F5-A0B3-D8087270C7F6" xml:lang="en"><title>Phone
+Lock Tutorial </title><shortdesc>This tutorial describes how to get the device lock information
+by the client applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>The phone can have up to two locks specified by the user. The
+client  application can retrieve the lock information to prevent unauthorised
+use of  the device. The client applications must specify a lock to retrieve
+the information. </p></context>
+
+
+<steps id="GUID-A284897D-1D9A-5012-AF7F-569E3DB0FF84">
+<step id="GUID-BF21F99C-8A31-5BF5-9D33-AC952F9CFB6C"><cmd/>
+<info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info>
+</step>
+<step id="GUID-CC42631B-2A9A-58DB-8018-4A7679FAED0A"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::GetLockInfo()</apiname></xref> to
+get the lock information </info>
+<info>Specify the lock in a <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>TIccLock</apiname></xref> object. </info>
+</step>
+<step id="GUID-A1F3A428-568F-5149-9491-00AB2D2BEE16"><cmd/>
+<info>the function returns the lock information in <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TIccLockInfoV1</apiname></xref>  </info>
+</step>
+<step id="GUID-18B971F7-056B-55DB-BE93-D6503ACC6D69"><cmd/>
+<info>use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EPin1LockInfoChange</apiname></xref> and <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EPin2LockInfoChangenotification</apiname></xref> to
+get the notification of any changes in the lock1 and lock2 </info>
+</step>
+<step id="GUID-0D7A9400-6C12-5B44-BA19-BE0A55E4BF30"><cmd/>
+<info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EPin1LockInfoChangeCancel</apiname></xref> and <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EPin2LockInfoChangeCancel</apiname></xref> to cancel
+the notification requests of lock1 and lock2. </info>
+</step>
+</steps>
+<example id="GUID-FD34FB9F-02F7-518E-A591-ECBAEFCC1521"><title>Phone lock
+example</title> <codeblock id="GUID-C79BF94F-2001-511D-A3E7-827A206536DE" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TIccLockInfoV1 iIccLockInfoV1;
+    CTelephony::TIccLockInfoV1Pckg iIccLockInfoV1Pckg;
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+    };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony),
+      iIccLockInfoV1Pckg(iIccLockInfoV1)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    CTelephony::TIccLock lockSelect = CTelephony::ELockPin2;
+    iTelephony-&gt;GetLockInfo(iStatus, lockSelect, iIccLockInfoV1Pckg);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {
+       if( iIccLockInfoV1.iSetting == CTelephony::ELockSetEnabled 
+                    &amp;&amp; iIccLockInfoV1.iStatus == CTelephony::EStatusUnlocked)
+          {
+          // Lock 2 is available for the phone to use 
+          // and its current statues is open, 
+          // The user can access functionality governed by this lock.
+          }
+       }
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EGetLockInfoCancel);
+    }</codeblock> </example>
+</taskbody></task>

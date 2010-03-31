@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-782AA56A-D3CF-5239-AB62-9AE6741964E8" xml:lang="en"><title> Reading
+from a Socket: Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This partial tutorial explains the behaviour of the different functions
+available to read data from a socket. </p>
+<table id="GUID-2F5824A3-D900-5CC3-96CD-39F11D3F62DD">
+<tgroup cols="5"><colspec colname="COLSPEC1" colwidth="1.00*"/><colspec colname="col1" colwidth="1.01*"/><colspec colname="col2" colwidth="1.03*"/><colspec colname="col3" colwidth="0.99*"/><colspec colname="col4" colwidth="0.99*"/>
+<thead>
+<row>
+<entry>Type of Socket</entry>
+<entry>Type of Wait</entry>
+<entry>Must socket be connected?</entry>
+<entry>Lose Data on Overflow?</entry>
+<entry>APIs</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry morerows="2"><p>Datagram </p></entry>
+
+
+<entry morerows="1"><p>Return on first Data </p> </entry>
+<entry><p>Yes </p> </entry>
+<entry><p>Yes </p> </entry>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Recv(TDes8 &amp;aBuffer,TUint
+                someFlags,TRequestStatus &amp;aStatus)</apiname></xref>  </p> <p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Recv(TDes8 &amp;aBuffer,TUint                 someFlags,TRequestStatus
+&amp;aStatus,TSockXfrLength &amp;aLen)</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>No -socket can be in unknown state </p> </entry>
+<entry><p>No </p> </entry>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::RecvFrom(TDes8 &amp;aBuffer,TSockAddr
+                &amp;anAddr,TUint someFlags,TRequestStatus &amp;aStatus)</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Wait until buffer full </p> </entry>
+<entry/>
+<entry/>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Read(TDes8 &amp;aBuffer,TRequestStatus
+                &amp;aStatus)</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry morerows="2"><p>Stream </p></entry>
+<entry><p>Return on first Data </p> </entry>
+<entry align="justify"><p>Yes </p> </entry>
+<entry/>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::RecvOneOrMore(TDes8 &amp;aBuffer,TUint
+someFlags,TRequestStatus &amp;aStatus,TSockXfrLength &amp;aLen)</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry morerows="1"><p>Wait until buffer full </p> </entry>
+<entry align="justify"><p>Yes </p></entry>
+<entry><p>Yes </p> </entry>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Recv(TDes8 &amp;aBuffer,TUint
+someFlags,TRequestStatus &amp;aStatus)</apiname></xref>  </p> <p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Read(TDes8
+&amp;aBuffer,TRequestStatus &amp;aStatus)</apiname></xref>  </p> </entry>
+</row>
+<row>
+
+
+<entry/>
+<entry><p>No </p> </entry>
+<entry><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket::Recv(TDes8 &amp;aBuffer,TUint
+someFlags,TRequestStatus &amp;aStatus,TSockXfrLength &amp;aLen)</apiname></xref>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>The following <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RSocket</apiname></xref> functions read
+data from a socket: </p>
+<ul>
+<li id="GUID-4FB26DCD-9852-5AED-AD07-0B71BBF28325"><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname> Recv()</apiname></xref> and <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RecvFrom()</apiname></xref> each have two versions: </p> <ul>
+<li id="GUID-AAF3AE2B-47D1-5868-A0F2-E2582C6705C1"><p>A version which only
+completes when the full amount of requested data is received, or the connection
+is disconnected. </p> <p>For example <codeph>RSocket::Recv(TDes8 &amp;aDesc,
+TUint flags,                   TRequestStatus &amp;aStatus)</codeph>. </p> <p>The
+amount of data requested is specified by the <xref href="GUID-6D1A830E-F0F1-5C0F-8EEB-70922C0EF6B8.dita">maximum
+length</xref> of the descriptor which receives the data. If the amount of
+data to read is not known until run-time, use a <codeph>HBufC8</codeph> or <codeph>RBuf</codeph> descriptor. </p> <p>If
+the datagram is larger than the requested amount, the protocol plug-in (PRT)
+will truncate the datagram and return the requested amount of data (counted
+in bytes). The function will not indicate to the client that the data was
+truncated. </p> </li>
+<li id="GUID-31B36AAE-0E65-570E-84D1-C6EC2B9FDE2C"><p>A version which takes
+the <codeph>TSockXfrLength &amp;aLen</codeph> parameter and reads a datagram
+in parts. </p> <p>For example <codeph>RSocket::Recv(TDes8&amp; aDesc,TUint
+                  flags,TRequestStatus&amp; aStatus,TSockXfrLength&amp; aLen)</codeph>. </p> <p>This
+version completes with a count of the remaining bytes of the datagram in the <codeph>TSockXfrLength</codeph> parameter.
+The client can repeat the use of the function to read the remaining bytes.
+To read the bytes which remain, the client sets the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockReadContinuation</apiname></xref> flag.
+To set the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockReadContinuation</apiname></xref> flag
+the client must use the <i>binary OR</i> operator with the <i>flags</i> field.
+The bytes which remain are discarded if the client uses the function and does
+not set the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockReadContinuation</apiname></xref> flag. </p> <p>Clients
+who need to read the datagrams as a "stream" can set the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockReadContinuation</apiname></xref> flag.
+When the <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>KSockReadContinuation</apiname></xref> flag is
+set and there is no remaining data, new data is read. </p> </li>
+</ul> </li>
+<li id="GUID-9D0FEAA4-3C27-594A-B582-CE3F445ADB7D"><p> <codeph>Read()</codeph> only
+completes when the full amount of requested data is received, or the connection
+is disconnected. </p> <p>The amount of data requested is specified by the <xref href="GUID-6D1A830E-F0F1-5C0F-8EEB-70922C0EF6B8.dita">maximum length</xref> of
+the descriptor which receives the data. If the amount of data to read is not
+known until run-time, use a <codeph>HBufC8</codeph> or <codeph>RBuf</codeph> descriptor. </p> <p>If
+the datagram is larger than the requested amount, the protocol plug-in (PRT)
+will truncate the datagram and return the requested amount of data (counted
+in bytes). The function will not indicate to the client that the data was
+truncated. </p> </li>
+<li id="GUID-B31DE8AB-8F0E-5D72-97FF-2362E013E551"><p> <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita"><apiname>RecvOneOrMore()</apiname></xref> reads
+at least one byte of data and completes with the available data. The amount
+of data received is returned in the <codeph>TSockXfrLength</codeph> argument. </p> </li>
+<li id="GUID-9A43EC4E-F053-55DE-9024-76562A899E63"><p> <codeph>RecvFrom()</codeph> is
+designed for use when the client does not know if the socket is connected.
+If the socket is not connected, a source address is returned. </p> </li>
+<li id="GUID-DA868C8C-2165-5430-9E28-8A304423925D"><p> <codeph>Recv()</codeph>, <codeph>Read()</codeph>,
+and <codeph>RecvOneOrMore()</codeph> are designed for use with connected sockets. </p> </li>
+</ul>
+</conbody></concept>

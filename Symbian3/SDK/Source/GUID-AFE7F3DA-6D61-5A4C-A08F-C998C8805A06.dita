@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AFE7F3DA-6D61-5A4C-A08F-C998C8805A06" xml:lang="en"><title>How
+the target Client is Resolved using CSIPResolvedClient2</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The SIP Client Resolver determines the target clients by comparing the
+Request-URI of the incoming SIP request to the information stored in SIP Client
+Resolver mapping table in the Central Repository. The information required
+to access the map table in the Central Repository is defined in the <filepath>sipclientresolverconfigcrkey.h</filepath> file.
+The incoming SIP request compares with the Request-URI’s user part in the
+Central Repository mapping table. </p>
+<p>If a match is found, the related ECOM plug-in is loaded by its UID. The
+loaded plug-in matches the incoming SIP requests based on their fields. If
+the request matches, the plug-in returns the UID of the matching client. SIP
+Client Resolver requests the resolved ECom plug-in to connect to the Symbian
+platform server that uses SIP. </p>
+<p>The resource (<filepath>.rss</filepath>) file contains the information
+in the Central Repository and also the following information: </p>
+<ul>
+<li id="GUID-6CF8E2D5-5BF3-5E56-93BE-97A0D2054B0E"><p> <codeph> dll_uid</codeph> and <codeph>implementation_uid</codeph>:
+These UIDs are obtained from <xref href="http://www.symbiansigned.com" scope="external">Symbian
+Signed</xref>. </p> <p> <b>Note:</b> Both these UIDs can be the same. </p> </li>
+<li id="GUID-A2F95B01-F707-51D1-AD67-4EB364865C33"><p>The <codeph>interface_uid</codeph> must
+be <codeph>0x10282EE5</codeph>. </p> </li>
+</ul>
+<section id="GUID-D0D9C1C9-C0A1-4C4C-ACA6-14C23D651E38"><title>Resolving the target client using CSIPResolvedClient2</title> <p>The
+following illustration shows how the SIP Client Resolver subsystem resolves
+the target client implementing <xref href="GUID-30BC7BC4-0FBE-3C60-A2E4-2E5AE206C61E.dita"><apiname>CSIPResolvedClient2</apiname></xref> and
+requests the resolved client to connect to the SIP implementation. </p> <fig id="GUID-750221F0-A98E-5C47-B804-5A6CDD16B2E9">
+<title>              Call flow of resolving a target client implementation
+using              CSIPResolvedClient2            </title>
+<image href="GUID-8EF8CDD3-9FFE-5C39-8303-67A661C67F6B_d0e344068_href.jpg" placement="inline"/>
+</fig> <p>The target clients must implement the <xref href="GUID-30BC7BC4-0FBE-3C60-A2E4-2E5AE206C61E.dita"><apiname>CSIPResolvedClient2</apiname></xref> interface
+to receive SIP requests including SIP dialogs and enable the client resolution
+mechanism. <b/><b>Note</b>: The channel UIDs must be unique across all
+SIP clients. For example clients may use UIDs assigned for binaries. </p> <p>The
+SIP stack uses the plug-ins that implement the <xref href="GUID-30BC7BC4-0FBE-3C60-A2E4-2E5AE206C61E.dita"><apiname>CSIPResolvedClient2</apiname></xref> interface
+as follows: </p> <ol id="GUID-E0C735BE-BBBD-533B-AB2B-59F8936060BA">
+<li id="GUID-7854B67A-2143-5EA4-949D-B3C96CA51866"><p>If the SIP request does
+not contain an Accept-Contact-header, go to step 2. If it does, the SIP stack
+calls <codeph>CSIPResolvedClient2::MatchAcceptContactsL</codeph> for all the
+plug-ins and applies the following logic: </p> <ul>
+<li id="GUID-E975B348-52DB-519A-9AC0-98821BA27E95"><p>If none of the clients
+match, go to step 2 </p> </li>
+<li id="GUID-99DB2FEE-470B-5E76-8183-AD2C0E1B6FF0"><p>If one of the client
+match, the SIP request is sent to the matching client </p> </li>
+<li id="GUID-5F420FD9-2AEE-5517-A216-FA3868941902"><p>If more than one of
+the clients match, go to step 2 </p> </li>
+</ul> </li>
+<li id="GUID-F28D6940-D404-5E0F-B52A-6A47980ADA68"><p>If the SIP request does
+not contain an Event-header go to step 3. If it does, the SIP stack calls <codeph>CSIPResolvedClient2::MatchEventL</codeph> for
+all the plug-ins and applies the following logic: </p> <ul>
+<li id="GUID-390E2FBC-305E-59C0-BE1F-E7C961B47251"><p>If none of the clients
+match, go to step 3 </p> </li>
+<li id="GUID-6A41D1A5-7636-51CC-864D-F2AB095D97E6"><p>If one of the client
+match, the SIP request is sent to the matching client </p> </li>
+<li id="GUID-8C51B40C-FC7B-566E-B56F-4279233C192E"><p>If more than one of
+the clients match, go to step 3 </p> </li>
+</ul> </li>
+<li id="GUID-9C094348-B7F4-572D-B49B-B99F81C902F2"><p>The SIP stack calls <codeph>CSIPResolvedClient2::MatchRequestL</codeph> for
+all the plug-ins and applies the following logic: </p> <ul>
+<li id="GUID-63351732-E32A-58BC-8F32-7BA3832788FD"><p>If none of the clients
+match, the SIP generates an error response </p> </li>
+<li id="GUID-9E8765F8-A55F-5EA3-A63E-ACBF8A4BEF24"><p>If one of the client
+match, the SIP request is sent to the matching client </p> </li>
+<li id="GUID-AE679FD1-163D-5F3B-ADE8-1C6AEF490552"><p>If more than one of
+the clients match, SIP selects one of these clients randomly and sends the
+request to it. The ROM-based clients are preferred. </p> </li>
+</ul> </li>
+</ol> </section>
+<section id="GUID-026A9B43-E096-4D32-AC3B-2DDC7974FFF6"><title>See also</title> <p> <xref href="GUID-0D579DDC-0A8A-5CFA-8194-CAA955B65A57.dita">Example
+of a SIP Client Resolver Plug-in</xref>  </p> </section>
+</conbody></concept>

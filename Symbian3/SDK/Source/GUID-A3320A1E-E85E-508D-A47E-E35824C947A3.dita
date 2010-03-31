@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A3320A1E-E85E-508D-A47E-E35824C947A3"><title>Non-embeddable Applications</title><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Procedure</title> <p>The <codeph>TARGETTYPE</codeph> in the MMP file changes from <codeph>app</codeph> to <codeph>exe</codeph>. However, for applications that need to also run on the EKA1 emulator, the <codeph>TARGETTYPE</codeph> must be <codeph>exedll</codeph>. Hence, the following lines should replace the existing <codeph>TARGET</codeph> and <codeph>TARGETTYPE</codeph> lines: </p> <codeblock id="GUID-12EE5D60-8E31-5E0B-912F-F4E989778F5E" xml:space="preserve">#if !defined(EKA2) &amp;&amp; defined(WINS) 
+TARGET ExeAppTest.app 
+TARGETTYPE exedll 
+deffile \epoc32\release\wins\exedllapp.def 
+#else 
+TARGET ExeAppTest.exe 
+TARGETTYPE exe 
+#endif</codeblock> <p>The <codeph>TARGET</codeph> filename's extension should be <filepath>.exe</filepath>. It is also important is that the second UID (the application identifier) remains the same: <codeph>0x100039CE</codeph>. For EKA1 emulator builds, the binary produced is a DLL with the entry point exported at ordinal one. Therefore, as in the example above, a <codeph>deffile</codeph> statement is used to define the export. </p> <p>The stack size should be explicitly set to a value greater than the default of 8K. Previously, applications were launched in a process initiated by <filepath>apprun.exe</filepath> which had a stack size of 20K. Therefore, to ensure the converted application will not have any problems with stack size, this is the minimum value the stack size should be set to. This is done in the MMP file with the line: </p> <codeblock id="GUID-EFC7436D-6023-5DF2-8338-474871E22DA6" xml:space="preserve">epocstacksize 0x5000</codeblock> <p>Note that embedding an EXE-app inside another EXE-app (see the <xref href="GUID-BD7C45B2-11BF-5162-9F9B-B84E51C5C6D4.dita#GUID-BD7C45B2-11BF-5162-9F9B-B84E51C5C6D4/GUID-4CE56897-FEB9-523F-843A-E5BAFFDBBCDB">Embeddable applications</xref> section below) is enough to overflow the default 8K stack. </p> <p>The API for starting the application framework is in <filepath>eikcore.dll</filepath>, so <filepath>eikcore.lib</filepath> needs to be listed in the <codeph>LIBRARY</codeph> section of the MMP file. </p> <p>The <xref href="GUID-E5533B10-D01F-3133-8E74-28071766885B.dita#GUID-E5533B10-D01F-3133-8E74-28071766885B/GUID-275C4B9B-53BD-38C5-8C8E-05D480358836"><apiname>EikStart::RunApplication()</apiname></xref> function needs to be called from the EXE's entry point, passing as an argument a pointer-to-function which creates an instance of the <xref href="GUID-C0297A58-2E39-3211-A2B4-C334192CE2A7.dita"><apiname>CApaApplication</apiname></xref> -derived class (this is the same function that is exported at ordinal 1 for DLL-apps). In EKA1 emulator builds, the command line also needs to be passed to this function. This is demonstrated by the following code, which works for all builds: </p> <codeblock id="GUID-CBB2C08F-1E2F-516C-A0D7-B172F3C03C40" xml:space="preserve">#include &lt;eikstart.h&gt; 
+LOCAL_C CApaApplication* NewApplication()
+    {
+    return new CExampleApplication;
+    } 
+GLDEF_C TInt E32Main()
+    {
+    return EikStart::RunApplication(NewApplication);
+    }
+
+#if defined(__WINS__) &amp;&amp; !defined(EKA2) 
+GLDEF_C TInt E32Dll(TDllReason)
+    {
+    return KErrNone;
+    } 
+EXPORT_C TInt WinsMain(TDesC* aCmdLine)
+    {
+    return EikStart::RunApplication(NewApplication, aCmdLine);
+    } 
+#endif</codeblock> <p>If the application needs to store configuration or application data, a private directory will need to be created. For more information on private directories, see the documentation on the <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> class. </p> <p>The relevant functions in the <xref href="GUID-E263C747-946F-35AA-9F1D-41833BD350FC.dita"><apiname>RFs</apiname></xref> class for private directories are are: </p> <dl><dlentry><dt><codeph> RFs::PrivatePath</codeph> </dt> <dd><p>gets the private path for a process </p> </dd> </dlentry> <dlentry><dt>  <codeph>RFs::CreatePrivatePath</codeph> </dt> <dd><p>creates the private directory for a process on the specified drive </p> </dd> </dlentry> <dlentry><dt><codeph>RFs::SetSessionToPrivate</codeph> </dt> <dd><p>sets the session path to point to the private directory on the specified drive </p> </dd> </dlentry> </dl> </section> </conbody><related-links><link href="GUID-940F3F6E-BA9C-5E19-9AC5-D848B5E175FB.dita"><linktext>Application
+                Architecture Overview</linktext> </link> </related-links></concept>

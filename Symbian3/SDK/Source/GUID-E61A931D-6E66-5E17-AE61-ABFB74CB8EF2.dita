@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E61A931D-6E66-5E17-AE61-ABFB74CB8EF2" xml:lang="en"><title>Life
+cycle of active objects</title><shortdesc>This document describes the life cycle of an active objet.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The diagram illustrates the life-cycle of an active object. </p>
+<fig id="GUID-BF465AB5-B007-5F44-9AF7-DA0963AE3BDE">
+<title>Flow diagram showing the life cycle of an active object</title>
+<image href="GUID-36F18DC4-7BD0-59C6-95E9-8FD945B86D7E_d0e237164_href.png" placement="inline"/>
+</fig>
+<p>Procedural flow follows the black arrows; control is transferred along
+the blue links, as follows:</p>
+<ul>
+<li id="GUID-3E3558A3-8C64-515B-A024-81586B472985"><p>the main program creates
+and installs an active scheduler</p> </li>
+<li id="GUID-15AE6C3A-5CF7-5711-951A-6FFC8CB6ED27"><p>active objects are created;
+their constructors ensure that every active object is added to the active
+scheduler (which keeps a reference to the object in its queue)</p> </li>
+<li id="GUID-9428DF85-02A3-56C2-A145-604A0356A166"><p>an active object is
+called to issue an initial request. This sets the object's <codeph>iActive</codeph> true
+(indicating a request was issued but not yet completed) and schedules the
+underlying service, which sets the object's <codeph>iStatus</codeph> to <codeph>KRequestPending</codeph>.
+(If this step is omitted, no service will be requested, so no handler will
+be invoked and hence the active scheduler will wait forever in its loop, never
+calling any object's <codeph>RunL()</codeph>)</p> </li>
+<li id="GUID-48E77554-3EF4-5313-969A-12D3426DA502"><p>the active scheduler
+is started. This now takes over; control is only returned to the main program
+for termination when the active scheduler is stopped</p> </li>
+<li id="GUID-E697E0CF-65F0-5AFD-8201-ADC6A791D98C"><p>when a requested service
+completes, it's handler terminates by signaling service completion; this alters
+the associated active object's <codeph>iStatus</codeph> </p> </li>
+<li id="GUID-CDD9242D-9540-5DC0-A948-8914F2AEF905"><p>when any service handler
+signals completion, the active scheduler tests each object in its queues for
+one with <codeph>iActive</codeph> true (request not completed) and <codeph>iStatus</codeph> not
+set to <codeph>KRequestPending</codeph> (i.e. the request has been handled) </p> </li>
+<li id="GUID-98980800-03DA-5623-9305-94609FBE9788"><p>if the active scheduler
+finds an object with the above conditions, it sets <codeph>iActive</codeph> false
+and calls the object's <codeph>RunL()</codeph> </p> </li>
+<li id="GUID-CFC4609C-3FED-538E-9555-1A90114876A3"><p>the <codeph>RunL()</codeph> may
+reschedule the request (so that the handler is again invoked when the requested
+service completes and the cycle continues.) or may stop the active scheduler,
+returning control to the main program for termination.</p> </li>
+</ul>
+</conbody></concept>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7B275129-5EF7-4B27-B603-3BDE2C650A93" xml:lang="en"><title>Queries</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A query is a state where the software waits for user input. Queries are
+used in situations with more than one ways to proceed, when the application
+needs data from the user, or when it is necessary to make sure the user knows
+what is happening. A query must be exited before the application can proceed.</p>
+<p>Queries are displayed in pop-up windows. The following query types can
+be used:</p>
+<table id="GUID-90850312-4A91-46D7-AC86-DC6F1B7E4BA9">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.39*"/><colspec colname="col2" colwidth="1.61*"/>
+<thead>
+<row>
+<entry valign="top"><p>Query types</p></entry>
+<entry valign="top"><p>Description</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Confirmation query</p></entry>
+<entry><p>A question or notice with one or two possible responses. </p></entry>
+</row>
+<row>
+<entry><p>List query</p></entry>
+<entry><p>A question with a selection of more than two possible (pre-defined)
+responses in a list. </p></entry>
+</row>
+<row>
+<entry><p>Grid query</p></entry>
+<entry><p>A question with a selection of more than two possible (pre-defined)
+responses in a grid.</p></entry>
+</row>
+<row>
+<entry><p>Multi-selection list query</p></entry>
+<entry><p>Presents a list of items; the user can select any number of them. </p></entry>
+</row>
+<row>
+<entry><p>Data query</p></entry>
+<entry><p>Used for numeric or textual input.</p></entry>
+</row>
+<row>
+<entry><p>Message query</p></entry>
+<entry><p>Used for various purposes in queries that are longer than one screen.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<section id="GUID-53619735-6F0F-401F-AE62-154EDF75A0C3"><title>Using
+queries in C++ applications</title><p>The APIs to use for queries are the
+Queries API, <xref format="html" href="specs/guides/Dialogs_API_Specification/Dialogs_API_Specification.html" scope="peer">Dialogs API</xref>, and the <xref format="html" href="specs/guides/Popups_API_Specification/Popups_API_Specification.html" scope="peer">Popups API</xref>. For implementation information, see <xref format="html" href="specs/guides/Dialogs_API_Specification/Dialogs_API_Specification.html#Dialogs_API_Specification.topic3" scope="peer">Using the Dialogs API</xref>.</p><p>Query dialogs are dialogs
+that can be used to require user input or user selection. All query dialogs
+derive from <xref href="GUID-DD9C643C-223D-3B70-AEBA-5BF5C5E181ED.dita"><apiname>CAknQueryDialog</apiname></xref>, which inherits <xref href="GUID-FBE5021B-FA5C-3306-B836-601E4BCB11E4.dita"><apiname>CAknDialog</apiname></xref>.
+There are two types of queries: local and global queries. Local query dialogs
+are local to a certain application. That means they are only displayed within
+this application. Global query dialogs are system-wide queries, and are shown
+topmost even when another application moves to the foreground. Query dialogs
+require resource definitions when they are used in your code. </p><note><p>To
+have a header pane, the <codeph>AVKON_HEADING</codeph> component should be
+specified as the first dialog line in the resource description.</p></note><p>At
+runtime, the dialog's header pane (<xref href="GUID-5FEC2E62-57DB-328C-8E13-4990F9308BF6.dita"><apiname>CAknPopupHeadingPane</apiname></xref>)
+can be obtained by calling the method <xref href="GUID-DD9C643C-223D-3B70-AEBA-5BF5C5E181ED.dita#GUID-DD9C643C-223D-3B70-AEBA-5BF5C5E181ED/GUID-B7AC6A1B-1C68-38AC-8B5F-D6199AA272D4"><apiname>CAknQueryDialog::QueryHeading()</apiname></xref>.</p><p>The
+following parts are available for modification from the class <codeph>CAknQueryDialog</codeph>:</p><ul>
+<li><p>Data query </p><ul>
+<li><p>Header text </p></li>
+<li><p>Header image/animation </p></li>
+<li><p>Prompt text </p></li>
+<li><p>Edit indicator (can be removed) </p></li>
+</ul></li>
+<li><p>Confirmation query </p><ul>
+<li><p>Prompt text </p></li>
+<li><p>Image/animation </p></li>
+</ul></li>
+<li><p>List query </p><ul>
+<li><p>Header text </p></li>
+<li><p>Header image/animation </p></li>
+<li><p>List type (Single, SingleHeading, SingleGraphic, SingleGraphicHeading) </p></li>
+</ul></li>
+</ul><p>The following example illustrates the resource definition for the
+Secret Editor Query, which contains a Secret Editor, resides inside the dialog.
+The values for flags, type, id, and control are specific to the query dialog.
+These values are enumerated in the file <codeph>avkon.hrh</codeph>, which
+is in the <codeph>./epoc32/include</codeph> folder.</p><codeblock xml:space="preserve">RESOURCE DIALOG r_aknexquery_code_query
+    {
+    flags = EGeneralQueryFlags
+    buttons = R_AVKON_SOFTKEYS_OK_CANCEL;
+    items =
+        {
+        DLG_LINE
+            {
+            type = EAknCtQuery;
+            id = EGeneralQuery;
+            control = EGeneralQueryFlags
+                {
+                layout = ECodeLayout;
+                label = label_text;
+                control = SECRETED
+                    {
+                    num_letters = 8;
+                    };
+                };
+            }
+        };
+    }
+</codeblock><p>The query in the above example includes a secret editor. For
+information on implementing secret editors, see the <xref format="html" href="specs/guides/Editors_API_Specification/Editors_API_Specification.html" scope="peer">Editors API</xref>.  </p><p><b>See also</b>:</p></section>
+</conbody></concept>

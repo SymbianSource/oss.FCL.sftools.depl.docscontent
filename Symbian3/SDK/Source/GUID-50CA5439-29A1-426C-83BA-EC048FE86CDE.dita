@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-50CA5439-29A1-426C-83BA-EC048FE86CDE" xml:lang="en"><title>Allowing
+Large Memory Allocation</title><shortdesc>This section describes how an application can request for free
+memory from OOM Monitor for large amount of RAM allocation.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-54D945B5-EFE2-4639-B040-7A6321448A07">       <p>An application
+can allocate RAM without seeking the permission from the OOM Monitor if the
+amount of RAM is not over <xref href="GUID-75DB7CA6-08F0-3CFB-ADDF-621FFF5B8058.dita"><apiname>KOomMaxAllocationWithoutPermission</apiname></xref> limit.
+ </p><p>If an application needs to allocate more RAM than allocated by <xref href="GUID-75DB7CA6-08F0-3CFB-ADDF-621FFF5B8058.dita"><apiname>KOomMaxAllocationWithoutPermission</apiname></xref>,
+it must request the OOM Monitor using the <xref href="GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73.dita#GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73/GUID-BE322080-5193-3D8E-9425-C6BEA920ED2E"><apiname>ROomMonitorSession::RequestFreeMemory()</apiname></xref> method. </p><p>An
+application can request for free RAM either synchronously or asynchronously.</p> 
+ </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-3-2">
+<step id="GUID-83631E4F-71D0-4FD2-8FD6-46689AAFA761-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-3-2-1"><cmd>Create an OOM Monitor
+session</cmd>
+<info><codeblock xml:space="preserve">ROomMonitorSession ioomMonitorSession;
+CleanUpClosePushL(ioomMonitorSession);
+User::LeaveIfError(ioomMonitorSession.Connect());
+</codeblock></info>
+</step>
+<step id="GUID-83631E4F-71D0-4FD2-8FD6-46689AAFA761-GENID-1-8-1-10-1-1-8-1-5-1-6-1-6-1-3-2-2"><cmd>Request for free
+memory can be done in two ways:</cmd>
+</step>
+</steps>
+<result id="GUID-1D804A3D-8EEC-4E62-8496-2A43CCDC0BEB"><p>The OOM Monitor
+allows the client application to allocate memory, if the free RAM level is
+above the <codeph>LOW_RAM_THRESHOLD</codeph> value.</p><p> If the free RAM
+level is below the <codeph>LOW_RAM_THRESHOLD</codeph> value,
+the OOM Monitor releases RAM using <xref href="GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73.dita#GUID-02D1911A-D2E5-3D28-9B05-75DA0A75DE73/GUID-BE322080-5193-3D8E-9425-C6BEA920ED2E"><apiname>ROomMonitorSession::RequestFreeMemory()</apiname></xref> method.
+This method returns the following values: <ul>
+<li><p>Requested amount of RAM is available then <codeph>aStatus</codeph> is
+set to <codeph>KErrNone</codeph>.</p></li>
+<li><p>Requested amount of RAM is not available then <codeph>aStatus</codeph> is
+set to <codeph>KErrNoMemory</codeph>.</p></li>
+</ul> </p></result>
+</taskbody><related-links>
+<link href="GUID-F6A33835-D677-41D0-86BB-812E3AFA5192.dita"><linktext>OOM Monitor
+Concepts</linktext></link>
+<link href="GUID-39A8FBC9-5FD6-4F92-B71E-5C5438ECFD46.dita"><linktext>OOM Monitor
+Overview</linktext></link>
+<link href="GUID-88752800-83BD-4845-80A0-6B65D8D81924.dita"><linktext>OOM Monitor
+Reference</linktext></link>
+</related-links></task>

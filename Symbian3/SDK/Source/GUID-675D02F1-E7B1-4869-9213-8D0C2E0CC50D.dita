@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-675D02F1-E7B1-4869-9213-8D0C2E0CC50D" xml:lang="en"><title>Adding,
+Removing and Accessing Header Field Parts</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F273A4FC-D2C7-45A2-A2CA-12D9B6C8531C"> <p>Header field parts are added by repeated invocation of the <xref href="GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9.dita#GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9/GUID-A8708AE6-8EAE-37C9-BAD2-87E4A7DCE266"><apiname>RHTTPHeaders::SetFieldL()</apiname></xref> method.
+On the first invocation, when no field of that name exists in the header,
+a new field is created with a single part. On subsequent invocations, additional
+parts are added to the existing header field. </p> <p>This behaviour is consistent
+with HTTP/1.1 in which: </p> <codeblock id="GUID-16F90813-AABE-5855-A7EB-6CB4C4D52225" xml:space="preserve">Accept: text/*, text/html</codeblock> <p>is
+preferable to </p> <codeblock id="GUID-7290C356-D37B-5A79-9C11-470D500647CC" xml:space="preserve">Accept: text/* text/html</codeblock> <p>Although
+the two are semantically equivalent, the API will not output the second variant
+under any circumstance. </p> <p>When parts are added to a header field, they
+are given an index number. The first part to be added has index 0, the second
+is index 1, and so on. This index is necessary when identifying parts for
+retrieval (using <xref href="GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9.dita#GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9/GUID-E89FA67E-7E0B-3C37-B920-B6E594A31BFE"><apiname>RHTTPHeaders::GetField()</apiname></xref>). </p> <p>To
+remove a single header field part, <xref href="GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9.dita#GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9/GUID-656EF7AC-479E-3408-B00C-9FAE3022A37B"><apiname>RHTTPHeaders::RemoveFieldPart()</apiname></xref> is
+used, specifying a part index. To remove a header field entirely, <xref href="GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9.dita#GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9/GUID-2C6BE5F2-E486-39E9-8594-2E5A5E936C1A"><apiname>RHTTPHeaders::RemoveField()</apiname></xref> is
+used. </p> <p>Part values are accessed using <xref href="GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9.dita#GUID-54F9A87B-FE2F-3429-9793-0A24B83466B9/GUID-E89FA67E-7E0B-3C37-B920-B6E594A31BFE"><apiname>RHTTPHeaders::GetField()</apiname></xref>.
+The client must supply a part index and an uninitialized <xref href="GUID-DEE8279A-3BEC-316F-97B8-6C49FEDBD5B3.dita"><apiname>THTTPHdrVal</apiname></xref>,
+which will be filled by the method. This example, from <filepath>HTTPEXAMPLECLIENT</filepath>,
+retrieves all response headers and prints their values: </p> <codeblock id="GUID-034F2800-1177-5E78-8253-134E5B2C2323" xml:space="preserve">void CHttpEventHandler::DumpRespHeadersL(RHTTPTransaction&amp; aTrans)
+    {
+    RHTTPResponse resp = aTrans.Response();
+    RStringPool strP = aTrans.Session().StringPool();
+    RHTTPHeaders hdr = resp.GetHeaderCollection();
+    THTTPHdrFieldIter it = hdr.Fields();
+
+    TBuf&lt;KMaxHeaderNameLen&gt;  fieldName16;
+    TBuf&lt;KMaxHeaderValueLen&gt; fieldVal16;
+
+    while (it.AtEnd() == EFalse)
+        {
+        RStringTokenF fieldName = it();
+        RStringF fieldNameStr = strP.StringF(fieldName);
+        THTTPHdrVal fieldVal;
+        if (hdr.GetField(fieldNameStr,0,fieldVal) == KErrNone)
+            {
+            const TDesC8&amp; fieldNameDesC = fieldNameStr.DesC();
+            fieldName16.Copy(fieldNameDesC.Left(KMaxHeaderNameLen));
+            switch (fieldVal.Type())
+                {
+            case THTTPHdrVal::KTIntVal:
+                iUtils.Test().Printf(_L("%S: %d\n"), &amp;fieldName16, fieldVal.Int());
+                break;
+            case THTTPHdrVal::KStrFVal:
+                {
+                RStringF fieldValStr = strP.StringF(fieldVal.StrF());
+                const TDesC8&amp; fieldValDesC = fieldValStr.DesC();
+                fieldVal16.Copy(fieldValDesC.Left(KMaxHeaderValueLen));
+                iUtils.Test().Printf(_L("%S: %S\n"), &amp;fieldName16, &amp;fieldVal16);
+                fieldValStr.Close();
+                }
+                break;
+            case THTTPHdrVal::KStrVal:
+                {
+                RString fieldValStr = strP.String(fieldVal.Str());
+                const TDesC8&amp; fieldValDesC = fieldValStr.DesC();
+                fieldVal16.Copy(fieldValDesC.Left(KMaxHeaderValueLen));
+                iUtils.Test().Printf(_L("%S: %S\n"), &amp;fieldName16, &amp;fieldVal16);
+                fieldValStr.Close();
+                }
+                break;
+            case THTTPHdrVal::KDateVal:
+                {
+                TDateTime date = fieldVal.DateTime();
+                TBuf&lt;40&gt; dateTimeString;
+                TTime t(date);
+                t.FormatL(dateTimeString,KDateFormat);
+                iUtils.Test().Printf(_L("%S: %S\n"), &amp;fieldName16, &amp;dateTimeString);
+                } 
+                break;
+            default:
+                iUtils.Test().Printf(_L("%S: &lt;unrecognised value type&gt;\n"), &amp;fieldName16);
+                break;
+                }
+            ...
+            }
+        // Advance the iterator to get the next field
+        ++it;
+        }
+     }</codeblock> <p>Note that in this example, only the first part of each
+header field is displayed. </p> </section>
+</conbody></concept>

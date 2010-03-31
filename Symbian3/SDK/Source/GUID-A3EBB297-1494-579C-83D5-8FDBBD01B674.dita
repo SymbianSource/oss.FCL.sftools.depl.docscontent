@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-A3EBB297-1494-579C-83D5-8FDBBD01B674"><title>Drawing Bitmaps</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This topic provides example code that demonstrates blitting a bitmap to the screen, blitting a rectangular piece of a bitmap to the screen and blitting a bitmap under a mask. </p> <p>These examples assume that <codeph>bitmap</codeph> is a pointer to a valid <codeph>CFbsBitmap</codeph> object. </p> <section><title>Bitmap block transfer</title> <p>Use <codeph>CBitmapContext::BitBlt()</codeph> to blit a <codeph>CFbsBitmap</codeph> to the screen. </p> <codeblock id="GUID-C40381A2-3729-5606-824F-7208421C76C2" xml:space="preserve">// draw the bitmap using bitmap block transfer
+TPoint pos(50,50);
+gc.BitBlt(pos, bitmap);</codeblock> </section> <section><title>Block transfer of a rectangular piece of a bitmap</title> <p>You can blit a rectangular piece of a bitmap to the screen. </p> <codeblock id="GUID-F216FE85-C2B4-586B-86D1-F6C859FA9891" xml:space="preserve">...
+// set a rectangle for the top-left quadrant of the source bitmap
+TSize bmpSizeInPixels=bitmap-&gt;SizeInPixels();
+TSize bmpPieceSize(bmpSizeInPixels.iWidth/2,bmpSizeInPixels.iHeight/2);
+TRect bmpPieceRect(TPoint(0,0),bmpPieceSize); 
+    
+// blit only the piece of the bitmap indicated by bmpPieceRect
+TPoint pos(100,100);
+gc.BitBlt(pos, bitmap, bmpPieceRect);</codeblock> </section> <section id="GUID-22430013-D8A8-5A09-8DD9-D95A6EF00B2D"><title>Masked bitmap block transfer</title> <p>Masks can be used to select which parts of a bitmap are drawn by <codeph>CBitmapContext::BitBltMasked()</codeph>. </p> <p>Masks can be used to not display pixels of the source bitmap if their corresponding mask pixel is black, or, alternatively, where the mask is white (called an inverted mask). </p> <p>The following figure shows successively a source bitmap, a mask, and the outcome when they are blitted with <codeph>BitBltMasked()</codeph>. </p> <fig id="GUID-425B6A42-6B3B-5FE4-BDD6-59CD7E695C4A"><image href="GUID-D1E80B1B-FBFD-5FBC-981C-E2D04A02EF41_d0e208830_href.png" placement="inline"/></fig> <codeblock id="GUID-8D967F91-A768-5DA7-A7D7-D5CA2D40B8D9" xml:space="preserve">// Load the mask bitmap, just like any other
+CFbsBitmap* maskBitmap = new (ELeave) CFbsBitmap();
+CleanupStack::PushL(maskBitmap);
+User::LeaveIfError(maskBitmap-&gt;
+  Load(multiBitmapFile,EMbmGrbmap2Smilmask));
+    
+// Calculate rectangle for the whole bitmap
+TRect bmpPieceRect(TPoint(0,0),bitmap-&gt;SizeInPixels());
+    
+// Blit using a masking bitmap, with no inversion
+gc.BitBltMasked(TPoint(50,50),bitmap,bmpPieceRect,maskBitmap,EFalse);
+    
+...
+// clean up
+CleanupStack::PopAndDestroy();
+</codeblock> <p><b>Notes </b> </p> <ul><li id="GUID-4CDB8020-D42D-517D-BA3A-2D6FDD2DEA33"><p>Unlike with an ordinary <codeph>BitBlit()</codeph>, with <codeph>BitBltMasked()</codeph> you always have to specify what part of the bitmap to display: here we just set <codeph>bmpPieceRect</codeph> so that the whole bitmap is displayed. </p> </li> <li id="GUID-67FFCC84-B364-50DF-ACDA-54FF865FB423"><p>If the mask bitmap is smaller than the source bitmap, then it is tiled across the bitmap. </p> </li> <li id="GUID-A2A17DA3-5B03-56EF-B5FE-E6C8837F26F6"><p>For an inverted mask, set the last argument to <codeph>BitBltMasked()</codeph> to <codeph>ETrue</codeph>. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-AFE8A9CC-E026-5396-8E0C-616338B5F5C3.dita"><linktext>BitGDI Tutorials</linktext> </link> <link href="GUID-EAAD1719-C02C-5705-A5C3-993E36441BE6.dita"><linktext>BitGDI Component</linktext> </link> </related-links></concept>

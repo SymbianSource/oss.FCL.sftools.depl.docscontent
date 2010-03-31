@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8E3BD71D-D372-5315-B282-F87FA60A1D5A" xml:lang="en"><title>Extracting
+URI Components</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorials describe the steps to extract URI components. </p>
+<section><title>Introduction</title> <p>URI components can be extracted from
+an URI using <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita#GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74/GUID-22CF97EE-5DE8-3BE0-92E5-2446B5ED7DE5"><apiname>TUriC8::Extract()</apiname></xref> and passing a <xref href="GUID-C1C911C4-2306-3099-8789-E20397F39CA9.dita"><apiname>TUriComponent</apiname></xref> flag.
+For example, <codeph>EUriQuery</codeph> or <codeph>EUriPath</codeph>. </p> </section>
+<section><title>Extracting a scheme component</title><p>The following code
+fragment illustrates how to extract a scheme component. Parse the URI before
+the component is extracted calling <xref href="GUID-EB2EEEF1-705B-334D-A4B0-3D0C4CBE2DA1.dita#GUID-EB2EEEF1-705B-334D-A4B0-3D0C4CBE2DA1/GUID-F72D57B8-DFD4-38B7-A54B-29103540E8AA"><apiname>TUriParser8::Parse()</apiname></xref>. </p> <codeblock id="GUID-EAF95CF0-EF15-54BE-909E-40FE856010C3" xml:space="preserve">
+_LIT8( KUri,"http://web.intra/Dev/Sysdoc/devlib.htm" );
+TUriParser8 parser;                      // URI parser object
+TInt result = parser.Parse( KUri );      // parse the URI descriptor     
+
+//Extract the scheme component from the parsed URI
+const TDesC8&amp; des = parser.Extract( EUriScheme );
+</codeblock> <p>where <codeph>des</codeph> is a descriptor that contains the
+extracted scheme component. Other components such as userinfo, host, port
+and so on defined in <xref href="GUID-C1C911C4-2306-3099-8789-E20397F39CA9.dita"><apiname>TUriComponent</apiname></xref> can be extracted in
+a similar way. </p></section>
+<section><title>Extracting an authority component</title> <p>To retrieve a
+specific authority component from the URI, call <xref href="GUID-25B6817F-8EBC-3DF3-B3BC-3D1E1430C8A6.dita#GUID-25B6817F-8EBC-3DF3-B3BC-3D1E1430C8A6/GUID-53D5920D-BED3-3438-896C-9E9D4C403C91"><apiname>TAuthority8::Extract()</apiname></xref>.
+The following code fragment illustrates how to extract a authority component. </p> <codeblock id="GUID-2AD77722-C629-58AD-822B-2316DE46C347" xml:space="preserve">
+_LIT8( KAuthorityDesc,    "http://user:pass@www.mypage.com" );
+TAuthorityParser8 authorityParser;        //Authority parser object 
+
+authorityParser.Parse( KAuthorityDesc );  //Parse the authority descriptor    
+//extract the user infomation from the authority component
+const TDesC8&amp; des = authorityParser.Extract( EAuthorityUserinfo ); 
+</codeblock> <p>where, <codeph>des</codeph> contains the user info that is
+extracted from the authority component. <codeph>EAuthorityUserinfo</codeph> is
+an enum value of <xref href="GUID-36A87623-F89F-38DE-B4DE-4C626C663E6A.dita"><apiname>TAuthorityComponent</apiname></xref>. Similarly, host and
+port can be extracted using <codeph>EAuthorityHost</codeph> and <codeph>EAuthorityPort</codeph> respectively,
+which are defined in <xref href="GUID-36A87623-F89F-38DE-B4DE-4C626C663E6A.dita"><apiname>TAuthorityComponent</apiname></xref>. </p></section>
+<section><title>Displaying the URI</title> <p>To create a new descriptor containing
+the desired component or the full URI, call <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita#GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74/GUID-EB0F7486-A4EF-380C-B442-2BB0ED44697C"><apiname>TUriC8::DisplayFormL()</apiname></xref>. </p> <p>This
+converts a component into a new descriptor. The component to be converted
+can take any value between <codeph>EUriScheme</codeph> and <codeph>EUriFragment</codeph> or <codeph>EUriComplete</codeph> (for
+the full URI). This method is used to obtain a pointer to a 16 bit descriptor
+for GUI display of URI. </p> <codeblock id="GUID-9E93E86F-E726-5AD6-BA2C-5106E3D1D7F7" xml:space="preserve">HBufC16* uri = parsedUri-&gt;DisplayFormL( EUriComplete );</codeblock> <p>where <codeph>EUriComplete</codeph> indicates that all the components
+in the URI are displayed. </p> <p>To fetch the URI, call <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita#GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74/GUID-5683AF66-8A78-380F-BF68-2C9E570A8D3F"><apiname>TUriC8::UriDes()</apiname></xref>.
+This returns a pointer to 8 bit descriptor(<xref href="GUID-FB97E0A3-352A-316F-97C6-69E4741A8120.dita"><apiname>TDesC8</apiname></xref>) containing
+the URI, which is used for HTTP requests. </p></section>
+<section><title>Displaying authority</title> <p>To create a new descriptor
+containing a specific component or the full authority component, call <xref href="GUID-25B6817F-8EBC-3DF3-B3BC-3D1E1430C8A6.dita#GUID-25B6817F-8EBC-3DF3-B3BC-3D1E1430C8A6/GUID-44BC307B-9148-3818-AECA-05D950A0E977"><apiname>TAuthority8::DisplayFormL()</apiname></xref>. </p> <p>This
+converts a component into a new descriptor. The component to be converted
+can take any value between <codeph>EAuthorityUserinfo</codeph> and <codeph>EAuthorityPort</codeph> or
+the full authority, <codeph>EAuthorityComplete</codeph>. </p> <codeblock id="GUID-223F01FA-DE4A-5BE6-BC91-19121978D025" xml:space="preserve">HBufC authority = parsedUri-&gt;DisplayFormL( EAuthorityComplete );</codeblock> <p>where <codeph>EAuthorityComplete</codeph> means that the complete authority
+is displayed. </p> </section>
+<section><title>See also</title> <p>For related information, see: </p> <p><xref href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita">HTTP Utilities Library Overview</xref>  </p> </section>
+</conbody></concept>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-49A3419F-D20A-5C5D-B2FF-51724EF37704" xml:lang="en"><title>Prevent
+Database File Corruption</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This guide describes how databases might be corrupted. </p>
+<section id="GUID-5C9649BC-EB5A-4528-87AA-ECAB64D62467"><title>Introduction</title> <p>Although SQLite is very resistant
+to database corruption, thanks to the atomic features, it is still possible
+for a database file to become corrupt. By understanding the known ways of
+corrupting a SQLite database, you can make sure you avoid them. </p> <p><b>Intended
+audience:</b> </p> <p>This document is intended to be used by Symbian platform
+licensees and third party application developers. </p> </section>
+<section id="GUID-E921DD90-259E-5843-80FF-C5D85BB7545C"><title>Avoid Corrupting
+your Database Files</title> <p>One of the key benefits of using an atomic
+and durable database engine is that you can be responsibly confident that
+the database will not be corrupted by application crashes or power failures.
+SQLite is very resistant to database corruption but it is possible to corrupt
+a database. This section will describe all of the known techniques for corrupting
+a SQLite database so that you can make sure you avoid them. </p> <p>The following
+database corruption situations will be discussed here: </p> <ul>
+<li id="GUID-952C9192-E349-5B34-860C-A19B874BFC0F"><p>Hardware failure --
+beyond the control of SQLite </p> </li>
+<li id="GUID-55D027FD-912D-5114-8E85-2AEC56CCBC4E"><p>System Crash -- when
+rollback journal exists </p> </li>
+<li id="GUID-7070E8B3-C218-5E6F-AAAB-7EE4479C196E"><p>post crash application
+recovery </p> </li>
+<li id="GUID-5D2454C9-075B-5A15-B736-94F1E9188D03"><p>hot journal name conflict </p> </li>
+</ul> <p>A SQLite database is just an ordinary file in the file system. If
+the database is placed in a publicly accessible location then any process
+can open that file and write nonsense into the middle of it, corrupting the
+database. Similarly, an operating system malfunction or a hardware fault can
+cause invalid data to be written into the database file. Both of these issues
+are beyond the control of SQLite or of application developers. We only mention
+them here for completeness. </p> <p>After a power loss or system crash and
+subsequent system reboot, a rollback journal file will be found in the same
+directory as the original database. The presence of this rollback journal
+file is the signal to subsequent users that the database is in an inconsistent
+state and needs to be restored (by playing back the journal) before it is
+used. A rollback journal file that is left over after a crash is called a
+“hot journal”. </p> <p>If after a post-crash reboot some kind application
+recovery occurs which deletes, renames, or moves a hot journal, then SQLite
+will have no way of knowing that a hot journal existed. It will not know that
+the database is in an inconsistent state and will have no way to restore it.
+Deleting or renaming a hot journal will result in a corrupted database nearly
+every time. </p> <p>The name of the hot journal is related to the name of
+the original database file. If the database file is renamed this means that
+SQLite will not see the hot journal based on the original name, no database
+recovery will be undertaken and the database will become corrupt. </p> <p>These
+are all of the known ways for corrupting a SQLite database file, and as you
+can see, none of these ways are easy to achieve. SQLite databases have proven
+to be remarkably reliable and trouble-free. By avoiding the above situations
+you can ensure that your databases will be safe and intact even after system
+crashes and untimely power failures. </p> </section>
+</conbody><related-links>
+<link href="GUID-22844C28-AB5B-5A6F-8863-7269464684B4.dita"><linktext>SQL Overview</linktext>
+</link>
+<link href="GUID-78773BCA-ADF6-53E6-AC80-5CB2AE1F8BCC.dita"><linktext>SQL Server
+Guide</linktext></link>
+<link href="GUID-E51836E1-D33E-506C-B75B-19B8E3CC313A.dita"><linktext>SQLite</linktext>
+</link>
+<link href="GUID-1F12E3F5-45B2-55EC-B021-00338277C608.dita"><linktext>SQL DB Overview</linktext>
+</link>
+<link href="GUID-43CA02E7-0101-5824-B91B-E15EE20C829A.dita"><linktext>Avoid Transient
+Tables</linktext></link>
+<link href="GUID-C2FAEBB2-4A1A-5BB0-9670-4801525CBC6A.dita"><linktext>SQL Index
+Tips</linktext></link>
+<link href="GUID-B994E6F7-228A-5433-B87F-91857C5D93D6.dita"><linktext>SQL Insertion
+Tips</linktext></link>
+<link href="GUID-4FC23DB7-4758-5DA4-81FF-0DAB169E2757.dita"><linktext>SQL Schema
+Tips</linktext></link>
+<link href="GUID-2A2920E0-5D40-5358-BC0C-8572CEFE078C.dita"><linktext>SQL Expressions</linktext>
+</link>
+<link href="GUID-126FCCCC-0E7D-59AE-959A-2F94A7319C4B.dita"><linktext>SQL Statement
+Tips</linktext></link>
+<link href="GUID-ACCCB148-DAF9-59EC-B585-8EF632B9BF04.dita"><linktext>SQL Joins</linktext>
+</link>
+<link href="GUID-B7E978C1-45CA-554C-8028-D901B97BA2E0.dita"><linktext> ANALYZE
+Command</linktext></link>
+<link href="GUID-AF5A75D7-0687-546C-87B2-0B7DF7D33217.dita"><linktext> SQL WHERE
+CLause Tips</linktext></link>
+</related-links></concept>

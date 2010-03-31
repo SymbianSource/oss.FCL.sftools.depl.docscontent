@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B386CA7A-F527-5584-9455-371E623DCF76" xml:lang="en"><title> System
+Start Example</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Download</title> <p>Click on the following link to download
+the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-e4fe3134-4d3b-443f-80fe-374972df6f9b.zip" scope="external"> SysStart.zip</xref></p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-e4fe3134-4d3b-443f-80fe-374972df6f9b.html" scope="peer">browse</xref> to view the example code. </p> </section>
+<section id="GUID-F3EFB022-A771-50D2-9C36-FFEFA4924441"><title> Description</title> <p>This
+example demonstrates the use of resource files at the time of System Start-up.
+System starter is an architecture designed to provide a consistent, transparent,
+easily customisable method of starting components (i.e. servers and applications)
+at device boot. It allows an ordering of components according to criticality
+and dependency by means of a Static Start-up Configuration (SSC). </p> </section>
+<section><title>Related APIs</title><p><xref href="GUID-478D0251-D49B-36C5-B9DF-09FFFE7CDB53.dita#GUID-478D0251-D49B-36C5-B9DF-09FFFE7CDB53/GUID-E99F5505-FC87-3232-A933-4C522C04931A"><apiname>egSysStart::E32Main () </apiname></xref></p><p><xref href="GUID-478D0251-D49B-36C5-B9DF-09FFFE7CDB53.dita#GUID-478D0251-D49B-36C5-B9DF-09FFFE7CDB53/GUID-54F036C5-D86E-34B0-B74A-AD4DF2328086"><apiname>egSysStart::Simple
+()</apiname></xref></p></section>
+<section id="GUID-693F8259-B441-50F2-8E2A-EB2A57E5665A"><title>Resource files</title> <p>In
+this example a resource file <codeph>SSCForStartupMode0.rss</codeph> is used
+at Start-up. </p> <p>On a target device booting normally, the SSC <codeph>SSCForStartupMode0.rss</codeph> is
+always used for start-up. This SSC is associated with startup mode zero, which
+is defined as <xref href="GUID-6866563D-8AF5-3F3F-A777-50B264194B83.dita"><apiname>EStartupModeUndefined</apiname></xref> in e32modes.h. The
+System Starter architecture provides an ability to select between a number
+of static Start-up configurations (rss files) depending on the desired Start-up
+Mode, for example: Full, Emergency, Charging, or Test. Each of these modes
+may require different sets of components and order of execution. </p> <p>The
+start-up process in the resource file is staged via an ordering of Start-up
+States or phases. These states cannot be removed or their values altered.
+They appear in the following order: </p> <p> <xref href="GUID-F4C1F118-3580-3D25-AB14-DAD8D20CF302.dita"><apiname>EStartupStateUndefined</apiname></xref> –
+Value before the system enters its first state/ undefined state. </p> <p> <xref href="GUID-DA625784-61CA-3256-9D93-EB447BF9AA62.dita"><apiname>EStartupStateCriticalStatic</apiname></xref> –
+Within this Start-up State all ROM based (static) components or resources
+that are critical to the operation of the phone function are started. </p> <p> <xref href="GUID-737BC60E-ECA2-3B22-A0A4-5F6F5136D6F0.dita"><apiname>EStartupStateCriticalDynamic</apiname></xref> –
+Within this Start-up State all non-ROM based (dynamic) components or resources
+that are critical to the operation of the phone function are started. </p> <p> <xref href="GUID-3C0E080D-7FF1-3347-B129-D2805FCD7840.dita"><apiname>EStartupStateNonCritical</apiname></xref> –
+Within this Start-up State all ROM based (static) or non-ROM based (dynamic)
+components or resources that are non-critical to the operation of the phone
+function are started. All components that have not already been started and
+are required at device boot are started in this Start-up State. </p> <p>This
+allows start-up to be split into separate, distinct states with a defined
+order. Within each state, a <codeph>STATE_INFO</codeph> structure containing
+information regarding that state is located. This contains the following information: </p> <table id="GUID-A370B739-910B-55E5-9C92-FAC72362FDCB">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>Id</codeph>  </p> </entry>
+<entry><p>The id of the state as defined in the custom header file </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Name</codeph>  </p> </entry>
+<entry><p>A text string describing the state </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Command_list</codeph>  </p> </entry>
+<entry><p>The name of the Command array in the SSC which contains the list
+of Commands to invoke in that state </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>Next</codeph>  </p> </entry>
+<entry><p>The name of the Command array corresponding to the next state </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Following the <codeph>STATE_INFO</codeph> structure in the SSC
+is a <codeph>COMMAND_ARRAY</codeph> structure. This contains details of all
+commands to be executed within that list. Its name matches the command_list
+identifier in the <codeph>STATE_INFO</codeph> struct and contains one array
+entry: Commands. The Command entry contains a list of all commands to be executed.
+Each instance in the rss file is headed with the <codeph>START_PROCESS_INFO </codeph> identifier
+and contains any value needed to override the defaults specified in <codeph>startup.rh</codeph>. </p> <table id="GUID-7E7519BC-54C9-59E7-AB07-46748C6F7A44">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><codeblock id="GUID-44EDEC24-A19F-5991-9528-11804376ABB2" xml:space="preserve">Type</codeblock> </entry>
+<entry><p>Set by default. Should not be specified in the SSC. </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-7559D8D5-DD16-5E7B-86EB-0337ED7ACCE7" xml:space="preserve">Path</codeblock> </entry>
+<entry><p>The location of the binary e.g. path = "Z:\sys\bin\fbserv.exe" </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-C4C5EE86-3E58-552B-8607-F1AC8B6EDCD1" xml:space="preserve">Args</codeblock> </entry>
+<entry><p>Arguments passed to the process. </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-6C04D96F-6B77-5368-9B48-9BC9D35B6710" xml:space="preserve">start_method</codeblock> </entry>
+<entry><p>The enum <codeph>TStartupCommandType</codeph> is defined in <codeph>startup.hrh</codeph>.
+Currently it takes one of three values: </p> <ul>
+<li id="GUID-EB15D58C-A9FC-5C92-A5F6-23CA7D547C86"><p> <xref href="GUID-119A71D6-F979-345B-8AC7-7768F68A36BE.dita"><apiname>EFireAndForget</apiname></xref> (the
+default) </p> </li>
+<li id="GUID-FC24705E-4144-5FCA-AA4D-04871C5ED6F9"><p> <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref>  </p> </li>
+<li id="GUID-BE71C616-0E0B-5916-9058-43B0CA5A278F"><p> <xref href="GUID-3C5930DE-E84C-3170-AC5A-BCFC16D6AE77.dita"><apiname>EDeferredWaitForStart</apiname></xref>  </p> </li>
+</ul> <p>Use <xref href="GUID-119A71D6-F979-345B-8AC7-7768F68A36BE.dita"><apiname>EFireAndForget</apiname></xref> if there is no need for the
+process to be started serially in other words as soon as the process has been
+invoked, the System Starter can continue with starting the next process without
+waiting for the process to rendezvous. </p> <p>Use <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> if
+the process needs to get to a certain stage before starting the next process.
+The starter cannot continue with the next Command until a rendezvous has been
+made with the first process. </p> <p>Note that the apparc component must be
+started with mode <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> to allow connection with
+the server to take place. </p> <p>Use <xref href="GUID-3C5930DE-E84C-3170-AC5A-BCFC16D6AE77.dita"><apiname>EDeferredWaitForStart</apiname></xref> if
+there is no need to start the process serially, but at a later stage there
+is a command which cannot be invoked until this process has initialized. Using
+this value allows a number of commands to be started and the System Starter
+to wait for them all at a later point in the SSC. This ensures later on that
+the initializations of all <xref href="GUID-3C5930DE-E84C-3170-AC5A-BCFC16D6AE77.dita"><apiname>EDeferredWaitForStart</apiname></xref> commands
+have completed. </p> <p> <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> and <xref href="GUID-3C5930DE-E84C-3170-AC5A-BCFC16D6AE77.dita"><apiname>EDeferredWaitForStart</apiname></xref> depend
+upon receiving a rendezvous from the started process. By default this is performed
+automatically by EikonEnv. If however, you wish your component to perform
+its own rendezvous, then the following function should be overridden in your
+AppUi class and return <codeph>EFalse.</codeph>  </p> <p> <codeph>TBool CCoeAppUi::FrameworkCallsRendezvous();</codeph>  </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-1E9E11D2-3BAA-54F2-9481-6A1987CF4100" xml:space="preserve">timeout</codeblock> </entry>
+<entry><p>This field is for use with start_method <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> only. </p> <p>Indicate
+if a timer should be started when attempting to start the process by filling
+in this timeout value in milliseconds. The value is 0 by default indicating
+that no timer will be started. </p> <p>Note that if the timer expires before
+a rendezvous with the component is made, the component will be killed. If
+the component is a critical process this will result in a Kern:4 Panic (which
+on licensee phones usually initiates in a system restart). </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-CFDA47D2-551B-5215-8854-6FC63433A22B" xml:space="preserve">retry_failure_recovery_method</codeblock> </entry>
+<entry><p>This specifies the action to take if an error is returned from an
+attempt to start the process. </p> <p>It is set to <xref href="GUID-644CC7B0-3B94-307A-A5A1-D7EC78F10105.dita"><apiname>ERestartOS</apiname></xref> by
+default. This means if the process fails to start the system will restart
+in the default start-up mode. </p> <p>If it is set to <xref href="GUID-1E757E7A-98C8-3455-8D82-28A24FBEA729.dita"><apiname>EIgnoreOnFailure</apiname></xref> then
+the starter will continue with the next Command. This option is intended for
+non-critical components on which nothing critical is dependent. </p> <p>If
+it is set to <xref href="GUID-D7BCDD4C-97A0-3068-AC4C-F10DA31DD636.dita"><apiname>ERestartOSWithMode</apiname></xref> the system will be restarted
+in a specific start-up mode. </p> <p>Note: this field has a slightly different
+use depending on the start mode: in modes <xref href="GUID-119A71D6-F979-345B-8AC7-7768F68A36BE.dita"><apiname>EFireAndForget</apiname></xref> and <xref href="GUID-3C5930DE-E84C-3170-AC5A-BCFC16D6AE77.dita"><apiname>EDeferredWaitForStart</apiname></xref> a
+failure will be indicated only if there is an immediate error for example
+the initial process creation/invocation fails. In <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> a
+failure will also be indicated if there is no successful rendezvous. </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-33D3ABEE-9A48-51B7-BFB7-6CEF2AED8DAE" xml:space="preserve">no_of_retries_on_failure</codeblock> </entry>
+<entry><p>For use with start_method <xref href="GUID-8415D00B-79D9-36BE-9F0B-2DAA3A553CD2.dita"><apiname>EWaitForStart</apiname></xref> only.
+Set to 0 by default. </p> <p>This specifies the maximum number of times the
+starter should try to start a failed process. After the process has been retried
+the specified number of times, the starter will act according to the value
+in the <codeph>retry_failure_recovery_method</codeph> field. This is used
+in conjunction with the timeout value. </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-782C1BA6-D764-5C6C-A232-9CCD5C22AEA3" xml:space="preserve">monitor</codeblock> </entry>
+<entry><p>Indicates whether the started process should be monitored for failure
+by the System Monitor component. The value is 0 by default indicating that
+no monitoring will be done. </p> <p>A value of 1 indicates monitoring should
+be performed. The recovery policy set by <codeph>retry_failure_recovery_method</codeph> (and
+if applicable retry_failure_recovery_startup_mode) will be used by the System
+Monitor if a failure occurs to this process during the lifetime of the system. </p> <p>Note:
+if the component being started is a System Critical process, monitoring must
+not be enabled. </p> </entry>
+</row>
+<row>
+<entry><codeblock id="GUID-8305C64D-3198-5C5B-9AD4-C774D38B9369" xml:space="preserve">retry_failure_recovery_startup_mode</codeblock> </entry>
+<entry><p>For use with retry_failure_recovery_method <xref href="GUID-D7BCDD4C-97A0-3068-AC4C-F10DA31DD636.dita"><apiname>ERestartOSWithMode</apiname></xref> only. </p> <p>Used
+to specify the start-up mode the system should restart with. This is set to <xref href="GUID-6866563D-8AF5-3F3F-A777-50B264194B83.dita"><apiname>EStartupModeUndefined</apiname></xref> by
+default. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

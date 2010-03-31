@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B998B8FC-3DC3-57B5-A4E6-C4D903B4ACF9" xml:lang="en"><title>Creating
+a Source Plugin</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A data source plugin needs to implement the pure virtual, and where appropriate
+override the virtual, <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> base class mixin functions.
+This section describes how to implement the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> base
+class.</p>
+<p>Note that a single plugin can be both a source and a sink, i.e. derive
+from both <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> and <xref href="GUID-708A7583-5C55-3FE1-8238-974C8821588D.dita"><apiname>MDataSink</apiname></xref>. </p>
+
+
+<p><b> Source Plugin Instantiation</b> </p>
+<p>A client application instantiates a source plugin using the <xref href="GUID-9DEDFB0F-C963-3FB7-9237-DDDB276C8841.dita#GUID-9DEDFB0F-C963-3FB7-9237-DDDB276C8841/GUID-7649C65D-AFF5-3216-A149-E743FB7B826C"><apiname>RMMFController::AddDataSource()</apiname></xref> method,
+passing in the UID of the source as one of the method's parameters. The controller
+framework instantiates a source via the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-284ECE44-65BF-343A-A1D1-2B9BA0F5BE3F"><apiname>MDataSource::NewSourceL()</apiname></xref> method,
+rather than the more conventional <codeph>NewL()</codeph> method. This is
+because a plugin can be both a source and a sink of multimedia data, in which
+case the instantiation methods for sources and sinks need to be distinct.
+The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> base class instantiation methods are described
+below, followed by information on how to write the instantiation methods in
+the derived class. </p>
+<p>The derived data source needs to implement <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-284ECE44-65BF-343A-A1D1-2B9BA0F5BE3F"><apiname>MDataSource::NewSourceL()</apiname></xref> and <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-3B28E1FD-F785-370E-A406-87E80B1B59DE"><apiname>MDataSource::ConstructSourceL()</apiname></xref> for
+instantiation. The constructor of a data source plugin needs to specify what
+type of data source it is. This is achieved by passing a type UID into the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> constructor. </p>
+<p>If the source has additional methods, that are not part of the base <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> class,
+then a further layer of instantiation is required. For example, suppose <codeph>CAcmeDataSource</codeph> has
+some extra methods that are not part of the base class, then an additional
+mxin interface for this class is required. For example:</p>
+<codeblock id="GUID-2DCF0159-3C31-5AB0-B074-A09502D6A0F9" xml:space="preserve">class MAcmeDataSource : public MDataSource
+    {
+public:
+    inline static MAcmeDataSource* NewAcmeDataSourceL(TUid aImplemetationUid, const TDesC8&amp; aInitData);
+    //This allows dynamic linkage to the Class:    
+    }
+</codeblock>
+<p>The <codeph>NewAcmeDataSourceL</codeph> should be implemented as follows:</p>
+<codeblock id="GUID-94313354-6AE8-5B88-9E26-E84033D7A5F2" xml:space="preserve">MAcmeDataSource* retPtr = static_cast&lt;MAcmeDataSource*&gt;(MDataSource::NewSourceL(aImplementationUid, aInitData)); </codeblock>
+<p>The class should derive from the <codeph>MAcmeDataSource</codeph> rather
+than <codeph>MDataSource</codeph> as follows:</p>
+<codeblock id="GUID-CA92EA62-9533-5576-88FA-79A6A05196DF" xml:space="preserve">class CAcmeDataSource: public CBase, public MAcmeDataSource
+    {
+public: 
+    MDataSource* NewSourceL();
+</codeblock>
+
+
+<p><b>Source Plugin Buffer Creation</b> </p>
+<p>Buffers are required to transfer data between a data source and a data
+sink. These buffers can be created by the source and/or sink. The methods
+below are for source buffer creation.</p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-F8E0C364-A401-3EDF-B46B-55286FCEF011"><apiname>MDataSource::CanCreateSourceBuffer()</apiname></xref> method must
+be implemented by the data source plugin. Most sources should be capable of
+creating their own buffer and so would return <codeph>ETrue</codeph>. Note
+that just because a source can create a source buffer, this does not guarantee
+that the framework will use the buffer created by the source. The buffer that
+is used depends on factors such as whether a null codec is used and whether
+the sink is the reference buffer, in either of these cases the source buffer
+will not be used.</p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-047464BF-66A3-3B42-ACB3-528F4098FA6F"><apiname>MDataSource::CreateSourceBufferL()</apiname></xref> method is called
+by the framework to create a buffer from the source. This method should create
+a buffer of length zero bytes and a maximum length of an appropriate size
+for the source. The appropriate size is determined by source specifics, such
+as whether the source data ultimately comes from hardware that supplies buffers
+of a certain size. Generally a larger buffer size means a smaller number data
+transfers between the source and sink are required. The returned buffer must
+derive from <xref href="GUID-9A7A83ED-592B-3A0C-BABB-3B90099BCF7C.dita"><apiname>CMMFBuffer</apiname></xref> but will be a derived buffer, for
+example <xref href="GUID-AE26E6A4-C1AD-3B35-B5F7-CE0AB60169BB.dita"><apiname>CMMFDataBuffer</apiname></xref> or a video frame buffer.</p>
+<p>The overloaded <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-047464BF-66A3-3B42-ACB3-528F4098FA6F"><apiname>MDataSource::CreateSourceBufferL()</apiname></xref> method,
+which has an additional <codeph>aSinkBuffer</codeph> parameter, is optional.
+The default implementation is identical to the standard <codeph>CreateSourceBufferL</codeph> above.
+This version is used where the nature of the sink buffer may impact the created
+source buffer. This method should only be overridden if the size and/or type
+of the sink buffer can influence the size and/or type of the created source
+buffer.</p>
+
+
+<p><b> Data Transfer</b> </p>
+<p>Data transfer methods are used by a datapath to perform the transfer of
+data between the source and the sink.</p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-F9457D80-0FA4-3133-BB70-1AEF18AEEC81"><apiname>MDataSource::FillBufferL()</apiname></xref> method is used to obtain
+data from the data source. It is a passive method in that an external component
+such as a datapath must ask the source to fill the buffer with data from the
+source. The <codeph>MDataSource::FillBufferL()</codeph> method may operate
+either synchronous and asynchronously:</p>
+<ul>
+<li id="GUID-E50C97F2-5531-5081-94F0-8A5DBB3025CE"><p>A synchronous source
+is one in which the mechanism for filling the source buffer is synchronous.
+That is, the source fills the buffer and calls the <codeph>BufferFilledL()</codeph> method
+on the consumer of the dat, which is itself derived from <xref href="GUID-708A7583-5C55-3FE1-8238-974C8821588D.dita"><apiname>MDataSink</apiname></xref> to
+indicate that the buffer has now been filled.</p> </li>
+<li id="GUID-67FEB4E0-F9DE-5F7E-B38A-44FFDA1F16D2"><p>An asynchronous source
+is one in which the mechanism for filling the source buffer operates asynchronously.
+The <codeph>MDataSource::FillBufferL()</codeph> method will typically make
+an asynchronous request, for example via an active object, such that when
+the <codeph>FillBufferL</codeph> method has returned, the buffer has not yet
+been filled. The <codeph>BufferFilledL()</codeph> call back will occur some
+time later when the asynchronous request has been processed.</p> </li>
+</ul>
+<p>The <codeph>MDataSink::BufferFilledL()</codeph> method is the callback
+on a sink when the source has filled a buffer with source data. The source
+normally operates in a passive mode in that a sink of data will ask the source
+to fill a buffer via a call to <codeph>MDataSource::FillBufferL()</codeph> above.
+However, the sink that makes the <codeph>FillBufferL()</codeph> call on the
+source needs this callback to know when the buffer has been filled. This is
+applicable to a datapath which is both a sink and source of data. The actual
+sink, as seen by the controller, would normally operate passively and return <codeph>KErrNotSupported</codeph> for
+this procedure.</p>
+<p>The <xref href="GUID-708A7583-5C55-3FE1-8238-974C8821588D.dita#GUID-708A7583-5C55-3FE1-8238-974C8821588D/GUID-2B3B176E-47C3-34E6-9F12-2FB70463759D"><apiname>MDataSink::EmptyBufferL()</apiname></xref> method is used to transfer
+data to the data sink. This is a passive method in that an external component,
+such as a datapath, must send the buffer with data to the sink. This method
+may operate either synchronously or asynchronously:</p>
+<ul>
+<li id="GUID-5D31EF73-0202-5506-8333-8E75C43C140F"><p>A synchronous sink is
+one in which the emptying of the sink buffer is synchronous. That is, the
+sink finishes processing the buffer and then calls the <codeph>BufferEmptiedL()</codeph> method
+on the data supplier.</p> </li>
+<li id="GUID-6CA3D7C0-0730-5153-938A-BE3F3FF865F3"><p>An asynchronous sink
+is one in which the mechanism for emptying the sink buffer operates asynchronously.
+The <xref href="GUID-708A7583-5C55-3FE1-8238-974C8821588D.dita#GUID-708A7583-5C55-3FE1-8238-974C8821588D/GUID-2B3B176E-47C3-34E6-9F12-2FB70463759D"><apiname>MDataSink::EmptyBufferL()</apiname></xref> method will typically make
+an asynchronous request, for example via an active object, such that when
+the <codeph>EmptyBufferL()</codeph> method has returned, the buffer is not
+yet available for reuse. The <codeph>BufferEmptiedL()</codeph> call back should
+occur some time later when the asynchronous request has been processed.</p> </li>
+</ul>
+<p>Note that the 'Empty' in the method name does not imply that the sink really
+has to empty the buffer. The returned buffer does not have to contain no data
+and have a length of 0. The buffer passed back to the supplier by the <codeph>BufferEmptiedL()</codeph> could
+be the same buffer that was passed in with the <codeph>EmptyBufferL()</codeph> method,
+although it does not have to be. The buffer passed back is intended to be
+used as the next buffer passed into the subsequent call to <codeph>EmptyBufferL()</codeph>.</p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-48568E16-4AB4-3C76-A81B-ABE2A8ECF6A2"><apiname>MDataSource::BufferEmptiedL()</apiname></xref> method is the callback
+on the source when the source asks a sink to empty a buffer that originated
+from the sink. The sink normally operates in a passive mode (will not ask
+the source to fill a buffer with data) in that a source of data will ask the
+sink to empty a buffer via a call to <codeph>EmptyBufferL()</codeph> above,
+but a source can ask a sink to empty a buffer by calling <codeph>EmptyBufferL()</codeph> on
+the sink. In which case the sink informs the source that it has finished with
+the buffer by calling the source's <codeph>BufferEmptiedL()</codeph> method.
+Sources which only support the passive mode of operation should return <codeph>KErrNotSupported</codeph>.</p>
+
+
+<p><b>Source State Methods</b> </p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita"><apiname>MDataSource</apiname></xref> mixin provides a number of state-related
+functions used to inform a source/sink that the data path (via the controller)
+has made a transition to a particular state. These state transition methods
+are usually called on the source/sink from the datapath and so will be called
+on the data source/sink plugin. These methods are not pure virtual and so
+it is not compulsory to implement them. </p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-ABDE0CD2-2FED-34A5-991C-10F7C998D377"><apiname>MDataSource::SourceThreadLogon()</apiname></xref> method indicates
+to the source that it can perform any thread specific initialisation. This
+is so that the thread in which the data source is instantiated is not necessarily
+the same thread in which the actual transfer of data between the source and
+the sink takes place. It is only necessary to provide an implementation of <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-ABDE0CD2-2FED-34A5-991C-10F7C998D377"><apiname>MDataSource::SourceThreadLogon()</apiname></xref> if
+the source has thread specific initialisation and/or can generate events during
+data transfer.</p>
+<p>The <xref href="GUID-8512F793-107A-3166-A62F-750696D942CE.dita"><apiname>MAsyncEventHandler</apiname></xref> must also be passed into the
+source in the same thread in which the source is to transfer data. If the
+source can generate events during a data transfer, then it must keep the reference
+to event handler.</p>
+<p>Implementation of the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-C12C9339-F515-3A60-9CA1-DDB4F9891D71"><apiname>MDataSource::SourcePrimeL()</apiname></xref>, <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-2078F38C-DE70-3D20-BC0A-CF522AD9F39C"><apiname>MDataSource::SourcePlayL()</apiname></xref>, <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-91ED949B-9440-3E31-AAA5-D132F3F6DDC4"><apiname>MDataSource::SourcePauseL()</apiname></xref> and <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-A1A741E8-A492-3953-BD85-AFBE638F8146"><apiname>MDataSource::SourceStopL()</apiname></xref> methods is optional. They
+are called when a controller performs a transition to the corresponding state.
+For example, if the controller starts, or resumes, playing then <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-2078F38C-DE70-3D20-BC0A-CF522AD9F39C"><apiname>MDataSource::SourcePlayL()</apiname></xref> is
+called.</p>
+<p>Implementation of the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-1AD10FF2-F2AD-3E1C-A132-348BD4AD7FFD"><apiname>MDataSource::SouceThreadLogoff()</apiname></xref> method
+is optional This method is called when the controller has finished with the
+data source and is called in the same thread as the data transfer. This allows
+the data source to perform any thread specific destruction such as the closure
+of handles. </p>
+
+
+<p><b>Source Data Types</b> </p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-FBAA4A85-0481-32A8-9ADE-325DBA8F28C8"><apiname>MDataSource::SourceDataTypeCode() </apiname></xref> method must be
+implemented by the data source. It should return the data type of the source
+for the specified media ID. Some data sources may need their data type to
+be explicitly set, via the <codeph>SetSourceDataTypeCode</codeph> method or
+via negotiation with a data sink, in which case this function should either
+return a default <codeph>FourCC</codeph> code, or a <codeph>NULL</codeph> code,
+to indicate that the data type is not yet known.</p>
+<p>Implementation of the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-7EDAC41D-630F-39A4-97B6-06384E214592"><apiname>MDataSource::SetSourceDataTypeCode()</apiname></xref> method
+is optional. It should be implemented where the source can support multiple
+data types.</p>
+
+
+<p><b>Source Sink Negotiation</b> </p>
+<p>In many cases a data source will need to adjust its settings and data type
+according to the settings of the data sink. The opposite is also true in that
+a data sink may need to adjust its settings and data type according to the
+data source. This process is known as negotiation. An example of negotiation
+is where the source is an audio input recording to a clip of a certain data
+type. The source audio input (such as a microphone) attempts to match its
+settings to that required by the clip. For example, if the audio input supports
+the same data type as that required by the clip to be recorded to, then the
+negotiation should set the source audio input to the same data type and settings
+as the clip sink.</p>
+<p>Implementation of the <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-1AD0F9E7-A7CC-3E81-8E03-D6E694767676"><apiname>MDataSource::NegotiateSourceL()</apiname></xref> method
+is optional. It needs to be implemented by a data source only if the source
+needs to configure itself in accordance with the sink.</p>
+<p>Implementation of the <xref href="GUID-708A7583-5C55-3FE1-8238-974C8821588D.dita#GUID-708A7583-5C55-3FE1-8238-974C8821588D/GUID-022E2D1E-AFCD-3DD8-89EB-FC7E8D1F09F4"><apiname>MDataSink::NegotiateL()</apiname></xref> method
+is optional. It only needs to be implemented by a data sink if the data sink
+needs to configure itself in accordance with the source. </p>
+<p>Note that it is not always necessary to call both the source and sink negotiate
+functions. It is up to the controller to determine whether one, or both, are
+the most appropriate. The controller is also responsible for determining the
+sequence of the negotiate functions. For example, if an audio input data source
+is negotiating with a format sink such that the audio input needs to adjust
+it's settings to that of the sink, then there is need to perform this negotiation
+until the sink has been configured.</p>
+
+
+<p><b>Source Custom Commands</b> </p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-A8D195EE-795A-3EBE-A2EC-0B0321D95DBD"><apiname>MDataSource::SourceCustomCommand()</apiname></xref> method facilitates
+the use of custom commands. An example implementation is shown below:</p>
+<codeblock id="GUID-BA1BAE27-9C99-5C78-9112-178115E4784F" xml:space="preserve">void CAcmeDataSource::SourceCustomCommand(TMMFMessage&amp; aMessage)
+    {
+    // First, check we can handle message by checking its interface id
+    if (aMessage.InterfaceId() != KUidAcmeDatasourceCustomCommandInterface)
+        {
+        aMessage.Complete(KErrNotSupported);
+        return;
+        }
+
+    // Next, dispatch the command to the appropriate method.
+    TInt error = KErrNone;
+    switch (aMessage.Function())
+        {
+    case EAcmeDatasourceCustomCommandOne:
+       error = HandleCustomCommandOne(aMessage);
+       break;
+    case EAcmeDataSourceCustomCommandTwo:
+       error = HandleCustomCommandTwo(aMessage);
+       break;
+    default:
+       error = KErrNotSupported;
+       break;
+       }
+    aMessage.Complete(error);
+    }
+</codeblock>
+<p>Use of the custom command mechanism is preferable to adding extra methods
+as it avoids extra casting as described is required for source/sink instantiation.</p>
+
+
+<p><b>Source Priority Settings</b> </p>
+<p>The <xref href="GUID-2230F976-A798-30EB-ABA6-09C86716A4B5.dita#GUID-2230F976-A798-30EB-ABA6-09C86716A4B5/GUID-71972EC3-9389-3893-A998-482C8A9B537B"><apiname>MDataSource::SetSourcePrioritySettings()</apiname></xref> method
+is optional. It is used to provide a mechanism to determine which source should
+have priority in cases where more than one client wishes to use the same physical
+source. An example might be an audio output, although several audio output
+sinks can be created, the actual hardware may only have one physical speaker.
+Therefore, if one audio output is being used to play music, and another is
+being used to play a ring tone due to an incoming call, then the latter needs
+to take precedence. <xref href="GUID-AA73C7C3-5874-34D1-8879-597B0900E9F3.dita"><apiname>TMMFPrioritySettings</apiname></xref> contains an <codeph>iPriority
+TInt</codeph> data member, where 100 is maximum priority, 0 is normal and
+-100 is minimum priority. The <xref href="GUID-AA73C7C3-5874-34D1-8879-597B0900E9F3.dita#GUID-AA73C7C3-5874-34D1-8879-597B0900E9F3/GUID-3B14D763-139C-3A4E-9640-CABBC3427D6E"><apiname>TMMFPrioritySettings::TMdaPriorityPreference</apiname></xref> and <xref href="GUID-AA73C7C3-5874-34D1-8879-597B0900E9F3.dita#GUID-AA73C7C3-5874-34D1-8879-597B0900E9F3/GUID-A2E1FCFD-2058-3E1D-9FEF-C562F613C65D"><apiname>TMMFPrioritySettings::TMMFStateA</apiname></xref> data members provide further information which may be used if required.
+These specify whether the priority applies to recording or playing.</p>
+</conbody></concept>

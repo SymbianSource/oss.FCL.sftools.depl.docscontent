@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1BD987D8-B018-51B7-80B2-4E1988841BC2" xml:lang="en"><title>How
+to cancel requests</title><shortdesc>This document describes how to cancel a previously scheduled request.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <codeph>CActive</codeph> class provides the <codeph>Cancel()</codeph> member
+function to cancel an active object’s request.</p>
+<p>If no request has been issued, <codeph>Cancel()</codeph> does nothing,
+otherwise it calls <codeph>DoCancel()</codeph>. This is a pure virtual function
+that must be provided by derived classes and which handles specific cancellation
+as required by the service provider. <codeph>Cancel()</codeph> then waits
+for the completion of that request and sets the active request flag to false.</p>
+<p>The service provider must guarantee that the cancellation operation completes
+in a very short period of time.</p>
+<p>For example, a specialized timer active object, derived from <codeph>CTimer</codeph> which
+is derived from <codeph>CActive</codeph>, might implement this as:</p>
+<codeblock id="GUID-2454885F-9410-5E9F-A72E-618E78D32500" xml:space="preserve">void CTimedMessenger::DoCancel()
+    {
+      // Base class
+    CTimer::DoCancel(); 
+      // Reset variable - needed if the object is later re-activated
+    iTicksDone = 0;
+    ...
+    }</codeblock>
+<p>Note that an active object's destructor should ensure that any outstanding
+requests are cancelled. If the class implements a DoCancel() function, then
+the destructor must call the <codeph>Cancel()</codeph> member function. For
+example:</p>
+<codeblock id="GUID-1C265422-8C45-5ED2-A2F8-DFF68C08BF9C" xml:space="preserve">CTimedMessenger::~CTimedMessenger()
+    {
+    Cancel();
+    }</codeblock>
+</conbody></concept>

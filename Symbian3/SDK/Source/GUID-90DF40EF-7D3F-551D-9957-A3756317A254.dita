@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-90DF40EF-7D3F-551D-9957-A3756317A254" xml:lang="en"><title>OCSP
+Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Online Certificate Status Protocol (OCSP) is an internet protocol that
+determines whether a given <xref href="GUID-911E9F7E-D0AD-55EC-A3F4-1D427F803780.dita">certificate</xref> or
+a list of certificates has been revoked, and therefore, determines whether
+the certificate can be trusted. The protocol is defined in <xref href="http://www.ietf.org/rfc/rfc2560.txt" scope="external">RFC2560</xref>. </p>
+<p>On the Symbian platform, <xref href="GUID-0AED3485-D498-57F1-9532-116EA5C8F68B.dita">Secure
+Software Install (SWI)</xref> uses OCSP to verify whether a certificate associated
+with an application to be installed has been revoked. For details of how SWI
+uses OCSP revocation check, see <xref href="GUID-C893C9E6-47B8-5149-9808-0274C61CF3D7.dita">OCSP
+SWI Integration</xref>. </p>
+<section id="GUID-F07B2071-BF8B-4D22-B6F6-1282B2040376"><title>OCSP request and response</title> <p>OCSP primarily consists
+of two parts: a request and a response, each specified in the Abstract Syntax
+Notation One - Distinguished Encoding Rules (<xref href="http://tools.ietf.org/html/rfc4792" scope="external">ASN.1</xref> -DER) format. A client application that wants
+to get information on the revocation status of a certificate, forms an OCSP
+request and sends this to an OCSP server. In its simplest form, an OCSP request
+consists of one or more identifiers for the certificates whose status is in
+question. The request is sent to the OCSP server identified by a Uniform Resource
+Identifier (URI). The URI is specified either in the Authority Information
+Access (AIA) extension of the certificate whose revocation status is to be
+checked, or as a global URI with the OCSP client. AIA is defined in <xref href="http://www.ietf.org/rfc/rfc2459.txt" scope="external">RFC2459</xref>. </p> <p>The
+OCSP server maintains information about the revocation of certificates. The
+server replies to the client with a signed OCSP response, mentioning the revocation
+status for each certificate. A response being signed with a key pair is trusted
+as authoritative by the client. Alternatively, a server can also return an
+error code as response (refer to <xref href="http://www.ietf.org/rfc/rfc2560.txt" scope="external">RFC2560</xref> for details of the various OCSP errors). OCSP
+is transport-neutral with the URI of the server indicating the required transport
+mechanism. Currently, only Hypertext Transfer Protocol (HTTP) is supported. </p> <p>The
+client, in turn, verifies whether the response is valid and is from a trusted
+entity. </p> </section>
+<section id="GUID-B4A093DA-6968-4B17-A3A7-7FF4800DED3B"><title>OCSP client-server interaction</title> <p>The server to which
+the request for revocation check is sent may not actually be the server which
+is authoritative to answer the request, but may act as a proxy to the destination
+server. For information on the server to which the request actually gets routed,
+the client includes a <i>serviceLocator</i> extension (containing the URI)
+in the OCSP request. </p> <p>There may be a <i>serviceLocator</i> extension
+for each certificate in the request. Therefore, it is syntactically possible
+for the request to be split into multiple parts, with each part routed to
+a different OCSP responder (the server that actually responds to the OCSP
+request). The intermediate server collates the individual responses into one
+and returns this to the client. This response is signed only by the intermediate
+server. In such a situation, the client must trust this intermediate server. </p> <p>Three
+scenarios are associated with the routing of OCSP requests to the appropriate
+responder through intermediate servers. They are as follows: </p> <ul>
+<li id="GUID-CD8AAEA0-AA94-58EA-978F-3C2E21A2FE9F"><p> <b>Single OCSP responder</b>  </p> <p>One
+OCSP server contains the revocation information for all the certificates to
+be checked. One request containing all the certificates is sent to the responder
+(in this case, the OCSP server), which replies with a single response. The
+following figure illustrates the interaction between the OCSP client and a
+single destination responder. </p> <fig id="GUID-11F6D229-29D0-510A-AB8A-64A906DC00F7">
+<image href="GUID-8E3F3745-7875-51A2-BDA1-AA537C7B220E_d0e393561_href.png" placement="inline"/>
+</fig> </li>
+<li id="GUID-185C0C91-CC3F-5198-8EAB-BB1BF748A3D0"><p> <b>Multiple OCSP responders
+using an intermediate OCSP server</b>  </p> <p>Multiple OCSP responders use
+an intermediate OCSP server to route requests to the appropriate destination
+responders. One request is sent to the intermediate server, which sends multiple
+individual requests to the destination responders. The responses are collated,
+and one response is sent back to the client. The following figure shows the
+interaction between an OCSP client and multiple destination responders by
+using an intermediate responder. </p> <fig id="GUID-964E18AA-E4F7-5A71-A2F3-19F3007C24C6">
+<image href="GUID-2EF123C9-62A2-52FF-9792-66EF41F37452_d0e393577_href.png" placement="inline"/>
+</fig> </li>
+<li id="GUID-F092252F-79EF-58E2-A596-77D3FC07CC54"><p> <b>Multiple OCSP responders
+without an intermediate server</b>  </p> <p>The client does the work of sending
+each request to the appropriate responder. The client collates the responses
+received. The following figure shows the interaction between the client and
+multiple destination responders. </p> <fig id="GUID-223A3DB6-538E-5A4E-946C-87AA03449857">
+<image href="GUID-A6F1F6AC-5D3C-5055-AEF1-B64671941BCB_d0e393593_href.png" placement="inline"/>
+</fig> </li>
+</ul> <p>The choice of the correct method of interaction between the client
+and the responders depends on the nature of the Public Key Infrastructure
+(PKI) and the availability of OCSP responders for routing requests as intermediates. </p> </section>
+<section id="GUID-891303A3-070F-40D2-9382-40A1165928DE"><title>Revocation check results</title> <p>If the response sent by
+the OCSP server passes all the validation, the application that sends the
+OCSP request determines the outcome by applying the following rules to the
+certificate statuses in the response: </p> <ul>
+<li id="GUID-124E3CDE-7F74-5960-A92C-98B101644036"><p>If any certificate is
+revoked, the result is <b>Revoked</b>  </p> </li>
+<li id="GUID-C0AF0A69-28C4-528B-9E14-1AAF13CEA497"><p>If all certificates
+are valid, the result is <b>Good</b>  </p> </li>
+<li id="GUID-7BA5DACD-19B1-55CC-9378-28F4A47AAE12"><p>Otherwise, the result
+is <b>Unknown</b>. </p> </li>
+</ul> <p> <b>Note:</b> A certificate status of <b>Good</b> does not indicate
+that the certificate may be trusted. It merely indicates that the certificate
+has not been revoked. The normal validation of that certificate (or the <xref href="GUID-A3B58436-07E4-565B-800B-86435D205461.dita">certificate chain</xref> in
+which it lies) must still be performed. </p> </section>
+</conbody><related-links>
+<link href="GUID-C893C9E6-47B8-5149-9808-0274C61CF3D7.dita"><linktext>OCSP SWI
+Integration</linktext></link>
+</related-links></concept>

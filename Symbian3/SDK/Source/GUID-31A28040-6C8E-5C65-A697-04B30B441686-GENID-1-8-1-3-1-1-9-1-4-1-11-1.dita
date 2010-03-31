@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-31A28040-6C8E-5C65-A697-04B30B441686-GENID-1-8-1-3-1-1-9-1-4-1-11-1" xml:lang="en"><title>FEP
+References</title><shortdesc>This topic introduces miscellaneous guidelines to write a FEP.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-7881D352-F261-4064-8684-6CA76A184257-GENID-1-8-1-3-1-1-9-1-4-1-11-1-3-1"><title> Handling the
+start of a transaction</title><p>Although applications do not need to be FEP-aware
+in order to work with FEPs, a situation can occur in some applications in
+which the user interface can be improved by the application making use of
+a FEPBASE API to communicate with the FEP above it, if there is one. </p> <p>If
+no FEP is present, the expected behaviour in some UIs when the user presses
+a key is for the application to do two things: firstly, it moves focus to
+a previously non-focused text editor control (possibly, although not necessarily,
+by launching a dialog), and secondly, it 'seeds' that text editor control
+with the character associated with that key. If there is a FEP, by default
+(in other words, without the application being FEP-aware) the focus change
+would only happen when the FEP outputs text to the application. However, if
+the FEP is designed to allow the user to compose a fairly large block of text
+to send to the application (as would be likely in a Japanese FEP), it would
+be better if the focus change occurred when the user starts composing their
+text in the FEP. In order for this to happen, the application needs to be
+FEP-aware, albeit in a fairly trivial way. The way the FEP notifies the application
+that it is starting a transaction is by calling <codeph>CCoeEnv</codeph> ’s
+member function <codeph>ForEachFepObserverCall()</codeph> (<codeph>CCoeEnv</codeph> is
+defined in <filepath>epoc32\include\COEMAIN.H</filepath>), passing in the
+address of the non-member function <codeph>FepObserverHandleStartOfTransactionL()</codeph> (defined
+in <filepath>epoc32\include\FEPBASE.H</filepath>). It is important to note
+that this function should only be called as the last C++ statement executed
+when handling an event. The reason for this that it may take a considerable
+amount of time to return (for example, it may launch a dialog and only return
+when the dialog has been exited). </p> </section>
+<section id="GUID-C32902E0-39A8-493E-9E7F-D48DEE4717CA-GENID-1-8-1-3-1-1-9-1-4-1-11-1-3-2"><title>Text cursors</title><p>If
+a non-inline-editing FEP has a composition window into which the user types,
+that window should not use a 'real' text cursor (in other words, a cursor
+which is set and unset using <codeph>RWindowGroup</codeph> ’s <codeph>SetTextCursor()</codeph> and <codeph>CancelTextCursor()</codeph> member
+functions). The reason is that the window server only allows a single text
+cursor for the whole system at any one time. If the FEP’s target control is
+a text editor, it should use the window server’s text cursor itself, so the
+FEP should not use it. To solve this problem, the text cursor in the FEP’s
+composition window can be simulated with a sprite. The class <codeph>CTstInsertionPoint</codeph> in
+TFEP1 provides an example of this. </p></section>
+<section id="GUID-5F7D9BFA-F74A-47FE-B589-A4EF49AFB901-GENID-1-8-1-3-1-1-9-1-4-1-11-1-3-3"><title>Shortcut keys</title><p>As
+FEPs get first refusal of all key events, there is a risk that FEPs can intercept
+shortcut keys (if the UI supports them) which are intended for the application
+to handle. To define a convention for FEP shortcut keys is non-trivial as
+different UIs use different modifier keys and have different policies on using
+them. Matters are simplified greatly if a product has a dedicated on/off key
+for FEPs as this may be used in combination with other keys to carry out different
+functions, as well as on its own to turn the FEP on and off. FEP authors should
+consult the documentation for their target UI. </p></section>
+</conbody></concept>

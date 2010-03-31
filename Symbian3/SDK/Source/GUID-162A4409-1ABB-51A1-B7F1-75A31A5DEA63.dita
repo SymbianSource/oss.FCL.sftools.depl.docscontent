@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-162A4409-1ABB-51A1-B7F1-75A31A5DEA63" xml:lang="en"><title>Using
+CIdle</title><shortdesc>This document describes how to use the CIdle class to implement
+long running background tasks.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An instance of the <codeph>CIdle</codeph> class, an idle time active object,
+can be used to perform low-priority processing when no higher-priority active
+objects are ready to run. </p>
+<p>An idle time active object together with its associated callback function
+may be used to implement potentially long running background tasks, such as
+spreadsheet recalculation and word processor repagination. </p>
+<p>A typical example is a background re-calculation in a spreadsheet. Assume
+that the spreadsheet is encapsulated by some class <codeph>CSheet</codeph>. </p>
+<codeblock id="GUID-01DE940E-BAA9-51C6-A6B2-5B251382428B" xml:space="preserve">class CSheet
+ {
+ ...
+ TInt LaunchReCalcL();
+ TInt DoBackgroundRecalc();
+ static TInt BackgroundRecalc(TAny *aSheet);
+ ...
+private:
+ CIdle* iRecalc;
+ ...
+ };</codeblock>
+<p>Assume that a <codeph>CSheet</codeph> object has been created and that,
+as a result of user interaction or some other event, a background re-calculation
+is launched by a call to <codeph>LaunchReCalc()</codeph>. The implementation
+of this function would construct a <codeph>CIdle</codeph> object, specifying
+a suitably low priority. The value <codeph>CActive::EPriorityIdle</codeph> is
+recommended: </p>
+<codeblock id="GUID-20F61F7A-325B-53AA-B51F-575EA69B6CD3" xml:space="preserve">TInt CSheet::LaunchReCalcL()
+ {
+ ...
+ if (!(iRecalc))
+  {
+  iRecalc = CIdle::NewL(CActive::EPriorityIdle);
+  }
+ ...
+ iRecalc-&gt;Start(TCallBack(BackgroundRecalc,this)); 
+ ...
+ };</codeblock>
+<p>To start the background recalculation which is performed by the <codeph>DoBackGroundRecalc()</codeph> member
+function of <codeph>CSheet</codeph>, start by coding: </p>
+<codeblock id="GUID-08FC5576-EFA4-5527-851E-9E03531ED596" xml:space="preserve">iRecalc-&gt;Start(TCallBack(BackgroundRecalc,this));</codeblock>
+<p> <codeph>CIdle::Start()</codeph> requires a <codeph>TCallBack</codeph> object
+to encapsulate the function to be called and a pointer to be passed as a parameter
+to that function. As the encapsulated function must either be static or a
+non-member function, the easiest way to handle this is to pass the static
+function <codeph>BackgroundRecalc()</codeph> and a pointer to the sheet object
+itself. <codeph>BackgroundRecalc()</codeph> then calls the non-static <codeph>DoBackgroundRecalc()</codeph>: </p>
+<codeblock id="GUID-A4122F78-A32B-5592-9A65-B05EDBF30EF5" xml:space="preserve">TInt Sheet::BackgroundRecalc(TAny* aSheet)
+ {
+ return ((CSheet*)aSheet)-&gt;DoBackgroundRecalc();
+ }</codeblock>
+<p> <codeph>BackgroundRecalc()</codeph> is called when there are no higher
+priority active objects with events to process. It does a small amount of
+recalculation before returning. </p>
+<p>If the function has further work to do, it returns a true value to ensure
+that it is called again when there is no other higher priority event to handle.
+When the function finally completes its recalculation task, it returns a false
+value; the function is not called again. </p>
+<p>Typically, an object such as <codeph>CSheet</codeph> or some other object
+accessible from <codeph>CSheet</codeph>, keeps track of the state of the re-calculation. </p>
+<p>It is important for application responsiveness that each iteration of the
+idle time object take only a short time. All other events handled by the active
+scheduler, even high-priority ones, cannot be processed until the idle time
+object's callback function returns. </p>
+<p>When the background recalculation is complete, the callback function is
+not called again. The idle time active object can be destroyed or left until
+needed again. </p>
+<p>If <codeph>Cancel()</codeph> is called, the callback function is not called
+again. An application would need to implement appropriate cleanup. </p>
+</conbody></concept>

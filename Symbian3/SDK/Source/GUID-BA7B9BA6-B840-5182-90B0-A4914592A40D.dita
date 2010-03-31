@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BA7B9BA6-B840-5182-90B0-A4914592A40D" xml:lang="en"><title>SendAs
+Server</title><shortdesc>This section provides detailed description of the SendAs Server
+functions and how the SendAs Server processes the client request. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>SendAs Server process and data flow</title> <p>The following
+figure details the processes and data flow with SendAs Server. </p> <fig id="GUID-644B137D-D8A4-514F-9D3F-238CC69C751E">
+<title>              SendAs Server process and data flow            </title>
+<image href="GUID-AE8D314A-5381-5576-9B17-94BA029A7FEA_d0e291520_href.jpg" placement="inline"/>
+</fig> </section>
+<section><title>SendAs Server functionality</title> <p>The following sections
+give detailed information about the SendAs sever functionality: </p> <p><b>Creating
+a SendAs message</b> </p> <p>Client applications can create a message of a
+given type that supports SendAs only in the Drafts folder of the message store.
+It uses <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita#GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6/GUID-C7CD5EC4-14EE-3375-BEA0-C7FD273C2574"><apiname>RSendAsMessage::Create()</apiname></xref> to create the message.
+An MTM can specify its support of SendAs for a message type in the following
+two ways: </p> <ul>
+<li id="GUID-E25A3621-D706-5016-9F94-AE823C597AD7"><p>The message type can
+set the <xref href="GUID-7D5C9320-17AB-381E-8369-1804EB143199.dita#GUID-7D5C9320-17AB-381E-8369-1804EB143199/GUID-4EDB6002-8750-3E7D-AC60-BFD2BD441E69"><apiname>MTM_CAPABILITIES::send_capability</apiname></xref> resource in its
+resource file. This allows the Message Server to know whether the message
+type supports SendAs without loading its MTMs. </p> </li>
+<li id="GUID-1663559F-C4CE-5B40-848C-B312E60FD8A0"><p>If the MTM does not
+declare whether it supports SendAs in its resource file, the Message Server
+loads the MTM and queries if it supports the <xref href="GUID-AB92627B-67B0-39AC-9B00-854EA1589B35.dita"><apiname>KUidMtmQueryCanSendMsg</apiname></xref> capability. </p> </li>
+</ul> <p><b>Modifying a SendAs message</b> </p> <p>Client applications can
+modify a message created by the <xref href="GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6.dita#GUID-4499491F-FA1A-38E1-BB13-1AB184A31DA6/GUID-C7CD5EC4-14EE-3375-BEA0-C7FD273C2574"><apiname>RSendAsMessage::Create()</apiname></xref> method.
+After sending the request, client applications can no longer modify the message.
+They can add the following message parts, if supported by the message type. </p> <ul>
+<li id="GUID-C84B4945-0E7A-5309-94FF-B849D16F11B7"><p>Body text </p> </li>
+<li id="GUID-169AEA41-8650-5BE4-8386-36DD3BE1215B"><p>Attachment </p> </li>
+<li id="GUID-EA862642-6FD7-5248-B7ED-6981AB73CA69"><p>BIO type </p> </li>
+<li id="GUID-BF7BDB3F-5EAA-565B-8238-3F34E4608222"><p>Recipients—address,
+alias and type. For example, To, Cc or Bcc. </p> </li>
+<li id="GUID-9509C4D9-A1B1-5C9D-9890-AEBA109ECA0A"><p>Subject </p> </li>
+</ul> <p><b>Sending a SendAs Message </b> </p> <p>When a client application
+requests to send a message, it must specify whether SendAs must get confirmation
+from the user to send the message or not. </p> <p>If a client application
+that requests a unconfirmed send is not trusted with the capabilities specified
+by the Server MTM of the given message type, the SendAs Server automatically
+performs a confirmed send. </p> <p>For a confirmed send, the SendAs Server
+uses the UI MTM for the message type to confirm the send request by querying
+the phone user. If the send is confirmed by the phone user, the SendAs Server
+moves the message to Outbox and sends the message. If the send is refused,
+then the message remains in the Drafts folder and the Send-As Server fails
+the send request. </p> <p>After the message send is initiated, the Server
+MTM for the message type takes responsibility of the message. For successful
+and unsuccessful sends, the Server MTM decides to which folder the message
+must be moved to. It also governs the rescheduling policy for a failed send
+request. </p> <p>A client application can obtain progress for both types of
+send requests. Any failures associated with the send are reported back to
+the client application through this progress information. The progress information
+also provides a send state. For example, message waiting to be sent, sending,
+message sent, or message send failed. </p> <p><b>Launching an editor for a
+message type</b> </p> <p>The SendAs Server allows client applications to launch
+an editor for a specified message type that supports SendAs. After creating
+a message, a client application can request to launch the appropriate editor.
+It can launch the editor in two ways: a fire-and-forget launch or a launch
+and wait. With the fire-and-forget launch, the client application is not notified
+when an editor is closed. The launch and wait notifies the client application
+when an editor closes. </p> <p>After the editor is launched, the SendAs Server
+is no longer responsible for that message, the editor takes the responsibility.
+The message editors are applications that are trusted with the required capabilities
+to modify and send messages of that type. They communicate directly with the
+Message Server using the Message Server APIs. </p> <p><b>Querying the message
+type registry</b> </p> <p>The SendAs Server provides several APIs to allow
+client applications to query the message type registry. The following are
+the available queries: </p> <ul>
+<li id="GUID-51165376-26AF-524E-8BA8-B4EFC0C1716D"><p>List the registered
+message types that support a specified set of message capabilities. For example,
+amount of body text allowed, attachments supported and so on. </p> </li>
+<li id="GUID-E875CF63-B35F-581B-A8AE-A04E15A356CE"><p>Obtain the available
+account names for a specified message type </p> </li>
+<li id="GUID-EBE65718-F480-5840-8A89-A47C099021E3"><p>Get the localised human
+readable name for a specified message type that supports SendAs. </p> </li>
+</ul><note> Message types that have no accounts or invalid accounts are not
+listed. Validation is done by SendAs querying whether the UI MTM supports
+validation of the accounts. If the UI MTM does not support validation, all
+accounts are assumed to be valid. If the UI MTM supports the verification,
+then the list of service IDs is passed to <xref href="GUID-1471F3BD-21BF-3600-BEA2-F3B2C6DC4FFB.dita"><apiname>InvokeSyncFunctionL</apiname></xref> using
+the <xref href="GUID-EFB2418B-F3A9-3BF6-90D2-22985845EAAE.dita"><apiname>KMtmUiFunctionValidateService</apiname></xref> command.</note> <p>The
+SendAs Server allows client applications only to query the message type registry
+about message types that support SendAs. Other message types are ignored. </p> </section>
+</conbody><related-links>
+<link href="GUID-B015C4A3-469E-5AC4-B9B9-A24AF7444E65.dita"><linktext>SendAs Overview</linktext>
+</link>
+</related-links></concept>

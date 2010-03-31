@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-006C503D-1E52-450D-A4DA-8C19B141E09F" xml:lang="en"><title>Introduction
+to Intermixing C and C++</title><shortdesc>When porting an open source application or any C (or C++) applications
+on top of Symbian/S60 using P.I.P.S., the developer will come across situations
+where C and C++ (and Symbian C++ as well) codes will be used together. The
+open source community implements a vast number of libraries that export C
+APIs to the user of such libraries.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-88635D46-AEF6-4E8E-969D-D3E56941F289-GENID-1-8-1-11-1-1-5-1-3-1-7-1-4-1-4-1-3-1">       <title>When
+and why to use C linkage</title>       <p>While porting such applications,
+if developers have to intermix C and C++ code, they then have to depend on
+C++ language features like extern "C" for giving C linkage to some set of
+APIs. This is required because C and C++ compilers handle function prototype
+in a different way. C++ compilers use name mangling, (or name decoration)
+to generate unique names for identifiers in a program. It is because of this
+technique, in C++, that it is possible to overload any functions (this requires
+that all the overloaded functions should have a different argument list).
+The C++ mangled name for any identifier contains all the necessary information
+that may be needed by the linker, such as linkage type, scope, calling convention,
+and others.</p><p>All identifiers (function names or variable names) declared
+or defined in C++ source or headers are subject to name mangling. When it
+comes to C, however, there is nothing called name mangling or overloading.
+It applies when the developer tries to use C APIs by including corresponding
+headers. To avoid name mangling, the developer should mention explicitly that
+those APIs are C APIs, by using the extern "C" keyword.  </p>     </section>
+<section id="GUID-88635D46-AEF6-4E8E-969D-D3E56941F289-GENID-1-8-1-11-1-1-5-1-3-1-7-1-4-1-4-1-3-2">       <title>Syntax
+of extern C</title>       <p>The syntax of extern "C" is shown below: </p><codeblock xml:space="preserve">extern "C" declaration ;
+</codeblock><p>The declaration (or definition) that immediately follows extern
+"C" has the C linkage. </p><codeblock xml:space="preserve">extern "C" { 
+   declaration ; 
+   declaration ; 
+   ... 
+}</codeblock><p>Everything between the curly braces has C linkage, unless
+declared otherwise. </p>     </section>
+<section id="GUID-88635D46-AEF6-4E8E-969D-D3E56941F289-GENID-1-8-1-11-1-1-5-1-3-1-7-1-4-1-4-1-3-3">       <title>How
+to use extern C</title>       <p>While writing header files with C functions
+which will be included by both C and C++ source files, the user must use extern
+"C" properly. See the example below: </p><codeblock xml:space="preserve">/*File: GoodCHeader.h */
+/* Can be used by C/C++ header and source files directly */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* Write C function declarations here */
+void Function1(int, int);
+char* Function3(char*, int);
+int Function2(int);
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+</codeblock><p>Using <codeph>ifdef __cplusplus</codeph> is required since
+C does not support or recognize the <codeph>extern</codeph> keyword. It is
+C++ that provides the mechanisms for mixing C and C++ codes in the same program.
+To be precise, C++ supports mixing codes that are compiled by C and C++ compatible
+compilers in the same program.</p><p>If the C header is already defined and
+it does not have all the APIs defined under extern "C", then while including
+such a header in C++ source or header files, extern "C" should be used as
+in the example below:  </p><codeblock xml:space="preserve">*File: PureCHeader.h */
+/* If C++ header/source files need to include this header, extern "C" should be used*/
+/* Define all C APIs here*/
+void Function1(int, int);
+char* Function3(char*, int);
+int Function2(int);
+#endif
+
+
+//File: CSource.cpp
+// C++ source file using PureCHeader.h
+extern "C" {
+#include "PureCHeader.h"
+}
+void Foo() {
+   // use those C APIs here
+   int ret = Function2(10);
+}
+</codeblock>     </section>
+<section id="GUID-88635D46-AEF6-4E8E-969D-D3E56941F289-GENID-1-8-1-11-1-1-5-1-3-1-7-1-4-1-4-1-3-4">       <title>Mixing
+C and C++ features using extern "C"</title>       <p>The developer
+can use all the features of C++ except templates within C by giving those
+functions extern "C" linkage. See the example below:</p><codeblock xml:space="preserve">#include &lt;iostream&gt;
+using namespace std;
+
+extern "C" {
+
+//Can give C linkage to this class!!
+class Sample{
+public:
+   Sample(int a = 10) : iMem(a) { }
+   void Display() { cout&lt;&lt;"iMem is : "&lt;&lt;iMemend1; }
+private:
+   int iMem;
+};
+
+/*
+//Can not  give C linkage to template!!
+//If we uncomment this code, then it will give a compilation error.
+template&lt;class DataType&gt; void Foo(DataType data) {
+}*/
+}</codeblock>     </section>
+<section id="GUID-9AC33F43-5B75-4994-899F-02CD3CE43E5C"><title>Extending C
+codes with C++ Codes</title><p>Using C linkage, C codes like structures and
+functions that manipulate those structures can be extended efficiently in
+a C++ source file as in the example below:  </p><codeblock xml:space="preserve">/* File: CHeader.h */
+typedef struct{
+   char* name;
+   int id;
+   float price;
+} Item;
+
+int Push(Item* item);
+int Pop(Item* item);
+
+
+
+/* File: CppHeader.h */
+//Give external linkage to C structure
+extern "C" {
+# include "CHeader.h"
+}
+
+class MyStack : public Item {
+public:
+   MyStack(char* aName, int aId, float aPrice) : name(aName), id(aId), price(aPrice) { }
+   int PushOnToStack() { return Push(this);}
+   int PopFromStack() { return Pop(this); }
+};
+</codeblock></section>
+</conbody></concept>

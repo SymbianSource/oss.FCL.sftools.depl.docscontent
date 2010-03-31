@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3527AAEE-210F-524B-A655-A65F1CE86C80" xml:lang="en"><title>How
+to build a resource file</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Resource building is performed by the <filepath>epocrc</filepath> tool.
+It is a three-stage process:</p>
+<ul>
+<li id="GUID-06BFE8CC-6DB9-5FE0-97CF-9176B6832C92"><p>pre-processing</p> </li>
+<li id="GUID-78EF35B1-B93B-54C7-8991-F1DAA1FB2B39"><p>localised string merging</p> </li>
+<li id="GUID-C217A7AC-2919-5587-BB58-5744C1FDF5D8"><p>compilation to binary
+format</p> </li>
+</ul>
+<p>The sections below describe each stage in turn.</p>
+<section><title>Pre-processing</title><p>Resource files can use the familiar
+pre-processor directives. In particular, <codeph>#include</codeph> is used
+to include header files; <codeph>#define</codeph> is used to define macros
+such as numeric constants; and <codeph>#if</codeph> and related directives
+can be used to perform conditional compilation. Pre-processor arguments for
+include file paths and macro definitions can be passed to the pre-processor
+through <filepath>epocrc</filepath>.</p><p>The source file is pre-processed,
+using the <filepath>cpp</filepath> pre-processor, and an output file produced
+with an extension <filepath>.rpp</filepath>.</p></section>
+<section><title>Merging localised strings</title><p>Strings that should be
+localised should not be defined in the resource file itself, but in separate
+files with an <filepath>.rls</filepath> extension. The <filepath>.rpp</filepath> files
+are processed by <filepath>epocrc</filepath> to merge in the localisable strings.</p><p>A
+flag can also be specified to <filepath>epocrc</filepath> that causes it to
+copy the <filepath>.rpp</filepath> files into a <filepath>epoc32\localisation\</filepath> directory,
+from where they can form input into a localisation kit.</p></section>
+<section><title>Compilation to binary format</title><p>The final
+stage is to convert the intermediary <filepath>.rpp</filepath> files into
+the final compiled format. This is done by the <filepath>rcomp</filepath> tool.
+The resource compiler also produces a header file that contains a symbolic
+identifier for each resource.</p><p>The names of the output files are specified
+as parameters to <filepath>epocrc</filepath>. Note though that:</p><ul>
+<li id="GUID-1575F474-7035-55E8-A37D-1E7CF8B825BC"><p> resource files as built
+by the project build tools (<filepath>abld</filepath>) have the default extension <filepath>.rsc</filepath>.
+The additional naming conventions used when you need to supply multiple resource
+files, each for a different locale, are discussed in <xref href="GUID-F35C5336-907C-5B2A-92C6-F8883D49996E.dita">How
+to localise resources</xref> </p> </li>
+<li id="GUID-8940240B-69E5-51B2-9335-67E63822D6FF"><p> by convention, the
+header file has an extension <filepath>.rsg</filepath> </p> </li>
+</ul><p>The identifiers in the header file provide symbolic names for index
+positions in the resource file, so that your source code can be independent
+of the number and order of resources within the file. For a named resource
+such as:</p><codeblock id="GUID-2FC8E745-72D6-5837-84EC-9C275445FFE5" xml:space="preserve">RESOURCE TBUF r_eik_bafl_error_offset { buf="Wrong format resource file"; }</codeblock><p>the generated header file will have a <codeph>#define</codeph> such as:</p><codeblock id="GUID-39701585-375F-529C-A059-4504B420A61E" xml:space="preserve">#define R_EIK_BAFL_ERROR_OFFSET 0xf3b045</codeblock><p>where
+the number is a resource ID which encodes the resource index, and is suitable
+for passing to the C++ function <codeph>RResourceFile::AllocReadLC()</codeph>.</p><p>In
+the course of project development, changes to the resource file may not always
+result in changes to the set of <codeph>#define</codeph> statements generated.
+If there is no change, the <filepath>rsg</filepath> file is not rebuilt, thereby
+avoiding unnecessary re-compilation and linking.</p></section>
+</conbody></concept>

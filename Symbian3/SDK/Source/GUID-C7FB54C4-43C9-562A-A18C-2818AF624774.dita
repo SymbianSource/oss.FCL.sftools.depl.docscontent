@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C7FB54C4-43C9-562A-A18C-2818AF624774" xml:lang="en"><title>Permanent
+File Store</title><shortdesc>A permanent file store implements most of the operations defined
+by the store abstract framework. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Streams in a permanent file store can be:</p>
+<ul>
+<li id="GUID-5D731E0A-C4B7-56CE-AC27-25118A58506A"><p>overwritten</p> </li>
+<li id="GUID-13FF892F-8241-59A6-A39F-D0F2705F79A0"><p>replaced</p> </li>
+<li id="GUID-A8E9E699-6017-58FA-BC54-155B7838A172"><p>deleted</p> </li>
+<li id="GUID-95C70244-4BE3-5E20-83FA-1B1DCFB03F49"><p>created in advance of
+being written to.</p> </li>
+</ul>
+<p>A permanent file store is useful for the type of application which treats
+the data in the store as its prime copy. Typically, the object network comprising
+the application’s data is structured so that sections of data can be loaded
+in, and, if changed, written back to the store. Memory is used as a workplace
+for changing data. Such an application never replaces the entire store. This
+approach requires a sophisticated structure and greater sophistication within
+the application.</p>
+<p>Typically, a permanent file store is used by an application, such as a
+database, which maintains all its data in a file, but occasionally edits some
+entries in that database.</p>
+<p> In this paradigm:</p>
+<ul>
+<li id="GUID-56E7EE36-B74F-57B4-9CD6-FCA87D987B89"><p>the database file is
+initially created</p> </li>
+<li id="GUID-4BA53AA2-0304-581A-AD48-2411C9986F69"><p>when an entry is created,
+it as added to the database</p> </li>
+<li id="GUID-70E72107-4ADE-5BF0-8199-C7B904CA72EB"><p>the program maintains
+an internal, non-persistent, copy of the indexes in the database file</p> </li>
+<li id="GUID-EB9EAF48-6D8A-5D6F-BC63-C2036FAC61D4"><p>when an entry is selected
+for display or editing, its data is retrieved from the database; all such
+entries’ data are maintained in an internal, non-persistent, form</p> </li>
+<li id="GUID-C455382A-F50F-5C92-B59B-A5E5FC966C93"><p>when an entry is edited
+and saved, just that single entry is replaced in the database</p> </li>
+<li id="GUID-3BE61AA6-BA20-577B-88AD-8798A12B9F52"><p>when the application
+exits, there is nothing to do to the database, since there should be no data
+that was not already saved (except, perhaps, the current entry if it was being
+edited)</p> </li>
+</ul>
+<p>Such an application never replaces the entire store. The database file
+itself is permanent; it is not erased when an entry is saved. Because of this,
+much more care is needed when maintaining this type of store. All links within
+the database must be maintained without corruption, and no stream subnetworks
+in the database should become inaccessible, otherwise space is wasted. The
+order in which streams are written to a permanent file store is not important
+as streams can be changed and rewritten. </p>
+<p>Overwriting an existing stream does not change its length. However, attempting
+to write beyond the end of the stream fails and results in a leave. Replacing
+a stream can result in a stream which is longer or shorter than the original.</p>
+<p>Note the difference between a persistent store (one that can be closed
+and re-opened), and a permanent file store (it is not replaced wholesale;
+rather, its individual entries are edited, inserted and deleted, but the store
+itself is permanent). A permanent file store is, of course, persistent.</p>
+<p>When the content of a permanent file store is naturally represented by
+a relational database, it is usually much more convenient to manipulate it
+using the relational database manager.</p>
+<p>Permanent file stores are encapsulated by the <codeph>CPermanentFileStore</codeph> class.</p>
+</conbody><related-links>
+<link href="GUID-C0414BDC-06FD-5E3C-93F7-DD3467CAA75E.dita"><linktext>DBMS</linktext>
+</link>
+</related-links></concept>

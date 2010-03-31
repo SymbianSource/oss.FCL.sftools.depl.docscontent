@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4D2AA522-82AB-4D1E-9F1E-5C6A35DEF195" xml:lang="en"><title>Pointer
+events</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p><draft-comment time="2007-02-26T14:58">Add some additional contextual
+information and examples in a future release of the library.</draft-comment></p>
+<p>Pointer events are handled by the controls. A control should implement
+the function <xref href="GUID-F1BFA411-8316-314C-8E4A-C6140124CB58.dita"><apiname>CCoeControl:HandlePointerEventL()</apiname></xref>  to be able
+to handle pointer events. The <xref href="GUID-F1BFA411-8316-314C-8E4A-C6140124CB58.dita"><apiname>CCoeControl:HandlePointerEventL()</apiname></xref> function
+is called by the framework whenever a pointer event occurs within the control. </p>
+<codeblock id="GUID-F12E88CC-31FF-4C26-8FEC-0BC2C7717907" xml:space="preserve">virtual void HandlePointerEventL(const TPointerEvent&amp; aPointerEvent);
+</codeblock>
+<p>Before passing pointer events to controls, the framework performs the
+event processing. If a <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita#GUID-1FFA0073-3D83-388E-A824-08C31F90CC54/GUID-26CE2524-04BC-3592-A7E5-7EEC792A466E"><apiname>TPointerEvent::EButton1Down()</apiname></xref> event
+occurred in the control and the control does not currently have keyboard focus,
+it sends an event of type <xref href="GUID-A2BF9AE8-CF42-3D94-8763-66DB11EDDA46.dita#GUID-A2BF9AE8-CF42-3D94-8763-66DB11EDDA46/GUID-E1A96B7F-0AF1-3397-AA94-C55ED75B01EC"><apiname>MCoeControlObserver::EEventRequestFocus()</apiname></xref> to
+the control's observer — normally the control's container. The container control
+should then set focus onto the control in which the <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita#GUID-1FFA0073-3D83-388E-A824-08C31F90CC54/GUID-26CE2524-04BC-3592-A7E5-7EEC792A466E"><apiname>TPointerEvent::EButton1Down()</apiname></xref> event
+occurred. </p>
+<note>
+<p>By default, pointer drag events and pointer move events are not delivered
+to controls. For additional information, see functions <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-175F4394-0747-3F42-9364-024B3C55E0A3"><apiname>RWindowBase::PointerFilter()</apiname></xref> and <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-477F4BAA-268B-3F9F-9C18-6C6BF5403805"><apiname>CCoeControl::ClaimPointerGrab()</apiname></xref>.</p>
+</note>
+<p> The following code example demonstrates usage of the <parmname>TPointerEvent </parmname>class:</p>
+<codeblock id="GUID-E050A4D7-995E-4819-B172-DCA432E3191F" xml:space="preserve">void CEventsAppView::HandlePointerEventL( const TPointerEvent&amp; aPointerEvent )
+    {
+    switch( aPointerEvent.iType )
+        {
+        case TPointerEvent::EButton1Down:
+            {
+            // Button 1 down
+            // Get pointer position
+            TPoint positionX = aPointerEvent.iPosition.iX;
+            TPoint positionY = aPointerEvent.iPosition.iY;
+            break;
+            }
+        case TPointerEvent::EButton1Up:
+            {
+            // button 1 up
+            break;
+            }
+        case TPointerEvent::EDrag:
+            {
+            // drag event
+            break;
+            }
+        case TPointerEvent::EMove:
+            {
+            // move event
+            break;
+            }
+        default:
+            {
+            // do something
+            break;
+            }
+        }
+    }   </codeblock>
+<p>For information on advanced pointer events, see <xref href="GUID-A12A66ED-2C8F-5CE6-8F3E-332B045A35B4.dita">Advanced
+pointers</xref> section.</p>
+</conbody></concept>

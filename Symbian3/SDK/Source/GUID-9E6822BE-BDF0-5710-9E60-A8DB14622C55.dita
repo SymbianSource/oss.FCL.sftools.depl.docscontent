@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-9E6822BE-BDF0-5710-9E60-A8DB14622C55"><title>Storing a Picture Tutorial</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This topic provides an example of storing a picture in a direct file store (including the creation of a picture header). </p> <codeblock id="GUID-82106C5C-1044-56C4-8E1F-7D4E9DA2A0C6" xml:space="preserve">_LIT(KFileName,"C:\\grpict.dat");
+    
+// Create (replace, if it exists) the direct file store
+CDirectFileStore* store = CDirectFileStore::ReplaceLC(fsSession,KFileName,EFileWrite);
+// Must say what kind of file store.
+iStore-&gt;SetTypeL(KDirectFileStoreLayoutUid);
+    
+// Create picture header
+TPictureHeader header;
+header.iPicture = iPicture;
+header.iSize = TSize(iPicture-&gt;SpecToFactor()*40,iPicture-&gt;SpecToFactor()*40);
+header.iPictureType = KUidExampleSmileyPicture;
+    
+// Store picture header and picture
+CStoreMap* map=CStoreMap::NewLC(*store);
+TStreamId id = iPicture-&gt;StoreL(*store);
+map-&gt;BindL(iPicture,id);
+    
+RStoreWriteStream stream(*map);
+TStreamId headerId = stream.CreateLC(*store);
+header.ExternalizeL(stream);
+stream.CommitL();
+map-&gt;Reset();
+CleanupStack::PopAndDestroy(2); // stream, map
+    
+// Make header stream the root stream
+store-&gt;SetRootL(headerId);
+    
+// Close store
+CleanupStack::PopAndDestroy();</codeblock> <ol id="GUID-34C146E1-BFBD-531E-86DD-D0C87746FD91"><li id="GUID-1F00BB7A-C59D-5504-A531-C8081FC67714"><p>Create a direct file store into which to store the picture. </p> </li> <li id="GUID-81F80023-10A8-542C-9613-ED1FACF642CE"><p>Create a picture header object and set its attributes: <codeph>iPicture</codeph> is assumed to be picture object, derived from <codeph>CPicture</codeph>. </p> </li> <li id="GUID-AF878051-FF1D-52CD-AE28-28F8CCEE9366"><p>Store the picture header and picture in the file store. </p> </li> <li id="GUID-E5DDE3A1-E26F-5D63-BAF9-2C0D3F6B05DD"><p>Store the picture data and picture header using a store map as a temporary repository for the stream ID of the picture data stream. Store the stream ID as an element of the picture header's externalized stream to link the picture header’s stream and the picture data’s stream. </p> </li> </ol> </conbody><related-links><link href="GUID-520AC2F0-009E-51F3-A661-3B6E949F1423.dita"><linktext>Picture Tutorials</linktext> </link> <link href="GUID-5CEE36FC-C5A9-5C4E-9DBC-9C7B5B44EA2F.dita"><linktext>Picture Concepts</linktext> </link> </related-links></concept>

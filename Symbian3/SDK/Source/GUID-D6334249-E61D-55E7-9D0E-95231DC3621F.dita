@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-D6334249-E61D-55E7-9D0E-95231DC3621F"><title>Answer a Call Tutorial</title><shortdesc>This tutorial describes how to detect and answer an inbound call with the telephony API for applications. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <steps id="GUID-00FE5186-EF10-5AFB-B633-D6A09A988E28"> <step id="GUID-1E64BB78-64C9-5CEE-8242-75DF3B93CA45"><cmd/><info>create a new instance of <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony</apiname></xref>  </info> </step> <step id="GUID-CE695413-811F-5089-8701-A78FB58CDA35"><cmd/><info>Use <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::NotifyChange()</apiname></xref> to detect changes in the voice line's status. <codeph>NotifyChange()</codeph> can be used to detect a variety of changes, but in this case you are only interested in the status of the voice line. Pass a notification event, in this case <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EVoiceLineStatusChange</apiname></xref>. Also pass it an empty <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::TCallStatusV1Pckg</apiname></xref>. </info> <info>Possible status values are Idle, Ringing, On-Hold. When the voice line status is Ringing(<codeph>CTelephony::EStatusRinging</codeph>) there is an incoming voice call to be answered. </info> </step> <step id="GUID-367A68B1-9149-561A-9AC1-3EFF30415319"><cmd/><info>answer a call with <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::AnswerIncomingCall()</apiname></xref>. You can only answer a call when the voice line status is Ringing(<xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EStatusRinging</apiname></xref>) </info> </step> <step id="GUID-72EBECDA-178A-541C-B05A-F560F113480C"><cmd/><info>pass the enumeration <xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EAnswerIncomingCallCancel</apiname></xref> to cancel the operation. </info> </step> </steps> <example id="GUID-5F63DA49-52D4-5E10-81E1-BE71CD5BA923"><title>Answer a call example</title> <codeblock id="GUID-42AE93F9-40C4-5751-8677-DC12D42EC378" xml:space="preserve">#include &lt;e32base.h&gt;
+#include &lt;Etel3rdParty.h&gt;
+
+class CClientApp : public CActive
+    { 
+
+private:
+    CTelephony* iTelephony;
+    CTelephony::TCallId iCallId;
+
+public:
+    CClientApp(CTelephony* aTelephony);
+    void SomeFunction();
+
+private:
+    /*
+       These are the pure virtual methods from CActive that  
+       MUST be implemented by all active objects
+       */
+    void RunL();
+    void DoCancel();
+   };
+
+CClientApp::CClientApp(CTelephony* aTelephony)
+    : CActive(EPriorityStandard),
+      iTelephony(aTelephony)
+    {
+    //default constructor
+    }
+
+void CClientApp::SomeFunction()
+    {
+    iTelephony-&gt;AnswerIncomingCall(iStatus, iCallId);
+    SetActive();
+    }
+
+void CClientApp::RunL()
+    {
+    if(iStatus==KErrNone)
+       {} // The call has been answered successfully;
+          // iCallId contains the call's ID, needed when controlling the call.
+    }
+
+void CClientApp::DoCancel()
+    {
+    iTelephony-&gt;CancelAsync(CTelephony::EAnswerIncomingCallCancel);
+    }
+</codeblock> </example> <postreq id="GUID-19AC29A6-3A34-57E8-A0BE-8242CF60BF86"><p>This describes how to answer a second call while another is in progress. </p> <ol id="GUID-6E342500-D7DA-5DD9-89A6-120B2C8FCC0F"><li id="GUID-66CB266C-96CF-58A3-AAEA-00949C356545"><p>Put the first call on hold. </p> <p>This is the same as holding a call in <xref href="GUID-1907CF0B-2F4B-50F6-B676-7B7059B7FF74.dita">Call Hold Tutorial</xref>. </p> <p>If the other call was not dialled or answered by you then you cannot control it, and so you cannot put it on hold. If it is not on hold already (<xref href="GUID-97D402C8-B4B7-385A-92B3-D3FCC0CA575A.dita"><apiname>CTelephony::EStatusHold</apiname></xref>) then you cannot answer the call. </p> </li> <li id="GUID-90CFC6A4-CA1B-593C-937F-B189630DCB0C"><p>Answer the second call. </p> <p>This is the same as answering the first call. <codeph>AnswerIncomingCall()</codeph> will return a different call ID from the first call. </p> </li> <li id="GUID-E278B859-89BE-5C90-94CE-21D66335CEBD"><p>If the operation fails, remember to resume the original call. </p> </li> </ol> <p>As a result, the first call is on-hold and the second call is active. </p> </postreq> </taskbody></task>

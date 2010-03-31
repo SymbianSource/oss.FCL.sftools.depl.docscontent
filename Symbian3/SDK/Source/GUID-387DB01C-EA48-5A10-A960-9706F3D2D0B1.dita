@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-387DB01C-EA48-5A10-A960-9706F3D2D0B1" xml:lang="en"><title>Activating
+an Alarm on Given Days</title><shortdesc>This tutorial explains the steps required to activate an alarm
+that expires, or goes OFF on one or more days of the week. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>The <codeph>TASShdAlarm</codeph> class
+provides functions that enable an alarm to repeat on specified days of the
+week. This alarm is known as a <i>Daily On Given Days</i> alarm. The alarm
+can be repeated weekly on a single day or on multiple days. The alarms can
+also be repeated at the same time on every specified day. </p> <p>If the user
+changes the system date or time, the alarm expires once. Unlike a <i>Repeat
+Once</i> alarm, a <i>Daily On Given Days</i> alarm is not deleted but rescheduled
+for the next available expiry time. </p> </section>
+<section><title>Procedure</title> <p>Follow the steps given below to create
+a <i>Daily On Given Days</i> alarm that is active on Monday and Wednesday
+of every week: </p> <ol id="GUID-55067C23-0A8E-5EC8-A029-8B2045BDAFC4">
+<li id="GUID-C189432B-4468-56D1-B547-D5A9DBFCF998"><p>Create an alarm with
+the <codeph>TASShdAlarm</codeph> class. </p> </li>
+<li id="GUID-AA3EA741-F3AB-5A4D-B279-AA2C053D7313"><p>Use the<codeph>SetAlarmDays()</codeph> API
+to specify the required days. <codeph>EAlarmDayMonday</codeph> and <codeph>EAlarmDayWednesday</codeph> are
+the parameters to specify that the alarm must repeat on Monday and Wednesday
+as shown in the code fragment. </p> <p> <b>NOTE</b>: <xref href="GUID-1AA25731-023C-315B-8047-8FBFEEF71712.dita"><apiname>SetAlarmDays()</apiname></xref> must
+be specifically used for <codeph>EAlarmRepeatDefinitionRepeatDailyOnGivenDays</codeph> repeat
+definition only. </p> </li>
+<li id="GUID-81AC5FBA-A003-5196-B692-B53632467F01"><p>Use <codeph>RASCliSession</codeph> to
+create a session with the Alarm Server. </p> </li>
+<li id="GUID-A4D4B840-0A7A-58D4-A192-9CBCA12C1493"><p>Add the alarm to the
+Alarm Server using the <xref href="GUID-1AA25731-023C-315B-8047-8FBFEEF71712.dita"><apiname>AlarmAdd()</apiname></xref> API. </p> </li>
+</ol> <p>The following code fragment illustrates how to activate an alarm
+on the given days: </p> <codeblock id="GUID-876EF47E-4699-54C7-B102-518679A7DF3B" xml:space="preserve">
+#include &lt;ASCliSession.h&gt;    // For RASCliSession.
+#include &lt;ASShdAlarm.h&gt;      // For TASShdAlarm.
+
+…
+
+// Create an alarm that is active on Monday and Wednesday.
+TASShdAlarm alarm;
+alarm.RepeatDefinition() = EAlarmRepeatDefinitionRepeatDailyOnGivenDays;
+alarm.SetAlarmDays( EAlarmDayMonday | EAlarmDayWednesday );
+
+// Connect to Alarm Server.
+RASCliSession alarmSession;
+User::LeaveIfError( alarmSession.Connect() );
+CleanupClosePushL( alarmSession );
+
+// Add the alarm to Alarm Server.
+User::LeaveIfError( alarmSession.AlarmAdd( alarm ) );
+
+CleanupStack::PopAndDestroy();
+</codeblock> </section>
+<section><title>Results</title> <p>The alarm is set to repeat every week on
+Monday and Wednesday. </p> </section>
+</conbody><related-links>
+<link href="GUID-114D4F3F-9358-5B50-94DC-45CCBA783DF4.dita"><linktext>Alarm Server
+Overview</linktext></link>
+<link href="GUID-E6788741-EF34-57B7-B4D4-8AAC21B25774.dita"><linktext>Alarm Server
+Concepts</linktext></link>
+</related-links></concept>

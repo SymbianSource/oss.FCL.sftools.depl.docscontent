@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A9A8C0C1-4B89-40FE-917E-7D4F7387DDA9" xml:lang="en"><title>Using
+GThreads</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>GLib threads provide a portable way of writing multi-threaded applications.
+There are:</p>
+<ul>
+<li><p>primitives for mutexes to protect concurrent accesses to portions of
+the memory</p></li>
+<li><p>primitives for conditional variables to allow synchronization between
+threads</p></li>
+<li><p>primitives for thread-private data that every thread has an instance
+of</p></li>
+<li><p>APIs for creating and managing threads. </p></li>
+</ul>
+<p>To use thread-related APIs the application must link to <filepath>libgthread.lib</filepath>.
+The function <codeph>g_thread_init()</codeph> must be called to initialize
+the thread system before calling any other thread-related functions.</p>
+<note>The function <codeph>g_thread_init()</codeph> must be called only once.
+The second call to it will abort the application.</note>
+<p>The code given below verifies whether the thread system is initialized.</p>
+<codeblock xml:space="preserve">if (!g_thread_supported ()) 
+	g_thread_init (NULL);
+</codeblock>
+<p><codeph>g_thread_init()</codeph> can be called with a non-NULL parameter;
+however, the user must be sure of what is done since this will override the
+default thread implementation.</p>
+<p>The following example code explains the usage of some of the thread APIs.
+In the example code, create <codeph>NTHREADS</codeph> thread and wait in the
+main thread for all the threads to start before proceeding with some other
+work. Finally, join to all the threads so that the main thread waits for all
+the other threads to terminate.</p>
+<codeblock xml:space="preserve">#include &lt;glib.h&gt;
+
+/* g_mutex_lock is a macro that uses the dll global variable
+ * g_thread_functions_for_glib_use. To use the global variable
+ * we must include glib_global.h.
+ */
+#include &lt;glib_global.h&gt; // Always include as the last include.
+
+#define NTHREADS 5
+
+int no_threads = 0;
+GMutex *mutex;
+GCond *cond; 
+
+void* thread_function(void *data)
+{
+	/*
+	.
+	local data declaration
+	.
+	 */
+	
+	// lock on the mutex before changing the global variable no_threads
+	g_mutex_lock(mutex);
+	no_threads++;
+	
+	//do a broadcast on the conditional variable once NTHREDS have been created
+	if(no_threads == NTHREADS)
+		g_cond_broadcast(cond);
+	
+	//unlock the mutex
+	g_mutex_unlock(mutex);
+
+	/*
+	.
+	some code
+	.
+	 */
+	
+	return NULL;
+ 	
+}
+
+int main ()
+{
+	int i;
+	GThread *thread[NTHREADS];
+	/*
+	 .
+	 other local data declaration
+	 .
+ 	 */ 
+
+	
+	if(!g_thread_supported())
+		g_thread_init (NULL);
+	
+	mutex = g_mutex_new ();
+	cond = g_cond_new (); 
+ 	
+	for(i=0; i&lt;NTHREADS; i++)
+		thread[i] = g_thread_create(thread_function, NULL,TRUE, NULL);
+	
+	g_mutex_lock (mutex);
+	
+	if (no_threads &lt; NTHREADS)
+g_cond_wait (cond, mutex);
+	
+	g_mutex_unlock (mutex);
+	
+	/*
+	.
+	some code
+	.
+	 */
+	 
+	for(i=0; i&lt;NTHREADS; i++)
+		g_thread_join(thread[i]);
+	 
+	g_mutex_free(mutex);
+	g_cond_free(cond);
+	
+	/*
+	.
+	some code
+	.
+	 */
+	 
+	return 0;
+}
+</codeblock>
+</conbody></concept>

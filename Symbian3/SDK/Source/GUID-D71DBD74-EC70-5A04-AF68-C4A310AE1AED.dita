@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D71DBD74-EC70-5A04-AF68-C4A310AE1AED" xml:lang="en"><title>Category:
+WSERV</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The window server runs continuously and brings the machine down if it crashes,
+so it cannot panic its own thread when it detects an error in one of its client’s
+requests. Instead it panics the client’s thread using <xref href="GUID-DA201275-1D3A-3EC6-89A6-C0FE15DBC3EF.dita#GUID-DA201275-1D3A-3EC6-89A6-C0FE15DBC3EF/GUID-6857323F-E2EC-359E-BB06-6A2496652542"><apiname>CSession::Panic()</apiname></xref>.
+These panics have a category of WSERV. </p>
+<p>Note that some panics are raised in debug builds only. </p>
+<table id="GUID-6AC093C9-6095-5269-92F6-2CE39C0D1B05">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>1</p> </entry>
+<entry><p>Out of range opcode. </p> <p>The client has sent a request opcode
+that was not recognized. Each server-side object can only handle some of the
+requests defined in the window server, and if the request isn’t recognized,
+this panic is raised. </p> <p>Clients would normally only get this is if they
+bypass the normal Window Server API. </p> </entry>
+</row>
+<row>
+<entry><p>2</p> </entry>
+<entry><p>Invalid command buffer. </p> <p>A corrupt buffer of requests was
+discovered by the server. This is raised when the buffer itself is noticeably
+broken, and not when the commands in it are wrong. </p> </entry>
+</row>
+<row>
+<entry><p>3</p> </entry>
+<entry><p>Invalid handle. </p> <p>The server couldn’t find the target object
+for a request in the handle index. This can be raised when a command is sent
+to the handle for a window that has been closed, for example. </p> </entry>
+</row>
+<row>
+<entry><p>4</p> </entry>
+<entry><p>A handle whose value was NULL was detected. </p> <p>For example,
+when Constructing one of the subclasses of the client-side <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita"><apiname>RWindowBase</apiname></xref> with
+a client handle argument of NULL. </p> <p>On the server side, a <codeph>TWsClCmdCreateWindow</codeph> with
+a client handle field of <codeph>NULL</codeph> passed as argument to <codeph>CWsClientWindow::ConstructL()</codeph> will
+raise this error. </p> </entry>
+</row>
+<row>
+<entry><p>5</p> </entry>
+<entry><p>A single drawing command was too big to fit into the <xref href="GUID-E5CDDA05-CD86-5C44-B9DA-3249D9C14396.dita">client-side
+buffer</xref>. </p> <p>The size of the buffer may be increased. See <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-9AFA27F2-221D-3026-9728-331CBCDD9548"><apiname>RWsSession::SetBufferSizeL()</apiname></xref> and <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-56D050D6-D046-32C5-BF00-47738E15A19A"><apiname>RWsSession::SetMaxBufferSizeL()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p>6</p> </entry>
+<entry><p>Invalid window handle. </p> <p>A handle which should have referred
+to a window of a particular type referred to a window of another type, or
+the object index didn’t recognise the handle. </p> <p>On the server side,
+this panic is ultimately raised by <codeph>CWsClient::HandleToWindow()</codeph> and <codeph>CWsClient::HandleToClientWindow()</codeph> during
+handle conversions. </p> </entry>
+</row>
+<row>
+<entry><p>7</p> </entry>
+<entry><p>Invalid bitmap handle. </p> <p>A corrupt bitmap handle was encountered.
+This is a common panic uncovered when a bitmap handle refers to nothing, or
+to a server-side object that isn’t a bitmap. </p> <p>Also: </p> <ul>
+<li id="GUID-F2F791EC-C3D3-5214-9B0A-BACC9064491B"><p>In response to an <codeph>EWsGcOpUseBrushPattern</codeph> request
+if the bitmap parameter couldn’t be used. On the client side, <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-443F66B6-C73A-3BCB-8EBE-98A3A95DEABD"><apiname>CWindowGc::UseBrushPattern()</apiname></xref> sends
+this request. </p> </li>
+<li id="GUID-82BA0000-143A-58B1-8100-5D4244488EF4"><p>In response to an <codeph>EWsSpriteOpAppendMember</codeph> request
+when the bitmaps for the sprite member can't be created on the server side.
+On the client side, <xref href="GUID-20B1C5E7-8587-3528-9A33-C56D5C2A4C6F.dita#GUID-20B1C5E7-8587-3528-9A33-C56D5C2A4C6F/GUID-79DE992E-1A8E-3974-81BB-285F6A50A920"><apiname>RWsSpriteBase::AppendMember()</apiname></xref> sends
+this request. </p> </li>
+<li id="GUID-EDC85225-23BE-5417-BD59-79AC6422E8E7"><p>Any failed attempt to
+duplicate a supplied bitmap. </p> </li>
+</ul> </entry>
+</row>
+<row>
+<entry><p>8</p> </entry>
+<entry><p>Event read already outstanding. </p> <p> <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-0F961C4D-A731-3AE0-8425-BB304CCF2736"><apiname>RWsSession::EventReady()</apiname></xref>, <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-DADAFFD6-4B63-35EE-8F50-F397C119CC27"><apiname>RWsSession::RedrawReady()</apiname></xref>,
+or <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-97E7096D-930B-3CA5-9645-7BD60D0FADDD"><apiname>RWsSession::PriorityKeyReady()</apiname></xref> was called again when
+an event read was already outstanding, when an event was waiting to be delivered
+by the window server. </p> </entry>
+</row>
+<row>
+<entry><p>9</p> </entry>
+<entry><p>Attempted to use a non-active graphics context. </p> <p>A drawing
+request was sent to a graphics context when the context was not active. </p> <p>On
+the server side, this panic is raised by <codeph>CWsGc::CommandL()</codeph> on
+all requests received when the context isn’t active except <codeph>EWsGcOpActivate</codeph>, <codeph>EWsGcOpDeactivate</codeph>, <codeph>EWsGcOpFree</codeph>, and <codeph>EWsGcOpTestInvariant</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>10 </p> </entry>
+<entry><p>Attempted to activate an already active graphics context. </p> <p>On
+the server side, this is raised by <codeph>CWsGc::Activate()</codeph> as a
+response to a <codeph>EWsGcOpActivate</codeph> request. </p> <p>The request
+is sent by the client-side method <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-1C0F9DF6-23C2-3707-8F2B-0A738467FF0A"><apiname>CWindowGc::Activate()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p>11 </p> </entry>
+<entry><p>Window already active. </p> <p>An attempt was made to reactivate
+an active window. The request is sent by the client-side method <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-4E02165A-DFCC-3D18-BB18-18726B28E90A"><apiname>RWindowBase::Activate()</apiname></xref>. </p> <p>On
+the server side, this panic is raised by <codeph>CWsClientWindow::Activate()</codeph> in
+response to an <codeph>EWsWinOpActivate</codeph> request. </p> </entry>
+</row>
+<row>
+<entry><p>12 </p> </entry>
+<entry><p>Already inside a begin/end redraw pair. </p> <p>A begin-redraw window
+request was made when the window had already begun redrawing. Begin-redraw
+messages are paired with end-redraw messages, and ordering is important. Invoking <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-9337538E-7A53-3153-A330-968B5E4F2FF2"><apiname>RWindow::BeginRedraw()</apiname></xref>,
+then <codeph>RWindow::BeginRedraw()</codeph> again before the corresponding <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-3DE16607-AD3B-3946-BEB3-88512EAAB9CE"><apiname>RWindow::EndRedraw()</apiname></xref> raises
+this panic. </p> <p>On the server side, this panic is raised if an <codeph>EWsWinOpBeginRedraw</codeph> request
+is sent twice before the closing <codeph>EWsWinOpEndRedraw</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>13 </p> </entry>
+<entry><p>Invalid font handle. </p> <p>On the client-side is raised if <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-CECA5329-1C7A-385B-8648-AAF4E2293B7D"><apiname>CWindowGc::UseFont()</apiname></xref> is
+called with an invalid font handle. </p> <p>On the server side, <codeph>CWsGc::SetGcAttribute()</codeph> raises
+this error in response to an <codeph>EWsGcOpUseFont</codeph> request. </p> </entry>
+</row>
+<row>
+<entry><p>14 </p> </entry>
+<entry><p>Printing with no active font. </p> <p>A command to draw text to
+a window was sent to a graphics context when no font was set. Any of the overloads
+of <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-097BA6CF-09A1-3C27-AF14-332E619A2CC0"><apiname>CWindowGc::DrawTextVertical()</apiname></xref> or <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-54F95685-52FF-3952-A42F-38519522080D"><apiname>CWindowGc::DrawText()</apiname></xref> might
+cause the panic to be raised; the font should be set using <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-CECA5329-1C7A-385B-8648-AAF4E2293B7D"><apiname>CWindowGc::UseFont()</apiname></xref> first. </p> <p>On
+the server side, this panic is raised by <codeph>CWsGc::DoDrawCommand()</codeph> in
+response to any of the requests to display text defined in <codeph>TWsGcOpcodes</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>15 </p> </entry>
+<entry><p>Attempted to set an invalid text cursor type, see <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-65474634-1BBD-3103-8C20-9F6709620754"><apiname>RWindowGroup::SetTextCursor()</apiname></xref>. </p> <p>Valid
+types are defined in the <xref href="GUID-601B802C-AB1B-357A-81A0-F8119F1F54C6.dita"><apiname>TTextCursor</apiname></xref> struct. </p> </entry>
+</row>
+<row>
+<entry><p>16 </p> </entry>
+<entry><p>A drawing command was sent to a graphics context active on a group
+window. </p> </entry>
+</row>
+<row>
+<entry><p>17 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>18 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>19 </p> </entry>
+<entry><p>Attempted to use a patterned brush when the pattern bitmap has not
+yet been set <codeph>UseBrushPattern()</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>20 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>21 </p> </entry>
+<entry><p>Attempted to do a client destroy function on an illegal handle. </p> <p>A
+client tried to destroy or cancel a server-side object by its handle on an
+unrecognised handle, or on a handle of the wrong type for the operation. </p> <p>This
+panic may be caused by the <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-88E8753E-D7AC-3F8C-8A39-81546D068F9E"><apiname>RWindowGroup::CancelCaptureKeyUpAndDowns()</apiname></xref> or <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-FE1B9DDF-C612-3C3F-9E8A-EB09B45413CF"><apiname>RWindowGroup::CancelCaptureKey()</apiname></xref> methods.
+These correspond to the <codeph>EWsWinOpCancelCaptureKeyUpsAndDowns</codeph> and <codeph>EWsWinOpCancelCaptureKey</codeph> server
+requests. In this case, the panic means that there is no such capture key
+object in existence in the target window group. </p> </entry>
+</row>
+<row>
+<entry><p>22 </p> </entry>
+<entry><p>Panic from the Anim DLL. </p> <p>An animation DLL tried either changing
+its default or next timing interval when its timing mode was set to <codeph>ESyncNone</codeph>,
+or activating a graphics context when the context was already activated. </p> <p>There
+are a variety of other reasons why this panic might be raised, all which are
+Anim DLL related. The Animation writer can also cause functions raise this
+panic. </p> </entry>
+</row>
+<row>
+<entry><p>23 </p> </entry>
+<entry><p>Invalid Anim object handle. </p> <p>A null animation handle was
+detected in the server on receipt of an animation command, possibly because
+the relevant animation has been deleted. This panic may be raised by a subclass
+of <xref href="GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10.dita"><apiname>RAnim</apiname></xref> calling <xref href="GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10.dita#GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10/GUID-2AD08463-DFA7-344C-9BC8-AE9081105F60"><apiname>RAnim::Command()</apiname></xref> or <xref href="GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10.dita#GUID-4180CDBA-E9A5-3A4B-9778-26D172FAFD10/GUID-682EB86C-BD43-3CAD-8A29-1F1DBBFC0C8D"><apiname>RAnim::CommandReply()</apiname></xref>. </p> <p>On
+the server side, the <codeph>EWsAnimDllOpCommandReply</codeph> and <codeph>EWsAnimDllOpCommand</codeph> requests
+can raise this panic in <codeph>CWsAnimDll</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>24 </p> </entry>
+<entry><p>Leave from a non-leaving animation function. </p> <p>Code in an
+animated DLL called by the server invoked <codeph>Leave()</codeph>. Animated
+DLL code is provided by the client and run by the server, so non-handled leaves
+are trapped and the notification is passed on as a client panic. </p> </entry>
+</row>
+<row>
+<entry><p>25 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>26 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>27 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>28 </p> </entry>
+<entry><p>Inconsistent polygon or polyline data was supplied. For example
+when restarting without finishing an old polygon. </p> </entry>
+</row>
+<row>
+<entry><p>29 </p> </entry>
+<entry><p>A client attempted to set a negative shadow height. </p> <p>This
+panic is caused by a call to <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-DF92ECB5-8F5A-32B9-9201-CC4B65F54AB2"><apiname>RWindowBase::SetShadowHeight()</apiname></xref> with
+a negative argument. </p> <p>On the server side, <codeph>CWsClientWindow::CommandL()</codeph> raises
+the panic in response to an invalid <codeph>EWsWinOpSetShadowHeight</codeph> request. </p> </entry>
+</row>
+<row>
+<entry><p>30 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>31 </p> </entry>
+<entry><p>The client tried to construct a window with an invalid redraw type.
+The valid redraw types defined in the enumeration <codeph>TWinTypes</codeph> of <filepath>w32cmd.h</filepath>. </p> <p>On
+the server side, this panic is raised by <codeph>CWsClientWindow::ConstructL()</codeph> in
+response to an initialisation message containing an invalid redraw type. </p> </entry>
+</row>
+<row>
+<entry><p>32 </p> </entry>
+<entry><p>A server-side redraw region is almost certainly corrupt. </p> <p>This
+panic is raised when an <codeph>EWsWinOpGetInvalidRegion</codeph> is received
+by a <codeph>CWsRedrawMsgWindow</codeph> with a <codeph>TInt</codeph> parameter
+of zero or less. </p> </entry>
+</row>
+<row>
+<entry><p>33 </p> </entry>
+<entry><p>The client failed to provide a reply buffer to a server-side function
+when one was needed. </p> <p>All server-side functions that need more space
+for their reply than a <codeph>TInt</codeph> use the client’s reply buffer.
+If the client fails to provide space for such replies, this panic will be
+emitted. </p> <p>This panic is raised by <codeph>CWsClient::ReplyBuf()</codeph> when <codeph>CWsClient</codeph> ’s
+reply buffer is null. </p> </entry>
+</row>
+<row>
+<entry><p>34 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>35 </p> </entry>
+<entry><p>A client passed an invalid or unrecognized corner type or flag. </p> <p>This
+panic is raised in response to a client call to <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-BF2FA2A4-9D9B-3CC9-B557-274F91C04548"><apiname>RWindowBase::SetCornerType()</apiname></xref> when
+specifying inconsistent or non-existent flags. </p> <p>Valid flags are masked
+by <xref href="GUID-5DCD4558-6A55-3E5F-B045-E3C27AC7F814.dita"><apiname>ECornerTypeMask</apiname></xref>, and recognised types are defined in <xref href="GUID-BF7BF6C1-826F-3803-9113-F97E8C49F2CB.dita"><apiname>TCornerType</apiname></xref>.
+These are all defined in <filepath>w32std.h</filepath>. </p> <p>The server
+raises this panic as a response to <codeph>EWsWinOpSetCornerType</codeph> request
+with an undefined corner type or an unrecognised flag in its parameters. </p> </entry>
+</row>
+<row>
+<entry><p>36 </p> </entry>
+<entry><p>The server was asked to update a region of a backed-up window which
+has not had MaintainBackup called on it. </p> <p>A client-side call to either
+form of <xref href="GUID-27A95595-F74D-32B2-A960-0CA290C8A3B3.dita#GUID-27A95595-F74D-32B2-A960-0CA290C8A3B3/GUID-6B1C676D-B762-3B18-BEED-E3389E2B679A"><apiname>RBackedUpWindow::UpdateScreen()</apiname></xref> may raise this
+panic. </p> <p>On the server side, the panic is raised in response to an <codeph>EWsWinOpUpdateScreenRegion</codeph> or <codeph>EWsWinOpUpdateScreen</codeph> request when not maintaining a full backup of a backed-up window. </p> </entry>
+</row>
+<row>
+<entry><p>37 </p> </entry>
+<entry><p>Panic raised when it was not possible to read or write data to the
+client thread. The data is usually contained in a descriptor. </p> </entry>
+</row>
+<row>
+<entry><p>38 </p> </entry>
+<entry><p>The client attempted to access a sprite after the sprite's window
+was destroyed. Note that pointer cursors are implemented as sprites. </p> </entry>
+</row>
+<row>
+<entry><p>39 </p> </entry>
+<entry><p>A client requested event data without having received an event telling
+it that the data was ready. </p> </entry>
+</row>
+<row>
+<entry><p>40 </p> </entry>
+<entry><p>The mask for a sprite is smaller than the sprite’s bitmap. A mask
+is permitted to be larger than its bitmap. </p> </entry>
+</row>
+<row>
+<entry><p>41 </p> </entry>
+<entry><p>Bad sprite handle. </p> <p>A null sprite handle was encountered,
+or a handle which was supposed to refer to a sprite referred to something
+else. </p> <p>The client-side methods <xref href="GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D.dita#GUID-9FFD28C7-8747-3438-84BF-44AF26ACEC7D/GUID-4E39D589-41FA-3809-B28A-FD224B94F8AA"><apiname>RWindowTreeNode::SetCustomPointerCursor()</apiname></xref> and <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-9C859A7D-7621-3C5C-B371-8BEB782E26F0"><apiname>RWsSession::SetSystemPointerCursor()</apiname></xref>, amongst others, can cause this panic to be raised; they correspond to the
+server requests <codeph>EWsWinOpSetCustomPointerCursor</codeph> and <codeph>EWsClOpSetSystemPointerCursor</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>42 </p> </entry>
+<entry><p>A client attempted to set or clear a system pointer cursor without
+first owning the list of system pointer cursors. </p> <p> <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-9C859A7D-7621-3C5C-B371-8BEB782E26F0"><apiname>RWsSession::SetSystemPointerCursor()</apiname></xref> and <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-B72E596C-CB79-39D8-BCA3-5B89C6FA4BE9"><apiname>RWsSession::ClearSystemPointerCursor()</apiname></xref> can raise this panic. See also <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-D642EA87-C32B-3C4A-9693-D9C8C7F7731C"><apiname>RWsSession::ClaimSystemPointerCursorList()</apiname></xref> and <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-982BB8B3-8848-3DB6-8FE2-000E876C1870"><apiname>RWsSession::FreeSystemPointerCursorList()</apiname></xref>. </p> <p>The server requests which can raise this panic are <codeph>EWsClOpSetSystemPointerCursor</codeph> and <codeph>EWsClOpClearSystemPointerCursor</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>43 </p> </entry>
+<entry><p>A client attempted to enable a pointer move buffer when none was
+allocated. </p> <p> <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-7C547F3A-957E-344B-A1E0-8F2187A40D64"><apiname>RWindowBase::EnablePointerMoveBuffer()</apiname></xref> can
+cause this panic to be emitted; the corresponding server request is <codeph>EWsWinOpEnablePointerMoveBuffer</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>44 </p> </entry>
+<entry><p>Raised in response to commands that send a string, when the string
+has been incorrectly stored in the command buffer. </p> </entry>
+</row>
+<row>
+<entry><p>45 </p> </entry>
+<entry><p>Not used. </p> </entry>
+</row>
+<row>
+<entry><p>46 </p> </entry>
+<entry><p>An invalid call or request parameter was detected by <codeph>CWsPassword</codeph>.
+This can be caused: </p> <ul>
+<li id="GUID-C95870E5-420F-5871-8399-77FAD9C45B70"><p>By <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-18D2334C-C521-3CF6-B255-889BA49247F2"><apiname>RWindowBase::PasswordWindow()</apiname></xref> sending
+an <codeph>EWsWinOpPasswordWindow</codeph> server request whose password mode
+parameter is not recognised. </p> </li>
+<li id="GUID-B573569A-0545-5298-B531-55825D06B507"><p>By an attempt to cancel
+the password window by a client which doesn’t own the window. </p> </li>
+<li id="GUID-911CCD34-11E9-52F2-830D-220B6BA94765"><p>By <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-B84A1DF6-7226-3C5C-9C4A-8A177B29DA6D"><apiname>RWsSession::PasswordEntered()</apiname></xref> sending
+a <codeph>EWsClOpPasswordEntered</codeph> server request when no password
+window has been set, or when the client does not own the password window. </p> </li>
+</ul> <p>Valid password modes are defined in <xref href="GUID-A87DDA42-D0D4-33EF-94DC-CB137F09BF06.dita"><apiname>TPasswordMode</apiname></xref> of <filepath>w32std.h</filepath>. </p> </entry>
+</row>
+<row>
+<entry><p>47 </p> </entry>
+<entry><p>An invalid compute mode was sent to the window server. On the client
+side, <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-E940B930-A882-3624-B8FF-D11626B6EA95"><apiname>RWsSession::ComputeMode()</apiname></xref> can do this, the window
+server request is <codeph>EWsClOpComputeMode</codeph>. Valid compute modes
+are defined in the enumeration <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-0FA84830-AB78-3769-B630-55AC7423DC06"><apiname>RWsSession::TComputeMode</apiname></xref>,
+which is declared in <filepath>w32std.h</filepath>. </p> </entry>
+</row>
+<row>
+<entry><p>48 </p> </entry>
+<entry><p>A client attempted to set the display mode of a backed-up window.
+This can be done with <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-FBE65640-3EC6-37D8-B5DD-695DA373EA3E"><apiname>RWindowBase::SetRequiredDisplayMode()</apiname></xref> or
+the <codeph>EWsWinOpRequiredDisplayMode</codeph> server request. </p> </entry>
+</row>
+<row>
+<entry><p>49 </p> </entry>
+<entry><p>A client attempted to get a message when has not been signalled
+in the server. </p> <p>This panic can be raised on a client thread calling <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-7B271057-678A-3143-946F-85FE9A4F8238"><apiname>RWindowGroup::FetchMessage()</apiname></xref> or
+sending the <codeph>EWsWinOpGetMessageSize</codeph> or <codeph>EWsWinOpGetMessage</codeph> messages. </p> </entry>
+</row>
+<row>
+<entry><p>50 </p> </entry>
+<entry><p>A client tried to send a second initialization message, i.e. to
+call <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-6CA684BC-746E-3357-90A0-E5105DDC4E01"><apiname>RWsSession::Connect()</apiname></xref> twice. </p> </entry>
+</row>
+<row>
+<entry><p>51 </p> </entry>
+<entry><p>A client attempted to send a message without specifying a target
+window. </p> <p>This can be raised, for example, in response to <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-5785C563-A814-33AB-B031-E7AFEE04AA52"><apiname>RWsSession::RequestOffEvents()</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>52 </p> </entry>
+<entry><p>A client attempted to perform and operation on a window that has
+had its parent or ancestor deleted. An operation which might raise this panic
+could be setting the window size, position or extent. </p> <p>Introduced in
+v5.1 </p> </entry>
+</row>
+<row>
+<entry><p>53 </p> </entry>
+<entry><p>A client attempted to reset a window group’s default owning window.
+For example, by calling the function <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-978CB4B2-CF7C-3A10-B6EB-706FD3E4502F"><apiname>RWindowGroup::DefaultOwningWindow()</apiname></xref> twice
+on the same window group. </p> <p>This is only raised in debug builds. </p> </entry>
+</row>
+<row>
+<entry><p>54 </p> </entry>
+<entry><p>A client attempted to perform an operation on an invalid screen
+mode. </p> <p>For example, if the client called the functions <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-45FC8DC7-B17F-34E6-806C-B8BA585F4FD6"><apiname>CWsScreenDevice::GetScreenModeSizeAndRotation()</apiname></xref> or <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-9F04C517-7891-3A44-B280-4FD18FABBA0E"><apiname>CWsScreenDevice::SetScreenMode()</apiname></xref> with an illegal index. </p> <p>Introduced in v5.1 </p> </entry>
+</row>
+<row>
+<entry><p>55 </p> </entry>
+<entry><p>A client attempted to set an invalid screen enforcement mode. </p> <p>The
+valid screen mode enforcement modes are defined in <xref href="GUID-85EAB9E0-7E55-3D90-A139-D99C7DB5E303.dita"><apiname>TScreenModeEnforcement</apiname></xref>. </p> <p>Introduced
+in v5.1 </p> </entry>
+</row>
+<row>
+<entry><p>56 </p> </entry>
+<entry><p>A client specified an event type which was not a pointer event,
+when this is what was required by the operation. For example the <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-76BB14D2-30FC-3EF5-9433-F2C0809375FB"><apiname>RWindowGroup::SimulatePointerEvent()</apiname></xref> function. </p> <p>Introduced
+in v5.1 </p> </entry>
+</row>
+<row>
+<entry><p>57 </p> </entry>
+<entry><p>A client attempted to specify a screen rotation or orientation that
+is not allowed. Each screen size mode has a list of allowed rotations. </p> <p>Introduced
+in v5.1 </p> </entry>
+</row>
+<row>
+<entry><p>58 </p> </entry>
+<entry><p>A client attempted to call a function that can only be called on
+a top level client window on a lower level window. A top level client window
+is a window with a window group as a parent, for example the <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-585CDAE1-1247-344A-9D36-E8AD9509BE83"><apiname>RWindowBase::MoveToGroup()</apiname></xref> function. </p> <p>Introduced
+in v6.0 </p> </entry>
+</row>
+<row>
+<entry><p>59 </p> </entry>
+<entry><p>A client attempted to use a <xref href="GUID-E2092CF9-98E8-3206-91B2-36011AA6FB77.dita"><apiname>RDirectScreenAccess</apiname></xref> object's
+member functions in the wrong order. </p> <p>Introduced in v7.0 </p> </entry>
+</row>
+<row>
+<entry><p>60 </p> </entry>
+<entry><p>The handle to a window server resource is already in use (debug
+builds only). </p> <p>Introduced in v7.0 </p> </entry>
+</row>
+<row>
+<entry><p>61 </p> </entry>
+<entry><p>An attempt was made to set a custom text cursor (using <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-65474634-1BBD-3103-8C20-9F6709620754"><apiname>RWindowGroup::SetTextCursor()</apiname></xref>)
+but the cursor's type was not recognised. </p> <p>Introduced in v7.0s. </p> </entry>
+</row>
+<row>
+<entry><p>62 </p> </entry>
+<entry><p>An attempt was made to set a custom text cursor (using <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-65474634-1BBD-3103-8C20-9F6709620754"><apiname>RWindowGroup::SetTextCursor()</apiname></xref>)
+whose alignment value is invalid. For valid alignment values see the <xref href="GUID-377B0D4E-7D4A-37C2-9CA1-67E799C8C833.dita"><apiname>TCustomTextCursorAlignment</apiname></xref> enumeration
+in class <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RWsSession</apiname></xref>. </p> <p>Introduced in v7.0s. </p> </entry>
+</row>
+<row>
+<entry><p>63 </p> </entry>
+<entry><p>An attempt was made to set a custom text cursor (using <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-65474634-1BBD-3103-8C20-9F6709620754"><apiname>RWindowGroup::SetTextCursor()</apiname></xref>)
+that does not have any sprite members set. </p> <p>Introduced in v7.0s. </p> </entry>
+</row>
+<row>
+<entry><p>64 </p> </entry>
+<entry><p>An attempt was made to set a transparency operation to a window
+that has not been enabled to be transparent. </p> </entry>
+</row>
+<row>
+<entry><p>65 </p> </entry>
+<entry><p>An multiple screen API function was called with an illegal screen
+number. </p> </entry>
+</row>
+<row>
+<entry><p>66 </p> </entry>
+<entry><p>An attempt was made to call an event API without specifying the
+SwEvent capability, such as <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-2DE6DC5C-1DFB-3625-9C06-A8A3ED369C40"><apiname>RWsSession::SimulateKeyEvent()</apiname></xref>, <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-76BB14D2-30FC-3EF5-9433-F2C0809375FB"><apiname>RWindowGroup::SimulatePointerEvent()</apiname></xref>. </p> <p>Introduced
+in v8.1. </p> </entry>
+</row>
+<row>
+<entry><p>67 </p> </entry>
+<entry><p>A leave occurred whilst processing a command in the middle of the
+buffer. </p> </entry>
+</row>
+<row>
+<entry><p>68 </p> </entry>
+<entry><p>An attempt was made to try to use a group window with a deleted
+Screen Device. </p> </entry>
+</row>
+<row>
+<entry><p>69 </p> </entry>
+<entry><p>Redraw storing cannot be disabled for transparent window. </p> </entry>
+</row>
+<row>
+<entry><p>70 </p> </entry>
+<entry><p>Bad internal state in <codeph>CWsGraphic</codeph> code. </p> </entry>
+</row>
+<row>
+<entry><p>71 </p> </entry>
+<entry><p>An attempt was made to use an uninitialised <codeph>CWsClient</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p>72 </p> </entry>
+<entry><p>Client IPC message is <codeph>NULL</codeph>. </p> <p>Introduced
+in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>73 </p> </entry>
+<entry><p>Incompatible use of window transparency and background surface or
+overlay. </p> <p>Introduced in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>74 </p> </entry>
+<entry><p>A notification request is pending for a window so new requests cannot
+be added for that window. </p> <p>Introduced in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>75 </p> </entry>
+<entry><p>An incorrect surface type has been used. </p> <p>Introduced in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>76 </p> </entry>
+<entry><p>Attempted use of a surface configuration without any valid members. </p> <p>Introduced
+in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>77 </p> </entry>
+<entry><p>Not used </p> </entry>
+</row>
+<row>
+<entry><p>78 </p> </entry>
+<entry><p>Illegal display mode is used. </p> <p>Introduced in v9.5 </p> </entry>
+</row>
+<row>
+<entry><p>79 </p> </entry>
+<entry><p>A draw operation was performed on the <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> outside
+an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-9337538E-7A53-3153-A330-968B5E4F2FF2"><apiname>RWindow::BeginRedraw()</apiname></xref> or <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>EndRedraw()</apiname></xref> pair. </p> <p>Introduced
+in v9.4 </p> </entry>
+</row>
+<row>
+<entry><p>80 </p> </entry>
+<entry><p>General invalid parameter code for invariant checking. </p> <p>Introduced
+in v9.5 </p> </entry>
+</row>
+<row>
+<entry><p>81 </p> </entry>
+<entry><p>Invalid drawable source handle. </p> <p>Introduced in v9.5 </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></conbody></concept>

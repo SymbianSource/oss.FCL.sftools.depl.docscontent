@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-11FE772A-E662-4B88-B871-97A40A40FBAB" xml:lang="en"><title>Handling
+EEikCmdExit</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If your Symbian GUI-based application should close, for example, in
+out of memory situations, you must handle the <parmname>EEikCmdExit</parmname> command
+ID in your override of <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-D6E5C363-CF39-3E56-B717-57CCEE8DC96F"><apiname>CEikAppUi::HandleCommandL()</apiname></xref>. The
+UI architecture of your application determines where you override <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-D6E5C363-CF39-3E56-B717-57CCEE8DC96F"><apiname>CEikAppUi::HandleCommandL()</apiname></xref>.
+A typical implementation is as follows:</p>
+<codeblock id="GUID-80E7C5FF-A507-42FA-ACF0-808539FFF6A5" xml:space="preserve">void CMyCommandHandlingAppUi::HandleCommandL(TInt aCommand)
+    {
+    	
+    switch(aCommand)
+        {
+        case EEikCmdExit:
+        case EAknSoftkeyExit:
+            Exit();
+            break;
+       
+        default:
+            break;
+        }
+    }
+</codeblock>
+<p>where <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-6DB0AB66-DC74-33EB-9DA4-8DB6383728F9"><apiname>CEikAppUi::Exit()</apiname></xref> closes the application. <xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita"><apiname>CEikAppUi</apiname></xref> also
+provides <codeph>SaveAnyChangesL()</codeph> and <parmname>SaveL()</parmname> methods
+in case you need to save the application document.</p>
+<note>
+<p>In Symbian view architecture applications, the <parmname>EEikCmdExit</parmname> command
+must be only handled once: either in the UI controller or in a view. Since
+the exit command is an application wide command, it is recommended that it
+be handled in the UI controller implementation.</p>
+</note>
+<p><xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-6DB0AB66-DC74-33EB-9DA4-8DB6383728F9"><apiname>CEikAppUi::Exit()</apiname></xref> exits the application. If the application
+is embedded, control returns to the parent, which should also exit. The application
+framework sends an <parmname>EEikCmdExit</parmname> command ID to each application
+in this chain to support this behavior.</p>
+<note>
+<p><xref href="GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E.dita#GUID-1185F595-0488-3E93-8D60-6B3A1A3AC32E/GUID-6DB0AB66-DC74-33EB-9DA4-8DB6383728F9"><apiname>CEikAppUi::Exit()</apiname></xref> is guaranteed not to return. This
+means that you should not trap this method. Among other things, do not call
+another method when you handle the command ID that triggers an exit.</p>
+</note>
+</conbody></concept>

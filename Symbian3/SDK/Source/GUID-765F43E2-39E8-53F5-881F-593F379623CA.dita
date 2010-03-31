@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-765F43E2-39E8-53F5-881F-593F379623CA"><title>Sending and Receiving Non-RTP Data</title><shortdesc>This topic explains how to send and receive non-RTP data packets on the RTP and RTCP sockets. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p>Exchanging non-RTP data on an RTP socket is one of the techniques you can use to implement NAT traversal (maintaining client-to-client network connections through Network Address Translation gateways). </p> <section id="GUID-E3E87467-E070-5F62-8191-9C08BFAC1535"><title>Sending non-RTP data</title> <p>The <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>RRtpSession::SendDataL()</apiname></xref> method does not attach the RTP or RTCP header to the data. </p> <codeblock id="GUID-4EDA7A55-189D-52DF-97B0-C4E570CF6C64" xml:space="preserve">// initialise the data 
+const TInt KNonRtpBufferMaxLength = 100;
+TBuf8&lt;KNonRtpBufferMaxLength&gt; nonRtpData;
+nonRtpData.SetLength(KNonRtpBufferMaxLength);
+nonRtpData.Fill('Z');
+  
+TRequestStatus stat;
+iServer-&gt;rtpSession.SendDataL(ETrue,nonRtpData, stat);
+  
+User::WaitForRequest(stat);</codeblock> </section> <section id="GUID-22EED8DD-6D32-5F9E-89EC-667299FF87EC"><title>Receiving non-RTP data</title> <p>By default, when receiving data identified as non-RTP, the RTP stack discards it. </p> <p>To receive non-RTP data, you need to register for the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>ENonRtpDataReceived</apiname></xref> and <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>ENonRtcpDataReceived</apiname></xref> events. When you register for one of these events, the RTP stack no longer discards the non-RTP data but does not process the data either. To retrieve the data, call the following functions: </p> <ul><li id="GUID-3F0B007A-385A-5A73-9DD6-41361C187917"><p> <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>NonRtpDataL()</apiname></xref> provides the non-RTP data received by the RTP socket. </p> <codeblock id="GUID-571BA121-3E7B-50D3-BC9A-ACB5B58B0896" xml:space="preserve">
+const TDesC8&amp; des = iServer-&gt;rtpSession.NonRtpDataL();
+</codeblock> </li> <li id="GUID-A3D57B5B-E06E-5906-9A55-C339CA15AE2D"><p> <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>NonRtcpDataL()</apiname></xref> provides the non-RTP data received by the RTCP socket. </p> <codeblock id="GUID-7AABC7D1-D6B4-5C8E-A2C8-FFE72F53ED5C" xml:space="preserve">
+const TDesC8&amp; des = iServer-&gt;rtpSession.NonRtcpDataL();
+</codeblock> </li> </ul> <p>To stop receiving non-RTP data, call the <xref href="GUID-97FC8566-E4AD-3881-8669-134798A88779.dita"><apiname>DisableNonRtpData()</apiname></xref> method. The RTP stack cancels your registration to the non-RTP data events and discards the non-RTP packets. </p> </section> </conbody><related-links><link href="GUID-993629CB-17B4-5E87-8DE1-06A4AC473FDD.dita"><linktext>RTP Overview</linktext> </link> <link href="GUID-5287A403-1094-5682-A443-A6C2A04A1F23.dita"><linktext>Creating and Managing an RTP session</linktext> </link> </related-links></concept>

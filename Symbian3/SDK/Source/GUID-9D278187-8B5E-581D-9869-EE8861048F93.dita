@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9D278187-8B5E-581D-9869-EE8861048F93" xml:lang="en"><title>Dynamic
+Link Libraries</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-5B4A95B4-FE2E-4541-B185-1B4590DE5974"><title>Introduction</title> <p>A
+Dynamic Link Library (DLL) contains an executable code that can be shared
+by many processes in a system at any one time. A program can link against
+a DLL at compile time, meaning that the linker will match the DLL's symbols
+(such as function names and variables) with references from the program and
+ascertain the address within the DLL of the functions or variables. </p> <p>Alternatively
+a program can dynamically load a DLL into memory during execution, locate
+the address of a symbol, use it and then unload the DLL. Traditionally and
+for greater memory efficiency, the Symbian platform links by
+ordinal, whereas Unix-like operating systems link by name. The following sections
+provide example code to illustrate how the DLL loader works with each operating
+system. </p><p>The Symbian platform v9.3 kernel supports all functionalities
+of P.I.P.S. libraries - referred to as "P.I.P.S.- ready". Pre v9.3 the kernel
+only supports the Symbian platform- standard ordinal lookup in DLLs; it does
+not support symbolic lookup. Thus the function <codeph>dlsym()</codeph> cannot
+be used with a symbolic name. To overcome this restriction, pass the function's
+ordinal number as symbol parameter refer the library's list of exports (the
+DEF file) for the function's ordinal number. For example, instead of: <codeph>dlsym(&amp;handle,
+"foo")</codeph> use <codeph>dlsym (&amp;handle, "3")</codeph> where the function <codeph>foo()</codeph> has
+ordinal 3.</p> </section>
+<section id="GUID-CCE3F3DC-307A-41F2-BAB4-523834C12E93"><title>Using shared
+libraries in a Unix-like environment</title><p>The following code shows how
+a shared library is dynamically loaded and used in a Unix-like environment
+using the <codeph>dl</codeph> interface.</p><codeblock xml:space="preserve">int main(int argc, char *argv[])
+{
+  //Handle
+  void* dll_handle;
+
+  //Function prototype
+  void (*printSum)(int a, int b);
+
+  //Error message
+  const char* errorMsg;
+ 
+  //Filename of dll to load 
+  char dllFileName[] = "/root/PortDoc/Example6/dll/shareddll";
+
+  //Load the dll
+  dll_handle = dlopen(dllFileName, RTLD_LAZY);
+  if (!dll_handle)
+  {
+     fprintf(stderr, "Error during load of library: %s\n", dlerror()); 
+     return EXIT_FAILURE;
+  }
+
+  //Find the symbol
+  printSum = dlsym(dll_handle, "printSum");   
+
+  //Get the error message 
+  errorMsg = dlerror();
+  if (errorMsg)
+  {
+     fprintf(stderr, "Error during symbol lookup: %s\n", errorMsg);
+     return EXIT_FAILURE;
+  } 
+
+  //Now call the function
+  printSum(4, 6);
+
+  //Dispose of the DLL
+  dlclose(dll_handle);
+
+  return EXIT_SUCCESS;
+}
+</codeblock><p>As an example, the <codeph>shareddll</codeph> might have a
+function such as:</p><codeblock xml:space="preserve">void printSum(int a, int b)
+    {
+    printf("Result is : %d\n", a + b);
+    }</codeblock></section>
+<section id="GUID-7C649A95-3F73-454B-AAD4-80889D6B34E3"><title>DLLs on the
+Symbian platform(prior to v9.3)</title><p>Symbian platform programs uses the
+function or variable's ordinal position within a DLL to link with DLLs. For
+example, implementing a shared DLL on the Symbian platform could look like
+this:</p><codeblock xml:space="preserve">EXPORT_C void printSum(int a, int b)
+    {
+    printf("Result is : %d\n", a + b);
+    }</codeblock><p>Compiling this will generate a <filepath>.def</filepath> file,
+which contains the ordinals of each symbol in the DLL. For instance:</p><codeblock xml:space="preserve">EXPORTS
+    printSum @ 1 NONAME</codeblock><p>Here, the <filepath>.def</filepath> shows
+that the ordinal for the <codeph>printSum()</codeph> function is 1. </p><p>The
+following code shows how the <codeph>main()</codeph> function is changed in
+P.I.P.S.. </p><codeblock xml:space="preserve">int main(int argc, char *argv[])
+{
+  //Handle
+  void* dll_handle;
+
+  //Function prototype
+  void (*printSum)(int a, int b);
+
+  //Error message
+  const char* errorMsg;
+ 
+  //Filename of dll to load 
+  char dllFileName[] = "/root/PortDoc/Example6/dll/shareddll";
+
+  //Load the dll
+  dll_handle = dlopen(dllFileName, RTLD_LAZY);
+  if (!dll_handle)
+  {
+     fprintf(stderr, "Error during load of library: %s\n", dlerror()); 
+     return EXIT_FAILURE;
+  }
+
+  //Find the symbol, using the ordinal
+  printSum = dlsym(dll_handle, "1");   
+
+  //Get the error message 
+  errorMsg = dlerror();
+  if (errorMsg)
+  {
+     fprintf(stderr, "Error during symbol lookup: %s\n", errorMsg);
+     return EXIT_FAILURE;
+  } 
+
+  //Now call the function
+  printSum(4, 6);
+
+  //Dispose of the DLL
+  dlclose(dll_handle);
+
+  return EXIT_SUCCESS;
+}
+</codeblock><p>Note that for the Symbian library loader, the mode parameter
+for the <xref href="GUID-51FB35C0-CFC2-357A-8ACA-FE7480C53AD3.dita"><apiname>dlopen()</apiname></xref> function is irrelevant and the library
+will be loaded immediately. So although <codeph>RTLD_LAZY</codeph> is the
+mode parameter in the example, it will behave just as <codeph>RTLD_NOW</codeph>.
+Also note that there is no facility to call any library constructor and destructor
+functions using <codeph>__attribute((constructor))</codeph> or <codeph>__attribute((destructor))</codeph>. </p></section>
+<section id="GUID-DEF804DF-CECC-4739-9ACD-24F46A945F6E"><title>DLLs on the
+Symbian platform (v9.3 onwards)</title><p>P.I.P.S. provides APIs from libdl
+to support dynamic lookup by name, which is used in Unix-like platforms, instead
+of the native Symbian platform lookup by ordinal mechanism. Lookup by name
+is possible thanks to the new libdl, which in turn uses the existing <ph>RLibrary</ph> functions
+to load and unload DLLs. </p><p>A symbol name lookup version of the dlsym()
+function is provided, similar to UNIX®, which does not need any special treatment
+(the example shown in the <b>Using Shared libraries in a Unix-like environment</b> section
+will suffice). However, it is still necessary to generate the <filepath>.def</filepath> file
+for the DLL. The following sections provides a brief summary of the functionality
+provided by <codeph>libdl</codeph>. </p><p>The <codeph>libdl</codeph> APIs,
+which support dynamic lookup by name, are described in the following table:</p><table id="GUID-71331BB8-6E91-4239-9183-F4B51A383F06">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><b>libdl API</b></p></entry>
+<entry><p><b>Description</b></p></entry>
+</row>
+<row>
+<entry><codeph>void *dlopen (const char *path, int mode) </codeph></entry>
+<entry><p>Call <xref href="GUID-51FB35C0-CFC2-357A-8ACA-FE7480C53AD3.dita"><apiname>dlopen()</apiname></xref> to gain access to symbols of any
+shared library or DLL. If <xref href="GUID-51FB35C0-CFC2-357A-8ACA-FE7480C53AD3.dita"><apiname>dlopen()</apiname></xref> fails for any reason,
+it will return a NULL. The default search path for the library can be provided
+in the environment variable <codeph>LD_LIBRARY_PATH</codeph>. </p></entry>
+</row>
+<row>
+<entry><codeph>void *dlsym(void *handle, const char *symbol)</codeph></entry>
+<entry><p>The <xref href="GUID-6B94A42A-888B-3761-84DA-4FADC6D3B126.dita"><apiname>dlsym()</apiname></xref> function returns the address binding
+of the symbol described in the null-terminated character string 'symbol',
+as it occurs in the shared object identified by 'handle'. </p></entry>
+</row>
+<row>
+<entry><codeph>int dlclose(void *handle)</codeph></entry>
+<entry><p>Call <xref href="GUID-F74DC7CB-1E3F-368E-99A7-DD4B38FF7EF0.dita"><apiname>dlclose()</apiname></xref> with a valid dlopen-ed handle
+to remove it from the cache list maintained by <xref href="GUID-51FB35C0-CFC2-357A-8ACA-FE7480C53AD3.dita"><apiname>dlopen()</apiname></xref>.
+If it fails, dlclose() will return -1; otherwise, it will return 0. </p></entry>
+</row>
+<row>
+<entry><codeph>char *dlerror(void)</codeph></entry>
+<entry><p>Call <xref href="GUID-F5B2CFAB-99F5-3A24-8F6C-ECAA61922FB0.dita"><apiname>dlerror()</apiname></xref> to obtain the most recent error
+that occurred due to any of the dl routines, that is, <xref href="GUID-51FB35C0-CFC2-357A-8ACA-FE7480C53AD3.dita"><apiname>dlopen()</apiname></xref>, <xref href="GUID-6B94A42A-888B-3761-84DA-4FADC6D3B126.dita"><apiname>dlsym()</apiname></xref>,
+or <xref href="GUID-F74DC7CB-1E3F-368E-99A7-DD4B38FF7EF0.dita"><apiname>dlclose()</apiname></xref>. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p/></section>
+</conbody><related-links>
+<link href="GUID-6590B534-D976-5305-BE95-48DD05120DFB.dita#GUID-6590B534-D976-5305-BE95-48DD05120DFB/GUID-3CA8FF29-79B4-5D43-8A23-EDB136BF7A8F">
+<linktext>One Definition Rule - warning</linktext></link>
+</related-links></concept>

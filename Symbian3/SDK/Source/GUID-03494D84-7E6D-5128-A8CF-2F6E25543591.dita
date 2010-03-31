@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-03494D84-7E6D-5128-A8CF-2F6E25543591" xml:lang="en"><title>Power
+States API Tutorial </title><shortdesc>This tutorial describes how to use the Power State API of HWRM.
+The client applications subscribes to one or more of the three keys published
+by this API. It is notified via the publish and subscribe framework
+whenever the key is updated. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-1E4A8512-08CA-57D7-A4DC-9809C54BB07E"><title>Introduction</title> <p>A
+key represents one of the parameters of the battery such as charging state,
+battery level and battery state, hence there are three keys published by the
+Power State API. The client applications can subscribe to any or all three
+keys published, depending on the type of information the client requires.
+Each key is updated by the HWRM server whenever there has been a change in
+the hardware state of the battery level, battery state or charging state. </p> <p>Refer
+to <xref href="GUID-16A42EB3-4F45-5623-9981-1DEE3234471E.dita">Power States API</xref> section
+to get more information about the keys published by the Power States API. </p> </section>
+<example id="GUID-8FC57C06-8147-54E9-9FE6-3EBD08632D69"><title>Procedure</title> <p>The
+following steps explains a simple example of how an active object may be created
+to subscribe to the battery level Publish and Subscribe key: </p> <ol id="GUID-00B23E06-ECDD-5893-9DC3-B5F508C48D32">
+<li id="GUID-AFAC3B2F-D079-52CD-9823-1B599C15D300"><p>Create an instance of <codeph>CBattLevelWatch</codeph> using <codeph>NewL()</codeph>. </p> </li>
+<li id="GUID-C3BDBE99-52B2-569A-B3F3-614E68468E3D"><p> <codeph>NewL()</codeph> calls <codeph>ConstructL()</codeph> and
+completes the 2-phase construction. </p> </li>
+<li id="GUID-9FBDAE7D-DF0C-539F-9531-171CB9F5CB05"><p> <codeph> RunL()</codeph> is
+called, which subscribes to battery level status. </p> </li>
+</ol> <p>Once the battery level is obtained asynchronously, you can switch
+to the appropriate battery level. </p> </example>
+<section><title>Example</title> <p>Header file: </p> <codeblock id="GUID-31A57213-9337-567A-B1A8-2E77C01CDA4A" xml:space="preserve">// Active object that tracks changes to the ‘BatteryLevel’ property
+class CBattLevelWatch : public CActive
+    {
+    enum {EPriority=0};
+    public:
+        static CBattLevelWatch* NewL();
+    private:
+        CBattLevelWatch();
+        void ConstructL();
+        ~CBattLevelWatch();
+        void RunL();
+        void DoCancel(); 
+    private:
+        RProperty iProperty;
+    };</codeblock> <p>Source file: </p> <codeblock id="GUID-8A464018-4CFE-5722-A56D-A42012B48A37" xml:space="preserve">
+CBattLevelWatch* CBattLevelWatch::NewL()
+    {
+    CBattLevelWatch* me=new( ELeave ) CBattLevelWatch;
+    CleanupStack::PushL( me );
+    me-&gt;ConstructL();
+    CleanupStack::Pop( me );
+    return me;
+    }
+
+CBattLevelWatch::CBattLevelWatch()
+    :CActive( EPriority )
+    {}
+
+void CBattLevelWatch::ConstructL()
+    {
+    User::LeaveIfError( iProperty.Attach( KPSUidHWRMPowerState,KHWRMBatteryLevel ) );
+    CActiveScheduler::Add( this );
+    // initial subscription and process current property value
+    RunL();
+    }
+
+CBattLevelWatch::~CBattLevelWatch()
+    {
+    Cancel();
+    iProperty.Close();
+    }
+
+void CBattLevelWatch::DoCancel()
+    {
+    iProperty.Cancel();
+    }
+
+void CBattLevelWatch::RunL()
+    {
+    // resubscribe before processing new value to prevent missing updates
+    iProperty.Subscribe( iStatus );
+    SetActive();
+
+    // property updated, get new value
+    TInt batteryLevel;
+    if( iProperty.Get( batteryLevel )==KErrNotFound )
+        {
+        // property deleted, do necessary actions here...
+        . . .
+        }
+    else
+        {
+        // use new value battery level...
+        switch( batteryLevel )
+            {
+            case EBatteryLevelUnknown:
+                {
+                // Handle uninitialized or some other error value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel0:
+                {
+                // Handle Lowest battery level value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel1:
+                {
+                // Handle battery level 1 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel2:
+                {
+                // Handle battery level 2 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel3:
+                {
+                // Handle battery level 3 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel4:
+                {
+                // Handle battery level 4 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel5:
+                {
+                // Handle battery level 5 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel6:
+                {
+                // Handle battery level 6 value
+                . . .
+                break;
+                }
+            case EBatteryLevelLevel7:
+                {
+                // Handle Highest battery level value
+                . . .
+                break;
+                }
+            default:
+                {
+                // Handle UNKNOWN BATTERY LEVEL!
+                break;
+                }
+            }
+        }
+    }
+</codeblock> </section>
+</conbody><related-links>
+<link href="GUID-FE910347-7CC1-5241-B443-88AD3F5A96EF.dita"><linktext>Publish and
+Subscribe documentation</linktext></link>
+</related-links></concept>

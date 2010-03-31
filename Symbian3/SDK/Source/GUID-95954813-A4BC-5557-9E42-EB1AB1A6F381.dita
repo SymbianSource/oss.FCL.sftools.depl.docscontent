@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-95954813-A4BC-5557-9E42-EB1AB1A6F381" xml:lang="en"><title>Unicode
+support</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This section describes the Unicode support to the STDLIB. </p>
+<p>The Unicode changes for STDLIB are categorised into groups: </p>
+<ul>
+<li id="GUID-BDAD96FD-2EF9-5284-A5FA-2D867003B600"><p>Impact on the existing
+"<codeph>char*</codeph> " interfaces. </p> </li>
+<li id="GUID-F7CCA015-3B25-553C-B0CD-834AEDACF340"><p>Addition of new "<codeph>wchar_t*</codeph> "
+functions which use Unicode directly. </p> </li>
+</ul>
+<section id="GUID-264BD479-58DF-44CF-8509-D2394800BFD7"><title>Impact on existing interfaces</title> <p>The Symbian platform
+is a Unicode-based operating system. Hence, all operating system services
+which use <i>text</i> require that text to be presented in the 16-bit Unicode
+character encoding known as UCS-2. For STDLIB on the Symbian
+platform, this is most significant in dealing with the names of files and
+directories, all of which are now Unicode sequences. </p> <p>To minimise the
+impact of this change on existing <i>narrow</i> C code, the STDLIB has adopted
+the policy that all such names in <i>char*</i> interfaces will be interpreted
+using the UTF-8 standard for encoding Unicode strings as 8-byte sequences.
+UTF-8 is a <i>no surprises</i> encoding and matches the 7-bit ASCII encoding
+for character codes 0 to 127. Hence, the existing string handling code will
+work without modification. </p> </section>
+<section id="GUID-C8BD70E8-A7F5-44F2-BF0E-843684FC8CE4"><title>New interfaces</title> <p>The <codeph>wchar_t</codeph> type
+is defined and ISO-C standard wide character constants are supported. The <codeph>wchar_t</codeph> definition
+chosen is unsigned short to match the use of UCS-2, and a range of relevant
+functions now have wide character analogues which use <codeph>wchar_t*</codeph> in
+place of <codeph>char*</codeph>, for example: </p> <codeblock id="GUID-6AEF4AFD-D78C-54B2-9CB5-D4A8A56ECB45" xml:space="preserve">FILE *    fopen( const char *_name, const char *_type );</codeblock> <codeblock id="GUID-025E581B-1D28-5AA6-9999-7A1C89280487" xml:space="preserve">FILE *    wfopen( const wchar_t *_name, const wchar_t *_type );</codeblock> <p>and </p> <codeblock id="GUID-CEECB833-4C5F-5708-BF3A-C68975A3C58F" xml:space="preserve">DIR * opendir( const char * );</codeblock> <codeblock id="GUID-4491BF3F-A755-5ED9-B633-3D6960C3D501" xml:space="preserve">WDIR *    wopendir( const wchar_t * );</codeblock> <p>When
+such a pair of functions exist, the <codeph>char*</codeph> interface is implemented
+by converting the UTF-8 parameters to Unicode and calling the matching <codeph>wchar_t*</codeph> interface. </p> <p>The <codeph>mbtowc</codeph> family
+of conversion functions is provided to convert between UTF8 and Unicode, but
+there is no additional support for locales or other forms of multibyte encoding;
+to convert from encodings such as Shift-JIS, programmers are recommended to
+use the CHARCONV conversion routines via C++ wrapper functions callable from
+C. </p> <p>There are no implementations of <codeph>wchar_t*</codeph> versions
+of STDIO functions such as <codeph>fputc</codeph>. </p> </section>
+</conbody></concept>

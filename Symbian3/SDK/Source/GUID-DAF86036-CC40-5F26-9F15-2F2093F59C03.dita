@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03" xml:lang="en"><title>Security
+issues</title><shortdesc>This topic explains the security issues while performing a publish
+and subscribe.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<ul>
+<li id="GUID-4BF55D37-742E-527F-9148-57C12164DA1C"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-D2D0BDDF-28A4-5168-B1C5-685E1964C730">Who can define a property?</xref> </p> </li>
+<li id="GUID-A06C7B43-30B8-5606-B22C-EBB18DBA7554"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-839C5063-3BA1-52E6-BFFE-CF3E18E605EC">Read and write access rights</xref> </p> </li>
+<li id="GUID-EC225F1D-0B9D-537F-BFC7-10EFBD6B44AE"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-65107093-7C73-5117-88F7-CFB585455CE3">Deletion rights</xref> </p> </li>
+</ul>
+<section id="GUID-D2D0BDDF-28A4-5168-B1C5-685E1964C730"><title>Who can define
+a property?</title> <p>One of the most important attributes of a property
+is the category to which it belongs. A category is represented by a UID value. </p> <p>The
+general rule is that the (category) UID must be the same as the Security ID
+(the SID) of the process in which the code that is performing the define operation
+is running. In effect, this forms a data cage, preventing a process from defining,
+or "occupying", another process's property. </p> <p>You define a property
+using the overload of <codeph>RProperty::Define()</codeph> with the signature: </p> <codeblock id="GUID-B33CDB93-7EB1-5276-B260-AEAB28227FA7" xml:space="preserve">static TInt Define(TUint aKey, TInt aAttr, const TSecurityPolicy&amp; aReadPolicy, const TSecurityPolicy&amp; aWritePolicy, TInt aPreallocate);</codeblock> <p>This function was introduced in V9.1 of Symbian platform, and it does <i>not</i> allow
+you to explicitly specify the category. Indeed, Symbian platform takes the
+category to be the value of the process SID. </p> <ul>
+<li id="GUID-B4257761-359B-5027-93A0-9122EA0D5F21"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-3EBCF236-E88A-5A50-A94E-37FABCD89633">The situation before Version 9.1</xref> </p> </li>
+<li id="GUID-56A0BBD6-F844-5C5B-8789-A3DF806E7D26"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-05EB14D2-6BA2-5199-A97A-9368AA581922">Migration issues</xref> </p> </li>
+<li id="GUID-DF9B3F9D-C0A2-536D-BBAA-86FE218A4F21"><p> <xref href="GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03.dita#GUID-DAF86036-CC40-5F26-9F15-2F2093F59C03/GUID-D4FAE1D0-4610-5AAD-802B-62535C6C11BB">Notes</xref> </p> </li>
+</ul> <p id="GUID-3EBCF236-E88A-5A50-A94E-37FABCD89633"><b>The situation before Version
+9.1</b> </p> <p>Before version 9.1 of Symbian platform, you had to explicitly
+define a category using the overload of <codeph>RProperty::Define()</codeph> with
+the signature: </p> <codeblock id="GUID-0D193896-AB7B-5787-A92C-2CB214C16496" xml:space="preserve">static TInt RProperty::Define(TUid aCategory, TUint aKey, TInt aAttr, const TSecurityPolicy&amp; aReadPolicy, const TSecurityPolicy&amp; aWritePolicy, TInt aPreallocate)</codeblock> <p>This function was introduced in V9.0 of Symbian platform. </p> <p>It
+was also possible to specify a category, known as the system category, which
+was reserved for system services. This category was identified by the <xref href="GUID-A85740BD-BC85-345E-B24A-92F68EA56270.dita"><apiname>KUidSystemCategoryValue</apiname></xref> UID;
+a process required the <i>WriteDeviceData</i> capability, (<xref href="GUID-C607209F-6FC5-31DE-8034-E5B799B857A8.dita"><apiname>ECapabilityWriteDeviceData</apiname></xref>),
+to use it. </p> <p>This overload is still available, but from V9.1 there are
+restrictions that govern its use, and it is recommended that, if possible,
+users of Property &amp; Subscribe services should migrate to using the version
+of <codeph>RProperty::Define()</codeph> that does not require the category
+to be specified. </p> <p id="GUID-05EB14D2-6BA2-5199-A97A-9368AA581922"><b>Migration issues</b> </p> <p>Processes
+that use the 9.0 version of <codeph>RProperty::Define()</codeph> must now
+have the <i>WriteDeviceData</i> capability to define a property with an explicitly
+specified category (including the system category), <i>provided that the SID
+of the process is less than the value</i> <xref href="GUID-4A67D011-CBB6-396F-8104-7B3BECB84460.dita"><apiname>KUidSecurityThresholdCategoryValue</apiname></xref>. </p> <p>A
+process that has a SID value <i>greater</i> than <xref href="GUID-4A67D011-CBB6-396F-8104-7B3BECB84460.dita"><apiname>KUidSecurityThresholdCategoryValue</apiname></xref>  <i>cannot
+explicitly specify a category</i>. This is an absolute rule that cannot be
+overridden regardless of the capabilities assigned to that process. </p> <p>The
+logic here is that all new <filepath>.exe</filepath> s require a SID to be
+assigned, and that this value will be greater than <xref href="GUID-4A67D011-CBB6-396F-8104-7B3BECB84460.dita"><apiname>KUidSecurityThresholdCategoryValue</apiname></xref>.
+This means that an associated process is forced to define properties with
+category values that are the same as the process SID. Older <filepath>.exe</filepath> s
+are expected to have SID values that are less than <xref href="GUID-4A67D011-CBB6-396F-8104-7B3BECB84460.dita"><apiname>KUidSecurityThresholdCategoryValue</apiname></xref>,
+and means that an associated process can continue to explicitly specify a
+category, using the 9.0 version of <codeph>Define()</codeph>, but must have
+the <i>WriteDeviceData</i> capability. </p> <p>Ideally, all older <filepath>.exe</filepath> s
+should be migrated to use the 9.1 version of <codeph>Define()</codeph>. </p> <p>The
+following diagram shows the "category space". </p> <fig id="GUID-ADCDE30C-7D9C-588D-9058-E5491AB626F3">
+<image href="GUID-442D216B-117E-538C-A51F-0775BF37673E_d0e248057_href.png" placement="inline"/>
+</fig> <p>The <xref href="GUID-4A67D011-CBB6-396F-8104-7B3BECB84460.dita"><apiname>KUidSecurityThresholdCategoryValue</apiname></xref> value
+effectively forms a <i>threshold</i> value. Processes with a SID value below
+this threshold can define a category that is different from their SID, provided
+they have the <i>WriteDeviceData</i> capability. Processes with a SID value
+above this threshold value can only define a category that is the same as
+the SID - regardless of capability. </p> <p id="GUID-D4FAE1D0-4610-5AAD-802B-62535C6C11BB"><b>Notes</b> </p> <p>When we
+refer to the SID of the process, we also mean the SID value assigned to the
+associated <filepath>.exe</filepath> installed on the device. By older or
+younger processes, we are referring to the age of the associated executables. </p> </section>
+<section id="GUID-839C5063-3BA1-52E6-BFFE-CF3E18E605EC"><title>Read and write
+access rights</title> <p>Access rights to a property are set when the property
+is defined. </p> <p>The process defining the property can specify the rights
+of access to that property. In particular, it can specify a security policy
+to control read access (i.e. retrieval of the property) and a separate security
+policy to control write access (i.e. publication of the property). </p> <p>Access
+to a property is governed by a pair of security policies, instances of <xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> objects.
+These define the combination of capabilities and/or vendor Id and/or Secure
+Id that a process must possess before being allowed to write to, or read from,
+a property. Any attempt to access a property by a thread whose owning process
+does not have sufficient capability, will fail with <codeph>KErrPermissionDenied</codeph>. </p> <p>The
+security policies are passed to the <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-58C54D2A-91E0-359B-AA31-69C6C4050173"><apiname>RProperty::Define()</apiname></xref> function
+when the property is defined. </p> </section>
+<section id="GUID-65107093-7C73-5117-88F7-CFB585455CE3"><title>Deletion rights</title> <p>Only
+the owning process, i.e. the process that defined the property, is allowed
+to delete that property. </p> </section>
+</conbody></concept>

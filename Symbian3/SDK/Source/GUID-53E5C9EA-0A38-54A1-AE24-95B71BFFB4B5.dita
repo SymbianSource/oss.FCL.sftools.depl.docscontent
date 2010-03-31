@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-53E5C9EA-0A38-54A1-AE24-95B71BFFB4B5" xml:lang="en"><title>CenRep
+Converter Tool Tutorial</title><shortdesc>This topic describes the Central Repository Converter (<codeph>CenRepConv</codeph>)
+tool. The CenRepConv tool is used to convert text files into binary files. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-D103CC8D-6871-46D1-B41E-85F5632324DC"><title>Overview</title> <p>The <codeph>CenRepConv</codeph> is an
+emulator based tool. The <codeph>CenRepConv</codeph> tool can be used to convert
+binary files to text files for debugging. The central repository initialisation
+files are used to register the repositories with central repository. The initialisation
+files can be either in text or binary format, although binary format is recommended
+for better efficiency. For example, the loading time of a repository with
+2000 settings on a H2 development board is 41ms for binary files and 485ms
+for text files. </p> <p>The tool uses the file extension to identify the fomats. <codeph>TXT</codeph> is
+used for the text file extension and <codeph>CRE</codeph> is used as the binary
+file extension </p> </section>
+<section id="GUID-89B11338-F42A-4704-9795-84A706DE12BB"><title>Command line syntax</title> <p>The syntax for text to binary
+conversion is: </p> <codeblock id="GUID-B6AF4E5C-A007-5E23-A30E-8F006461A6C1" xml:space="preserve">CentRepConv  [-nowait]  [-o output_path]  [input_path\]&lt;repository_uid&gt;.txt</codeblock> <p>where, </p> <ul>
+<li id="GUID-3434EDE7-D5F9-5A0A-B67F-A37918304247"><p> <codeph> repository_uid</codeph> is
+the UID of repository in hexadecimal format, for example 00000001 </p> </li>
+<li id="GUID-DE6793EF-7069-55AD-AEF2-5EFED65BD209"><p> <codeph>output_path</codeph> –
+Optional, default is <codeph>C:\</codeph>. Note that if the user specifies
+the output filename, then the extension must be .cre and the filename must
+match the &lt;repository_uid&gt; of the input file. </p> </li>
+<li id="GUID-AA6CB0CD-8931-588F-B27A-E7EC60576B5D"><p> <codeph> -nowait</codeph> option
+should be used when CentRepConv is invoked as part of an automated process
+such as from a build script. It instructs CentRepConv not to wait for user
+acknowledgement. Without this option the tool will wait for up to 30 seconds
+for acknowledgement </p> </li>
+</ul> <p>The syntax for bianary to text conversion is: </p> <codeblock id="GUID-F814EA9C-3063-5715-98F1-550E512BE023" xml:space="preserve">CentRepConv  [-nowait]  [-o output_path]  [input_path\]&lt;repository_uid&gt;.cre</codeblock> <p>where, </p> <ul>
+<li id="GUID-2EEC6C18-2CC6-530A-9B3F-6F86769D7E64"><p> <codeph> repository_uid</codeph> is
+the UID of repository in hexadecimal format, for example 00000001 </p> </li>
+<li id="GUID-A8A8D7A7-64B3-5D06-A514-216CB0F7CA7D"><p> <codeph> input_path</codeph> is
+optional, default is <codeph>C:\</codeph>. Note that location of path must
+be a Symbian path, not a path of the PC’s native OS. </p> </li>
+<li id="GUID-6F952102-D662-56AD-AF06-72FE7188DADF"><p> <codeph> output_path</codeph> is
+optional, default is <codeph>C:\</codeph>. Note that if the user specifies
+the output filename, then the extension must be .txt and the filename must
+match the &lt;repository_uid&gt; of the input file. </p> </li>
+</ul> </section>
+<section id="GUID-E26646C2-2194-403C-ADAB-A8DBA5C3E88D"><title>Integrating CenRepConv tool</title> <p>This section describes
+how to automate text to binary conversion whislt building the ROM. The group
+folder must contain bld.inf file, extension makefile, script to invoke the
+cenRepConv tool and the initialisation text file. </p> <ol id="GUID-31B7B304-6B48-5DAA-A72B-62260048CA3F">
+<li id="GUID-D4D0CB8F-0FCE-52A8-87A6-435B9E44876C"><p>The bld.inf file must
+contain: </p> <codeblock id="GUID-4DA91F35-AEE2-5D48-9E71-31A9FE613C66" xml:space="preserve">PRJ_PLATFORMS
+DEFAULT
+
+PRJ_MMPFILES
+gnumakefile CreateBinaryRep.mk
+</codeblock> </li>
+<li id="GUID-FF85D695-8733-58D7-BACC-BCB185045392"><p>The extension makefile
+is configured as: </p> <codeblock id="GUID-C2BF6EC5-C293-5BF9-A5BF-4C4DB15B03CC" xml:space="preserve">do_nothing :
+    rem do_nothing
+
+MAKMAKE : do_nothing
+
+RESOURCE : do_nothing
+
+SAVESPACE : BLD
+
+BLD : do_nothing
+
+FREEZE : do_nothing
+
+LIB : do_nothing
+
+CLEANLIB : do_nothing
+
+FINAL : 
+    CreateBinaryRep.cmd build
+
+CLEAN : 
+    CreateBinaryRep.cmd clean
+
+RELEASABLES :
+    CreateBinaryRep.cmd releasables
+</codeblock> </li>
+<li id="GUID-1429DD28-07C3-5501-A644-B23ABEBD32E0"><p>The script file is used
+to move the text files to the emulators folder, invoke the CenRepConv tool
+and copy the binary folders into the central repository private folder. </p> <codeblock id="GUID-EEB8A24A-0357-5FE2-8FF8-E4583E3A9E4F" xml:space="preserve">@ECHO OFF
+SET RETURNCODE=0
+
+IF /I "%1"=="build" goto BUILD
+
+IF /I "%1"=="clean" goto CLEAN
+
+IF /I "%1"=="releasables" goto WHAT
+
+echo error: unknown option %1 &gt;&amp;2
+SET RETURNCODE=1
+goto END
+
+:WHAT
+echo %EPOCROOT%epoc32\release\winscw\udeb\Z\private\10202BE9\1027431B.cre
+goto END
+
+:CLEAN
+ERASE %EPOCROOT%epoc32\release\winscw\udeb\Z\private\10202BE9\1027431B.cre 2&gt;NUL
+goto END
+
+:BUILD
+ERASE %EPOCROOT%epoc32\winscw\c\1027431B.cre 2&gt;NUL
+ERASE %EPOCROOT%epoc32\release\winscw\udeb\z\private\10202BE9\1027431B.cre 2&gt;NUL
+COPY 1027431B.txt %EPOCROOT%epoc32\winscw\c
+CALL %EPOCROOT%epoc32\release\winscw\udeb\CentRepConv -nowait -o C:\1027431B.cre C:\1027431B.txt
+IF exist %EPOCROOT%epoc32\winscw\c\1027431B.cre goto BLDSUCCESS
+SET RETURNCODE=1
+ECHO error: build fail &gt;&amp;2
+goto END
+
+:BLDSUCCESS
+ERASE %EPOCROOT%epoc32\winscw\c\1027431B.txt
+MOVE %EPOCROOT%epoc32\winscw\c\1027431B.cre %EPOCROOT%epoc32\release\winscw\udeb\z\private\10202BE9\1027431B.cre
+goto END
+
+:END
+EXIT /B %RETURNCODE%
+</codeblock> </li>
+</ol> </section>
+<section id="GUID-CD798B16-86D7-48E1-B40F-907B251A33CD"><title>Error codes</title> <p>The following are the error codes that
+may occur during the text to binary conversion and vice versa. </p> <table id="GUID-B1A7F8DE-37AA-519F-8A87-EDB3DF80F99A">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Error condition</entry>
+<entry>Leave Code</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Input file corrupted </p> </entry>
+<entry><p> <xref href="GUID-253F06EA-F14E-3A8E-BA4C-8E787B5F0670.dita"><apiname>KErrCorrupt</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Input file is not a Direct File Store </p> </entry>
+<entry><p> <xref href="GUID-253F06EA-F14E-3A8E-BA4C-8E787B5F0670.dita"><apiname>KErrCorrupt</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>No input file specified </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Bad input file extension (not .txt or .cre) </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Input filename is not a valid UID </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Output filename does not match input filename </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Extension of output filename does not match extension of input filename
+(if one is .txt and the other must be .cre) </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Output directory is in read only drive </p> </entry>
+<entry><p> <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Cannot access input file because it is in private data cage </p> </entry>
+<entry><p> <xref href="GUID-298F3C28-48F5-34EA-8843-C75E2ECF0480.dita"><apiname>KErrAccessDenied</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Cannot write output file because it is in private data cage </p> </entry>
+<entry><p> <xref href="GUID-298F3C28-48F5-34EA-8843-C75E2ECF0480.dita"><apiname>KErrAccessDenied</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p>Input file does not exist </p> </entry>
+<entry><p> <xref href="GUID-298F3C28-48F5-34EA-8843-C75E2ECF0480.dita"><apiname>KErrAccessDenied</apiname></xref>  </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

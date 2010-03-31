@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AF07AD54-86F1-5DB7-80FF-633A559DA4BD" xml:lang="en"><title>Creating
+Processes and Threads </title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-6E0A2832-98BA-54AF-B7A7-28DFFD5FEC76"><title>Introduction</title> <p>Process
+creation on Unix-like machines is normally done in two stages. Firstly, <codeph>fork()</codeph> is
+called. This creates a child process, which is a clone of the calling (parent)
+process. The child process is identical (except for a few details) to the
+parent. Secondly, a call to one of the <codeph>exec()</codeph> family functions
+is invoked by the child which changes the program being executed by that process.
+For more information about <codeph>fork()</codeph> or <codeph>exec()</codeph>,
+see <xref href="http://www.opengroup.org" scope="external">Open Group</xref>. </p> <p>P.I.P.S.
+does not support <codeph>fork()</codeph> and <codeph>exec()</codeph> and the
+reasons for the same are described in the following sections. However, there
+are industry standard alternatives supported by P.I.P.S. and are detailed
+in the following sections: </p> <ul>
+<li><p><xref href="GUID-ADB9AD91-37A2-4FE6-B378-C43CD0A7B513.dita">Alternatives
+to <codeph>fork()</codeph> and <codeph>exec()</codeph> for creating child
+processes</xref></p></li>
+<li><p><xref href="GUID-545DA961-217E-49CA-A90E-7A41E2C03A99.dita">Forking without <codeph>exec()</codeph></xref></p></li>
+<li><p><xref href="GUID-B58D282E-E6EC-4AE1-96DB-30A5FB850563.dita"><codeph>exec()</codeph> without
+forking using <apiname>posix_spawn()</apiname></xref></p></li>
+</ul> <p><b>Omission of fork()</b> </p> <p>A Unix-like kernel is designed
+with the two stage process creation in mind. On the Symbian platform (and
+Microsoft Windows®), the kernel was designed to create a process, which runs
+a single executable, in a single step. </p> <p>P.I.P.S. does not implement
+the <codeph>fork()</codeph> operation because this would require an entirely
+new way of dealing with processes in the kernel and memory model. For example,
+duplicating the address space of an existing process was not something that
+was considered in the Symbian platform kernel's design. Symbian took this
+decision as the effort involved in customising this feature would be more
+than the benefit of providing the <codeph>fork()</codeph> function, especially
+in the provision of Pthreads. For more information about Pthreads, see the <xref href="http://en.wikipedia.org/wiki/POSIX_Threads" scope="external">Pthread
+Wikipage</xref>. </p> <p><b>Omission of exec()</b> </p> <p>On Unix-like systems, <codeph>exec()</codeph> is
+the standard way to load a process image into memory. Only the initialisation
+process is loaded directly into a new address space (special case code in
+the kernel), all other processes are loaded into an existing address space
+which was initially created by forking. </p> <p>On the Symbian
+platform, the only way to load a process image into memory is using the loader.
+It assumes that the image is being loaded as a new process - one that owns
+no resources, has no open handles and so on. The change to the loader and
+any associated kernel changes, to support the <codeph>exec()</codeph> function
+were deemed to be too risky. </p> <p><b>Generic IPC</b> </p> <p>P.I.P.S. supports
+two types of Inter-Process Communication (IPC) between processes or threads: </p> <ul>
+<li><p> <b>Pipes (named and unnamed):</b> Unnamed pipes are created using <xref href="GUID-EC7F85FF-FD4E-324C-8D01-EF6F7E7A79FE.dita"><apiname>pipe()</apiname></xref> and
+named pipes are created using <xref href="GUID-F4749DAA-1B29-3D1D-A3AA-0D52B851E501.dita"><apiname>mkfifo()</apiname></xref>. Pipe-based communication
+is also possible between a parent and a child process when the child is created
+using <xref href="GUID-A9DB6E7C-B8D6-377A-BBE6-39E0A7A09E5D.dita"><apiname>popen()</apiname></xref> or <xref href="GUID-A1E2E172-C4E4-30FB-99CF-E4140E31DF59.dita"><apiname>popen3()</apiname></xref>. </p></li>
+<li><p> <b>Local file sockets:</b> These correspond to sockets created with <codeph>AF_LOCAL/PF_LOCAL/AF_UNIX</codeph> as
+the address family. The semantics of their use are similar to those of their
+Unix equivalents. </p></li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-6590B534-D976-5305-BE95-48DD05120DFB.dita#GUID-6590B534-D976-5305-BE95-48DD05120DFB/GUID-3CA8FF29-79B4-5D43-8A23-EDB136BF7A8F">
+<linktext>One Definition Rule - warning</linktext></link>
+</related-links></concept>

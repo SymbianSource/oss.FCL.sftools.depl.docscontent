@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF" xml:lang="en"><title>Creating
+an URI</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial describes various methods of creating an URI. </p>
+<section><title>Introduction</title> <p>The <codeph>CUri</codeph> class provides
+modifying and non-modifying (parsing and extraction) functionality on URIs.
+This allows a number of operations to be performed on the URI such as extraction
+of parts, modifying, validation and resolving. The two variants of <codeph>CUri</codeph> class
+are <codeph>CUri16</codeph> for 16-bit (Unicode) URIs and <codeph>CUri8</codeph> for
+8-bit (narrow) URIs. </p> </section>
+<section><title>Procedure</title> <p>Use <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita"><apiname>CUri8</apiname></xref> and <xref href="GUID-265F8D6B-4B88-342A-BD7B-5934CC9437DA.dita"><apiname>UriUtils</apiname></xref> classes
+to create an URI in one of the following methods: </p> <ul>
+<li><p><xref href="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF.dita#GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF/GUID-0CE5258E-7954-4246-BF8D-66A9A3791A87">Creating
+an URI from parts</xref></p></li>
+<li><p><xref href="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF.dita#GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF/GUID-E837279E-CF09-4247-96A6-B41EB3CDBF73">Creating
+an URI from a file name</xref></p></li>
+<li><p><xref href="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF.dita#GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF/GUID-11F582F5-0C39-4DFE-A3D0-823D0D3E8A79">Creating
+an URI from relative URIs</xref></p></li>
+<li><p><xref href="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF.dita#GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF/GUID-3AC094A2-6E3A-46C6-8227-079F394233EE">Creating
+an URI from an unicode descriptor</xref></p></li>
+</ul> </section>
+<section id="GUID-0CE5258E-7954-4246-BF8D-66A9A3791A87"><title>Creating an
+URI from parts</title><p>Create an URI by adding each component. This is done
+by calling <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita#GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB/GUID-304702F1-4BE4-37EB-899E-6E338C13CCF4"><apiname>CUri8::SetComponentL()</apiname></xref> repeatedly for each component. <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita"><apiname>CUri8</apiname></xref> supports
+modification of URI components. It also provides reference to a <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita"><apiname>TUriC8</apiname></xref> object
+to use the non-modifying functionality that is provided by <xref href="GUID-A81CD022-5AD4-3BD8-B006-B3891C4F4F74.dita"><apiname>TUriC8</apiname></xref>. </p> <p>The
+code below constructs a <xref href="GUID-9D22BBBA-2DF2-36D2-BD07-5DE56F8541AA.dita"><apiname>CUri</apiname></xref> object from parts such as
+scheme, host and user info components. </p> <codeblock id="GUID-C40E1243-2D81-556C-919F-BBF34E732F1B" xml:space="preserve">TUriC8 pUri;
+//create a pointer to CUri8 object, pass a reference to a parsed TUriC8 object
+CUri8* uri = CUri8::NewL( pUri ); </codeblock> <p> <xref href="GUID-93132FF9-512F-30EC-8AB0-BD3E98F668E6.dita"><apiname>NewL()</apiname></xref> and <xref href="GUID-343E6447-4947-34EE-8641-3CB72930CCF6.dita"><apiname>NewLC()</apiname></xref> methods
+have overloads that construct an empty URI object. </p> <codeblock id="GUID-3C6F97F5-20FA-55FF-8963-9C2B81800A7D" xml:space="preserve">
+// Add components to build a URI
+_LIT8( KScheme0, "http" );
+_LIT8( KHost0, "www.mypage.com" );
+_LIT8( KUserInfo0,    "user:pass" );
+CUri8* uri = CUri8::NewLC();
+uri-&gt;SetComponentL( KScheme0, EUriScheme );     // set the scheme component
+uri-&gt;SetComponentL( KHost0, EUriHost );         // set the host component
+uri-&gt;SetComponentL( KUserInfo0, EUriUserinfo ); // set the user info component
+const TDesC8&amp; des = uri-&gt;Uri().UriDes();        // retrieve the created URI
+CleanupStack::PopAndDestroy( uri );</codeblock> <p>The descriptor <codeph>des</codeph> contains
+the URI "http://user:pass@www.mypage.com". </p> <p><b> Removing a component</b> </p> <p> <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita#GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB/GUID-67A357DE-BE32-3198-8D8D-834D4FC21D93"><apiname>CUri8::RemoveComponentL()</apiname></xref> removes
+a specific component from an URI. </p> <p>The following code removes the scheme
+component of the URI. This function removes a component only if it exits. </p> <codeblock id="GUID-E58A81D6-1E32-5DF1-8457-B54DF52DD8C0" xml:space="preserve">uri8-&gt;RemoveComponentL( EUriScheme );   //remove the scheme component
+const TDesC8&amp; des8 = uri8-&gt;Uri().UriDes();        //retrieve the URI</codeblock> <p> <codeph>des</codeph> contains
+the remaining part of the URI that is <codeph>user:pass@www.mypage.com</codeph>,
+after removing "http" (the scheme component). </p> <p><b>Creating authority
+components</b> </p> <p>Similar to an URI, authority components can be created
+from its components. This is done by adding the user information, host and
+port by calling <xref href="GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA.dita#GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA/GUID-16A86324-075F-31DF-811C-5B6D66D013BD"><apiname>CAuthority8::SetComponentL()</apiname></xref> repeatedly. </p> <p>Parse
+the component that must be added by calling <xref href="GUID-985C12CB-9230-3A35-9F5F-E455D4C23EBB.dita#GUID-985C12CB-9230-3A35-9F5F-E455D4C23EBB/GUID-7CCA2647-E8D0-312B-83BE-BE857FB61D0C"><apiname>TAuthorityParser8::Parse()</apiname></xref> and
+create an object using <xref href="GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA.dita#GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA/GUID-8EB92707-4B5D-3BED-98A6-F6AA6BE3E0DE"><apiname>CAuthority8::NewL()</apiname></xref>. </p> <codeblock id="GUID-6F61ABB0-31A6-59AC-AE44-1745786A5960" xml:space="preserve">TAuthorityParser8 authorityParser;
+_LIT8( KAuthority,"www.nokia.com" );
+authorityParser.Parse( KAuthority );                                  // parse the authority component    
+CAuthority8* authority = CAuthority8::NewL( authorityParser );        // create an authority object 
+_LIT8( KUserinfo,"user:info" );                                       // Add components to the Authority
+CleanupStack::PushL( authority );
+authority-&gt;SetComponentL( KUserinfo,EAuthorityUserinfo );             // set the userinfo 
+_LIT8( KHost, "www.nokia.com" );
+authority-&gt;SetComponentL( KHost,EAuthorityHost );                     // set the host 
+_LIT8( KPort,"80" );
+authority-&gt;SetComponentL( KPort,EAuthorityPort );                     // set the port 
+const TDesC8&amp; authorityDes = authority-&gt;Authority().AuthorityDes();   // get the authority component
+CleanupStack::PopAndDestroy( authority );</codeblock> <p> <codeph>authorityDes</codeph> descriptor
+contains the complete authority component <codeph>user:info@www.nokia.com:80</codeph>. </p> <p><b>Setting
+and escaping the authority component</b> </p> <p> <xref href="GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA.dita#GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA/GUID-52E9DED4-C414-34A6-B3FA-66DB7EF39880"><apiname>CAuthority8::SetAndEscapeComponentL()</apiname></xref> allows
+you to escape encode and set the authority component in an URI. This escapes
+any unsafe data before setting the component. </p> <codeblock id="GUID-0F25673B-BB07-5D1E-9489-4B6C1ADAA227" xml:space="preserve">CAuthority8* authority = CAuthority8::NewL( authorityParser );
+CleanupStack::PushL( authority );
+authority-&gt;SetAndEscapeComponentL( KUserinfo,EAuthorityUserinfo ); //escape encode and set user info component
+CleanupStack::PopAndDestroy( authority );</codeblock><p><b>Removing the authority
+component </b> </p> <p> <xref href="GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA.dita#GUID-3B5EC759-81D3-3A5E-B437-7AA3BD3124BA/GUID-CEF5F6D0-F0ED-3CB6-99D3-F57EC7F6E052"><apiname>CAuthority8::RemoveComponentL()</apiname></xref> removes
+a component, specified with a <xref href="GUID-36A87623-F89F-38DE-B4DE-4C626C663E6A.dita"><apiname>TAuthorityComponent</apiname></xref> component,
+from the authority data. </p> <codeblock id="GUID-C641C205-37CE-5129-803E-F87388A7094C" xml:space="preserve">//Remove the user info component from the URI
+authority-&gt;RemoveComponentL( EAuthorityUserinfo );</codeblock></section>
+<section id="GUID-E837279E-CF09-4247-96A6-B41EB3CDBF73"><title>Creating an
+URI from a file name</title><p>To create a file URI object, call <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita#GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB/GUID-8C97EB2A-C7D0-382C-ACA1-1599A180361B"><apiname>CUri8::CreateFileUriL()</apiname></xref>. </p> <p>The
+following code fragment creates the file URI object. </p> <codeblock id="GUID-5BC27144-0C5D-59E8-9B10-DF5030395352" xml:space="preserve">//Set the physical path of the file
+LIT( KFullUriName, "D:\\MyFolder\\MyDoc.doc" );
+//create the Uri for the path component 
+CUri8* pathUri8 = CUri8::CreateFileUriL( KFullUriName,0 );</codeblock> <p>The
+code returns the URI for the specified file path. Provide the full file name
+descriptor. For example, <filepath>D:\\MyFolder\\MyDoc.doc</filepath> and
+specify whether the drive on which the file exists is fixed or external. <codeph>0</codeph> indicates
+a fixed drive, otherwise specify <codeph>EExtMedia</codeph>. </p> <p>If the
+file exists on: </p> <ol id="GUID-3EF4AFE9-5292-520C-B316-3E3F2BEA29E4">
+<li id="GUID-76401E43-AEE9-54CA-B053-9C4F114697D1"><p>a fixed drive, then
+the URI takes the form <i>file:///private/&lt;drive-letter&gt;/&lt;filepath&gt;</i>  </p> </li>
+<li id="GUID-5569AD56-2FFA-501F-A54C-DDDE13A63AD4"><p>a removable drive, then
+the URI takes the form <i>file:///ext-media/&lt;filepath&gt; or file:///private/ext-media/&lt;filepath&gt; </i>. </p> </li>
+</ol> <p>If the file is private to the application, then use <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita#GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB/GUID-48B3DF31-578E-34B5-83E4-0D3665D98E98"><apiname>CUri8::CreatePrivateFileUriL()</apiname></xref> instead
+of <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita#GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB/GUID-8C97EB2A-C7D0-382C-ACA1-1599A180361B"><apiname>CUri8::CreateFileUriL()</apiname></xref>. </p></section>
+<section id="GUID-11F582F5-0C39-4DFE-A3D0-823D0D3E8A79"><title>Creating
+an URI from relative URIs</title><p>This section explains how to create URIs
+from base and reference URIs. </p> <p><b>Resolving </b> </p> <p>Resolving
+is the process of interpreting what the string means, stripping it into some
+component parts and then using those to decide on the following: </p> <ol id="GUID-91EAB7B6-9993-5657-9A79-F5A53DC62558">
+<li id="GUID-B7E1B815-23C0-58B2-873B-8AF79EBC9FC8"><p>How to look up something,
+interpreting the raw content that was sent back to us. </p> </li>
+<li id="GUID-FD77DB94-226B-5BA4-960F-0D2D06C45548"><p>What we want to look
+up for that identifier. </p> </li>
+<li id="GUID-7BFB4C7A-44D1-5A53-A2BA-33C6E94AC30A"><p>Once we have looked
+it up, what protocol is required to acquire it. </p> </li>
+<li id="GUID-8A76183B-DA2F-5520-94B4-5BE3A30400A1"><p>Interpreting the raw
+content that was sent back to us. </p> </li>
+</ol> <p>The first one is called resolving. In this context, resolving is
+the process of converting a relative URI reference (for example, <filepath>../../../resource.txt</filepath>)
+to its absolute form, for example, <filepath>http://somehost/resource.txt</filepath>. </p> <p>You
+need to resolve the URI to know what the identifier actually points to. </p> <p><b>Creating
+an URI by resolving</b> </p> <p>The following code resolves the reference
+URI against the base URI and returns an absolute URI. </p> <p>Create the base
+and reference URIs from its components using <xref href="GUID-D723C462-53F1-35F8-B70C-7432049ECE30.dita"><apiname>SetComponentL()</apiname></xref>.
+Refer to <xref href="GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF.dita#GUID-4D32A29F-6573-5233-8982-BDEEDDB4F0FF/GUID-6FCAF213-79C5-5780-965F-45E5817E7242">Creating
+a URI from parts</xref>. </p> <codeblock id="GUID-75783DAE-B2D4-5010-A013-A1BA751CEC0F" xml:space="preserve">_LIT8( KBase,"http://www.mypage.com/folder1/folder2/index.html" );
+_LIT8( KReference,        "../../empdetail.html" );
+    
+TUriParser8 baseUri;                                //base URI object
+TInt error = baseUri.Parse( KBase );                //parse the base URI
+            
+TUriParser8 refUri;                                 //reference URI object
+error = refUri.Parse( KReference );                 //parse the reference URI
+                    
+CUri8* resolvedUri = NULL;
+resolvedUri = CUri8::ResolveL( baseUri, refUri );   //resolve the reference URI against base URI
+const TDesC8&amp; des1 = resolvedUri-&gt;Uri().UriDes();   //retrieve the resolved URI</codeblock> <p>The
+code returns an absolute URI, "<codeph>http://www.mypage.com/empdetail.html</codeph> "
+in this case. </p> </section>
+<section id="GUID-3AC094A2-6E3A-46C6-8227-079F394233EE"><title>Creating an
+URI from an unicode descriptor</title><p> <xref href="GUID-265F8D6B-4B88-342A-BD7B-5934CC9437DA.dita#GUID-265F8D6B-4B88-342A-BD7B-5934CC9437DA/GUID-8A9C278B-8DF6-3C5A-ADCB-8434B6DB6DFF"><apiname>UriUtils::CreateUriL()</apiname></xref> creates
+a <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita"><apiname>CUri8</apiname></xref> object from a Unicode descriptor. </p> <codeblock id="GUID-A990A14C-7C4A-5277-92F4-38C8E0F18A9C" xml:space="preserve">_LIT8( KUri,"http://web.intra/Dev/Sysdoc/devlib.htm" );
+CUri8* uri8= UriUtils::CreateUriL( KUri );</codeblock> <p>This returns a new <xref href="GUID-E6F8C94C-C74C-329B-BB11-E06F0E83A4BB.dita"><apiname>CUri8</apiname></xref> object.
+It returns <codeph>EUriUtilsParserErrInvalidUri</codeph> if the descriptor
+is an invalid URI. </p> <p>Create an authority component of URI from a descriptor
+by calling <xref href="GUID-265F8D6B-4B88-342A-BD7B-5934CC9437DA.dita#GUID-265F8D6B-4B88-342A-BD7B-5934CC9437DA/GUID-2AEF4C06-11E2-3A9C-9F05-904488065D02"><apiname>UriUtils::CreateAuthorityL()</apiname></xref>. </p> </section>
+</conbody><related-links>
+<link href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita"><linktext>HTTP Utilities
+Library Overview</linktext></link>
+<link href="GUID-A8F13E5A-56F2-5C72-AF81-5AC062B94C6C.dita"><linktext>Using URI
+utilities</linktext></link>
+</related-links></concept>

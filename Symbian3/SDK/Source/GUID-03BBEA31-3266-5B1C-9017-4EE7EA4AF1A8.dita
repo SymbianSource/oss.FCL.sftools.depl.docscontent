@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-03BBEA31-3266-5B1C-9017-4EE7EA4AF1A8" xml:lang="en"><title>Creating
+and Signing an Installation File</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>A Software Installation (SIS) file
+can be generated as an unsigned file, a self-signed or signed file. Self-signed
+and unsigned packages are considered to be <i>unknown</i>, and are installed
+by the Software Installer, depending on the security policy of the Symbian
+device. </p> <p>If the <filepath>SIS</filepath> file is signed, the Software
+Installer validates the certificate chains and based on verification, installs
+the <filepath>SIS</filepath> file or aborts the installation. </p> </section>
+<section><title>Procedure</title> <ol id="GUID-F956C034-BA59-5811-9043-BF0D77F10677">
+<li id="GUID-9842671A-A9BE-5CC1-A957-D2AA09B2B6D0"><p>Create a private key-public
+key pair and certificate request using the <xref href="GUID-557BF1DA-B6E8-521B-89F0-15C84E3BCB1A.dita">MakeKeys</xref> tool.
+For details, see <xref href="GUID-D45A4AE9-4169-4466-B02B-629B15C3E9AA.dita">MaKeKeys
+Tutorial</xref>. </p> </li>
+<li id="GUID-030DB6CF-22B6-529A-9915-38A4AD2A8A92"><p>Submit the certificate
+request to a Certificate Authority (CA) and receive an authenticated digital
+certificate. </p> </li>
+<li id="GUID-F8CDA8A6-4FD1-5F96-9D50-E2B7323504B5"><p>Create a package (PKG)
+file containing all the elements required to create the installation file.
+For details see <xref href="GUID-43B4B4E7-413E-5D18-811C-4B9E38CDEB69.dita">PKG
+File Format</xref> . </p> </li>
+<li id="GUID-80F3E1E2-7E61-53B7-948F-651BA163469E"><p>Run <xref href="GUID-4BDC9F63-83A1-53A5-91A0-B092AA821755.dita">MakeSIS</xref> at
+the command prompt to create an unsigned SIS file. Specify the PKG file as
+input argument, as shown in the following example: </p> <p><codeblock id="GUID-44397CFA-9650-5C19-8F47-015A3BC90D88" xml:space="preserve">makesis mypackage.pkg</codeblock> </p> <p> <codeph>MakeSIS</codeph> generates an unsigned SIS file. </p> </li>
+<li id="GUID-C1190F84-8E02-5C57-90BE-3C3CCB0AAE04"><p>Run <xref href="GUID-B20EE8A3-D7B2-5872-AF43-001A88C1A46E.dita">SignSIS</xref> at
+the command prompt to sign the unsigned SIS file. Specify the unsigned SIS
+file as input, and public key certificate and private key as arguments, as
+shown in the following example: </p> <p><codeblock id="GUID-A674816E-D8AF-5B9F-839B-3D53C337D481" xml:space="preserve">signsis trustedchain.pem eecertkey.key mypackage.sis</codeblock> </p> <p>Based on the certificate provided as input, <codeph>SignSiS</codeph> generates
+a signed SIS file. For details, see <xref href="GUID-AFBD4ED6-9588-531C-8EDF-566DB1D03088.dita">Signing</xref>  </p> </li>
+</ol><note> As an alternative to step 4 and 5, run the <xref href="GUID-AA555CC1-5CFF-5609-9191-8970F32BA255.dita">CreateSIS</xref> tool
+at the command prompt to generate and sign the installation file. Specify
+the trusted certificate-key pairs as arguments, as shown in the following
+example: <codeblock xml:space="preserve">createsis create -cert trustedchain.pem -key eecertkey.key mypackage.pkg
+</codeblock></note><p>The process of creating an installation file can be
+understood using the following illustration:</p><fig id="GUID-DB0D2E8C-E8B6-46C8-8CF4-1970EA1B3A03">
+<image href="GUID-B46C54AD-268C-58A0-B244-134C4D8BDFE1_d0e25044_href.png" placement="inline"/>
+</fig> </section>
+<section><title>Notes</title> <p>While creating a SIS file using the <b>CreateSIS</b> tool,
+if you do not specify the key or certificate on the command line the <codeph>create</codeph> method
+generates a key and a matching self-signed certificate, and uses it to sign
+the resulting SIS file. </p> <p>The generated certificate and key is dumped
+into the current working directory as <filepath>cert-gen.cer</filepath> and <filepath>key-gen.key</filepath> files.
+If <filepath>key-gen.key</filepath> exists, the certificate and key filenames
+are indexed incrementally. That is, <filepath>cert-genx.cer</filepath> and <filepath>key-genx.key</filepath>,
+where <i>x</i> is the incremental index. </p> <p> <b> Note:</b> The passphrase
+encryption is not an option. It must be provided with the <codeph>-pass</codeph> option.
+If this option is not specified, <b>CreateSIS</b> prompts for the passphrase
+during key generation. </p> </section>
+</conbody><related-links>
+<link href="GUID-AA555CC1-5CFF-5609-9191-8970F32BA255.dita"><linktext>CreateSIS</linktext>
+</link>
+<link href="GUID-4BDC9F63-83A1-53A5-91A0-B092AA821755.dita"><linktext>MakeSIS</linktext>
+</link>
+<link href="GUID-B20EE8A3-D7B2-5872-AF43-001A88C1A46E.dita"><linktext>SignSIS</linktext>
+</link>
+</related-links></concept>

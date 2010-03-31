@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A6116E8B-9C4A-5B9E-AA8A-BE031408AA2F" xml:lang="en"><title>Defining
+application icons, captions and properties</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section><title>Introduction</title> <p>This document describes the properties
+of an application that are defined in application registration files and in
+other related files. Various resource structs declared in <filepath>AppInfo.rh</filepath> are
+used to hold the definitions. </p> </section>
+<section id="GUID-33B76C7B-0A73-5890-9786-F18839309A4A"><title>Application
+icons</title> <p>Icons are used to represent applications and their associated
+document files in the system shell or application launcher. If the phone's
+UI supports embedding, icons may also be used to represent embedded documents. </p> <p>The
+source icon files may be <filepath>.bmp</filepath> bitmaps, or a vector graphics
+format. If bitmaps are used, they are built into a single <filepath>.mbm</filepath> file
+(Symbian platform multiple bitmap file) as part of the build process, see <xref href="GUID-B707887A-E0FA-5DF6-A906-A91E31E17321.dita">start bitmap</xref> for details.
+Different sizes of source bitmap should be supplied. The OS selects the most
+appropriate icon size for the UI's current zoom state. This avoids the need
+for the icon to be dynamically scaled when it is drawn at a different size.
+Scaling small bitmaps generally results in a loss of quality. The required
+icon sizes are specific to the UI. </p> <p>For each icon size, an image bitmap
+and a mask bitmap are needed. The mask should be black for the parts of the
+image that should be visible, and white for the transparent areas, where the
+background should appear instead. </p> <p>In addition to <filepath>.mbm</filepath> icon
+files, registration files also support vector graphics formats for instance <filepath>.svg</filepath>.
+If the icon file is a vector graphics format, the <codeph>number_of_icons</codeph> value
+in the <codeph>CAPTION_AND_ICON_INFO</codeph> struct is irrelevant. </p> <p>In
+either case, the name of the icon file is specified in the <codeph>LOCALISABLE_APP_INFO</codeph> resource. </p> <p><b>Localising
+icons </b> </p> <p>Some applications may need to localise their icons and
+captions. </p> <p>Icon filenames can be localised by defining them in <filepath>.rls</filepath> files.
+There should be one <filepath>.rls</filepath> file per language supported.
+In the <codeph>LOCALISABLE_APP_INFO</codeph> definition, the icon filenames
+should be referred to by their symbolic identifiers, rather than as the strings
+themselves. Conditional compilation statements are used in the resource file
+to include the appropriate <filepath>.rls</filepath> file. See <xref href="GUID-188F9462-F805-522A-84FF-770EAB045504.dita">an
+example registration file and icon/caption file</xref>. Captions are localised
+using the same technique. </p> </section>
+<section id="GUID-E8B8F865-D363-535C-A51B-EC66B8C76296"><title>Application
+captions</title> <p>An application's caption is the text displayed beside
+its icon. Typically it is the application's name. </p> <p>Captions are defined
+in the localisable icon/caption definition, which provides for short and long
+captions. The short caption may be used in situations where screen space is
+limited. Captions are localised in the same way as icon filenames, see above. </p> </section>
+<section><title>Filename</title> <p>Registration files must provide the filename,
+excluding path and extension of the application's executable. This is needed
+in order for the application architecture to be able to find and launch the
+application. The application architecture expects it to be located in <filepath>\sys\bin\</filepath> on
+the same drive as the registration file. </p> </section>
+<section><title>Attributes</title> <p>Registration files have an <codeph>attributes</codeph> field
+which is used to identify non-standard types of application. For instance, <codeph>KAppIsControlPanelItem</codeph> identifies
+control panel-type applications. Refer to the documentation for
+the targetted UI platform for other supported values. </p> </section>
+<section id="GUID-A28ABF97-3EF0-5554-8A66-C9EB1FF954B6"><title>Application
+properties</title> <p>The following properties can be defined in registration
+files. In C++ they can be retrieved using the <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita"><apiname>RApaLsSession</apiname></xref> class.
+Note that not all of these are supported by every UI. </p> <p><i>embeddability</i></p> <p>An
+application can have one of the following attributes: <codeph>KAppEmbeddable</codeph>, <codeph>KAppNotEmbeddable</codeph>,
+or <codeph>KAppEmbeddableOnly</codeph>. The other listed values (<codeph>KAppEmbeddableUiOrStandAlone</codeph> and <codeph>KAppEmbeddableUiNotStandAlone</codeph>) are not used. The default value is <codeph>KAppNotEmbeddable</codeph>.
+Embeddable applications appear in lists of embeddable applications, see for
+example <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-E0F9B1FA-976A-3A07-8A69-1713F81CE146"><apiname>RApaLsSession::GetEmbeddableApps()</apiname></xref>. A file with
+the property <codeph>KAppEmbeddableOnly</codeph> appears in the embeddable
+list, but not in the shell or application launcher. </p> <p><note><ul>
+<li id="GUID-13D03388-1689-5B82-8343-AF85AB597138"><p>document embedding may
+not be not supported by all UIs, </p> </li>
+<li id="GUID-54F48257-3849-5635-9430-C7968BAF42C9"><p>the embeddable and embeddable-only
+properties should only be set for file-based applications, in other words,
+applications that create embeddable documents. </p> </li>
+</ul></note> </p> <p><i>hidden</i></p> <p>Hidden applications run in the background.
+They are not shown to the user and do not appear in the application launcher
+or in the embeddable applications list. </p> <p>The default value is <codeph>KAppNotHidden</codeph>. </p> <p><i>newfile</i> </p> <p>This
+property indicates whether the application is document-based and supports
+the creation of new files. </p> <p>The default value is <codeph>KAppDoesNotSupportNewFile</codeph>. </p> <p><i>launch</i> </p> <p>Indicates
+whether the application will be launched in the foreground so that it takes
+focus, or in the background. </p> </section>
+<section><title>Default screen number</title> <p>This number identifies the
+screen on which the application is displayed. It can be omitted if the phone
+has a single screen. In v8.1b, the application can only ever appear on this
+screen; this may change in later releases. For the Symbian emulator, screen
+numbers are initialised in the window server initialisation file, <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini</xref>. </p> </section>
+<section id="GUID-500CEB11-DA89-5A6D-B0E5-E5C881030FCD"><title>UIDs</title> <p>Two
+UIDs must be specified in the source registration file: <codeph>UID2</codeph> and <codeph>UID3</codeph>. <codeph>UID2</codeph> always
+has the value <codeph>KUidAppRegistrationResourceFile</codeph>; <codeph>UID3</codeph> is
+the third UID of the application. </p> </section>
+<section id="GUID-2E24E9DA-4EBF-5CB5-96CB-112E7610227A"><title>MIME support</title> <p>Multipurpose
+Internet Mail Extensions, MIMEs, define a file format for transferring non-ASCII
+data, such as graphics, audio and fax, over the Internet. The <codeph>datatype_list</codeph> section
+lists the MIME types that the application supports, and the priority of support
+that each type is given. When a file is opened, Symbian platform launches
+the application which has the highest priority of support for the type of
+data in the file. </p> <p>There are four priority levels, of which only <codeph>EDataTypePriorityNormal</codeph> or <codeph>EDataTypePriorityLow</codeph> should normally be used. For example, a text editor is good at editing text/plain
+files, and would be given a priority of <codeph>EDataTypePriorityNormal</codeph> for
+that file type. A web browser is less good at handling text files, and would
+be assigned the lower priority <codeph>EDataTypePriorityLow</codeph>. So,
+either application can be launched to handle a text file, however if both
+applications are present, the text editor is launched in preference. </p> <p> <codeph>EDataTypePriorityHigh</codeph> should
+only be assigned under exceptional conditions, for instance if no other application
+could ever handle a particular MIME type as well. </p> <p> <codeph>EDataTypePriorityLastResort</codeph> should
+also be used sparingly. Text editors are terrible at displaying HTML, and
+would either have the priority <codeph>EDataTypePriorityLastResort</codeph>,
+or would not support the type at all. </p> <p>Given two applications with
+the same MIME type priority, Symbian platform arbitrarily launches one of
+them. </p> </section>
+<section><title>View-specific information</title> <p>For view-based applications,
+as an alternative to using an application-wide caption and icons, each view
+in the application can define its own icon and captions. This is so that specific
+application views can be launched directly from the phone's application launcher/shell.
+This feature may not be supported by all phone UIs. </p> <p>The following
+view-specific properties can be specified, using a <codeph>VIEW_DATA</codeph> resource
+struct, declared in <filepath>appinfo.rh</filepath>: </p> <ul>
+<li id="GUID-27E58734-77D5-5420-A0E5-E5635530913A"><p>The view's UID. </p> <p>This
+uniquely identifies the view within the application (in C++ this corresponds
+to <xref href="GUID-3DEA9A17-CB50-3DCD-87AC-0E91B377FB0E.dita#GUID-3DEA9A17-CB50-3DCD-87AC-0E91B377FB0E/GUID-2A49E3A5-815F-339C-AFB3-CB21D9AC53EB"><apiname>TVwsViewId::iViewUid</apiname></xref>). This must be specified. </p> </li>
+<li id="GUID-BA449839-7205-5997-99BF-CA0E23C6A796"><p>The screen mode that
+the view uses. </p> <p>A screen mode is a combination of screen rotation and
+screen size. Screen modes are identified by an index; the first one is zero.
+For the Symbian emulator, screen modes are initialised in the window server
+initialisation file, <xref href="GUID-1D529BDC-6665-58E2-AB3F-7023D8A84F69.dita">wsini.ini</xref>.
+The default value is zero. </p> <p>For example, on phones that use a flip-down
+keypad, the screen mode changes when the flip is opened or closed. On such
+phones, there may be a flip open and flip closed version of each view. </p> </li>
+<li id="GUID-79366634-C36E-5FEC-B77A-01D594A9BDD2"><p>The number of icons
+for the view. </p> <p>The icons are contained in the icon file. If the icon
+file is a vector graphics format, the <codeph>number_of_icons</codeph> value
+is irrelevant. </p> </li>
+<li id="GUID-E79B5B73-7527-5EBA-922E-8787AA6D43AF"><p>The view's caption. </p> </li>
+</ul> <p>The view-specific information is defined in the <codeph>view_list</codeph> which
+is an array of <codeph>VIEW_DATA</codeph> structs, one for each view in the
+application. It can be accessed in C++ through the <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita"><apiname>RApaLsSession</apiname></xref> class,
+see for example <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-3687ED39-4D19-3C96-AAB4-FF6C977411BB"><apiname>RApaLsSession::GetAppViews()</apiname></xref>, and <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-FFB678A1-A717-3D0D-9996-858E77E0AB80"><apiname>RApaLsSession::GetAppViewIcon()</apiname></xref>. </p> </section>
+<section><title>Service list</title> <p>Server applications implement services
+on behalf of client applications, using a server. They are new in v9.0 and
+the motivation behind them is platform security. Because the client and the
+server applications run in separate processes, their memory areas and private
+data files are protected from each other. </p> <p>The service list is a list
+of services offered by a server application. Each entry in the list consists
+of a <codeph>uid</codeph>, which identifies the service, and the ID of another
+resource (<codeph>opaque_data</codeph>) that describes how the service is
+implemented. The latter is called opaque data because how it is used is up
+to the server application, not the UI framework. For example, it might contain
+the ID of a localised text resource for display in the UI, or the ID of a
+resource struct that allows client code to distinguish between different implementations
+of the service. </p> <p>The information defined in the service list can be
+retrieved using the <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita"><apiname>RApaLsSession</apiname></xref> class. For example, clients
+can find out which server applications implement a particular service by calling <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-F5482751-DC3B-3C31-9BE4-6CFDF076E76A"><apiname>RApaLsSession::GetServiceImplementationsLC()</apiname></xref>. </p> <p>The opaque data may be non-localisable and therefore defined as a resource
+in the registration file, or localisable and therefore defined as a resource
+in the localisable icon/caption definition file, if one exists, or in the
+UI resource file. If the localisable icon/caption definition file is used,
+it must include a four character <codeph>NAME</codeph> and an <codeph>RSS_SIGNATURE</codeph> resource,
+like most other resource files, and as it would no longer be the only resource
+defined in the file, the <codeph>LOCALISABLE_APP_INFO</codeph> resource must
+be given an ID, which must be specified in the registration file's <codeph>localisable_resource_id</codeph> field. </p> </section>
+</conbody></concept>

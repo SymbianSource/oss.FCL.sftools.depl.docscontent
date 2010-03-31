@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-12FF05BE-F06E-58F0-909D-05CB6F7FA03E"><title>Code Efficiency</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Attention paid to making code efficient in speed and particularly in resource use is always worthwhile. This topic suggests some methods that should become familiar to Symbian developers for this platform. </p> <section><title>Stack usage</title> <p>Each thread in an application has a limited standard stack space of 8Kb, which should be carefully managed. Therefore: </p> <ul><li id="GUID-C8B30A14-5135-5594-A440-C8B4F78E4F0B"><p>avoid copy-by-value, except for basic types </p> </li> <li id="GUID-03380EB3-E1A7-573C-9CD5-9E7055885341"><p>create any large object or array on the heap rather than the stack </p> </li> <li id="GUID-F72CAEC5-FF15-59E9-8452-1324BBB61C7D"><p>minimise the lifetime of automatic variables by appropriately scoping them </p> </li> </ul> <p>The last point can be illustrated with the following example: </p> <codeblock id="GUID-DFFA3ADD-1FB3-5CAC-8B9E-7A141A958E22" xml:space="preserve">void ABadFunction()
+    {
+    TBigObject Object1;
+    TBigObject Object2;
+    TBigObject Object3;
+    
+    GetTwoObjectValues(Object1,Object2);
+    Object3=SumObjects(Object1,Object2);
+    FunctionWithUnknownStackOverhead(Object3);
+    }</codeblock> <p>In the above code, <codeph>Object1</codeph> and <codeph>Object2</codeph> persist, using stack space, throughout the lifetime of the call to <codeph>FunctionWithUnknownStackOverhead()</codeph>, although they are not required by that time. They should be removed from the stack before the call is made. This can be achieved as follows: </p> <codeblock id="GUID-46DB7A9B-6186-565E-AFF7-47C6A5E24CB3" xml:space="preserve">void ABetterFunction()
+    {
+    TBigObject Object1;
+
+    GetTotalObjectValues(Object1);    
+    FunctionWithUnknownStackOverhead(Object1);
+    }
+
+void GetTotalObjectValues(TBigObject &amp;aObject)
+    {
+    TBigObject Object1;
+    TBigObject Object2;
+
+    GetTwoObjectValues(Object1,Object2);
+    aObject=SumObjects(Object1,Object2);
+    }</codeblock> <p>By splitting the code into two functions, you ensure that the stack is used no more than required. </p> </section> <section><title>Function overloads</title> <p>If a function definition has default arguments, and if that function often gets called with the caller assuming the default arguments, consider providing an overloaded function that doesn't have the additional arguments. This is because every time the compiler supplies a default parameter, it generates additional code where the function is called. </p> <p>For example, if you have </p> <codeblock id="GUID-AA858DE5-FDAC-5021-8581-88EEDA399671" xml:space="preserve">void FunctionOne(TInt aInt=0);</codeblock> <p>which often gets called in code by the line </p> <codeblock id="GUID-660E507A-AD70-508D-A8B2-A9AA5A367996" xml:space="preserve">FunctionOne();</codeblock> <p>then consider supplying </p> <codeblock id="GUID-B6DEAF81-0C9C-59D4-A0B3-2E3D6ECD4AB1" xml:space="preserve">void FunctionOne();</codeblock> <p>the contents of which might be: </p> <codeblock id="GUID-96ED9FA0-6C91-5298-8F28-F75C717C3D4E" xml:space="preserve">void FunctionOne()
+    {
+    FunctionOne(0);
+    }</codeblock> </section> <section><title>Pointers and references</title> <p>Using a reference as a function argument may be more efficient than using a pointer. This is because the compiler has to preserve the value of the null pointer through all conversions. </p> <p>Imagine a class <codeph>CXxx</codeph> which derives from a mixin class <codeph>MYyy</codeph>, as in </p> <codeblock id="GUID-5F86BE77-45BF-5D9B-A205-283B5D234889" xml:space="preserve">class CXxx : public CBase,public MYyy {...};</codeblock> <p>Then, to pass a pointer to a <codeph>CXxx</codeph> to a function taking a <codeph>MYyy</codeph>, the compiler has to add <codeph>sizeof(CBase)</codeph> to the pointer, except when that pointer is <codeph>NULL</codeph>. If <codeph>cp</codeph> is a <codeph>CXxx*</codeph>, and <codeph>Func()</codeph> a function taking an <codeph>MYyy*</codeph>, then what happens in a call like <codeph>Func(cp)</codeph> is something like this: </p> <codeblock id="GUID-E192FCB5-7F8D-56FC-B474-674B750C82B6" xml:space="preserve">Func((MYyy* aM)(cp==NULL ? NULL : (TUint8*)cp+sizeof(CBase)));</codeblock> <p>Null references are not possible, so no test for <codeph>NULL</codeph> is necessary when they are used. On ARM, converting from <codeph>CXxx*</codeph> to <codeph>MYyy*</codeph> takes 8 instructions, whereas the <codeph>CXxx&amp;</codeph> to <codeph>MYyy&amp;</codeph> conversion takes only two. </p> </section> <section><title>Floating point maths</title> <p>Floating point maths is sufficiently slow that it is worth looking to see if an alternative algorithm using only integer maths is available. </p> <p>For example, given two <codeph>TInts</codeph>, <codeph>aTop</codeph>, and <codeph>aBottom</codeph>, instead of: </p> <codeblock id="GUID-170883FB-40FD-5295-A545-2FE7F05D6813" xml:space="preserve">TReal a = (TReal)aTop;
+TReal b = (TReal)aBottom;
+TReal c = a/b+0.5;
+TReal result;
+Math::Round(result,c,0);
+return (TInt)result;</codeblock> <p>you should use </p> <codeblock id="GUID-CF3DC494-14DE-51B2-9F2C-5916F3E8AA84" xml:space="preserve">return((2*aTop+aBottom)/(2*aBottom));</codeblock> </section> <section><title>Inline functions</title> <p>Inline functions are intended to speed up code by avoiding the expense of a function call, but retain its modularity by disguising operations as functions. Before using them, however, there are two issues that you should check: </p> <ul><li id="GUID-5381813A-ACF4-57FE-B70E-CCB4AA6AF5BC"><p>code compactness: limited memory resources may mean that the speed cost of a function call is preferable to large bodies of inline code </p> </li> <li id="GUID-58841335-10A8-5E09-B7D6-DB011B95FDA1"><p>binary compatibility: changing the implementation of an inline function can break binary compatibility. This is important if your code is going to be used by other Symbian developers. </p> </li> </ul> <p>The most common cases where inline functions are acceptable are: </p> <ul><li id="GUID-61970E70-8C53-5CCA-A214-4CEF87817FA8"><p>getter and setters for one- or two-machine word quantities: for example, </p> </li> </ul> <codeblock id="GUID-683E842C-DBF7-516E-8B33-FC6FF3DCE2A9" xml:space="preserve">inline ConEnv() const { return iConEnv; };</codeblock> <ul><li id="GUID-261BCAD0-CCD0-502A-9DC3-E8FC5E2217C7"><p>trivial constructors for <codeph>T</codeph> classes: </p> </li> </ul> <codeblock id="GUID-F906F1B0-E5AC-5F03-A432-61EAEA5C5C11" xml:space="preserve">inline TPoint::TPoint(TInt aX, TInt aY) { iX=aX; iY=aY; }; </codeblock> <ul><li id="GUID-672214E8-5B5F-5879-BEFF-FF3E50B3280B"><p>in the thin-template idiom: see <xref href="GUID-497930CE-4D61-50EE-A63B-3656158EE29C.dita">Thin templates</xref>  </p> </li> <li id="GUID-D1627362-04CD-55FD-AB66-3DD8A4FFCABD"><p>certain other operators and functions, possibly templated, whose definition, not subject to change, is to map one operation onto another, for example, </p> </li> </ul> <codeblock id="GUID-D737320C-4153-5E34-93F7-7E89E377CDD5" xml:space="preserve">template &lt;class T&gt; inline T Min(T aLeft,T aRight)
+{ return(aLeft&lt;aRight ? aLeft : aRight); }</codeblock> </section> <section><title>No test for NULL pointer when deleting object</title> <p>C++ specifies that <codeph>delete 0</codeph> does nothing, so that you need never write code such as </p> <codeblock id="GUID-9897710D-7202-5290-9454-EAC5B0129D70" xml:space="preserve">if (iX)
+    delete iX;</codeblock> </section> </conbody></concept>

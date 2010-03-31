@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-84922B27-FDCF-56FD-91ED-5E0BFE3ED0E4" xml:lang="en"><title>Compressing
+and Decompressing File - Zip Format </title><shortdesc>The Zip Compression Library, EZLib provides stream and file compression
+and decompression functionality for the Symbian platforms. The files can be
+compressed to two formats namely zip and gzip. Compression and Decompression
+are performed iteratively, till the completion of required task. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-BE620F4A-6D23-5832-8C2A-4B9C75F6BF12"/>
+<steps id="GUID-0DE92899-962B-5E18-9378-EB7B6C78E7BD">
+<step id="GUID-414B561B-4BCA-5D6F-A744-3944D0EBDBE2"><cmd>Pass the input and
+output files as parameters to construct an instance of <xref href="GUID-A54D8675-1874-3B4F-816D-001A235C0F9C.dita"><apiname>CEZFileBufferManager</apiname></xref>.
+This returns a pointer to <xref href="GUID-A54D8675-1874-3B4F-816D-001A235C0F9C.dita"><apiname>CEZFileBufferManager</apiname></xref> (input buffer). </cmd>
+<info> <xref href="GUID-A54D8675-1874-3B4F-816D-001A235C0F9C.dita"><apiname>CEZFileBufferManager</apiname></xref> provides functions that accept
+and converts the data into buffers for <xref href="GUID-B90BA6D6-72A2-3EB8-B8EF-CD5408107A9E.dita"><apiname>MEZBufferManager</apiname></xref> class
+to manage it internally. </info>
+</step>
+<step id="GUID-BA8CC59E-FD6B-5ACA-A516-EBFFB5316D30"><cmd/>
+<info>Pass the input buffer and other compression parameters to the object
+of the <xref href="GUID-AEF8BCC8-6B24-3D59-AD3A-17B5203B3AA5.dita"><apiname>CEZCompressor</apiname></xref> class. </info>
+</step>
+<step id="GUID-BD4E38F1-78A7-5ED3-83D7-6C56EE7122DD"><cmd/>
+<info>Use <xref href="GUID-AEF8BCC8-6B24-3D59-AD3A-17B5203B3AA5.dita#GUID-AEF8BCC8-6B24-3D59-AD3A-17B5203B3AA5/GUID-03E4E3A2-3830-3209-9D7B-A2238B5AF219"><apiname>CEZCompressor::DeflateL()</apiname></xref> to compress the file. </info>
+</step>
+</steps>
+<example><p>The following code demonstrates a compression procedure. </p><codeblock xml:space="preserve">/*
+ * Compresses the file into a zip file using the EZlib component. 
+ * It is assumed that the input and output file names are contained in a 
+ * provided ini file.
+ */
+
+
+void CEZlibEZipTests::DoEZlibDeflateL()
+    {
+RFs iFs;
+ iFS.connect();
+    
+
+
+    //Open input file
+_LIT(KInputFileLocation, "c:\\private\\E80000B7\\zip\\input\\input.doc");
+TFileName inputFile(KInputFileLocation);
+    RFile input;
+    err = input.Open(iFs, inputFile, EFileStream | EFileRead | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KOpenFileError);
+        User::Leave(err);
+        }   
+    
+    
+
+    //open output file
+
+_LIT(KOutputFileLocation, "c:\\private\\E80000B7\\zip\\input\\output.zip");
+TFileName outputFile(KOutputFileLocation);
+    RFile output;
+    err = output.Replace(iFs, outputFile, EFileStream | EFileWrite | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KCreateFileError);
+        User::Leave(err);
+        }   
+        
+
+
+    CEZFileBufferManager *bufferManager = CEZFileBufferManager::NewLC(input, output);   
+    CEZCompressor *compressor = CEZCompressor::NewLC(*bufferManager, aLevel, aWindowBits, aMemLevel, aStrategy);
+
+    while(compressor-&gt;DeflateL())
+        {       
+        }   
+     output.Close(); 
+input.Close();
+ iFS.Close();
+    
+
+    
+    }
+</codeblock></example>
+<postreq><p>The decompression of a <filepath>.zip</filepath> file can be achieved
+through the following the steps: </p> <ol id="GUID-468D2F53-B015-5DAB-96A7-08DBE8101773">
+<li id="GUID-23A8B3BC-0C23-503A-969A-EAD80BBDA3ED"><p>Pass the
+input and output files as parameters to construct an instance of <xref href="GUID-A54D8675-1874-3B4F-816D-001A235C0F9C.dita"><apiname>CEZFileBufferManager</apiname></xref>.
+This returns a pointer to <xref href="GUID-A54D8675-1874-3B4F-816D-001A235C0F9C.dita"><apiname>CEZFileBufferManager</apiname></xref> ( buffer). </p> </li>
+<li id="GUID-60335F30-42FF-57A1-8457-ADFAE6C34E76"><p>Pass the buffer to the
+object of the <xref href="GUID-BC3CEC02-B747-38FB-8B35-E7390DB06E35.dita"><apiname>CEZDecompressor</apiname></xref> class. </p> </li>
+<li id="GUID-969C35D8-AAB8-5875-9DA9-B80D0F402EB1"><p> <xref href="GUID-BC3CEC02-B747-38FB-8B35-E7390DB06E35.dita#GUID-BC3CEC02-B747-38FB-8B35-E7390DB06E35/GUID-0AC99B66-412B-3CCF-84DA-D7BC0F0D32B2"><apiname>CEZDecompressor::InflateL()</apiname></xref> is
+called repeatedly until the decompression is complete. </p> </li>
+</ol> <p>The following code demonstrates the decompression procedure. </p> <codeblock id="GUID-4A0A0D64-939C-587F-B9C7-F34B8F934E25" xml:space="preserve">/* Decompresses the file contained in a Zip file using the EZlib component. 
+ * It is assumed that the input and output file names are contained in a 
+ * provided ini file.
+ */
+
+void CEZlibEZipTests::DoEZlibInflateL()
+    {
+RFs iFs;
+ iFS.connect();
+
+//Open input file
+_LIT(KInputFileLocation, "c:\\private\\E80000B7\\zip\\input\\output.zip");
+TFileName inputFile(KInputFileLocation);
+    RFile input;
+    err = input.Open(iRfs, inputFile, EFileStream | EFileRead | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KOpenFileError);
+        User::Leave(err);
+        }    
+    
+    
+
+    //open output file
+
+_LIT(KOutputFile, "c:\\private\\E80000B7\\zip\\input\\input.doc");
+TFileName outputFile(KOutputFile);
+    RFile output;
+    err = output.Replace(iFs, outputFile, EFileStream | EFileWrite | EFileShareExclusive);
+    if(err != KErrNone)
+        {
+        INFO_PRINTF1(KCreateFileError);
+        User::Leave(err);
+        }    
+        
+
+
+CEZFileBufferManager *bufferManager = CEZFileBufferManager::NewLC(input, Output);    
+CEZDecompressor *decompressor = CEZDecompressor::NewLC(*bufferManager, aWindowBits);
+
+
+    while(decompressor-&gt;InflateL())
+        {        
+        }    
+output.Close();
+        input.Close();
+    ifs.Close();
+
+    }</codeblock> </postreq>
+</taskbody></task>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-098106AC-0A5A-5C7D-B432-492EADFE7EA3" xml:lang="en"><title>Manipulating
+URI Data </title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This tutorial describes the steps to manipulate the URI data. </p>
+<section><title>Introduction</title> <p> <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita"><apiname>InetProtTextUtils</apiname></xref> provides
+various text parsing utilities for manipulating the data in HTTP headers.
+This includes: </p> <ul>
+<li id="GUID-81BF0E64-8463-534B-84E3-73BE5A84C195"><p>removing the white space </p> </li>
+<li id="GUID-269D1163-D6FB-5A15-AC0F-52D565F40C85"><p>converting the data. </p> </li>
+</ul> </section>
+<section><title>Removing white spaces</title><p> <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-2315E4AF-99EE-32B4-BA13-79A643F8A929"><apiname>InetProtTextUtils::RemoveWhiteSpace()</apiname></xref> removes
+any contiguous white spaces at either or both the ends of the data, as specified
+by the mode (right, left, or both). A white space includes blank spaces, tabs
+and separators. For example, new line. </p><p>The following code removes the
+white spaces on the left side of the URI. </p><codeblock id="GUID-F07260CB-6C56-53AA-A6A4-6BDB76102253" xml:space="preserve">_LIT( KFullUriPath," P:\\DV3\\gothere\\moveon.htm" ); // URI 
+TPtrC uriName(KFullUriPath);                          //pointer to the URI
+//Remove the white space on the left side of URI
+Tint consumedWhiteSpacesLeft = InetProtTextUtils::RemoveWhiteSpace( uriName, InetProtTextUtils::ERemoveLeft );</codeblock> <p>If
+the white space is removed, it returns <codeph>KErrNone</codeph>, else it
+returns <codeph>KErrNotFound</codeph>. <codeph>ERemoveRight</codeph> or <codeph>ERemoveBoth</codeph> is
+used to remove white spaces on right side or both sides of the URI, respectively. </p> <p> <b>Note</b>:
+The white spaces within the URI cannot be removed using <codeph>RemoveWhiteSpace()</codeph>. </p> </section>
+<section><title>Converting the data </title><p> <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita"><apiname>InetProtTextUtils</apiname></xref> class
+provides various data conversion methods. The methods can be used to convert
+decimal and hex descriptors into its integer representations and vice versa.
+The following are the methods: </p> <p> <b> Converting data from an integer
+to a string </b>  </p> <p>Call <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-F030F4B9-0C66-3548-A19D-8D06204E11B0"><apiname>InetProtTextUtils::ConvertIntToDescriptorL()</apiname></xref> or <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-E28E1DDF-318C-3B59-8413-722438E748EA"><apiname>InetProtTextUtils::ConvertHexToDescriptorL()</apiname></xref> to convert an integer into a decimal or hexademial number respectively.
+The following code converts the integer value of the data to a string: </p> <codeblock id="GUID-5B0E26B9-2B92-5D0D-813F-C3CA647FBE16" xml:space="preserve">// Convert the integer value of the data to a string
+TInt intVal = 489;
+HBufC8* abuf = HBufC8::NewL( 32 );//a descriptor is allocated on the heap to hold the data.
+InetProtTextUtils::ConvertIntToDescriptorL( intVal,abuf );// abuf contains "489", the extracted value.</codeblock> <p>where, <codeph>intVal</codeph> stores the data to be converted. The converted <codeph>abuf</codeph> contains
+the extracted descriptor. </p> <codeblock id="GUID-7C4374D1-C702-55FE-B9A7-C36E7E4F2F1B" xml:space="preserve">TInt intVal=489;
+HBufC8* abuf = HBufC8::NewL( 32 );
+InetProtTextUtils::ConvertHexToDescriptorL( intVal,abuf );//abuf contains 1E9</codeblock> <p>where, <codeph>intVal</codeph> stores
+the data to be converted. The converted value will be stored in the buffer <codeph>abuf</codeph>. </p> <p> <b>Converting
+data from a string to a number</b>  </p> <p>Call <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-48074038-1E1E-350A-8D21-3949102DF99B"><apiname>InetProtTextUtils::ConvertDescriptorToIntL()</apiname></xref> to
+convert the character representation of an integer into its numeric value.
+Preceding white space is ignored and the integer is delimited by either the
+end of the data, whitespace or any character other than 0 to 9. </p> <codeblock id="GUID-2B3F4CAA-6A6C-5AE4-B790-E7AAB05745FC" xml:space="preserve">//Convert the string to an integer
+TInt intVal = 0;
+_LIT8( KNumber,"489" );
+InetProtTextUtils::ConvertDescriptorToInt( KNumber,intVal ); // the intVal now holds the integer 489</codeblock> <p>Call <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-BB5036C8-DFC8-310B-9CE5-7F8131F477C4"><apiname>InetProtTextUtils::ConvertDescriptorToHex()</apiname></xref> to convert the character representation of an integer to its hexadecimal
+value. </p> <codeblock id="GUID-739AD8F3-F402-5425-9B7D-DD914567BE6C" xml:space="preserve">TInt intVal = 0;
+_LIT8( KNumber,"64" );
+InetProtTextUtils::ConvertDescriptorToHex( KNumber,intVal ); //intVal = 100</codeblock> <p>This
+function extracts the value contained in the buffer <codeph>intVal</codeph> and
+considers a hexadecimal number. </p> <p> <b>Extracting the quoted string</b>  </p> <p> <xref href="GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE.dita#GUID-9FC0E63B-1927-30B0-8A97-E9CB1010FFEE/GUID-FC38525A-7C9B-3AAB-834D-3354DB86BA46"><apiname>InetProtTextUtils::ExtractQuotedStringL()</apiname></xref> extracts the quoted string within an URI. </p> <codeblock id="GUID-A115B39B-23C9-599B-AB75-ACB050C9F7D4" xml:space="preserve">_LIT8( KQuotedBuffer0,    "this is the \"inside quotes\" outside quotes" ); // the string to be manipulated
+TBuf8&lt;64&gt;  quotedString;
+TPtrC8 ptr( KQuotedBuffer0() ); //pointer to the string
+TPtrC8 ptr1( quotedString );
+//ptr contains "outside quotes" and ptr1 contains "inside quotes"
+InetProtTextUtils::ExtractQuotedStringL( ptr, ptr1 ); </codeblock> <p>where, <codeph>ptr1</codeph> is
+a pointer that points to the quoted string "<codeph>inside quotes</codeph> " </p></section>
+<section><title>See also</title> <p><xref href="GUID-795B41AF-FBEA-56CE-AE20-EF17BE754723.dita">HTTP
+Utilities Library Overview</xref>  </p> </section>
+</conbody></concept>
