@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-598B6698-3518-50CA-98DE-D85CB255BA2D"><title>Secure stream encryption example code</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>This example covers: </p> <ul><li id="GUID-3F36B509-4E9F-5F4C-A374-993714418DEF"><p> <xref href="GUID-598B6698-3518-50CA-98DE-D85CB255BA2D.dita#GUID-598B6698-3518-50CA-98DE-D85CB255BA2D/GUID-C27DAD65-463E-5CC6-A7D1-58F5DB3F279E">Encrypting some data with a password and writing it to a file</xref>  </p> </li> <li id="GUID-BE3A3FB7-E5C6-5488-800A-6BDBCD693C99"><p> <xref href="GUID-598B6698-3518-50CA-98DE-D85CB255BA2D.dita#GUID-598B6698-3518-50CA-98DE-D85CB255BA2D/GUID-75B9241A-82D2-52F1-BDCE-B8E329F72BDE">Reading the data back from the file and decrypting it with the same password.</xref>  </p> </li> </ul> <p>Also, see: </p> <ul><li id="GUID-B8CC38F9-AAD9-5FCF-BE9E-F0526443AEFC"><p> <xref href="GUID-3385079E-84F4-534F-B937-BD3A568D71BC.dita">PBE example code</xref>  </p> </li> <li id="GUID-9952F1C6-982E-54EE-B8E2-29B99141106B"><p> <xref href="GUID-36BCDD1F-3713-5DF0-8D8A-CF093694B636.dita">Secure store example code</xref>  </p> </li> </ul> <section id="GUID-C27DAD65-463E-5CC6-A7D1-58F5DB3F279E"><title>Encrypting data with a password and writing it to a file</title> <ul><li id="GUID-0CF095D9-2387-5DAA-B599-9255C142D5AB"><p> <xref href="GUID-267D1E20-002E-53C7-8AE5-E063206C1562.dita">Supporting code for this example</xref>  </p> </li> </ul> <codeblock id="GUID-D41E94E7-F29F-57F4-9DC2-5BFE018BC7C8" xml:space="preserve">
+void CSecureStreamExample::WriteEncryptedDataL(const TDesC8&amp; aInput, const TDesC&amp; aFilename, const TDesC&amp; aPassword)
+         {
+         // Open a stream to the output file
+         RFileWriteStream writeStream;
+         User::LeaveIfError(writeStream.Replace(iFs, aFilename, EFileShareExclusive | EFileWrite));
+         CleanupClosePushL(writeStream);
+                
+         // Create a CPBEncryptElement object, passing details of the encryption we
+         // are using and the user's password
+         CPBEncryptElement* encryption = CPBEncryptElement::NewLC(aPassword, ECipherDES_CBC);
+                
+         // Store encryption data as the first thing in the stream
+         writeStream &lt;&lt; encryption-&gt;EncryptionData();
+                
+         // Create an REncryptStream - this wraps the write stream and encrypts
+         // everything written to it
+         REncryptStream encStream;
+         encStream.OpenL(writeStream, *encryption);
+         CleanupClosePushL(encStream);
+                
+         // Now we can simply write the plaintext to the encrypt stream - it gets
+         // encrypted automatically
+         encStream &lt;&lt; aInput;
+                
+         // Commit the stream
+         encStream.CommitL();
+                
+         // Free memory (writeStream, encryption, encStream)
+         CleanupStack::PopAndDestroy(3, &amp;writeStream);
+         }
+            </codeblock> </section> <section id="GUID-75B9241A-82D2-52F1-BDCE-B8E329F72BDE"><title>Reading data from a file and decrypting it</title> <ul><li id="GUID-952B8F2D-DBA3-5338-BC7D-CA835EA9BA29"><p> <xref href="GUID-267D1E20-002E-53C7-8AE5-E063206C1562.dita">Supporting code for this example</xref>  </p> </li> </ul> <codeblock id="GUID-93A9C97B-E085-5171-A524-2E34BF726000" xml:space="preserve">
+HBufC8* CSecureStreamExample::ReadEncryptedDataLC(const TDesC&amp; aFilename, const TDesC&amp; aPassword)
+         {
+         // Open a stream to the input file
+         RFileReadStream readStream;
+         User::LeaveIfError(readStream.Open(iFs, aFilename, EFileRead));
+         CleanupClosePushL(readStream);
+
+         // Read the encryption data from the stream
+         CPBEncryptionData* encryptionData = CPBEncryptionData::NewLC(readStream);
+         
+         // Recreate the CPBEncryptElement object, using the encryption data from the
+         // file and the user's password
+         CPBEncryptElement* encryption = CPBEncryptElement::NewLC(*encryptionData, aPassword);
+
+         // Create an RDecryptStream based on the read stream - this decrypts
+         // everything we read from it
+         RDecryptStream decStream;
+         decStream.OpenL(readStream, *encryption);
+         CleanupClosePushL(decStream);
+    
+         // Now we can read the plaintext straight from the stream
+         HBufC8* plaintext = HBufC8::NewL(decStream, KMaxTInt);
+             
+         // Free memory (readStream, encryptionData, encryption, decStream)
+         CleanupStack::PopAndDestroy(4, &amp;readStream);
+         CleanupStack::PushL(plaintext);
+    
+         // Return plaintext to the caller
+         return plaintext;
+         }
+        </codeblock> </section> </conbody></concept>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-237E0861-EC1B-41DA-BDB0-1DEB50620CC8" xml:lang="en"><title>Converting
+from UTC to local time in a non-system time zone</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps-unordered>
+<step id="GUID-ABF16F17-59D3-4655-909E-B637E1D80971"><cmd>The following code fragment converts a randomly chosen UTC time
+to local time for London:</cmd>
+<stepxmp><p><codeblock xml:space="preserve">_LIT8( KEuropeLondon,"Europe/London" );
+// Create a pointer to the time zone id.
+// This is the time zone for the local time to which you wish to convert.
+CTzId* myZoneId = CTzId::NewL( KEuropeLondon );
+CleanupStack::PushL( myZoneId );</codeblock><codeblock xml:space="preserve">// Create a client interface object to the time zone server
+RTz myTZoneServer; 
+// Connect to the time zone server, leaves if fails to connect
+User::LeaveIfError( myTZoneServer.Connect() ); 
+CleanupClosePushL( myTZoneServer );</codeblock><codeblock xml:space="preserve">// Create a converter object.
+CTzConverter* myConverter = CTzConverter::NewL( myTZoneServer ); 
+CleanupStack::PushL( myConverter );</codeblock><codeblock xml:space="preserve">_LIT8( KMyTime,"20050328:185600.00" ); // UTC time to convert (28 March 2005 18:56 hrs).
+TTime myTime( KMyTime ); // Create the time as a TTime object</codeblock><codeblock xml:space="preserve">// Convert UTC to local time in Europe/London time zone.
+myConverter-&gt;ConvertToLocalTime( myTime, *myZoneId ); 
+// myTime is updated to hold the local time value.</codeblock><codeblock xml:space="preserve">// Clean up
+CleanupStack::PopAndDestroy(3);// causes myTZoneServer.Close() to be called</codeblock></p></stepxmp>
+</step>
+</steps-unordered>
+</taskbody></task>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D2D17EF9-FFC6-5FBD-A992-55746A12B625" xml:lang="en"><title>Basic
+encryption and decryption using a symmetric cipher</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This example demonstrates how to encrypt and decrypt a small string of
+data using a symmetric cipher. Firstly, an encryption operation is performed
+on the data. Following this a decryption operation is performed on the encrypted
+data. Finally a check is made on the decrypted data for equality with the
+original data which tests that the encrypt and decrypt operations have maintained
+data integrity. </p>
+<codeblock id="GUID-E9342EBD-213A-53CE-BA3E-93CC24D63319" xml:space="preserve">#include &lt;legacyselector.h&gt;
+#include &lt;cryptosymmetriccipherapi.h&gt;
+#include &lt;keys.h&gt;
+
+using namespace CryptoSpi;
+
+//Create a new CCryptoParams object to encapsulate the secret key string and key type
+CCryptoParams* params = CCryptoParams::NewLC(); 
+
+//Add the secret key to the CCryptoParams object by calling the CCryptoParams::AddL() method,  
+//passing in the key string and appropriate key parameter UID
+params-&gt;AddL( _L8("12345678"), KSymmetricKeyParameterUid);
+
+//Create a key object (CKey) by passing in an instance of TKeyProperty and the previously 
+//created CCryptoParams object containing the secret key. 
+TKeyProperty keyProperty = {KDesUid, KNullUid, KSymmetricKey, KNonEmbeddedKeyUid};
+CKey* key=CKey::NewL(keyProperty, *params); 
+CleanupStack::PushL(key);
+//Create and initialize a pointer for the Symmetric cipher implementation object
+CSymmetricCipher* impl = NULL;    
+
+//Create a symmetric cipher passing in the appropriate CKey object
+TRAPD(err, CSymmetricCipherFactory::CreateSymmetricCipherL
+    (impl,
+    KDesUid,
+    *key,
+    KCryptoModeEncryptUid,  // This can be either encrypt or decrypt
+    KOperationModeECBUid,   // Use "electronic code book" mode
+    KPaddingModeNoneUid,   // This is the type of padding to be used
+    NULL));
+
+//Check the return value and for non NULL
+if (impl &amp;&amp; (err == KErrNone))
+    {
+    //Create a buffer holding the data to be encrypted
+    TBuf8&lt;8&gt; srcData(_L8("12345678"));
+    
+    //Create a buffer to hold the encrypted data.
+    //MaxFinalOutputLength() returns the number of bytes the buffer passed to ProcessFinalL()
+    //needs to be capable of holding
+    TInt maxOutputLength = impl-&gt;MaxFinalOutputLength(srcData.Length());
+    HBufC8* encrypted =    HBufC8::NewLC(maxOutputLength);
+    TPtr8 encryptedPtr = encrypted-&gt;Des();
+
+    //Perform the encryption operation 
+    //ProcessFinalL() pads the input buffer if required
+    TRAP(err, impl-&gt;ProcessFinalL(srcData, encryptedPtr));
+
+    if (err == KErrNone)
+        {
+        //Switch to decrypt mode
+        impl-&gt;SetCryptoModeL(KCryptoModeDecryptUid);
+    
+        //Create a buffer for the decrypted data
+        maxOutputLength = encryptedPtr.Length();
+        HBufC8* output = HBufC8::NewLC(impl-&gt;MaxFinalOutputLength(maxOutputLength));
+        TPtr8 outputPtr = output-&gt;Des();
+        
+        //Perform the decryption operation
+        TRAP(err, impl-&gt;ProcessFinalL(encryptedPtr, outputPtr));
+
+    if (err == KErrNone)
+        {
+            //Check that the original source data matches the data that 
+            //has been encrypted then decrypted
+            if (!outputPtr.Compare(srcData))
+                {
+                // Descriptors are the same - successful encrypt/decrypt check
+                }
+            }
+
+        CleanupStack::PopAndDestroy(output); 
+        }
+
+    CleanupStack::PopAndDestroy(encrypted); 
+    }
+
+//Destroy the symmetric implementation object    
+delete impl;
+impl = NULL;
+
+CleanupStack::PopAndDestroy(key);
+CleanupStack::PopAndDestroy(params);</codeblock>
+</conbody></concept>

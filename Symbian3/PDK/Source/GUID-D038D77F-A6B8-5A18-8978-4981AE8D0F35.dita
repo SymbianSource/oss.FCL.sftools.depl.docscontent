@@ -9,7 +9,96 @@ Contributors:
 -->
 <!DOCTYPE task
   PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
-<task xml:lang="en" id="GUID-D038D77F-A6B8-5A18-8978-4981AE8D0F35"><title> Using the Encoded H264 Video Frames to Capture Video</title><shortdesc>This topic describes how to use the encoded H264 video frames in the Ecam video capture function to capture the video data. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody> <prereq id="GUID-E8812B46-29C5-56D8-9658-B0B03D601B2C"><p>You need to be familiar with the <xref href="GUID-F690DAC8-688B-5BD7-88DF-0CB3D4ACDCFF.dita">Capturing Video</xref> tutorial. </p> </prereq> <context id="GUID-3B0CFDEE-297B-56D0-A73A-B45C2E8C550C"><p>The H264 video encoder provides a new, high quality video data encoding format for Ecam. Ecam allows the device to capture video frames which are encoded in the H264 format. The Ecam video capture function supports the H264 video capture format by default. You can select the H264 video capture format when preparing video capture. </p> </context> <steps id="GUID-459D27D6-C0F7-5B94-8E34-C250AF3B6B77"><step id="GUID-4A02BBE6-CDAE-5FD1-8F05-30867627197B"><cmd/><stepxmp>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::NewL()</apiname></xref> function to create an object that maps the exported call to an internal object of the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCameraVideoCaptureControl</apiname></xref> function. </stepxmp> </step> <step id="GUID-480FA9CE-DC0A-5586-A4C2-A2DEB1D7BCEE"><cmd/><info>Pass a handle to the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCameraVideoCaptureControl</apiname></xref> function. This implementation creates a handle to the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl</apiname></xref> object by the active <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera</apiname></xref> during the construction phase. </info> <info>The <codeph>CCameraVideoCaptureControl</codeph> object makes an internal call to the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera::CustomInterface()</apiname></xref> function of the active <codeph>CCamera</codeph> implementation. The <codeph>CustomInterface()</codeph> function passes a UID <codeph>KECamMCameraVideoCaptureControlUid</codeph> value for the <codeph>CCamera</codeph> implementation. </info> <info>The <codeph>CCamera</codeph> implementation creates the concrete implementation of the <codeph>MCameraVideoCaptureControl</codeph> function and passes back a handle to the <codeph>CCameraVideoCaptureControl</codeph> object. </info> </step> <step id="GUID-1F00FA5C-498E-505F-8A2B-B1DB2E5528C4"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCaptureVideoObserver</apiname></xref> function to notify when the video capture operations are ready. </info> </step> <step id="GUID-02A5B55C-7BF4-5740-9AA6-DE93C764F572"><cmd/><info>Call <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::GetVideoCaptureSupportInfoL()</apiname></xref> to identify which video capture modes are supported by the <codeph>CCamera</codeph> implementation. </info> </step> <step id="GUID-4618EA07-9B5A-509C-8196-4C545A2CA014"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>TPrepareVideoParameters::SetVideoCaptureType()</apiname></xref> function to set the desired video capture mode as the <codeph>EClientVideoCapture</codeph> or <codeph>EDirectVideoCapture</codeph> mode. </info> </step> <step id="GUID-F2EE097C-A418-51EB-9870-3E0C665B5D9D"><cmd/><info>Set the value of <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::TPrepareVideoParameter::iFormat()</apiname></xref> to the <codeph>EFormatEncodedH264</codeph> value for the <codeph>CCamera</codeph> implementation. This <codeph>CCamera</codeph> implementation supports the H264 video encoding data format. </info> </step> <step id="GUID-84015E19-B259-59DD-B178-7B04EBAC7514"><cmd/><info>Prepare video capture by using the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::PrepareVideoCapture()</apiname></xref> asynchronous function. The <codeph>PrepareVideoCapture()</codeph> function performs setup and allocation of memory before calling the <codeph>StartVideoCapture()</codeph> function, in order to keep minimum latency of the <codeph>PrepareVideoCapture()</codeph> function. </info> </step> <step id="GUID-BEE6A815-D252-5958-A7CA-CD481FB30A9C"><cmd/><info>Notify the Ecam client to complete the video capture preparation using the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>KUidECamEventVideoCaptureControlPrepareComplete</apiname></xref> event. </info> </step> <step id="GUID-629707E2-1139-5A1D-A366-4442440A77F2"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::StartVideoCaptureL()</apiname></xref> function to start video capture. </info> </step> <step id="GUID-0AC88670-8F5A-53D6-88C8-4D3C741D7114"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera::CCameraVideoCaptureControl::PauseVideoCapture()</apiname></xref> function to pause the on-going video capture. </info> </step> <step id="GUID-072B351C-23E9-5BCD-8E25-371B24B6708F"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CcameraVideoCaptureControl::GetPrepareVideoParameterl()</apiname></xref> function to retrieve the current prepare video parameters. The current video capture mode is retrieved by the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>TPrepareVideoParameters::VideoCaptureMode()</apiname></xref> function. </info> </step> <step id="GUID-DFED1955-7B01-549E-8966-69E972DAACD2"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera::CCameraVideoCaptureControl::ResumeVideoCaptureL()</apiname></xref> function to resume the on-going video capture. </info> </step> <step id="GUID-4A7B8939-36FF-5484-9450-7914DA5E52E7"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera::CCameraVideoCaptureControl::StopVideoCapture()</apiname></xref> function to stop video capture. </info> </step> <step id="GUID-799FED22-0DBA-5625-BF8E-20B2FEF87D99"><cmd/><info>Call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCameraVideoCaptureControl::ReleaseVideoResource()</apiname></xref> function to release the video resource, which is allocated while performing the <codeph>PrepareVideoCapture()</codeph> function. </info> </step> <step id="GUID-941398B5-722A-57CA-95FF-220E3C6DECE6"><cmd/><info>If an error occurs while performing video capture, call the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>MCaptureVideoObserver::DirectVideoCaptureFailed()</apiname></xref> function. Any video capture operation is stopped. </info> </step> </steps> <example><title>Example</title> <p>The following example code snippet illustrates video capture using H264 encoding: </p> <codeblock id="GUID-20E7DB2D-56B3-5E64-8B8F-C91188BB93D7" xml:space="preserve">
+<task id="GUID-D038D77F-A6B8-5A18-8978-4981AE8D0F35" xml:lang="en"><title> Using
+the Encoded H264 Video Frames to Capture Video</title><shortdesc>This topic describes how to use the encoded H264 video frames in
+the Ecam video capture function to capture the video data. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-E8812B46-29C5-56D8-9658-B0B03D601B2C"><p>You need to be familiar
+with the <xref href="GUID-AB9A3EA2-2B99-4502-A161-8EE5BF477D41.dita">Capturing
+a Video Clip</xref> tutorial. </p> </prereq>
+<context id="GUID-3B0CFDEE-297B-56D0-A73A-B45C2E8C550C"><p>The H264 video
+encoder provides a new, high quality video data encoding format for Ecam.
+Ecam allows the device to capture video frames which are encoded in the H264
+format. The Ecam video capture function supports the H264 video capture format
+by default. You can select the H264 video capture format when preparing video
+capture. </p> </context>
+<steps id="GUID-459D27D6-C0F7-5B94-8E34-C250AF3B6B77">
+<step id="GUID-4A02BBE6-CDAE-5FD1-8F05-30867627197B"><cmd/>
+<stepxmp>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-657990CF-32FF-34A0-9D82-FAC1E7913494"><apiname>CCamera::CCameraVideoCaptureControl::NewL(CCamera
+&amp;,MCaptureVideoObserver &amp;)</apiname></xref> function to create an object
+that maps the exported call to an internal object of the <xref href="GUID-11495CEA-9F67-3B9A-A35C-E7555ED28316.dita"><apiname>MCameraVideoCaptureControl</apiname></xref> function. </stepxmp>
+</step>
+<step id="GUID-480FA9CE-DC0A-5586-A4C2-A2DEB1D7BCEE"><cmd/>
+<info>Pass a handle to the <xref href="GUID-11495CEA-9F67-3B9A-A35C-E7555ED28316.dita"><apiname>MCameraVideoCaptureControl</apiname></xref> function.
+This implementation creates a handle to the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita#GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4/GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460"><apiname>CCamera::CCameraVideoCaptureControl</apiname></xref> object
+by the active <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita"><apiname>CCamera</apiname></xref> during the construction phase. </info>
+<info>The <codeph>CCameraVideoCaptureControl</codeph> object makes an internal
+call to the <xref href="GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4.dita#GUID-021C509B-C821-3401-B2F4-DE7F52BB16D4/GUID-2F2F5EB8-1009-306D-A7C4-25BE5A39AA39"><apiname>CCamera::CustomInterface(TUid)</apiname></xref> function of
+the active <codeph>CCamera</codeph> implementation. The <codeph>CustomInterface()</codeph> function
+passes a UID <codeph>KECamMCameraVideoCaptureControlUid</codeph> value for
+the <codeph>CCamera</codeph> implementation. </info>
+<info>The <codeph>CCamera</codeph> implementation creates the concrete implementation
+of the <codeph>MCameraVideoCaptureControl</codeph> function and passes back
+a handle to the <codeph>CCameraVideoCaptureControl</codeph> object. </info>
+</step>
+<step id="GUID-1F00FA5C-498E-505F-8A2B-B1DB2E5528C4"><cmd/>
+<info>Call the <xref href="GUID-7FAEB878-52B1-3A54-9607-69AE09AB8AEB.dita"><apiname>MCaptureVideoObserver</apiname></xref> function to notify
+when the video capture operations are ready. </info>
+</step>
+<step id="GUID-02A5B55C-7BF4-5740-9AA6-DE93C764F572"><cmd/>
+<info>Call <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-4876C362-8BA1-3E91-9A3A-203FCC6F70DB"><apiname>CCamera::CCameraVideoCaptureControl::GetVideoCaptureSupportInfoL(TInt
+&amp;)const</apiname></xref> to identify which video capture modes are supported
+by the <codeph>CCamera</codeph> implementation. </info>
+</step>
+<step id="GUID-4618EA07-9B5A-509C-8196-4C545A2CA014"><cmd/>
+<info>Call the <xref href="GUID-1D8E709A-35E2-3CBE-A222-F8BA17A294DA.dita#GUID-1D8E709A-35E2-3CBE-A222-F8BA17A294DA/GUID-9069A4C8-CBEE-351B-8512-F5858F6387CD"><apiname>CCamera::CCameraVideoCaptureControl::TPrepareVideoParameters::SetVideoCaptureType(CCamera::CCameraVideoCaptureControl::TVideoCaptureType)</apiname></xref> function to set the desired video capture mode as the <codeph>EClientVideoCapture</codeph> or <codeph>EDirectVideoCapture</codeph> mode. </info>
+</step>
+<step id="GUID-F2EE097C-A418-51EB-9870-3E0C665B5D9D"><cmd/>
+<info>Set the value of <xref href="GUID-007358AE-9795-33EB-A3BE-4788D309135D.dita#GUID-007358AE-9795-33EB-A3BE-4788D309135D/GUID-B533837C-5670-3115-9DAC-3C45B0A274E4"><apiname>CCamera::CCameraVideoCaptureControl::TPrepareVideoParameters::iFormat</apiname></xref> to
+the <codeph>EFormatEncodedH264</codeph> value for the <codeph>CCamera</codeph> implementation.
+This <codeph>CCamera</codeph> implementation supports the H264 video encoding
+data format. </info>
+</step>
+<step id="GUID-84015E19-B259-59DD-B178-7B04EBAC7514"><cmd/>
+<info>Prepare video capture by using the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-91EA4417-6AF2-391E-BBB2-A6E202F835BB"><apiname>CCamera::CCameraVideoCaptureControl::PrepareVideoCapture(const
+TPrepareVideoParameters &amp;)</apiname></xref> asynchronous function. The <codeph>PrepareVideoCapture()</codeph> function
+performs setup and allocation of memory before calling the <codeph>StartVideoCapture()</codeph> function,
+in order to keep minimum latency of the <codeph>PrepareVideoCapture()</codeph> function. </info>
+</step>
+<step id="GUID-BEE6A815-D252-5958-A7CA-CD481FB30A9C"><cmd/>
+<info>Notify the Ecam client to complete the video capture preparation using
+the <xref href="GUID-203BEBE6-F7B8-30EA-824B-AA45B88304E1.dita"><apiname>KUidECamEventVideoCaptureControlPrepareComplete</apiname></xref> event. </info>
+</step>
+<step id="GUID-629707E2-1139-5A1D-A366-4442440A77F2"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-774897D4-271E-3D7D-AAA6-033D34A39D74"><apiname>CCamera::CCameraVideoCaptureControl::StartVideoCaptureL()</apiname></xref> function
+to start video capture. </info>
+</step>
+<step id="GUID-0AC88670-8F5A-53D6-88C8-4D3C741D7114"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-5EB82FE6-4025-3F78-9DAD-6851086A46C6"><apiname>CCamera::CCameraVideoCaptureControl::PauseVideoCapture()</apiname></xref> function
+to pause the on-going video capture. </info>
+</step>
+<step id="GUID-072B351C-23E9-5BCD-8E25-371B24B6708F"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-AAECC4A5-742A-3B17-9FBE-8051EF891476"><apiname>CCamera::CCameraVideoCaptureControl::GetPrepareVideoParametersL(TPrepareVideoParameters
+&amp;)const</apiname></xref> function to retrieve the current prepare video parameters.
+The current video capture type is retrieved by the <xref href="GUID-007358AE-9795-33EB-A3BE-4788D309135D.dita#GUID-007358AE-9795-33EB-A3BE-4788D309135D/GUID-ED307366-65E3-3557-9479-463A595D34BC"><apiname>CCamera::CCameraVideoCaptureControl::TPrepareVideoParameters::VideoCaptureType()const</apiname></xref> function. </info>
+</step>
+<step id="GUID-DFED1955-7B01-549E-8966-69E972DAACD2"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-D9BECEAD-8695-3B8B-A537-9F7B96EF1A2A"><apiname>CCamera::CCameraVideoCaptureControl::ResumeVideoCaptureL()</apiname></xref> function
+to resume the on-going video capture. </info>
+</step>
+<step id="GUID-4A7B8939-36FF-5484-9450-7914DA5E52E7"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-017E7D68-9971-3966-B863-95471AC8636F"><apiname>CCamera::CCameraVideoCaptureControl::StopVideoCapture()</apiname></xref> function
+to stop video capture. </info>
+</step>
+<step id="GUID-799FED22-0DBA-5625-BF8E-20B2FEF87D99"><cmd/>
+<info>Call the <xref href="GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460.dita#GUID-D74635DE-C5D8-3A9A-ABDD-8324D8EFF460/GUID-3234F65D-A8FC-334E-B1A5-4382862B071C"><apiname>CCamera::CCameraVideoCaptureControl::ReleaseVideoResource()()</apiname></xref> function
+to release the video resource, which is allocated while performing the <codeph>PrepareVideoCapture()</codeph> function. </info>
+</step>
+<step id="GUID-941398B5-722A-57CA-95FF-220E3C6DECE6"><cmd/>
+<info>If an error occurs while performing video capture, call the <xref href="GUID-7FAEB878-52B1-3A54-9607-69AE09AB8AEB.dita#GUID-7FAEB878-52B1-3A54-9607-69AE09AB8AEB/GUID-5B505097-BA38-3CF9-86D8-EA62EC2CFBB4"><apiname>MCaptureVideoObserver::DirectVideoCaptureFailed(TInt)</apiname></xref> function. Any video capture operation is stopped. </info>
+</step>
+</steps>
+<example><title>Example</title> <p>The following example code snippet illustrates
+video capture using H264 encoding: </p> <codeblock id="GUID-20E7DB2D-56B3-5E64-8B8F-C91188BB93D7" xml:space="preserve">
 
 CCamera* camera = NULL;
 MCameraObserver2* observer2 = NULL;
@@ -50,5 +139,10 @@ CCamera::CCameraVideoCaptureControl::TVideoCaptureType retrievedVideoCaptureType
 retrievedVideoCaptureType = retrievedVideoParam.VideoCaptureType();
 
 
-</codeblock> </example> </taskbody><related-links><link href="GUID-9DE1CE5D-F148-5A7E-908A-DDD57A32C629.dita"><linktext>Camera API</linktext> </link> <link href="GUID-9014ED9B-B0A0-5C95-9C5B-7D2F658C757F.dita"><linktext>Accessing and Power Control of
-                Camera</linktext> </link> <link href="GUID-FAB548CF-24EB-52D1-A7A1-9446BA67C7A5.dita"><linktext>Camera Preset Support</linktext> </link> <link href="GUID-DA26D246-D74A-529F-9F81-11B45669103F.dita"><linktext>Capturing Image</linktext> </link> </related-links></task>
+</codeblock> </example>
+</taskbody><related-links>
+<link href="GUID-FAB548CF-24EB-52D1-A7A1-9446BA67C7A5.dita"><linktext>Camera Preset
+Support</linktext></link>
+<link href="GUID-A1D2C673-3B91-403A-800B-5E1504FB19EE.dita"><linktext>Capturing
+Still Images</linktext></link>
+</related-links></task>

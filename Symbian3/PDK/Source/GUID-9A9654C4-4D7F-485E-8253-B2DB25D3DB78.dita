@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-9A9654C4-4D7F-485E-8253-B2DB25D3DB78" xml:lang="en"><title>Creating a User-Defined Time Zone</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-56B00847-6F7D-49AB-AFA5-D5ACF0D2EC2F">       <p>This tutorial describes how a device creator creates a user-defined
+time zone using <codeph>CTzUserData</codeph>.</p>The high-level steps
+to create a user-defined time zone are described in Procedure section:</context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-12-1-12-1-1-8-1-5-1-6-1-2-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-12-1-12-1-1-8-1-5-1-6-1-2-2-1"><cmd>Create the
+TZ rules object using <xref href="GUID-EA377928-E467-3761-B572-36AE27841ADC.dita#GUID-EA377928-E467-3761-B572-36AE27841ADC/GUID-6A1D18BB-D4B4-39E3-B4AF-C5736A152195"><apiname>CTzRules::NewL()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-A0FB246B-6F3F-4E32-BCA4-3CF51CACBA3B"><cmd>Use the <xref href="GUID-C40593C4-D60C-39D5-8CB2-4B5D7BBE8ED4.dita#GUID-C40593C4-D60C-39D5-8CB2-4B5D7BBE8ED4/GUID-2E630EE3-1DDB-3F9D-A75B-2119E1B02EF8"><apiname>CTzUserNames::NewL()</apiname></xref> function to create a TZ names object.</cmd>
+</step>
+<step id="GUID-81B15C8E-7F6C-4609-B8A0-9DD1F35E4D1C"><cmd>Connect
+to the TZ server using <xref href="GUID-052221AD-916E-3E47-9510-AC0495A19A70.dita#GUID-052221AD-916E-3E47-9510-AC0495A19A70/GUID-375E314E-3B59-3722-AECA-1DC873507711"><apiname>RTz::Connect()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-611E332C-9188-4451-B95F-2FA353D5A109"><cmd>Create a
+user-defined time zone using <xref href="GUID-1A53F535-96FC-387D-A02D-CAF8B1CEBCF1.dita#GUID-1A53F535-96FC-387D-A02D-CAF8B1CEBCF1/GUID-6D622414-0E99-39E6-8347-BC8CFD709D1D"><apiname>CTzUserData::CreateL()</apiname></xref>. </cmd>
+</step>
+</steps>
+<example><p>An illustration of the procedure is given below. Note
+that cleanup stack management and <codeph>CTzRules</codeph> object
+creation details are omitted for clarity. </p><codeblock xml:space="preserve">#include &lt;tz.h&gt; // For CTzUserData etc.
+#include &lt;…&gt;
+
+...
+
+// These strings would typically be supplied by the UI 
+layer.
+_LIT( KTzUserStdName,      ”Mountain Standard Time” );
+_LIT( KTzUserShortStdName, ”MST” );
+_LIT( KTzUserDstName,      ”Mountain Daylight Time” );
+_LIT( KTzUserShortDstName, ”MDT” );
+_LIT( KTzUserCityName,     ”Window Rock” );
+_LIT( KTzUserRegionName,   ”America” );
+
+// Create TZ rules object.
+CTzRules* tzRules = ...;
+
+// Create TZ names object.
+CTzUserNames* tzNames = CTzUserNames::NewL( KTzUserStdName,
+                                            KTzUserShortStdName,
+                                            KTzUserDstName,
+                                            KTzUserShortDstName,
+                                            KTzUserCityName,
+                                            KTzUserRegionName );
+
+// Connect to TZ Server.
+RTz tzServer;
+User::LeaveIfError( tzServer.Connect() );
+
+// Create user-defined TZ.
+CTzUserData* tzUserData = CTzUserData::NewL( tzServer );
+CTzId* userTzId = tzUserData-&gt;CreateL( *tzRules, *tzNames );
+
+...</codeblock></example>
+</taskbody><related-links>
+<linklist>
+<link href="GUID-E0D4EFAC-85E6-4EF6-B65C-1D1602E3A8FD.dita"><linktext>Create
+a user-defined time zone from an existing time zone </linktext></link>
+<link href="GUID-676D1493-0035-4AD3-A0E5-A207B25809E4.dita"><linktext>Time
+Zone Services Overview </linktext></link>
+</linklist>
+</related-links></task>

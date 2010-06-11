@@ -9,74 +9,65 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-C21BB0E4-7AF7-58E5-AAD6-8CE67399460C" xml:lang="en"><title>MessageQueue
-Example</title><shortdesc>This example application shows the use of message queue in interprocess
-communication using the RMsgQueue class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<section id="GUID-ED679CA7-FF4C-4E69-8663-5DA46A3D94F4"><title>Download</title> <p>Click
-on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-d72e85ad-4659-4f66-9cb3-f084e9505709.zip" scope="external">MessageQueueExample.zip</xref>.</p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-d72e85ad-4659-4f66-9cb3-f084e9505709.html" scope="peer">browse</xref> to view the example code.</p> </section>
-<section id="GUID-39D2064D-AD24-4785-956F-18A0CAD57B81"><title>Description</title> <p>The
-example describes the global message queue. The following sections provide
-more information. </p> <p><b> MessageQueueExample</b> </p> <p>The example
-comprises two processes: a Collector, which collects words from the user via
-the console, and an Inverter, which periodically reverses the order of the
-collected words. The Collector and the Inverter pass words to each other using
-two message queues: InverterInQ and InverterOutQ. The Collector is the main
-process which starts the Inverter process. The Collector process takes user
-input in form of different words and sends to the Inverter process via message
-queue. The Inverter process receives messages at a regular interval of 10
-seconds, inverts the words in the message and sends it back to the Collector. </p> <p>The
-Collector creates an active object to collect words from the user and another
-active object to receive words from the Inverter. Each active object has its
-own console for display. More information about running the example is given
-in the build section of this document. </p> <p><b>Design</b> </p> <p>The following
-block diagram describes the example in more detail. </p> <fig id="GUID-27A0C389-EDDD-5E17-82EE-2727F21803AF">
-<image href="GUID-CD7F507C-CDD5-5612-BA1B-72641D28FA4A_d0e367176_href.png" placement="inline"/>
-</fig><p><filepath>CCollector.exe</filepath> is the Collector process. The
-user starts the Collector and creates an active scheduler and two global message
-queues. It also starts the Inverter process called <filepath>Inverter.exe</filepath>.
-The Collector creates one active object to collect words from the user and
-another active object to monitor its input queue (InverterOutQ). The active
-object to collect words is an object of class CCollector and the active object
-which monitors <codeph>InverterOutQ</codeph> is an object of class <xref href="GUID-A39BC295-2845-3018-B8B8-49418277E7EB.dita"><apiname>CMsgQActive</apiname></xref>.
-The two active objects have different consoles (one for user input and one
-for displaying the output message). </p><p> The user inputs words in the console.
-The set of words goes to the <codeph>InverterInQ</codeph> when the "<codeph>Enter</codeph>"
-key is pressed. If the "<codeph>ESC</codeph>" key is pressed, the system stops
-and sends the command to the Inverter process to stop.</p><p> The Inverter
-is another process which opens the global message queues. It creates an active
-scheduler and implements a periodic timer. The timer wakes every 10 seconds
-to receive the words from the <codeph>InverterInQ</codeph>. It also checks
-for a stop command, which closes the message queue and the two process. The
-Inverter inverts the received words and sends the result to <codeph>InverterOutQ</codeph>. </p><p>In
-the Collector process, the active object that monitors the <codeph>InveterOutQ</codeph> opens
-the message queue, receives the received words and displays  them in its console.
-It uses the <xref href="GUID-6E6B3CD0-FB61-336D-9357-2FFBE3F7A57A.dita"><apiname>NotifyDataAvailable()</apiname></xref> API to monitor the queue
-for the next set of data. </p><p>The Class diagram of the example is shown
-below </p><fig id="GUID-E93EF1D6-1B9D-4C76-80B0-1FF660B5C75A">
-<image href="GUID-3560E862-CB68-584F-B9B6-FCD9F0D202DC_d0e367224_href.png" placement="inline"/>
+<concept id="GUID-C21BB0E4-7AF7-58E5-AAD6-8CE67399460C" xml:lang="en"><title>MessageQueue Example</title><shortdesc>This example application shows the use of message queue
+in interprocess communication using the RMsgQueue class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-ED679CA7-FF4C-4E69-8663-5DA46A3D94F4"><title>Download</title> <p>Click on the following link to download the example: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/zips/guid-d72e85ad-4659-4f66-9cb3-f084e9505709.zip" scope="external">MessageQueueExample.zip</xref>.</p><p>Click: <xref href="guid-6013a680-57f9-415b-8851-c4fa63356636/guid-d72e85ad-4659-4f66-9cb3-f084e9505709.html" scope="peer">browse</xref> to view the example code.</p> </section>
+<section id="GUID-39D2064D-AD24-4785-956F-18A0CAD57B81"><title>Description</title> <p>The example describes the global message queue. The following
+sections provide more information. </p> <p><b> MessageQueueExample</b> </p> <p>The example comprises two processes: a Collector, which
+collects words from the user via the console, and an Inverter, which
+periodically reverses the order of the collected words. The Collector
+and the Inverter pass words to each other using two message queues:
+InverterInQ and InverterOutQ. The Collector is the main process which
+starts the Inverter process. The Collector process takes user input
+in form of different words and sends to the Inverter process via message
+queue. The Inverter process receives messages at a regular interval
+of 10 seconds, inverts the words in the message and sends it back
+to the Collector. </p> <p>The Collector creates an active object to
+collect words from the user and another active object to receive words
+from the Inverter. Each active object has its own console for display.
+More information about running the example is given in the build section
+of this document. </p> <p><b>Design</b> </p> <p>The following block
+diagram describes the example in more detail. </p> <fig id="GUID-27A0C389-EDDD-5E17-82EE-2727F21803AF">
+<image href="GUID-CD7F507C-CDD5-5612-BA1B-72641D28FA4A_d0e355751_href.png" placement="inline"/>
+</fig><p><filepath>CCollector.exe</filepath> is the Collector process.
+The user starts the Collector and creates an active scheduler and
+two global message queues. It also starts the Inverter process called <filepath>Inverter.exe</filepath>. The Collector creates one active object
+to collect words from the user and another active object to monitor
+its input queue (InverterOutQ). The active object to collect words
+is an object of class CCollector and the active object which monitors <codeph>InverterOutQ</codeph> is an object of class <xref href="GUID-A39BC295-2845-3018-B8B8-49418277E7EB.dita"><apiname>CMsgQActive</apiname></xref>. The two active objects have different consoles (one for user input
+and one for displaying the output message). </p><p> The user inputs
+words in the console. The set of words goes to the <codeph>InverterInQ</codeph> when the "<codeph>Enter</codeph>" key is pressed. If the "<codeph>ESC</codeph>" key is pressed, the system stops and sends the command
+to the Inverter process to stop.</p><p> The Inverter is another process
+which opens the global message queues. It creates an active scheduler
+and implements a periodic timer. The timer wakes every 10 seconds
+to receive the words from the <codeph>InverterInQ</codeph>. It also
+checks for a stop command, which closes the message queue and the
+two process. The Inverter inverts the received words and sends the
+result to <codeph>InverterOutQ</codeph>. </p><p>In the Collector process,
+the active object that monitors the <codeph>InveterOutQ</codeph> opens
+the message queue, receives the received words and displays  them
+in its console. It uses the <xref href="GUID-22E24B08-175B-3446-9D48-9AC4B1663E35.dita"><apiname>NotifyDataAvailable(TRequestStatus&amp;)</apiname></xref> API to monitor the queue for the next set of data. </p><p>The Class diagram of the example is shown below </p><fig id="GUID-E93EF1D6-1B9D-4C76-80B0-1FF660B5C75A">
+<image href="GUID-3560E862-CB68-584F-B9B6-FCD9F0D202DC_d0e355800_href.png" placement="inline"/>
 </fig> </section>
-<section id="GUID-86B04D06-7046-49BD-AE1A-57D5E406F864"><title>Class summary</title><ul>
+<section id="GUID-86B04D06-7046-49BD-AE1A-57D5E406F864"><title>Class
+summary</title><ul>
 <li><p> <xref href="GUID-3CECC9FC-58C1-3117-AAF2-FDF88341F56F.dita"><apiname>CPeriodic</apiname></xref> - Periodic timer active object.</p></li>
 <li><p><xref href="GUID-5195B8D1-851E-3BEE-A72D-1841C0937300.dita"><apiname> RMsgQueue</apiname></xref> - A handle to a message queue.</p></li>
-<li><p><xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita"><apiname> RProcess</apiname></xref>A handle to a process.</p></li>
-<li><p><xref href="GUID-067293BF-B28C-3CEC-92F4-1351A795EA7F.dita"><apiname> CActive</apiname></xref> - The core class of the active object abstraction.</p></li>
+<li><p><xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita"><apiname> RProcess </apiname></xref> - A handle to a process.</p></li>
+<li><p><xref href="GUID-067293BF-B28C-3CEC-92F4-1351A795EA7F.dita"><apiname> CActive</apiname></xref> - The core class of the active
+object abstraction.</p></li>
 </ul></section>
-<section id="GUID-F8D41313-760D-417E-834C-09D41F4EDB06"><title>Build</title> <p>The <xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">Symbian build
-process</xref> describes how to build this example application. </p> <p>The
-example builds an executable called <filepath>Inverter.exe</filepath> and <filepath>Collector.exe</filepath> in
-the standard locations. </p> <p>To run the example, first build <filepath>Inverter.exe</filepath> and
-start <filepath>Collector.exe</filepath> from the file system or from your
-IDE. After launching the .exes (and depending on the emulator you are using)
-you may need to navigate away from the application launcher or shell screen
-to view the console. </p> <p>A message input console is used for user input
-and an output message console is used to display inverted words. The output
-message console that is displayed at startup. The user can switch between
-two consoles by <cmdname>Ctrl+Shift+Alt+t </cmdname> combination. </p> <p>The
-input message console is used to input words. A user presses enter to send
-the words to the Inverter and presses <cmdname>ESC</cmdname> to exit the application.
-When a user presses "Enter" the words go to the <codeph>InverterInQ</codeph>.
+<section id="GUID-F8D41313-760D-417E-834C-09D41F4EDB06"><title>Build</title> <p>The <xref href="GUID-3100800B-B2F7-50EF-BD4C-3C345ECCB2A5.dita">Symbian
+build process</xref> describes how to build this example application. </p> <p>The example builds an executable called <filepath>Inverter.exe</filepath> and <filepath>Collector.exe</filepath> in the standard locations. </p> <p>To run the example, first build <filepath>Inverter.exe</filepath> and start <filepath>Collector.exe</filepath> from the file system
+or from your IDE. After launching the .exes (and depending on the
+emulator you are using) you may need to navigate away from the application
+launcher or shell screen to view the console. </p> <p>A message input
+console is used for user input and an output message console is used
+to display inverted words. The output message console that is displayed
+at startup. The user can switch between two consoles by <cmdname>Ctrl+Shift+Alt+t </cmdname> combination. </p> <p>The input message console is used to input
+words. A user presses enter to send the words to the Inverter and
+presses <cmdname>ESC</cmdname> to exit the application. When a user
+presses "Enter" the words go to the <codeph>InverterInQ</codeph>.
 The Inverter opens the <codeph>InverterInQ</codeph> at periodic intervals
-of 10 secs and inverts the words which it sends to the collector via <codeph>InverterOutQ</codeph>.
-The Collector opens the <codeph>InverterOutQ</codeph> and display the words
-in the output message console. </p> </section>
+of 10 secs and inverts the words which it sends to the collector via <codeph>InverterOutQ</codeph>. The Collector opens the <codeph>InverterOutQ</codeph> and display the words in the output message console. </p> </section>
 </conbody></concept>

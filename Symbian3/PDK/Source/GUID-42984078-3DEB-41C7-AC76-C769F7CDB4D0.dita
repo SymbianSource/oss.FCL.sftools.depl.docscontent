@@ -9,129 +9,121 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-42984078-3DEB-41C7-AC76-C769F7CDB4D0" xml:lang="en"><title>Implementing
-eglSwapBuffers</title><shortdesc>This topic explains how to implement eglSwapBuffers() on the Symbian
-platform. It provides information about how to handle a window resize and
-the preserve buffer option.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<section>       <title>Promoting buffers to the screen </title>       <p>EGL
-composition surfaces have two buffers, known as the front and back buffers.
-Call <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref> to initiate
-the composing of a specified buffer of a composition surface to the screen.
-This is an asynchronous operation. If you want to be notified when it has
-finished, call <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> immediately
-before you call <codeph>SubmitUpdate()</codeph>. </p> <p> <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> takes
-a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref>, which you can wait on in the usual way—for
-example, by using an active object or <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref>. </p> <p>If
-a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> is waiting for the first buffer to complete
-composition, you need to submit the second buffer before the first buffer's <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> is
-signaled (unless there is an error). This means that there is interleaving
-between the two buffers. </p>     </section>
-<section>       <title>Synchronization and threads </title>       <p>First
-let us consider a scenario that illustrates how <codeph>eglSwapBuffers()</codeph> works.
-The front buffer (<i>Buffer 0</i>) is in the process of being displayed and
-the back buffer (<i>Buffer 1</i>) is receiving drawing commands for the next
-animation frame. The client calls <codeph>eglSwapBuffers()</codeph> when all
-of the drawing commands for the next frame have been issued. </p> <p> <codeph>eglSwapBuffers()</codeph> can
-promote <i>Buffer 1</i> to the screen by calling <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>,
-passing in its index. This makes <i>Buffer 1</i> the front buffer and <i>Buffer
-0</i> should become the new back buffer and all drawing commands should be
-directed to it. </p> <p>However, suppose the application runs faster than
-the composition engine. <i>Buffer 0</i> cannot become the new back buffer
-until its composition is complete. You therefore need to wait for <i>Buffer
-0</i> to complete composition before allowing <codeph>eglSwapBuffers()</codeph> to
-return. This means that after you submit <i>Buffer 1</i> for composition,
-you must wait for <i>Buffer 0</i> (not <i>Buffer 1</i>) to complete composition
-before returning. </p> <p>In practice it may not be possible to use active
-objects to do the waiting because <codeph>eglSwapBuffers()</codeph> must block
-on the <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> supplied to <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>.
-Using a nested <xref href="GUID-B4C76104-EA1B-3FC3-A31E-86A976598171.dita"><apiname>CActiveScheduler</apiname></xref> is not recommended because
-it can cause re-entrant issues. A call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref> may
-therefore be required. However, doing this from within a thread that has an
-active scheduler can cause stray signal panics (because each buffer has a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> but
-we only wait for one of these at a time). EGL has no control over whether
-the thread has an active scheduler because the thread is owned by the application. </p> <p>A
-possible solution is to create a separate worker thread that is owned by the
-EGL implementation and has no active scheduler. This thread calls <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> and <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>. It can safely call <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref> to wait for
-each <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> to be signaled, because the thread
-is guaranteed not to have an active scheduler. Signaling based on semaphores
-can be used to control interaction between the thread that calls <codeph>eglSwapBuffers()</codeph> and
-the worker thread that owns the <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita"><apiname>RSurfaceUpdateSession</apiname></xref>. </p> 
-   </section>
-<section>       <title>Handling a window resize event </title>       <p>A
-change in the size of an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> can be detected in <codeph>eglSwapBuffers()</codeph>,
-by calling <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-2E019F5A-6110-3940-B088-AB13F0EE6AD5"><apiname>RWindow::Size()</apiname></xref> and comparing the result with
-the previously recorded size. If the values differ, a resize has occurred.
-A typical approach on a resize is as follows (and is illustrated in the following
+<concept id="GUID-42984078-3DEB-41C7-AC76-C769F7CDB4D0" xml:lang="en"><title>Implementing eglSwapBuffers</title><shortdesc>This topic explains how to implement eglSwapBuffers() on
+the Symbian platform. It provides information about how to handle
+a window resize and the preserve buffer option.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-FDE82C6A-6F55-437E-B978-C912D41080D2">       <title>Promoting buffers to the screen </title>  
+    <p>EGL composition surfaces typically have two or more buffers,
+known as the front and back buffers. Call <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref> to initiate the composing of a specified buffer of a composition
+surface to the screen. This is an asynchronous operation. If you want
+to be notified when it has finished, call <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> immediately before you call <codeph>SubmitUpdate()</codeph>. </p> <p> <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> takes a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref>, which you can wait on
+in the usual way—for example, by using an active object or <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref>. </p> <p>If a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> is waiting for the first buffer to complete composition, you need
+to submit the second buffer before the first buffer's <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> is signaled (unless there is an error). This means that there is
+interleaving between the two buffers. </p>     </section>
+<section id="GUID-10CF8F2D-2D57-4A57-B370-3B56DDEF76B9">       <title>Synchronization and threads </title>       <p>First let us consider a scenario that illustrates how <codeph>eglSwapBuffers()</codeph> works. The composition surface has two buffers. The
+front buffer (<i>Buffer 0</i>) is in the process of being displayed
+and the back buffer (<i>Buffer 1</i>) is receiving drawing commands
+for the next animation frame. The client calls <codeph>eglSwapBuffers()</codeph> when all of the drawing commands for the next frame have been issued. </p> <p> <codeph>eglSwapBuffers()</codeph> can promote <i>Buffer 1</i> to the screen by calling <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>, passing in its index. This makes <i>Buffer 1</i> the front buffer
+and <i>Buffer 0</i> should become the new back buffer and all drawing
+commands should be directed to it. </p> <p>However, suppose the application
+runs faster than the composition engine. <i>Buffer 0</i> cannot become
+the new back buffer until its composition is complete. You therefore
+need to wait for <i>Buffer 0</i> to complete composition before allowing <codeph>eglSwapBuffers()</codeph> to return. This means that after you submit <i>Buffer 1</i> for composition, you must wait for <i>Buffer 0</i> (not <i>Buffer 1</i>) to complete composition before returning. </p> <p>In
+practice it may not be possible to use active objects to do the waiting
+because <codeph>eglSwapBuffers()</codeph> must block on the <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> supplied to <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>. Using a nested <xref href="GUID-B4C76104-EA1B-3FC3-A31E-86A976598171.dita"><apiname>CActiveScheduler</apiname></xref> is not recommended
+because it can cause re-entrant issues. A call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref> may therefore be required. However, doing this from within a thread
+that has an active scheduler can cause stray signal panics (because
+each buffer has a <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> but we only wait
+for one of these at a time). EGL has no control over whether the thread
+has an active scheduler because the thread is owned by the application. </p> <p>A possible solution is to create a separate worker thread that
+is owned by the EGL implementation and has no active scheduler. This
+thread calls <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-E8A784F8-4733-38D0-B282-B7CBD0AE4DCB"><apiname>RSurfaceUpdateSession::NotifyWhenAvailable()</apiname></xref> and <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita#GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06/GUID-2B032364-97A0-31A1-A08C-6D8E8ACC16E1"><apiname>RSurfaceUpdateSession::SubmitUpdate()</apiname></xref>. It
+can safely call <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref> to wait
+for each <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> to be signaled, because
+the thread is guaranteed not to have an active scheduler. Signaling
+based on semaphores can be used to control interaction between the
+thread that calls <codeph>eglSwapBuffers()</codeph> and the worker
+thread that owns the <xref href="GUID-FAFD23EB-90EF-3F0C-BAB3-74FEC8DF0E06.dita"><apiname>RSurfaceUpdateSession</apiname></xref>. </p>     </section>
+<section id="GUID-4EF4D8B4-27E5-4D9B-8D22-B6F8C354D6D5">       <title>Handling a window resize event </title>   
+   <p>A change in the size of an <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> can be
+detected in <codeph>eglSwapBuffers()</codeph>, by calling <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-2E019F5A-6110-3940-B088-AB13F0EE6AD5"><apiname>RWindow::Size()</apiname></xref> and comparing the result with the previously
+recorded size. If the values differ, a resize has occurred. A typical
+approach on a resize is as follows (and is illustrated in the following
 diagram): </p> <ol id="GUID-529E2F6E-21A1-5618-920C-231CA3FCD2AB">
-<li id="GUID-FA1DF0D4-DE06-56AA-8203-1EB42351D2DE"><p>Promote the current
-back buffer to the front buffer for display as usual. </p> </li>
-<li id="GUID-D254B182-2BC6-5BDF-A76E-CE2FD4527BB1"><p>Create a new composition
-surface with the new dimensions and with one of its buffers designated as
-the back buffer to receive the next set of drawing commands. </p> </li>
-<li id="GUID-DA7BB534-9565-5127-8B40-CA150E90D710"><p>On the next call to <codeph>eglSwapBuffers()</codeph>,
-register the new composition surface as the window's background surface and
-promote its back buffer to the front buffer for display. (This step is marked
-with the number 3 in the following diagram) </p> </li>
-<li id="GUID-4209FD9D-C668-5902-863C-DB49343ED634"><p>Close the previous composition
-surface. </p> </li>
+<li id="GUID-FA1DF0D4-DE06-56AA-8203-1EB42351D2DE"><p>Promote the
+current back buffer to the front buffer for display as usual. </p> </li>
+<li id="GUID-D254B182-2BC6-5BDF-A76E-CE2FD4527BB1"><p>Create a new
+composition surface with the new dimensions and with one of its buffers
+designated as the back buffer to receive the next set of drawing commands. </p> </li>
+<li id="GUID-DA7BB534-9565-5127-8B40-CA150E90D710"><p>On the next
+call to <codeph>eglSwapBuffers()</codeph>, register the new composition
+surface as the window's background surface and promote its back buffer
+to the front buffer for display. (This step is marked with the number
+3 in the following diagram) </p> </li>
+<li id="GUID-4209FD9D-C668-5902-863C-DB49343ED634"><p>Close the previous
+composition surface. </p> </li>
 </ol> <fig id="GUID-B793BDDF-7607-5BCD-94C2-44F8349D7BC5">
-<title>The buffers in the typical approach to handling a window resize event</title>
-<image href="GUID-ADC9B349-3CE4-5017-B437-A7F8890C7F0F_d0e274418_href.png" placement="inline"/>
+<title>The buffers in the typical approach to handling a window resize
+event</title>
+<image href="GUID-ADC9B349-3CE4-5017-B437-A7F8890C7F0F_d0e271514_href.png" placement="inline"/>
 </fig>    </section>
-<section id="GUID-CF08037B-2A6A-4B79-9766-E8C730C086F3">       <title>Handling
-preserve buffers </title>       <p>When the preserve buffer option is in use,
-a typical implementation promotes the current back buffer to the front buffer
-for display as usual, and copies the back buffer content to the new back buffer.
-The client application then provides incremental drawing operations on the
-new back buffer. On the next call to <codeph>eglSwapBuffers()</codeph>, the
-back buffer is again promoted for display and the content is preserved. </p><p>The
-following diagram shows the scenario of a client application drawing A and
-later B on a surface with the preserve buffers enabled. Notice that <codeph>eglSwapBuffers()</codeph> promotes
-the back buffer to the front buffer and then immediately copies the contents
-of the newly promoted buffer to the new back buffer.</p><fig id="GUID-B9C43452-0627-41FA-A68A-4C9726194A60">
+<section id="GUID-CF08037B-2A6A-4B79-9766-E8C730C086F3">       <title>Handling preserve buffers </title>       <p>When the preserve buffer
+option is in use, a typical implementation promotes the current back
+buffer to the front buffer for display as usual, and copies the back
+buffer content to the new back buffer. The client application then
+provides incremental drawing operations on the new back buffer. On
+the next call to <codeph>eglSwapBuffers()</codeph>, the back buffer
+is again promoted for display and the content is preserved. </p><p>The following diagram shows the scenario of a client application
+drawing A and later B on a surface with the preserve buffers enabled.
+Notice that <codeph>eglSwapBuffers()</codeph> promotes the back buffer
+to the front buffer and then immediately copies the contents of the
+newly promoted buffer to the new back buffer.</p><fig id="GUID-B9C43452-0627-41FA-A68A-4C9726194A60">
 <title>Handling preserve buffers</title>
-<image href="GUID-9C54DAFB-843B-41A7-8E54-9B2A39F46527_d0e274442_href.png" placement="inline"/>
+<image href="GUID-9C54DAFB-843B-41A7-8E54-9B2A39F46527_d0e271538_href.png" placement="inline"/>
 </fig>    </section>
-<section><title>Handling a window resize event with the preserve buffer option</title><p>If
-there is a window resize event when the preserve buffer option is in use, <codeph>eglSwapBuffers()</codeph> creates
-a new surface and typically copies into it any pixels that overlap the previous
-surface. To illustrate how this works, consider the following scenario:</p><ol>
-<li id="GUID-167D0FD8-22E7-495D-9627-FF7A4DDF654A"><p>A window is a wide rectangle
-showing an A.</p></li>
-<li id="GUID-3F62A9F4-6830-4010-9327-88BFD33AA818"><p>The application draws
-a B so that the window shows AB. </p></li>
-<li id="GUID-D8575A54-D2A9-4FDF-999E-E711363AE19D"><p>The user resizes the
-window to a tall thin rectangle which can only show A.</p></li>
-<li id="GUID-89A1D882-B5DC-4093-98E5-34E3063BBF25"><p>After calling <codeph>eglSwapBuffers()</codeph>,
-the application draws a C below the A.</p></li>
-</ol><p>The following diagram illustrates a typical implementation. There
-are more details below the diagram.</p><fig id="GUID-D19DF371-8640-4A2B-AF56-57EF2387CEFD">
+<section id="GUID-F357C440-7789-4439-ABBB-8B71FCCB782D"><title>Handling a window resize event with the preserve buffer
+option</title><p>If there is a window resize event when the preserve
+buffer option is in use, <codeph>eglSwapBuffers()</codeph> creates
+a new surface and typically copies into it any pixels that overlap
+the previous surface. To illustrate how this works, consider the following
+scenario:</p><ol>
+<li id="GUID-167D0FD8-22E7-495D-9627-FF7A4DDF654A"><p>A window is
+a wide rectangle showing an A.</p></li>
+<li id="GUID-3F62A9F4-6830-4010-9327-88BFD33AA818"><p>The application
+draws a B so that the window shows AB. </p></li>
+<li id="GUID-D8575A54-D2A9-4FDF-999E-E711363AE19D"><p>The user resizes
+the window to a tall thin rectangle which can only show A.</p></li>
+<li id="GUID-89A1D882-B5DC-4093-98E5-34E3063BBF25"><p>After calling <codeph>eglSwapBuffers()</codeph>, the application draws a C below the A.</p></li>
+</ol><p>The following diagram illustrates a typical implementation.
+There are more details below the diagram.</p><fig id="GUID-D19DF371-8640-4A2B-AF56-57EF2387CEFD">
 <title>Handling a window resize with the preserve buffer option</title>
-<image href="GUID-8A8FA00B-58FA-4D4E-A018-70D5558BCBFE_d0e274482_href.png" placement="inline"/>
-</fig><p>The first <codeph>eglSwapBuffers()</codeph> call (marked X in the
-diagram above) does the following:</p><ol>
-<li id="GUID-70603721-5603-4015-B382-8D3F9D693139"><p>Promotes the current
-back buffer (showing AB) to the front buffer for display as usual. </p></li>
-<li id="GUID-7040357F-1F40-4E34-ACB2-170815B06D10"><p>Copies the back buffer
-content to the new back buffer (showing AB).</p></li>
-<li id="GUID-5950B197-5661-44B5-AB7A-475C056F184C"><p>Creates a new surface
- with the new dimensions.</p></li>
-<li id="GUID-90909C1D-7335-41BF-973F-B2F82403CF40"><p>Designates one of the
-new buffers as the back buffer and copies the overlapping pixels into it.
-The new back buffer is then ready to receive new drawing operations. </p></li>
-</ol><p>The Window Server continues to use the old surface s1 until the next
-call to <codeph>eglSwapBuffers()</codeph>.</p><p>The second <codeph>eglSwapBuffers()</codeph> call
-(marked Y in the diagram above) does the following:</p><ol>
-<li id="GUID-05E4F40D-568A-425A-93F8-C30606C50DA8"><p>Promotes the back buffer
-(showing A and C) to the front buffer for display as usual.</p></li>
-<li id="GUID-84200E5B-CD20-4F4A-8D9D-0460B30D40CA"><p>Copies the back buffer
-content to the new back buffer (showing A and C).</p></li>
-<li id="GUID-D300A85C-88C3-499A-86A7-EC2B35020E0C"><p>Destroys the old surface
-s1.</p></li>
+<image href="GUID-8A8FA00B-58FA-4D4E-A018-70D5558BCBFE_d0e271578_href.png" placement="inline"/>
+</fig><p>The first <codeph>eglSwapBuffers()</codeph> call (marked
+X in the diagram above) does the following:</p><ol>
+<li id="GUID-70603721-5603-4015-B382-8D3F9D693139"><p>Promotes the
+current back buffer (showing AB) to the front buffer for display as
+usual. </p></li>
+<li id="GUID-7040357F-1F40-4E34-ACB2-170815B06D10"><p>Copies the back
+buffer content to the new back buffer (showing AB).</p></li>
+<li id="GUID-5950B197-5661-44B5-AB7A-475C056F184C"><p>Creates a new
+surface  with the new dimensions.</p></li>
+<li id="GUID-90909C1D-7335-41BF-973F-B2F82403CF40"><p>Designates one
+of the new buffers as the back buffer and copies the overlapping pixels
+into it. The new back buffer is then ready to receive new drawing
+operations. </p></li>
+</ol><p>The Window Server continues to use the old surface s1 until
+the next call to <codeph>eglSwapBuffers()</codeph>.</p><p>The second <codeph>eglSwapBuffers()</codeph> call (marked Y in the diagram above) does
+the following:</p><ol>
+<li id="GUID-05E4F40D-568A-425A-93F8-C30606C50DA8"><p>Promotes the
+back buffer (showing A and C) to the front buffer for display as usual.</p></li>
+<li id="GUID-84200E5B-CD20-4F4A-8D9D-0460B30D40CA"><p>Copies the back
+buffer content to the new back buffer (showing A and C).</p></li>
+<li id="GUID-D300A85C-88C3-499A-86A7-EC2B35020E0C"><p>Destroys the
+old surface s1.</p></li>
 </ol><p>The Window Server now uses the new surface s2.</p></section>
 </conbody><related-links>
-<link href="GUID-0B2421FD-8431-5DDA-9FE3-046734AE495E.dita"><linktext>Window Surface
-Implementation Overview</linktext></link>
+<link href="GUID-0B2421FD-8431-5DDA-9FE3-046734AE495E.dita"><linktext>Window
+Surface Implementation Overview</linktext></link>
 <link href="GUID-599C9890-3AC8-46D3-A8C3-34CAAB5A61CF.dita"><linktext>Implementing
 eglCreateWindowSurface</linktext></link>
 </related-links></concept>

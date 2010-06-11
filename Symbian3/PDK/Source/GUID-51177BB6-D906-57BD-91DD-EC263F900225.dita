@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-51177BB6-D906-57BD-91DD-EC263F900225"><title>Opening a Session with the Bluetooth GPS PSY</title><shortdesc>This topic describes how to open a session with the Bluetooth GPS PSY. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><section><title>Required background</title> <p>Knowledge of the <xref href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita">Location Acquisition API</xref> is helpful in understanding this topic. </p> </section> <section><title>Introduction</title> <p>To use the Bluetooth GPS PSY a <xref href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita">Location Acquisition API</xref> client opens an <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita"><apiname>RPositioner</apiname></xref> subsession using one of the following methods: </p> <ul><li id="GUID-4A5DF461-3351-56C8-829F-271C37D02B61"><p>Using the Default PSY </p> </li> <li id="GUID-7D6F6FE8-C35D-5F31-9C88-9F071A90481A"><p>Using the Bluetooth PSY explicitly </p> </li> </ul> <p>These methods are described in more detail below. </p> </section> <section><title>Procedure</title> <ul><li id="GUID-266D6ED1-452E-58C4-88F6-D3FF8D4C5415"><p>To use the Default PSY, open a session without specifying a PSY UID, as shown in the following example code: </p> <p>The Default PSY reads a list of all the PSYs installed in the device. If the Bluetooth GPS PSY is installed, the Default PSY uses it in preference to all other PSYs. </p> <p>If the Bluetooth GPS PSY cannot provide a position fix (for example, because it is unable to connect to a GPS device), the Default PSY tries to use alternative PSYs (if installed). Opening a session using the Default PSY does not guarantee that a position fix will be obtained from the Bluetooth GPS PSY. </p> <p><codeblock id="GUID-0A9DFF8F-B035-5F5E-B9EA-816204342369" xml:space="preserve">
+#include &lt;lbs.h&gt;
+#include &lt;lbserrors.h&gt;
+
+...
+
+RPositionServer server;
+RPositioner positioner;
+
+//Create a session with the Location Server
+
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Location Server uses the default PSY, which preferentially uses the Bluetooth GPS PSY
+
+User::LeaveIfError(positioner.Open(server);
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal
+// Call RPositioner::NotifyPositionUpdate() - see API documentation for more details
+
+...
+
+// Close the session
+
+CleanupStack::PopAndDestroy(&amp;positioner);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </p> <ol id="GUID-EAA901D0-5C77-5062-B91D-A51AB83D126B"><li id="GUID-57818247-C9B6-5F14-A72C-D651B3AF7DD4"><p>See <xref href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita">Default PSY</xref> for information about how a PSY is selected. </p> </li> <li id="GUID-58292650-F435-554D-83D0-C3E013CDDB57"><p>See <xref href="GUID-F6B5F777-D12F-5913-AECE-047DF8C72F1F.dita">How to Get Location Information</xref> for more information about using the Location Acquisition API. </p> </li> </ol> </li> <li id="GUID-D2F13188-003A-591E-A177-C4E51D0FAB95"><p>To specify that the Bluetooth GPS PSY must be used, open a session using its implementation UID (<codeph>0x101FE999</codeph>), as shown in the following example code: </p> <p><codeblock id="GUID-84186315-E6CA-53D0-8F49-E27BFF1D8D34" xml:space="preserve">
+#include &lt;lbs.h&gt;
+#include &lt;lbserrors.h&gt;
+
+
+const TInt KBTPSYImplUid = 0x101FE999;
+
+...
+
+RPositionServer server;
+RPositioner positioner;
+
+//Create a session with the Location Server
+
+User::LeaveIfError(server.Connect());
+CleanupClosePushL(server);
+
+// Create a subsession with the Location Server using the Bluetooth PSY
+
+User::LeaveIfError(positioner.Open(server, TUid::Uid(KBTPSYImplUid)));
+CleanupClosePushL(positioner);
+
+// Use Location Acquisition API as normal - see API documentation for more details
+
+...
+
+// Close the session
+
+CleanupStack::PopAndDestroy(&amp;positioner);
+CleanupStack::PopAndDestroy(&amp;server);
+</codeblock> </p> <p>If the Bluetooth PSY cannot provide a position fix, the location request will fail. An error code other than <codeph>KErrNone</codeph> will be returned to the client application. </p> <p>The Bluetooth GPS PSY supports the class types <xref href="GUID-D5B2E933-209D-3871-8E27-CC5C8855C745.dita"><apiname>TPositionInfo</apiname></xref>, <xref href="GUID-B4CD3637-0FC6-38B8-AE89-C03EEC83C50D.dita"><apiname>TPositionCourseInfo</apiname></xref>, <xref href="GUID-54AE0674-C49D-3329-8B77-3A58EFFC03D7.dita"><apiname>TPositionSatelliteInfo</apiname></xref> and <xref href="GUID-C0D87E5C-315E-37E6-829E-73F93E83748E.dita"><apiname>HPositionGenericInfo</apiname></xref>. The argument to <xref href="GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575.dita#GUID-1EAEB7EF-0AC7-37C7-B35F-C9B780FFC575/GUID-321F6046-3551-3ACE-B0A3-26D51FAEB477"><apiname>RPositioner::NotifyPositionUpdate()</apiname></xref> must be one of these classes. <codeph>HPositionGenericInfo</codeph>, <codeph>TPositionCourseInfo</codeph> and <codeph>TPositionSatelliteInfo</codeph> are all derived from <codeph>TPositionInfo</codeph>. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-2C9F2B48-5E92-5C25-9C16-B93C34B223B7"><linktext>Error
+                codes</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-B253E1BD-59C4-5725-9899-16E495233DAA"><linktext>Loading the PSY
+                and device selection</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-6C12D640-CE1E-5368-90E5-D9EF34C6B1CF"><linktext>Bluetooth GPS
+                Device initialisation</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-CB2663ED-4711-5162-BE0C-FF2DB31C3B49"><linktext>Making a
+                location request</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-CDA4A58C-EE1B-5C34-A786-C2FC112C3C74"><linktext>Tracking</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-1C02463D-FBDF-5E04-9842-438C8ABD6DF4"><linktext>Cancelling a
+                location request</linktext> </link> <link href="GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB.dita#GUID-7C1CF86B-5F03-55EE-96C6-79A88A195BEB/GUID-C88E20CE-C7AD-5439-AE03-E83C18C3694B"><linktext>Unloading the
+                Bluetooth GPS PSY</linktext> </link> <link href="GUID-7CE5CF4C-7661-5FE1-87CA-CC4EB1CECE34.dita"><linktext>Default
+                PSY</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-12-1-18-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-D0318BB6-0B9F-5A1C-AB0B-61BA22D28661.dita"><linktext>Location Acquisition API</linktext> </link> </related-links></concept>

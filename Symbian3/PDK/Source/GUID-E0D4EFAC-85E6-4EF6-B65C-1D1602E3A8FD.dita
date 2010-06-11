@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E0D4EFAC-85E6-4EF6-B65C-1D1602E3A8FD" xml:lang="en"><title>Creating
+a User-Defined Time Zone from an Existing Time Zone</title><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-DC81EBEF-5CAC-418C-8269-1DC7D5F7DAEF">       <p>This tutorial
+describes how a client uses <codeph>CTzUserData</codeph> to manage user data. <codeph>CTzLocalizer</codeph> enables
+a client to get existing localized time zone names.  </p><p>The steps for
+a client to create a user-defined TZ from an existing TZ are described in
+the Procedure section. </p></context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-12-1-12-1-1-8-1-5-1-7-1-2-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-12-1-12-1-1-8-1-5-1-7-1-2-2-1"><cmd>Include the header
+files that contain the <codeph>CTzLocalizer</codeph> and <codeph>CTzUserData</codeph> classes. </cmd>
+</step>
+<step id="GUID-B6450767-B3BA-4228-9622-86FFBEE0C570"><cmd>Include a numeric time zone ID. This is supplied by the UI layer. </cmd>
+</step>
+<step id="GUID-7CA9FBF8-53CB-42F7-B1B8-C5ED84D8B26C"><cmd>Get the localized TZ names for the existing time zone (specified
+by the TZID) using <xref href="GUID-18853D2C-A730-38CD-AA3D-3B1F4E891950.dita#GUID-18853D2C-A730-38CD-AA3D-3B1F4E891950/GUID-447CD187-F8F6-3CD0-9928-3972C48DF79B"><apiname>CTzLocalizer::GetLocalizedTimeZoneL(TInt)</apiname></xref>.</cmd>
+</step>
+<step id="GUID-A788AC13-92D2-46AD-8701-94D18902519B"><cmd>Create a user-defined TZ names object using <xref href="GUID-C40593C4-D60C-39D5-8CB2-4B5D7BBE8ED4.dita#GUID-C40593C4-D60C-39D5-8CB2-4B5D7BBE8ED4/GUID-2E630EE3-1DDB-3F9D-A75B-2119E1B02EF8"><apiname>CTzUserNames::NewL()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-CA6D706A-7AD6-4B9F-9D5E-CB1052915E29"><cmd>Connect to the TZ Server using <xref href="GUID-052221AD-916E-3E47-9510-AC0495A19A70.dita#GUID-052221AD-916E-3E47-9510-AC0495A19A70/GUID-375E314E-3B59-3722-AECA-1DC873507711"><apiname>RTz::Connect()</apiname></xref>.</cmd>
+</step>
+<step id="GUID-3F86505C-B032-4944-BAE5-947A3570036A"><cmd>Get all the TZ rules for the existing time zone using <xref href="GUID-052221AD-916E-3E47-9510-AC0495A19A70.dita#GUID-052221AD-916E-3E47-9510-AC0495A19A70/GUID-D7E83A8B-88DB-3A2E-B448-6BDB2123D1DE"><apiname>RTz::GetTimeZoneRulesL()</apiname></xref>. </cmd>
+</step>
+<step id="GUID-28FC7226-4AF4-4781-B2EE-B4CEAAE322EF"><cmd>Create the user-defined TZ using <xref href="GUID-1A53F535-96FC-387D-A02D-CAF8B1CEBCF1.dita#GUID-1A53F535-96FC-387D-A02D-CAF8B1CEBCF1/GUID-6D622414-0E99-39E6-8347-BC8CFD709D1D"><apiname>CTzUserData::CreateL()</apiname></xref>. </cmd>
+</step>
+</steps>
+<example><p>This is illustrated in the code example that follows.</p><codeblock xml:space="preserve">#include &lt;tzlocalizer.h&gt; // For CTzLocalizer etc.
+#include &lt;tz.h&gt; // For CTzUserData etc.
+#include &lt;…&gt;
+
+…
+
+// This numeric TZID would typically be supplied by the UI layer.
+TInt existingTzId = 1234;
+
+// Get localized TZ names for existing TZ.
+CTzLocalizer* tzLocalizer = CTzLocalizer::NewL();
+CTzLocalizedTimeZone* localizedTz = tzLocalizer-&gt; GetLocalizedTimeZoneL( existingTzId );
+CTzLocalizedCity* localizedCity = tzLocalizer-&gt; GetDefaultCityL( localizedTz );
+CTzLocalizedCityGroup* localizedGroup = tzLocalizer-&gt; GetCityGroupL( localizedCity-&gt;GroupId() );
+
+// Create user-defined TZ names object.
+CTzUserNames* tzNames = CTzUserNames::NewL( localizedTz-&gt;StandardName(),
+                                            localizedTz-&gt;ShortStandardName(),
+                                            localizedTz-&gt;DaylightName(),
+                                            localizedTz-&gt;ShortDaylightName(),
+                                            localizedCity-&gt;Name(),
+                                            localizedGroup -&gt;Name() );
+
+// Connect to TZ Server.
+RTz tzServer;
+User::LeaveIfError( tzServer.Connect() );
+
+// Get the TZ rules for the existing TZ.
+CTzId* tzId = CTzId::NewL( existingTzId );
+TTime startTime( TDateTime( 0,EJanuary,0,0,0,0,0 ) );       // Get all the
+TTime endTime( TDateTime( 9999,EDecember,30,23,59,59,0 ) ); // TZ rules.
+CTzRules* tzRules = tzServer.GetTimeZoneRulesL( *tzId,
+                                                startTime,
+                                                endTime,
+                                                ETzUtcTimeReference );
+
+// Create user-defined TZ.
+CTzUserData* tzUserData = CTzUserData::NewL( tzServer );
+CTzId* userTzId = tzUserData-&gt;CreateL( *tzRules, *tzNames );
+
+…</codeblock></example>
+</taskbody><related-links>
+<link href="GUID-B92EB751-202D-4845-AF34-34DA7B36881F.dita"><linktext>Subscribe
+and Respond to TZ Data Changes </linktext></link>
+</related-links></task>

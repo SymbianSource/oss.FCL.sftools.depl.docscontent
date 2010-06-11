@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task xml:lang="en" id="GUID-38A84B6A-BA49-55ED-A4D7-9B4436D00A42"><title>Including the Bluetooth GPS PSY in ROM</title><shortdesc>This describes how to include the PSY in ROM using <codeph>buildrom</codeph> macros. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody><context><p>The PSY is packaged in the libraries <filepath>nlabtgpspsy.dll</filepath> and <filepath>lbsbtgpsconfig.dll</filepath>. Library <filepath>nlabtgpspsy.dll</filepath> packages the PSY as an ECom plug-in that contains one implementation of the PSY interface. </p> <p>The ROM build macros described in this document include the Bluetooth GPS PSY ECom plug-in and associated files in a device ROM. </p> </context> <steps id="GUID-4689D51B-2E3E-5463-8F51-5E07DEC44826"><step id="GUID-1BA40509-EC80-58FC-AC20-A26C66FD9276"><cmd>To install the Bluetooth GPS PSY, use the macro <codeph>SYMBIAN_INCLUDE_BLUETOOTH_GPS_PM</codeph> when you build the LBS ROM. </cmd> <info>The example below shows how to include the Bluetooth GPS PSY in a ROM image. You may want to specify additional macros depending on which other optional LBS components you may also want to install (such as other PSYs). </info> <stepxmp><codeblock id="GUID-78A22E73-0701-5184-BB0A-940654582EDD" xml:space="preserve">
+buildrom lbs.oby 
+-DSYMBIAN_INCLUDE_LOCATION_API_VARIANT2
+-DSYMBIAN_INCLUDE_BLUETOOTH_GPS_PM
+</codeblock> </stepxmp> </step> <step id="GUID-CB185E94-7B42-51C8-A767-45AAAF4992ED"><cmd/><info>Your file <codeph>lbs.oby</codeph> must include the .iby files necessary to build the LBS ROM (see <xref href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita">LBS ROM macros</xref> for more information about the LBS .iby files). The LBS .iby file <filepath>lbsbtgpspsy.iby</filepath> contains the commands to copy the Bluetooth GPS PSY DLL and all supporting files to the target build location: </info> <stepxmp><codeblock id="GUID-8949E249-508C-58B7-8286-F81573D95337" xml:space="preserve">
+#ifndef __LBS_BTPSY_IBY__
+#define __LBS_BTPSY_IBY__
+
+#if !defined(SYMBIAN_EXCLUDE_LOCATION)
+
+#if defined(SYMBIAN_INCLUDE_BLUETOOTH_GPS_PM)
+#ifdef _DEBUG
+ECOM_PLUGIN_UDEB(nlabtgpspsy.dll, nlabtgpspsy.rsc)
+#else
+ECOM_PLUGIN(nlabtgpspsy.dll, nlabtgpspsy.rsc)
+#endif //_DEBUG
+
+data=ZRESOURCE\nlabtgpspsyconstants.rsc                    resource\nlabtgpspsyconstants.rsc
+data=ZRESOURCE\nlabtgpspsy_name.rsc                        resource\nlabtgpspsy_name.rsc
+
+#if !defined(CONFIG_USE_GENERATED)
+data=EPOCROOT##epoc32\data\z\private\10202BE9\101fe999.cre                private\10202be9\101fe999.cre
+#endif // CONFIG_USE_GENERATED
+
+#ifdef SYMBIAN_LOCATION_BTGPSCONFIG
+file=ABI_DIR\DEBUG_DIR\lbsbtgpsconfig.dll                System\libs\lbsbtgpsconfig.dll
+data=EPOCROOT##epoc32\data\Z\private\10202be9\102869C1.cre    private\10202be9\102869C1.cre
+#endif // SYMBIAN_LOCATION_BTGPSCONFIG
+
+#endif // SYMBIAN_INCLUDE_BLUETOOTH_GPS_PM
+
+#endif
+
+#endif // __LBS_BTPSY_IBY__
+</codeblock> </stepxmp> <info>The file <filepath>101fe999.cre</filepath> is the binary Central Repository initialisation file that defines values for the keys specified by the <xref href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-12-1-18-1-1-10-1-5-1-5-1-8-1.dita">Positioning Plug-in Information API</xref> to register the Bluetooth GPS PSY with the LBS subsystem. </info> </step> <step id="GUID-8A1B8894-100C-5020-8FBC-83EEAB7140B2"><cmd/><info>To change values in this file, modify the source text version of the initialisation file <filepath>101fe999.txt</filepath> as described in <xref href="GUID-F9BEC749-D535-55EA-8601-A961EA1E441B.dita">Modifying the Bluetooth GPS PSY Central Repository Initialisation File</xref>, then build a binary version of it. To build a binary version of the file you can use the makefile <filepath>createlbsbtgpsconfigstore.mk</filepath>, which is included with the source distribution of the Bluetooth GPS PSY. </info> <info>The library <filepath>lbsbtgpsconfig.dll</filepath> contains the Bluetooth GPS PSY Configuration API which is also copied into the target ROM. </info> </step> </steps> </taskbody><related-links><link href="GUID-E73A181C-0C9B-513C-ABAE-585C80D566DF.dita"><linktext>Bluetooth
+                GPS PSY Overview</linktext> </link> <link href="GUID-F9BEC749-D535-55EA-8601-A961EA1E441B.dita"><linktext>Modifying the Bluetooth GPS
+                PSY Central Repository Initialisation File</linktext> </link> <link href="GUID-DA2DC704-CE65-54FB-9049-4E1C73092EDF-GENID-1-12-1-18-1-1-10-1-5-1-5-1-8-1.dita"><linktext>Positioning Plug-in Information API</linktext> </link> <link href="GUID-5B39D732-7252-57EB-BA74-FC8718ED45E4.dita"><linktext>LBS ROM
+                macros</linktext> </link> <link href="GUID-D18B4715-3942-52EA-9D2F-E145037FA47A.dita"><linktext>LBS
+                Integration and Configuration guide</linktext> </link> </related-links></task>
