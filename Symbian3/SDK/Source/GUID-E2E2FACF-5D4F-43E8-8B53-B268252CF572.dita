@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-E2E2FACF-5D4F-43E8-8B53-B268252CF572" xml:lang="en"><title>Defining
+Connection Management Items</title><shortdesc>Your application should define the connection management items
+(destination networks, access points, default connection, and always ask)
+it supports and show only the supported items in the UI. In this example,
+the application supports default connection, always ask, and destination networks.
+Access points (if supported) of a certain destination network can be seen
+under the Options menu when the destination network is highlighted.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-54907FC2-9B54-4E72-8953-461C1650560C">       <p>To define
+the connection management items:</p>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-10-1-14-1-1-7-1-4-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-14-1-1-7-1-4-1-3-2-1"><cmd>Request the connection
+settings dialog for supported items using the Connection Settings UI API.</cmd>
+</step>
+<step id="GUID-B9C9B9BC-5DA3-4943-9995-9975E5BBA5A7"><cmd>Show the items that your application supports in the UI using the
+Connection Settings UI API.  After the user has made a selection, it is returned
+to the application.</cmd>
+</step>
+<step id="GUID-BC98D052-7D13-4641-B015-9D5A71E6179D"><cmd>Store the user selection in the application's connection setup.
+ For information on how to start the connection through a destination network,
+see <xref href="GUID-DBF6760F-D209-4B8F-89D5-A7EFFF7959E2.dita">Starting the Connection
+through the Destination Network</xref>.  If you want to prompt the user to
+make this selection, see Prompting the user to select a destination network.</cmd>
+</step>
+</steps>
+<example><codeblock xml:space="preserve">#include &lt;cmapplicationsettingsui.h&gt;TCmSettingSelection userSelection;
+
+CCmApplicationSettingsUi* settings = CCmApplicationSettingsUi::NewL();
+CleanupStack::PushL( settings );
+
+TUint listedItems = EShowAlwaysAsk | EShowDefaultConnection |
+                    EShowDestinations | EShowConnectionMethods;
+
+TBearerFilterArray filter;
+
+settings-&gt;RunApplicationSettingsL( userSelection,
+                                   listedItems,
+                                   filter );
+                               CleanupStack::PopAndDestroy( settings );
+
+switch ( userSelection.iResult )
+	{
+	case EDestination:
+	    {
+        TConnSnapPref prefs;
+        prefs.SetSnap( userSelection.iId );
+
+        iConnection.Start( prefs, iStatus );
+		break;
+	    }
+	case EConnectionMethod:
+	    {
+        TCommDbConnPref prefs;
+        prefs.SetIapId( userSelection.iId );
+        prefs.SetDialogPreference( ECommDbDialogPrefDoNotPrompt );
+
+        iConnection.Start( prefs, iStatus );
+	    break;
+	    }
+	case EDefaultConnection:
+	    {
+iConnection.Start( iStatus );
+	    break;
+	    }
+	default: // EAlwaysAsk
+	    {
+        TCommDbConnPref prefs;
+        prefs.SetDialogPreference( ECommDbDialogPrefPrompt );
+
+        iConnection.Start( prefs, iStatus );
+	    }
+	}
+SetActive();</codeblock></example>
+</taskbody></task>

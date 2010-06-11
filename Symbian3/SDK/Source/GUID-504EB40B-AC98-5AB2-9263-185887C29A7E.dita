@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-504EB40B-AC98-5AB2-9263-185887C29A7E" xml:lang="en"><title>Searching
+for an IAP Record by Name and Loading the Associated Service and the Bearer
+Table: Tutorial</title><shortdesc>This tutorial shows you how to search for a Symbian platform defined
+Internet Access Points Configuration (IAP) record by name. The tutorial, then
+shows you how load the connected service and the bearer table. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+
+
+<prereq id="GUID-8F09964A-B8AC-5601-817C-B1C243B1CB92"><p>Before you start,
+you must understand: </p> <ul>
+<li id="GUID-95E91894-42A9-569A-BCBD-D9CAE502B289"><p>the general concept
+of the Comms Database </p> </li>
+<li id="GUID-127FB886-98D0-5F17-997F-CD1134BA7F57"><p>the specific concept
+of fields, records, links and tables </p> </li>
+<li id="GUID-8AF15E7D-44F0-5F28-94A1-C4A6E6DE3B93"><p>how to write and build
+application code to run on Symbian platform </p> </li>
+</ul> </prereq>
+<context id="GUID-37F9160E-EAE2-5975-B064-255EA353CB72"><p>This tutorial shows
+you: </p> <ul>
+<li id="GUID-84E5F473-8F05-5FDD-B1BB-ED301420CD89"><p>how to search the <i>Internet
+Access Points Configuration</i> table for a record defined by name. This table
+is also called the IAP table </p> </li>
+<li id="GUID-08BA5682-4AF9-526B-9CD2-48BFDEE7E162"><p>how to load the connected
+service. </p> </li>
+<li id="GUID-545EC3CC-F771-50AF-8388-CA0AC4B84B10"><p>how to load the connected
+bearer table. </p> </li>
+</ul> <p>The principles that apply here also apply to the other Symbian platform
+defined tables. </p> </context>
+<steps id="GUID-6A94C40E-59E3-5F22-A778-0734773900C4">
+<step id="GUID-FFA9D8F4-6683-52EC-B9F7-7D1AAB904D48"><cmd>Make sure that you
+have created a session. </cmd>
+</step>
+<step id="GUID-D00E9CCC-8046-5E43-9D8E-CCA971C79ED2"><cmd>Create an empty
+IAP record in the tool or application process. </cmd>
+
+<info>You create a <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBRecordSet</apiname></xref> <codeph>&lt;T&gt;</codeph> object
+and specify <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CCDIAPRecord</apiname></xref> as the template
+parameter. </info>
+
+<info>Symbian platform defines the <codeph>CCDIAPRecord</codeph> class to
+represent a IAP record. The class is a schema for the record. The class defines
+the fields and links that make a IAP record. </info>
+<info>Symbian platform defines <xref href="GUID-32E556BC-55C3-5FBD-9A60-9708139C20D6.dita">unique
+numeric Id</xref> s for Symbian platform defined tables. The symbol <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>KCDTIdIAPRecord</apiname></xref> also defines the value of this
+Id for records in the IAP table. The Id allows the CommsDat API to get the
+record from the Comms Database. </info>
+<info>To work with other Symbian platform defined tables, use the correct
+class name and the correct unique numeric Id values. The <xref href="GUID-58089281-9DD0-502D-8DFD-831E7BAA931E.dita">Reference</xref> section
+contains a list of all Symbian platform defined tables. </info>
+<stepxmp><codeblock id="GUID-629FD205-82F8-5383-AEC8-1645309B994B" xml:space="preserve">...
+
+// This code fragment assumes that a session with the Comms Database has been created.
+// iDb is a pointer to a CMDBSession object
+...
+
+// When we search by Name or Id, there can be only one record to be returned
+// Create an empty IAP record.
+//
+// Note:
+// 1. the template parameter CCDIAPRecord defines 
+//    the "IAP" record type.
+// 2. to create a record, you use a factory function and pass the unique
+//    numeric Id KCDTIdIAPRecord as a parameter to the constructor.
+//
+
+CCDIAPRecord* ptrIAPRecord = 
+              static_cast&lt;CCDIAPRecord *&gt;(CCDRecordBase::RecordFactoryL(KCDTIdIAPRecord));
+...</codeblock> </stepxmp>
+</step>
+<step id="GUID-82296CE1-8682-56E6-8847-FB6A2348479A"><cmd>Define the name
+of the IAP record to be found and set the name in IAP record. Do the search
+for the record in the Comms Database. </cmd>
+
+<info>In this tutorial, the name of the IAP record is NTRas with Null Modem. </info>
+
+<info>Use the assignment operator to add the data to a field. A field that
+has type <codeph>T</codeph> accepts a type T item as the right-hand argument
+of an assignment call. </info>
+
+<info>A descriptor field needs an additional call to set the size of the descriptor.
+Call <codeph>SetMaxLengthL()</codeph> to set the size of the descriptor. This
+function is a member of the field class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBField</apiname></xref> <codeph>&lt;TDesC&gt;</codeph>.
+Internally, the function causes the allocation of a descriptor. You must set
+the size of the descriptor before you assign the data. You can also use the <codeph>SetL()</codeph> function.
+This function sets the length and assigns the data. The function is a member
+of the field class <xref href="GUID-1CDD0B97-8B00-3373-9908-512C9BC1CF51.dita"><apiname>CMDBField</apiname></xref> <codeph>&lt;TDesC&gt;</codeph>. </info>
+<stepxmp><codeblock id="GUID-8427EB95-2BE7-59C7-9A21-DF9DDB3607AF" xml:space="preserve">...
+// Define the name of the IAP record.
+_LIT(KMyIap, "NTRas with Null Modem");
+
+// Either 
+ptrIAPRecord-&gt;iRecordName.SetMaxLengthL(KMyIap().Length());
+ptrIAPRecord-&gt;iRecordName = KMyIap;
+
+// Or 
+ptrIAPRecord-&gt;iRecordName.SetL(KMyIap);
+
+
+// Search the Comms Database
+if(ptrIAPRecord-&gt;FindL(*iDb))
+    {
+    // Found a matching record
+    ...
+    }
+
+...</codeblock> </stepxmp>
+</step>
+<step id="GUID-119EC7CA-0E0E-5062-BC7D-FC023205FA1A"><cmd>Load the NTRas with
+Null Modem service and the associated bearer table. </cmd>
+<stepxmp><codeblock id="GUID-C3994C1F-61BD-5BCC-9E29-FACAEE5C198C" xml:space="preserve">...
+// Search the Comms Database
+if(ptrIAPRecord-&gt;FindL(*iDb))
+    {
+    // Found a matching record
+
+    // Now load the the associated service and bearer tables, 
+    // The variables iService,iBearer, etc
+    // are links that point to other records. These links have a "Value" and 
+    // "iLinkedRecord".
+    // 
+    // The "Value" represent the id of the target field,and gets initialized along with the
+    // parent record(ptrIAPRecord). When we explictly call load on these LinkedFields,
+    // the "iLinkedRecord" pointer points to the appropriate object.
+    //
+    // The "iLinkedRecord" pointer is  owned by the parent record and gets
+    // deleted along with it.THis means that it must be set to NULL
+    // if the user wants to take ownership.
+ 
+    ptrIAPRecord-&gt;iService.LoadL(*iDb);
+    ptrIAPRecord-&gt;iBearer.LoadL(*iDb);
+
+    // Take ownership of the loaded service record cache
+    CCDServiceRecordBase* ptrService = 
+        static_cast&lt; CCDServiceRecordBase *&gt; (ptrIAPRecord-&gt;iService.iLinkedRecord);
+    (ptrIAPRecord-&gt;iService).iLinkedRecord = NULL;
+
+    // Deleting ptrIAPRecord also deletes all the loaded iLinkedRecord
+    // pointers it owns unless set to null.
+
+    delete ptrIAPRecord;         
+ 
+   //delete the service view.
+    delete ptrService;
+    }         
+...</codeblock> </stepxmp>
+</step>
+</steps>
+</taskbody><related-links>
+<link href="GUID-1AFDDD6F-CB99-587D-A0B5-D3F5B27F7135.dita"><linktext>Comms Database
+                concepts</linktext></link>
+</related-links></task>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-BE2D9AAB-203B-471A-984D-91E917611641" xml:lang="en"><title>Application
+Level Roaming</title><shortdesc>Application-level roaming (ALR) enables your application to roam
+to use the best available data connection while operational.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F6E3E184-0235-47B1-950F-AECA2F64D985"><title>Implementation
+Considerations</title>      <p>There is no SDK method for WLAN scanning. Your
+application should use Connection Monitor Server API to request the list of
+available access points or network names (in the case of a WLAN these are
+SSIDs). Connection Monitor Server API also provides notifications about changes
+in the access point availability list. </p><p>Handovers between GPRS and WCDMA
+radio networks take a long time (from 15 seconds to 2 minutes) and sometimes
+fail completely. You should use long application level timers (if any) and
+maintain a responsive UI. Note that handovers between GPRS and WCDMA cannot
+be controlled by the symbian platform (except with fixed settings). The control
+logic is in the cellular modem. </p><p> In ALR, the transfer from one connection
+to another always introduces an IP address change and a break in data connection
+(even with make-before-break when the break is really short). This is because
+the sockets need to be closed and re-opened. This may be problematic for the
+applications that maintain a stateful connection with a server in the network.
+The workaround for a break is to open a new RConnection handle when receiving <xref href="GUID-4D26288F-A8F8-355E-B49C-B313EEC04584.dita"><apiname>PreferredCarrierAvailable()</apiname></xref> and
+establishing the server connection using that (if the application protocol
+allows such operation). When that is done and new sockets are created for
+the new RConnection, the original RConnection can be closed. There is no workaround
+for the IP address change.</p>     </section>
+<section id="GUID-011DBF55-366F-4AC7-824A-2B485658E1C8"><title>Process Flow</title><fig id="GUID-79B01634-BBA5-40DD-BBB5-DE4D53139BC6">
+<title>Application-level roaming</title>
+<image href="GUID-8305F179-8F26-4B38-8523-066D1B0B7A62_d0e212256_href.png" placement="inline"/>
+</fig></section>
+<section id="GUID-A2C485F5-0BD5-4D0E-8F95-D9963C4C819F"><title>Additional
+information</title><p>The following APIs are used to implement application-level
+roaming: </p><ol>
+<li id="GUID-B1B6B16A-A790-4B04-BC6E-91D64E5C4E06"><p> Sockets Server Client
+API (ESOCK) is the API for all IP-based socket communication. It remains unchanged,
+but applications need to be ready to close and open sockets at certain times
+to roam for a better connection.</p></li>
+<li id="GUID-F4D709CC-9F14-42B4-BF32-8EB0C787EBF3"><p>Connection Management
+API (RConnection) is a collection of Symbian's connection management-related
+functionalities provided by ESOCK. It contains several extensions and one
+of them is the mobility extension. The term "mobility API" actually refers
+to the mobility extensions that are part of Connection Manager API and defined
+in header <filepath>cs_mobility_apiext.h</filepath>. With the so-called mobility
+API the client application can register for mobility events, receive information
+about preferred connections, indicate whether to switch to a new connection
+or ignore it. In short, it enables ALR for the applications.</p></li>
+</ol><p> The mobility extension functionality of the Connection
+Manager API is provided by classes<xref href="GUID-9A3979A9-F882-3053-B5B1-E0E125774271.dita"><apiname> MMobilityProtocolResp </apiname></xref>and <xref href="GUID-6CA83252-4D0C-3B72-83ED-B5152B666C83.dita"><apiname>CActiveCommsMobilityApiExt</apiname></xref>. </p><p>Methods
+that must be implemented by client (class MMobilityProtocolResp): <ol>
+<li id="GUID-F6747252-65DF-4424-BA7E-DA5D11D2E9BE"><p><b>virtual void PreferredCarrierAvailable(TAccessPointInfo
+aOldAP, TAccessPointInfo aNewAP, TBool aIsUpgrade, TBool aIsSeamless )</b>;
+This method is called by the middleware to notify a client about a new preferred
+connection.</p></li>
+<li id="GUID-9C0DD06E-9949-4A7B-ABF9-CEF10F541274"><p><b>virtual void NewCarrierActive(TAccessPointInfo
+aNewAP, TBool aIsSeamless );</b> This method is called by the middleware to
+notify a client that a preferred connection has been activated.</p></li>
+<li id="GUID-54247E78-0A68-4A2A-B94A-064BE9D61270"><p><b>virtual void Error(TInt
+aError);</b> This method is called by middleware to notify that there are
+no suitable connections available.</p></li>
+</ol></p><p>Methods provided by ESock (class CActiveCommsMobilityApiExt): <ol>
+<li id="GUID-CFEC6776-0206-4205-9269-7AD2A47CDF23"><p><b>void MigrateToPreferredCarrier();</b> Client
+can indicate that it wants to start using a new preferred connection as a
+response to PreferredCarrierAvailable().</p></li>
+<li id="GUID-D5181565-96D3-4025-8A7E-B92EE4C699ED"><p><b>void IgnorePreferredCarrier();</b> Client
+can indicate that it doesn’t want to use a new preferred connection as a response
+to PreferredCarrierAvailable().</p></li>
+<li id="GUID-4C9658D0-D0F3-40A6-9466-D2CBB15D2663"><p><b>void NewCarrierAccepted();</b> Client
+indicates that a new connection is working for it.</p></li>
+<li id="GUID-33856021-74DA-4501-9DCB-8B28BD281282"><p><b>void NewCarrierRejected();</b> Client
+indicates that a new connection is not working and it wants to use another
+connection. In this case it receives <xref href="GUID-4D26288F-A8F8-355E-B49C-B313EEC04584.dita"><apiname>PreferredCarrierAvailable()</apiname></xref> again
+with probably the original connection as a preferred one. The non-working
+access point is blacklisted for that client and not suggested again.</p></li>
+</ol></p></section>
+</conbody></concept>

@@ -9,93 +9,158 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-894AB487-C127-532D-852B-37CB0DEA1440" xml:lang="en"><title>Symbian-Specific
-Behavior</title><shortdesc>This topic provides information about the points that the EGL specification
-explicitly states are platform-specific. This information is aimed at both
-users and implementers of EGL on the Symbian platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<section id="GUID-5F4317DF-EEDE-434C-906D-A354367AE38D"><title>Symbian windows</title> <p>EGL
-window surfaces are tied to Symbian windows. To create an on-screen rendering
-surface, a Window Server window with attributes corresponding to the desired <codeph>EGLConfig</codeph> must
-be created first. The <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> class is a handle to a server-side
-window that can be displayed and drawn to, and whose redraws are performed
-by the application. </p> <p><b>Threading</b>. Because of the limitations of
-the Window Server API, clients <b>must</b> create and use an EGL window surface
-in the thread in which its <codeph>RWindow</codeph> was created. This means
-that the following are <b>not</b> supported and will lead to undefined behavior:</p><ul>
-<li><p>Creating an EGL window surface in thread <i>B</i> using an <codeph>RWindow</codeph> that
-was created in thread <i>A</i>. </p></li>
-<li><p>Using an EGL window surface in thread <i>B</i> when that EGL window
-surface and its <codeph>RWindow</codeph> were created in thread <i>A</i>. </p></li>
-</ul><p>For example, in the second scenario, EGL in thread <i>B</i> may fail
-when it attempts to get the window size from the <codeph>RWindow</codeph> in
-thread <i>A</i>.</p><p><b>Buffer handling</b>. EGL window surfaces have two
-buffers, known as the front and back buffers. This means that the client application
-can draw to the back buffer, while the front buffer is being composed to the
-screen. The client must call <codeph>eglSwapBuffers()</codeph> to post the
-back buffer to the screen. </p><p>EGL 1.4 introduces a preserve buffer feature.
-When this is supported by the implementation, the content of the buffer can
-be preserved from one frame to the next. This means that the client can provide
-incremental drawing operations rather than the entire drawing operations for
-each frame. When the implementation supports this feature, it is usually off
-by default. This means that legacy applications that do not expect
-this feature are not slowed down by the unnecessary copying of the buffer
-contents.</p> <p><b>Window resizing</b>. A window can be resized using one
-of the Window Server or UI Framework APIs, such as <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-BCD76117-54A3-3CD5-8911-E867512BF85B"><apiname>RWindow::SetExtent()</apiname></xref> or <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-B680C675-2146-3162-AAAC-F3E88FA8B045"><apiname>CCoeControl::SetExtent()</apiname></xref>.
-When these APIs are called on a window that is bound to an EGL window surface,
-the EGL implementation is expected to handle the situation by adjusting its
-internal buffers. Applications need not do anything specific with regard to
-EGL APIs. Depending on the type of application, APIs may want to adjust their
-rendering operations—for example, clip or scale the contents. </p> <p>EGL
-handles the resize in the next call to <codeph>eglSwapBuffers()</codeph> by
-creating a new surface for the resized window. If the preserve buffer option
-is in use, this function also copies across all the pixels from the old surface
-that overlap the new surface, although the exact details depend on the implementation.
-A client application may therefore need to provide extra drawing operations,
-for example, if the window is made larger.</p> <p> <b>Screen rotation</b>.
-There is no specific EGL handling for screen rotation—instead screen rotation
-is handled in the same way as a change of screen resolution. Applications
-can detect screen rotation by listening to the Window Server event <xref href="GUID-CC1E6B2E-F68F-3A00-B4EA-4917007F7320.dita"><apiname>EEventScreenDeviceChanged</apiname></xref>.
-However, applications do not normally use the Window Server API directly,
-because they are built on top of the UI Framework layer. This layer provides
-a different mechanism to notify applications using—for example, <xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-5723655E-FC84-35F1-A0E1-FCE92CEBC196"><apiname>CCoeAppUi::HandleScreenDeviceChangedL()</apiname></xref>. </p> <p>When
-one of the these events is detected, the application may need to resize its
-windows and update its content accordingly. If the application wants to accept
-the system rotation, it does not need to rotate its content. However, some
-applications may want to maintain a fixed physical orientation. They would
-then need to rotate the window content in order to counteract the physical
-rotation. </p> </section>
-<section id="GUID-9BC770D9-3736-495E-8485-19D71700C50D"><title>Symbian pixmap
-types</title> <p>An EGL implementation can support the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> pointer
-as an <codeph>EGLNativePixmapType</codeph>. This means that it is possible
-to create an <codeph>EGLSurface</codeph> to render to a <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref>. </p> <p> <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> bitmaps
-are managed by the <xref href="GUID-71DADA82-3ABC-52D2-8360-33FAEB2E5DE9.dita">Font
-and Bitmap Server</xref>. The format is internal to Symbian, but the Image
-Converter API can be used to convert them to standard formats. The <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> type
-has limitations with regard to hardware acceleration. </p> </section>
-<section id="GUID-44553B50-C48E-4E6B-AD9C-F3BC7D9D5347"><title>Display handling</title> <p>Most
-EGL calls include an <codeph>EGLDisplay</codeph> parameter. The EGL specification
-describes this as "the abstract display on which graphics are drawn". On some
-systems, this corresponds to a physical screen. However, the details are platform
-specific and on Symbian systems, it does <i>not</i> correspond to a physical
-screen. When working on the Symbian platform, it is generally more useful
-to think of an <codeph>EGLDisplay</codeph> as the EGL session. </p> <p>On
-Symbian systems, you usually use a single <codeph>EGLDisplay</codeph>. You
-get this by a call to <codeph>eglGetDisplay()</codeph> and passing <codeph>EGL_DEFAULT_DISPLAY</codeph> as
-the <codeph>&lt;display id&gt;</codeph> parameter. </p> <p>The physical screen
-on which the content is displayed is determined by the window's parent window
-group. In Symbian, every window (<xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>) has a parent
-window group (<xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita"><apiname>RWindowGroup</apiname></xref>), as shown in the following
-diagram. When you create a window group, you can specify the screen on which
-it is to be shown. </p> <fig id="GUID-5D5F3C6A-4CFA-5307-8B2D-D2881799D664">
-<title>Each window has a parent window group which is associated with a screen</title>
-<image href="GUID-CF9EF400-DE1F-55F7-BD33-C4CD80462971_d0e211044_href.png" placement="inline"/>
-</fig> <p>When you create a window surface in EGL using <codeph>eglCreateWindowSurface</codeph>,
-you pass in the <codeph>RWindow</codeph> as an argument. The window surface
-is then displayed on the screen associated with that window's parent window
-group. Currently a window can exist on only one screen. </p> </section>
+<concept id="GUID-894AB487-C127-532D-852B-37CB0DEA1440" xml:lang="en"><title>Symbian-Specific Behavior</title><shortdesc>This topic provides information about the points that the
+EGL specification explicitly states are platform-specific. This information
+is aimed at both users and implementers of EGL on the Symbian platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-E6A596AC-1BCE-4B99-89CF-67EE28A45068"><title>ScreenPlay
+(NGA)</title><p>Applications can find out whether ScreenPlay (also
+known as the New Graphics Architecture or NGA) is supported on the
+device at runtime.  </p><p>To do this, call <codeph>eglQueryString(display,
+EGL_EXTENSIONS)</codeph> and search for the string <codeph>EGL_SYMBIAN_COMPOSITION</codeph> within the string returned. If <codeph>EGL_SYMBIAN_COMPOSITION</codeph> is present, it means that ScreenPlay is supported. For further information,
+see <xref href="GUID-2923A42C-1C0E-553D-8563-7B9FC51F153F.dita">EGL Functions
+with Symbian-Specific Behavior</xref>.</p><p>By checking for the presence
+of the <codeph>EGL_SYMBIAN_COMPOSITION</codeph> string, you can create
+applications that can work on both ScreenPlay devices and those with
+the non-ScreenPlay architecture.</p></section>
+<section id="GUID-5F4317DF-EEDE-434C-906D-A354367AE38D"><title>Symbian
+windows</title> <p>EGL window surfaces are on-screen rendering surfaces
+that are tied to Symbian windows. The <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> class
+is a client-side handle to a Symbian Window Server window. You must
+create the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> before creating the EGL window
+surface for on-screen rendering.</p><p>Because the EGL window surface
+is implemented differently depending on whether ScreenPlay is in use,
+there are some differences in how you create an EGL window surface:</p><ul>
+<li><p>In ScreenPlay, the pixel format of the EGL window surface is
+determined entirely by the EGL config passed to <codeph>eglCreateWindowSurface()</codeph> and not by the properties of the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>.</p></li>
+<li><p>On a non-ScreenPlay device, the display mode of the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> must match the buffer size of the EGL window surface.
+You can call <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita#GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34/GUID-FE6998EA-7B17-3270-B487-04D98EBB8424"><apiname>RWindowBase::DisplayMode() const</apiname></xref> to
+retrieve the window’s display mode and use it to determine the buffer
+size when retrieving the EGL config to pass to <codeph>eglCreateWindowSurface()</codeph>. </p></li>
+</ul> <p><b>Threading</b>. Because of the limitations of the Window
+Server API, clients <b>must</b> create and use an EGL window surface
+in the thread in which its <codeph>RWindow</codeph> was created. This
+means that the following are <b>not</b> supported and will lead to
+undefined behavior:</p><ul>
+<li><p>Creating an EGL window surface in thread <i>B</i> using an <codeph>RWindow</codeph> that was created in thread <i>A</i>. </p></li>
+<li><p>Using an EGL window surface in thread <i>B</i> when that EGL
+window surface and its <codeph>RWindow</codeph> were created in thread <i>A</i>. </p></li>
+</ul><p>For example, in the second scenario, EGL in thread <i>B</i> will fail (with a WSERV panic) when it attempts to get the window
+size from the <codeph>RWindow</codeph> in thread <i>A</i>.</p><p><b>Buffer handling</b>. By default EGL window surfaces have multiple
+buffers, which means that the client can draw to a back buffer, while
+the front buffer is being composed to the screen. The client must
+call <codeph>eglSwapBuffers()</codeph> to post the back buffer to
+the screen.</p><p> EGL 1.4 introduces a preserve buffer feature, which
+enables the content of the front buffer to be preserved from one frame
+to the next. This means that the client can provide incremental drawing
+operations rather than the entire drawing operations for each frame.
+This feature is usually off by default. This means that legacy applications
+that do not expect this feature are not slowed down by the unnecessary
+copying of the buffer contents.</p> <p><b>Window resizing</b>. The
+size of an application’s view can be changed by a variety of external
+events, such as a UI layout switch, a change in the size of the status
+pane or the rotation of the screen.  An application can also resize
+a window directly, such as through a call to <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-BCD76117-54A3-3CD5-8911-E867512BF85B"><apiname>RWindow::SetExtent()</apiname></xref>, <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-B680C675-2146-3162-AAAC-F3E88FA8B045"><apiname>CCoeControl::SetExtent()</apiname></xref> or <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-5A63E1BD-BCCA-356E-BB39-D4BB7B6DC22E"><apiname>CCoeControl::SetExtentToWholeScreen()</apiname></xref>.</p><p>When there is a change in the size of a window that is bound
+to an EGL window surface, the application must take appropriate action
+in its <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-FFF07CE8-61C4-34F9-B9E9-D315782C8476"><apiname>CCoeControl::SizeChanged(</apiname></xref>) or <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-1BC64D91-2796-3F16-AA41-13836BC00701"><apiname>CCoeControl::HandleResourceChange()</apiname></xref> implementation. The action depends on the nature of the application
+but might include clipping or scaling the contents to fit the resized
+window.</p><p>On the Symbian platform, EGL handles the window resize
+in the next call to <codeph>eglSwapBuffers()</codeph>, which resizes
+the surface to match the new window size. If the preserve buffer option
+is in use, this function also copies across all the pixels from the
+old surface that overlap the new surface, although the exact details
+depend on the implementation.</p><p>If the surface resize fails, <codeph>eglSwapBuffers()</codeph> returns <codeph>EGL_FALSE</codeph> and
+an <codeph>EGL_BAD_ALLOC</codeph> error is raised. This may mean that
+the implementation does not support the resizing of a surface or that
+there is not enough memory available (on a platform with GPU, this
+would be GPU rather than system memory). Applications must always
+monitor whether <xref href="GUID-7F4F23A8-26FA-33E5-87DA-4EE1D3DC65AE.dita"><apiname>eglSwapBuffers()</apiname></xref> fails after a
+window resize. When it does fail, the application should do the following:</p><ol>
+<li id="GUID-81762FDD-72AD-410E-8E18-FFFF75CF6A32"><p>Call <codeph>eglDestroySurface()</codeph> to destroy the current EGL window surface.</p></li>
+<li id="GUID-79FFA30C-1F31-47C0-9084-F72FF0E57FC6"><p>Call <codeph>eglCreateWindowSurface()</codeph> to recreate the EGL window surface.</p></li>
+</ol> <p>This may cause a noticeable flicker and so should be done
+only when necessary.</p><p> <b>Screen rotation</b>. There is no specific
+EGL handling for screen rotation—instead screen rotation is handled
+in the same way as a change of screen resolution. An application typically
+handles changes in screen resolution and rotation in its <xref href="GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90.dita#GUID-3AC2CDAC-0291-309F-A020-049BC9F2CF90/GUID-5723655E-FC84-35F1-A0E1-FCE92CEBC196"><apiname>CCoeAppUi::HandleScreenDeviceChangedL()</apiname></xref> or <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-A925DD23-4531-3BA5-AF17-E6289F9E370A"><apiname>CCoeControl::HandleResourceChange(TInt)</apiname></xref> implementation. When there is a change in screen rotation, the application
+may need to resize its windows and update the content accordingly. </p> <p>The EGL implementation updates the surface size on the next call
+to <codeph>eglSwapBuffers()</codeph>.  However, the interim frames
+appear in the new orientation, and so an application may want to adjust
+the contents to minimize flicker. If the application wants to accept
+the system rotation, it does not need to rotate its content. However,
+some applications may require a fixed physical orientation. These
+need to rotate the window content in order to counteract the physical
+rotation. </p><p>Sometimes a screen rotation simply results in the
+swapping of the window’s width and height dimensions—for example,
+when the application is running in full screen mode and the device
+is rotated from portrait to landscape or vice versa. This is guaranteed
+to succeed on all Symbian EGL implementations.</p><p>In other situations
+the screen rotation must be treated like a window resize and the application
+must monitor whether <codeph>eglSwapBuffers()</codeph> succeeds and
+take appropriate action if it fails, as described above. For example,
+if the application is not in full screen mode, rotating the device
+from portrait to landscape may not result in the swapping of the width
+and height of the window.</p> <p><b>UI content</b>. Applications that
+want to make use of the ScreenPlay ability to place semi-transparent <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> rendering above the EGL window surface should
+check whether ScreenPlay is supported on the device as described above. </p><p>On ScreenPlay devices, you can combine <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> drawing and OpenVG/OpenGL ES drawing in the same window, provided
+the <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> content is drawn using a semi-transparent
+pen or brush color or bitmap. It is also possible to create semi-transparent <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> drawing in another Symbian window placed over
+the EGL window. To do this, make the Symbian window semi-transparent
+by calling <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-47275C08-0C58-3A03-B96F-38F881F49C08"><apiname>RWindow::SetTransparencyAlphaChannel()</apiname></xref>. <xref href="GUID-02BD38E7-A579-5BD5-9444-4E7C14C7809A.dita">Transparent
+Windows</xref> has more detail on implementing semi-transparent windows.</p><p>On non-ScreenPlay devices, you need to place the <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> drawing in an opaque child window over the EGL window surface or
+implement the UI by using OpenVG/OpenGL ES drawing that is directed
+to the EGL window surface itself.</p><p><b>Window lifetime</b>. Clients
+must maintain the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> associated with the EGL
+window surface for the lifetime of that window surface, provided they
+follow the good practice guidelines of unbinding the EGL window surface
+from the current context before destroying it. If these guidelines
+are not followed, it may be necessary to maintain the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> for the entire duration of EGL usage within the client application.</p><p>For example,  the following pseudocode demonstrates good practice.
+The <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> must be valid until <codeph>eglDestroySurface()</codeph> is called:</p><codeblock xml:space="preserve">// Unbind the window surface from the current context.
+eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+// Destroy the window surface.
+eglDestroySurface(display, surface);
+
+...
+
+eglTerminate(display)</codeblock><p>When the application does not
+follow this good practice and destroys the surface before unbinding
+it from the current context, the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> must be
+valid for longer. For example in the following pseudocode, <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> must be valid until after <codeph>eglMakeCurrent()</codeph> is called:</p><codeblock xml:space="preserve">eglDestroySurface(display, surface);
+eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+
+...
+
+eglTerminate(display)</codeblock><p>If <xref href="GUID-2095B4FC-106B-3839-9EE1-9F6B5E8C47B6.dita"><apiname>eglMakeCurrent(</apiname></xref>) is not called with a null surface and null context at all, the <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref> must be valid until <codeph>eglTerminate()</codeph> is called.</p> </section>
+<section id="GUID-9BC770D9-3736-495E-8485-19D71700C50D"><title>Symbian
+pixmap types</title> <p>An EGL implementation can support the <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref> pointer as an <codeph>EGLNativePixmapType</codeph>. This means that it is possible to create an <codeph>EGLSurface</codeph> to render to a <xref href="GUID-683A1D42-2764-3EB7-BD19-9E12559199AB.dita"><apiname>CFbsBitmap</apiname></xref>. However, it is not
+guaranteed to be supported on all EGL implementations.</p> </section>
+<section id="GUID-44553B50-C48E-4E6B-AD9C-F3BC7D9D5347"><title>Display
+handling</title> <p>Most EGL calls include an <codeph>EGLDisplay</codeph> parameter. The EGL specification describes this as "the abstract
+display on which graphics are drawn". On some systems, this corresponds
+to a physical screen. However, the details are platform specific and
+on Symbian systems, it does <i>not</i> correspond to a physical screen.
+When working on the Symbian platform, it is generally more useful
+to think of an <codeph>EGLDisplay</codeph> as the EGL session. </p> <p>On Symbian systems, you usually use a single <codeph>EGLDisplay</codeph>. You get this by a call to <codeph>eglGetDisplay()</codeph> and
+passing <codeph>EGL_DEFAULT_DISPLAY</codeph> as the <codeph>&lt;display
+id&gt;</codeph> parameter. </p> <p>The physical screen on which the content
+is displayed is determined by the window's parent window group. In
+Symbian, every window (<xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita"><apiname>RWindow</apiname></xref>) has a parent window
+group (<xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita"><apiname>RWindowGroup</apiname></xref>), as shown in the following
+diagram. When you create a window group, you can specify the screen
+on which it is to be shown. </p> <fig id="GUID-5D5F3C6A-4CFA-5307-8B2D-D2881799D664">
+<title>Each window has a parent window group which is associated with
+a screen</title>
+<image href="GUID-CF9EF400-DE1F-55F7-BD33-C4CD80462971_d0e206241_href.png" placement="inline"/>
+</fig> <p>When you create a window surface in EGL using <codeph>eglCreateWindowSurface</codeph>, you pass in the <codeph>RWindow</codeph> as an argument. The window
+surface is then displayed on the screen associated with that window's
+parent window group. Currently a window can exist on only one screen. </p> </section>
 </conbody><related-links>
-<link href="GUID-D252E75C-C8CA-5C51-8DA3-95B937A1295C.dita"><linktext>EGL Interface
-Component</linktext></link>
-<link href="GUID-DC8BFEF5-DA50-52DA-8CE2-5729A4A005F6.dita"><linktext>EGL Collection
-Overview</linktext></link>
+<link href="GUID-D252E75C-C8CA-5C51-8DA3-95B937A1295C.dita"><linktext>EGL
+Interface Component</linktext></link>
+<link href="GUID-DC8BFEF5-DA50-52DA-8CE2-5729A4A005F6.dita"><linktext>EGL
+Collection Overview</linktext></link>
+<link href="GUID-53707903-9A88-409B-80F8-FDF7EF47ACBF.dita"><linktext>Coverflow:
+using ScreenPlay</linktext></link>
+<link href="GUID-484B51EC-2209-5492-8E9C-9D792AB0DF35.dita"><linktext>Drawing
+with CWindowGc</linktext></link>
 </related-links></concept>

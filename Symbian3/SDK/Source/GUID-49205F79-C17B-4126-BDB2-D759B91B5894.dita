@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-49205F79-C17B-4126-BDB2-D759B91B5894" xml:lang="en"><title>Enabling
+Application Level Roaming</title><shortdesc>Application-level roaming (ALR) enables your application to roam
+to use the best available data connection while operational.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-9B1466E3-661E-4BAB-A7F7-7F587FF8EBF1">       <p>To use application-level
+roaming: </p>     </context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-10-1-14-1-1-6-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-10-1-14-1-1-6-1-3-2-1"><cmd>Initiate an Internet
+connection using the Connection Manager API and the Internet destination network.
+In this example it is assumed that the best available access point for Internet
+is GPRS. </cmd>
+<stepresult>           <p> RConnection handle is returned to the application. </p> 
+       </stepresult>
+</step>
+<step id="GUID-247DC723-B5D7-4E6B-B3E9-380DA63230B2"><cmd>Register for mobility
+API sending <xref href="GUID-54ACF1D8-F501-37EB-A558-CEF005D84F14.dita"><apiname>NewL(RConnection handle, MMobilityProtocolResp&amp;)</apiname></xref> to
+the Connection Manager API.</cmd>
+</step>
+<step id="GUID-65B2CBFA-9631-4172-8B1A-665F09729871"><cmd>Use Sockets Client
+API to open <xref href="GUID-30FCE6D7-B7E2-317F-A72A-4AB908E92B34.dita"><apiname>RSockets</apiname></xref> with <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> handle. </cmd>
+<stepresult><p> RSocket handle is returned to the application.</p></stepresult>
+</step>
+<step id="GUID-663CEB0D-A36D-46CB-8C2D-700D7DA76EF8"><cmd>Initiate normal
+socket communication to the Sockets Client API. This data transfer uses GPRS.
+  A WLAN access point becomes available. The Connection Manager API sends <xref href="GUID-EA7C9217-8989-3486-B50F-9EA5844A6F2F.dita"><apiname>PreferredCarrierAvailable(old
+access point, new access point, is upgrade, not seamless</apiname></xref>) to the
+application.  The application decides to switch to the better access point.
+It closes the old socket using the Sockets Client API. </cmd>
+</step>
+<step id="GUID-417D1229-320F-4B07-A429-9274163C7E01"><cmd>Send <xref href="GUID-99D7A3EF-ACF5-3E11-B356-E77497884F1F.dita"><apiname>MigrateToPreferredCarrier()</apiname></xref> to
+the Connection Manager API.  Note: The application can also<xref href="GUID-7B5530C5-A13F-3BC6-BC69-9B05993AFCB1.dita"><apiname> IgnorePreferredCarrier()</apiname></xref>.
+In that case it would just keep using the existing socket.  The connection
+is moved in the Connection Manager API. The WLAN access point is activated
+and RConnection handle is moved from the GPRS interface to WLAN. <xref href="GUID-EB635CFD-84A5-334B-8F48-85265E40A5A2.dita"><apiname> NewCarrierActive(new
+IAP)</apiname></xref> is returned to the application.  The WLAN access point is now
+ready to be used. </cmd>
+</step>
+<step id="GUID-284D53C0-516A-4F05-8422-918A6FCA036C"><cmd>Use Sockets Client
+API to open RSockets with RConnection handle. This data transfer uses WLAN.</cmd>
+</step>
+<step id="GUID-27CF0583-4A43-4386-AFF6-E37E6DA15A64"><cmd>Transfer data using
+the Sockets Client API to confirm that the connection works.</cmd>
+</step>
+<step id="GUID-B7B7D14A-D241-49C2-84D0-147B780A70FF"><cmd>Send <xref href="GUID-91FB265C-9924-3F59-8C7B-C68D65D72ABC.dita"><apiname>NewCarrierAccepted()</apiname></xref> to
+the Connection Manager API. This is the point of no return.</cmd>
+</step>
+<step id="GUID-239B2867-A34A-45EE-A843-8C913709CD47"><cmd>Continue transferring
+data using the Sockets Client API. This data transfer uses WLAN.</cmd>
+</step>
+</steps>
+<result id="GUID-B55F3ECE-2C77-446C-8313-ED3B72BBF4DF">       <p>ALR is enabled.</p> 
+   </result>
+<example><codeblock xml:space="preserve">class CALRApplication : public CActive, public MMobilityProtocolResp
+    {
+...
+    public: // From MMobilityProtocolResp
+    void PreferredCarrierAvailable( TAccessPointInfo aOldAPInfo,
+                                        TAccessPointInfo aNewAPInfo,
+                                        TBool aIsUpgrade,
+                                        TBool aIsSeamless );
+  void NewCarrierActive( TAccessPointInfo aNewAPInfo, TBool aIsSeamless );
+  void Error( TInt aError );
+  private:    // Data
+  RConnection  iConnection;
+  CActiveCommsMobilityApiExt*   iMobility;
+    };
+// When the connection starts, iMobility is created and it registers the connection to receive mobility messages.
+iMobility = CActiveCommsMobilityApiExt::NewL( iConnection, *this );When apreferred access point becomes available, the implementation of CALRApplication::PreferredCarrierAvailable is called. MigrateToPreferredCarrier Mobility message is sent to the middleware in order to roam to this preferred access point.
+void CALRApplication::PreferredCarrierAvailable( TAccessPointInfo aOldAPInfo,TAccessPointInfo aNewAPInfo,TBool aIsUpgrade,TBool aIsSeamless ){
+    // aOldAPInfo contains the current IAP used by the connection.
+    // aNewAPInfo contains the newly available IAP that can be used by the connection.
+ if ( aIsSeamless )
+        {
+        // It is Seamless. E.g. Mobile IP enabled.
+        }
+    else
+        {
+        // sockets used by the connection should be closed here.
+        // We ask to migrate to the Preferred Carrier.
+        iMobility-&gt;MigrateToPreferredCarrier();
+        }
+    }
+Once the connection roamed to the new access point, the implementation ofCALRApplication::NewCarrierActive is called. The application reopens its sockets on the connection. If the socket connection is fine, the application sends the NewCarrierAccepted Mobility message to the middleware.
+
+void CALRApplication::NewCarrierActive( TAccessPointInfo aNewAPInfo, TBool aIsSeamless )
+    {
+    // aNewAPInfo contains the newly started IAP used now by the connection.
+    if ( aIsSeamless )
+        {
+        // It is Seamless. E.g. Mobile IP enabled.
+        }
+    else
+        {
+        // sockets used by the connection should be reopened here.
+        // We accept the new IAP.
+        iMobility-&gt;NewCarrierAccepted();
+        }
+    }</codeblock></example>
+</taskbody></task>

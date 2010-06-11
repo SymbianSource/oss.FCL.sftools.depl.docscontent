@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4D92E302-3145-4453-AFA1-F5C5BDF933F9" xml:lang="en"><title>Compatibility Breaks</title><shortdesc>All binary and source compatibility breaks in Symbian^3
+SDK are listed with supporting information on handling these breaks.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The following table summarizes the binary and source compatibility
+breaks:</p>
+<table id="GUID-1A133A2D-D803-4026-AF28-4A96DB25F42B-GENID-1-6-1-1-6-1-6-1-3-2">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.34*"/><colspec colname="col2" colwidth="1.66*"/>
+<thead>
+<row>
+<entry>APIs/Header files/Libraries</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+
+<entry><xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-F948E0A6-DC1A-3FCD-A391-0FEE0F673D36"><apiname>RSocket::SendTo()</apiname></xref> and <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-876863C1-E691-3C3F-9CFB-9597B577509E"><apiname>RSocket::RecvFrom()</apiname></xref></entry>
+<entry>In earlier Symbian platform releases, if an application attempts <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-F948E0A6-DC1A-3FCD-A391-0FEE0F673D36"><apiname>RSocket::SendTo()</apiname></xref> and <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-876863C1-E691-3C3F-9CFB-9597B577509E"><apiname>RSocket::RecvFrom()</apiname></xref> operations on a UDP socket when the connection is closed, the socket
+would start a new connection. This behavior has changed from Symbian^3
+onwards, and such an operation will return KErrTimedOut or KErrInet6NoRoute
+to indicate that the connection has been closed.</entry>
+</row>
+<row>
+<entry>Libc write()</entry>
+<entry>Symbian^3 supports POSIX signals which allows standard C applications
+to handle interrupts (hardware and software signals/events). The existing
+standard C applications are not affected by this change, unless they
+are recompiled against the updated libraries. Once the applications
+are recompiled, they will receive a SIGPIPE signal when they try to
+write to a broken pipe. Unless this signal is handled or is ignored
+using signore() method, the application terminates. For more information
+on handling POSIX signals on Symbian platform, refer to <xref href="GUID-41F33130-7968-5016-9ACE-9E9F906118DB.dita">Using POSIX Signals</xref>.</entry>
+</row>
+<row>
+<entry><xref href="GUID-25D4B920-6158-3014-8E7D-4E1C5267C5EF.dita#GUID-25D4B920-6158-3014-8E7D-4E1C5267C5EF/GUID-A521B983-4932-35AA-8741-F2B813754F27"><apiname>CBitmapFont::OpenFont()</apiname></xref> and <xref href="GUID-039375D3-AFD9-3E31-9C1C-ACEDC10E27CE.dita"><apiname>COpenFont</apiname></xref></entry>
+<entry>The Flexible Memory Model in Symbian^3 does not provide access
+to the Open Font data in Font Bitmap Server global chunk. Rebuild
+the application binary on Symbian^3 to get access to the Open Font
+data.</entry>
+</row>
+<row>
+<entry><xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-3491CE2A-A94D-34E0-B0DD-D476EE3334D7"><apiname>RSocket::Open()</apiname></xref></entry>
+<entry>The overloaded <xref href="GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0.dita#GUID-D4F08503-F1EF-3531-9C3C-4AF24A6255F0/GUID-3491CE2A-A94D-34E0-B0DD-D476EE3334D7"><apiname>RSocket::Open()</apiname></xref> method that
+is meant for opening a socket without associating it with an <xref href="GUID-BED8A733-2ED7-31AD-A911-C1F4707C67FD.dita"><apiname>RConnection</apiname></xref> object explicitly is called the default connection
+scenario. This scenario is not supported from Sybmian^3 onwards, so
+all code depending on default connection scenario has to be migrated
+to explicit or implicit connection scenario. For more information
+on explicit and implicit connection scenarios, refer to <xref href="GUID-722180B8-0032-5C3F-AEB2-A9B1261450D8.dita">Starting a Socket
+Server connection: Tutorial</xref>.</entry>
+</row>
+<row>
+<entry><xref href="GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE.dita#GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE/GUID-00E43DC1-9543-3C35-BDEF-539332E4311F"><apiname>CRemoteGc::SetDrawMode()</apiname></xref> and <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita#GUID-0AEE5955-C530-35F1-A904-69183331B294/GUID-D8D35F8C-B5BB-338D-AD78-AF21BCD23D80"><apiname>CWindowGc::SetDrawMode()</apiname></xref></entry>
+<entry>These two APIs will not support the following draw modes:<ul>
+<li><p>EDrawModeAND</p></li>
+<li><p>EDrawModeNOTAND</p></li>
+<li><p>EDrawModeANDNOT</p></li>
+<li><p>EDrawModeXOR</p></li>
+<li><p>EDrawModeOR</p></li>
+<li><p>EDrawModeNOTANDNOT</p></li>
+<li><p>EDrawModeNOTXOR</p></li>
+<li><p>EDrawModeNOTSCREEN</p></li>
+<li><p>EDrawModeNOTOR</p></li>
+<li><p>EDrawModeNOTPEN</p></li>
+<li><p>EDrawModeORNOT</p></li>
+<li><p>EDrawModeNOTORNOT</p></li>
+</ul>These two Graphics Context classes (<xref href="GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE.dita"><apiname>CRemoteGc</apiname></xref> and <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref>) will support EDrawModePEN and
+EDrawModeWriteAlpha only. To use any of the draw modes listed earlier,
+use <xref href="GUID-4A501086-7EFF-376D-8901-6D9B2EB4EFF2.dita#GUID-4A501086-7EFF-376D-8901-6D9B2EB4EFF2/GUID-6E1C396C-1450-3A96-8592-89D196C1FB37"><apiname>CFbsBitGc::SetDrawMode()</apiname></xref> and render their window
+content into an off-screen bitmap, and use <xref href="GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE.dita"><apiname>CRemoteGc</apiname></xref> to draw the bitmap to the screen.</entry>
+</row>
+<row>
+<entry><xref href="GUID-B3E9B015-1413-35A6-A316-D1C01C1001AD.dita"><apiname>CMMFDevSound</apiname></xref>, <xref href="GUID-778D24B5-A68E-3C91-B66A-69007FBA4791.dita"><apiname>CMdaAudioPlayerUtility</apiname></xref>, <xref href="GUID-29FB1DE6-D00C-3E6B-A8AA-476FAFD7F26C.dita"><apiname>CMdaAudioRecorderUtility</apiname></xref>, <xref href="GUID-92BDB3AF-D9DB-35E2-AC6F-6435D3D1A4D8.dita"><apiname>CMdaAudioInputStream</apiname></xref>, <xref href="GUID-B87C8F92-9737-3636-9800-BA267A1DCA6D.dita"><apiname>CMdaAudioOutputStream</apiname></xref>, and <xref href="GUID-D728A286-A202-3915-9643-8FD70646F78A.dita"><apiname>CMdaAudioToneUtility</apiname></xref>.</entry>
+<entry>In earlier Symbian platform releases, an attempt to record
+or play an audio file without setting the volume and gain values (using
+SetVolume() and SetGain()) would result in silence. This behavior
+has changed from Symbian^3 onwards, where an audio file can be played
+or recorded without having to set the volume and gain values. With
+this change, all applications using these APIs must be rebuilt on
+Symbian^3.</entry>
+</row>
+<row>
+<entry><xref href="GUID-38301A39-3752-3345-91B9-D0EED11F194B.dita#GUID-38301A39-3752-3345-91B9-D0EED11F194B/GUID-4271E73B-817F-30F0-9A39-D9F2A5B16F31"><apiname>CGraphicsContext::DrawTextExtended(classTDesC16const&amp;,
+classCGraphicsContext::TTextParametersconst*, classTPointconst&amp;,
+structCGraphicsContext::TDrawTextExtendedParamconst&amp;)</apiname></xref></entry>
+<entry>The ordinal position for this API has changed. Rebuild all
+the applications using this API.</entry>
+</row>
+<row>
+<entry><xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-A61D694F-FDC7-369A-947C-7AD8A340768A"><apiname>CWsScreenDevice::SetPalette()</apiname></xref>, <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-41C7C9DB-BE16-3473-8B28-F452728C288E"><apiname>CWsScreenDevice::PaletteAttributes()</apiname></xref>, and <xref href="GUID-30479BE3-296E-3B4D-914D-B080ABD733E4.dita#GUID-30479BE3-296E-3B4D-914D-B080ABD733E4/GUID-C51950BE-3E3A-3CB7-B986-6C2BC6B11FCB"><apiname>CWsScreenDevice::GetPalette()</apiname></xref>.</entry>
+<entry>These APIs are not supported. All calls to these
+APIs will return KErrNotSupported. If the existing applications using
+these APIs check for KErrNotSupported error, will continue to work
+without any change. All other applications must be modified and rebuilt.</entry>
+</row>
+</tbody>
+</tgroup>
+</table></conbody></concept>
