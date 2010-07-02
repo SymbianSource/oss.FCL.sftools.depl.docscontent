@@ -1,19 +1,241 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
-<!-- This component and the accompanying materials are made available under the terms of the License 
-"Eclipse Public License v1.0" which accompanies this distribution, 
-and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
-<!-- Initial Contributors:
-    Nokia Corporation - initial contribution.
-Contributors: 
--->
-<!DOCTYPE concept
-  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept xml:lang="en" id="GUID-9C269F45-F160-5A4B-ABF8-896D2A538E3B"><title>Advanced Pointer Overview </title><shortdesc>This is an overview of the Window Server extensions that support the use of advanced pointers. These extensions enable mobile devices to respond to events from multiple pointers, including their proximity and pressure. These extensions are available only in ScreenPlay. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> <b>Variant</b>: <xref href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref>. <b>Target audience</b>: Application developers. </p> <section id="GUID-773C3275-F562-5428-A34C-7D54F10D4BC1"><title>Architecture</title> <p>In response to multi-touch pointer movements, an input driver generates a pointer event for each touch. The Window Server changes and delivers the pointer events to the client application, as shown in the following diagram. </p> <fig id="GUID-4A02299F-8401-5761-863C-91F0338731DA"><title>
-             Pointer events 
-          </title> <image href="GUID-5503ACC5-1C78-5EF6-AAD2-4B6FFA8890B9_d0e191959_href.png" placement="inline"/></fig> <p>Pointer-related events move from the driver to the application. The <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref>, <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita"><apiname>TWsEvent</apiname></xref> and <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"><apiname>TPointerEvent</apiname></xref> classes encapsulate the event information. </p> </section> <section><title>Key concepts/terms</title> <p>The following terms are introduced here and are used throughout the advanced pointer documentation: </p> <dl><dlentry><dt>Pointer</dt> <dd><p>A device that points at the screen, for example, a mouse, pen, finger, or touchpad. </p> </dd> </dlentry> <dlentry><dt>Multi-pointer support</dt> <dd><p>Handling more than one pointer at the same time. </p> </dd> </dlentry> <dlentry><dt>Proximity</dt> <dd><p>Proximity in this context means the distance of the pointer from the mobile device. Sensors detect the value of the proximity of the pointer from the mobile device. </p> </dd> </dlentry> <dlentry><dt>Pressure</dt> <dd><p>Pressure in this context is a value that indicates the force applied to the mobile device by the pointer. Sensors detect the value of the pressure of the pointer on the mobile device. </p> </dd> </dlentry> </dl> </section> <section><title>Logical model of pointing devices</title> <p>A logical model is used to handle all of the different pointing devices correctly. In this logical model, the pointer is <b>performing an action</b> when any of the following scenarios occur: </p> <ul><li id="GUID-3A57E7AE-A8FB-5C2B-AC54-4F60DDD35783"><p>An <codeph>EButton1Down</codeph> event is sent to the client. </p> </li> <li id="GUID-BBD5660A-2A72-5F14-9A28-D7F31761F963"><p> <codeph>EDrag</codeph> events are sent to the client (optional). </p> </li> <li id="GUID-54B774E8-6BD8-51EB-9854-9953F95AFBF5"><p>An <codeph>EButton1Up</codeph> event is sent to the client. </p> </li> </ul> <p>Pointing devices can be in one of the following states: </p> <table id="GUID-AAE663FE-E94F-556B-B635-93DDD6C27902"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>State</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <b>Out of range</b>  </p> </entry> <entry><p>Not detected by the device's sensors. </p> </entry> </row> <row><entry><p> <b>Up</b>  </p> </entry> <entry><p>Detected by sensors, coordinates available, not performing an action. </p> </entry> </row> <row><entry><p> <b>Down</b>  </p> </entry> <entry><p>Detected by sensors, coordinates available, performing an action (as defined above). </p> </entry> </row> </tbody> </tgroup> </table> <p>The mapping between these states and physical actions performed by the user vary for different pointing device types (mouse, finger) and different phone models. Here are two example interpretations of physical pointing device states: </p> <ul><li id="GUID-E01E8EC4-8535-5FD4-980E-214FC7542717"><p> <b>Mouse</b>. An example interpretation by a driver of the physical state of a mouse is as follows: It is always in the <i>up</i> state except when the left button is pressed, when it is in the <i>down</i> state. It is never out of range. </p> </li> <li id="GUID-7CC705BF-FC6C-534B-B00B-0C07A6B9A856"><p> <b>Fingers with proximity support</b>. The following is an example interpretation of finger physical states when the device has proximity support (that is, it can measure the finger's proximity from the screen): </p> <ul><li id="GUID-F4F27FC9-F4F3-5475-8DA5-771B804828CD"><p> <i>Out of range</i> when proximity &gt; 10cm </p> </li> <li id="GUID-0B8F3832-24C1-5421-A224-5FFFC6EBA3F4"><p> <i>Up</i> when 1cm &lt; proximity &lt;= 10cm </p> </li> <li id="GUID-CE65B2EC-AD8E-5B9D-A514-07EC73137518"><p> <i> Down</i> when proximity &lt;= 1cm </p> </li> </ul> <p>In this way the finger can perform actions (for example, press buttons, drag items) without touching the screen. </p> </li> </ul> </section> <section><title>Multiple pointers</title> <p>The system handles multiple pointers at the same time by identifying each one with a number and sending pointer events separately for each of them. A field (<codeph>iPointerNumber</codeph>) in the pointer event classes (<xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> and the <xref href="GUID-FADA3278-FF8B-308F-90AD-3DCF8911A023.dita"><apiname>TAdvancedPointerEvent</apiname></xref> class which extends <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"><apiname>TPointerEvent</apiname></xref>) identifies the pointer for which the event occurred. The order and frequency of pointer events depends on the driver of the pointing device. </p> <p>On each phone there is a pool of available pointer numbers, ranging from 0 to <codeph>HALData::EPointerNumberOfPointers</codeph> - 1. Every time the driver detects a new pointer coming into the range of the device, the driver assigns a number from the pool. After the pointer goes out of the range of the device, the number no longer identifies that particular pointer and the driver sends <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita#GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD/GUID-C7FB5C5F-B7E1-3738-B72D-1AD81699414F"><apiname>TRawEvent::EPointer3DOutOfRange</apiname></xref> with this pointer number. The number is then released back to the pool and may be reused to identify another pointer coming into the device's range. </p> </section> <section><title>Pressure and proximity</title> <p>The pressure of the pointer on the screen is represented as a positive integer. The proximity of the pointer to the screen is represented as a negative integer. It is up to the UI Platform to define units of pressure and proximity, which may be non-linear. In the <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> class, pressure and proximity are expressed in terms of the Z coordinate of the pointer. The definition of the Z coordinate is based on the assumption that the pointer is either hovering over the screen (proximity &lt; 0, pressure = 0) or touching the screen (proximity = 0, pressure &gt;= 0): </p> <ul><li id="GUID-21CB6F60-3076-5EBE-9900-D870C670FE5B"><p>If proximity &lt; 0 and pressure = 0 then the Z coordinate = proximity. </p> </li> <li id="GUID-B5EA992D-4F86-54E1-A64C-673691460945"><p>If proximity = 0 and pressure &gt;= 0 then the Z coordinate = pressure. </p> </li> </ul> <fig id="GUID-FCE3CEAF-CCF3-5472-AC15-5DF5F092AA5E"><title>
-             Relationships between the pointer proximity, pressure and z
-             coordinate 
-          </title> <image href="GUID-1A0FB98B-8DB3-5067-9B71-FF838F6AE402_d0e192246_href.png" placement="inline"/></fig> </section> <section><title>API summary</title> <table id="GUID-07002499-484E-500E-AC57-4089AB0197E8"><tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/><thead><row><entry>API</entry> <entry>Description</entry> </row> </thead> <tbody><row><entry><p> <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita"><apiname>HALData</apiname></xref>  </p> </entry> <entry><p>Includes z coordinate, pressure precision and number of pointers. Also contains threshold values for proximity and pressure. </p> </entry> </row> <row><entry><p> <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref>  </p> </entry> <entry><p>Includes the pointer number and a structure for proximity and pressure data. </p> </entry> </row> <row><entry><p> <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita"><apiname>RWindowBase</apiname></xref>  </p> </entry> <entry><p>Enables advanced pointer events for the window. </p> </entry> </row> <row><entry><p> <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita"><apiname>TWsEvent</apiname></xref>  </p> </entry> <entry><p>Supports <codeph>TAdvancedPointerEvent</codeph> (derived from <codeph>TPointerEvent)</codeph>. </p> </entry> </row> <row><entry><p> <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"><apiname>TPointerEvent</apiname></xref>  </p> </entry> <entry><p>Includes event types for pressing and closeness. </p> </entry> </row> <row><entry><p> <xref href="GUID-FADA3278-FF8B-308F-90AD-3DCF8911A023.dita"><apiname>TAdvancedPointerEvent</apiname></xref>  </p> </entry> <entry><p>Inherits from <codeph>TPointerEvent</codeph>. </p> <p>Provides capabilities for pressure, proximity and multi-touch support. </p> </entry> </row> <row><entry><p> <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"><apiname>RWsSession</apiname></xref>  </p> </entry> <entry><p>Provides get and set methods to manipulate threshold values for proximity and pressure. </p> </entry> </row> </tbody> </tgroup> </table> </section> <section><title>Typical uses</title> <ul><li id="GUID-CA055058-AAD6-5A89-BC7E-7B5E81FA8963"><p> <b>Enabling many pointers for a window</b>  </p> <p>Enables multiple pointers to act on one window. </p> </li> <li id="GUID-DBD49B85-207D-5722-8AE3-B00946899559"><p> <b>Enabling concurrent control of many objects</b>  </p> <p>Controls many objects on one or more windows with many pointers. </p> </li> <li id="GUID-AF442CD4-FDEC-5FF4-B8F9-6ED8CDB9E957"><p> <b>Getting z coordinates from TPointerEvent</b>  </p> <p>Reads the pressure and proximity values for a pointer. </p> </li> <li id="GUID-13E0E5DA-609A-52B3-A90A-9A84C3A8BF22"><p> <b>Pinch zooming</b>  </p> <p>Enables the user to zoom in and out of data by using two fingers to pinch an area of the screen. Pinch zooming is normally used in web-page, map, picture, chart and control applications. </p> </li> <li id="GUID-C038F18F-94DE-5391-A1F8-BEF83274D143"><p> <b>Responding to high pressure events</b>  </p> <p>As the pointer state changes, the pressure value can be checked. When it passes over a threshold value, the Window Server responds appropriately to the client. </p> </li> </ul> </section> </conbody><related-links><link href="GUID-9AD75103-CD56-5279-B639-5CA2BBF979B5.dita"><linktext>Pointer States and Event
-                Communication</linktext> </link> <link href="GUID-C60DC070-572B-5960-B394-550426FDB909.dita"><linktext>Advanced Pointer
-                Tutorial</linktext> </link> </related-links></concept>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Arbortext, Inc., 1988-2008, v.4002-->
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN"
+ "concept.dtd">
+<concept id="GUID-9C269F45-F160-5A4B-ABF8-896D2A538E3B" xml:lang="en">
+<title>Advanced Pointer Overview </title>
+<shortdesc>This is an overview of the Window Server extensions that
+support the use of advanced pointers. These extensions enable mobile
+devices to respond to events from multiple pointers, including their
+proximity and pressure. These extensions are available only in ScreenPlay. </shortdesc>
+<prolog>
+<metadata><keywords></keywords></metadata>
+</prolog>
+<conbody>
+<p> <b>Variant</b>: <xref
+href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita">ScreenPlay</xref
+>. <b>Target audience</b>: Application developers. </p>
+<section id="GUID-773C3275-F562-5428-A34C-7D54F10D4BC1"><title>Architecture</title
+> <p>In response to multiple pointer movements, an input driver generates
+a pointer event for each touch. The Window Server changes and delivers
+the pointer events to the client application, as shown in the following
+diagram. </p> <fig id="GUID-4A02299F-8401-5761-863C-91F0338731DA">
+<title>              Pointer events            </title>
+<image
+href="GUID-5503ACC5-1C78-5EF6-AAD2-4B6FFA8890B9_d0e191959_href.png"
+placement="inline"></image></fig> <p>Pointer-related events move from
+the driver to the application. The <xref
+href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname
+></xref>, <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita"
+><apiname>TWsEvent</apiname></xref> and <xref
+href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"><apiname>TPointerEvent</apiname
+></xref> classes encapsulate the event information. </p> </section>
+<section><title>Key concepts/terms</title> <p>The following terms
+are introduced here and are used throughout the advanced pointer documentation: </p
+> <dl>
+<dlentry>
+<dt>Pointer</dt>
+<dd><p>A device that points at the screen, for example, a mouse, pen,
+finger, or touchpad. </p> </dd></dlentry>
+<dlentry>
+<dt>Multi<?Pub Caret?>ple pointer support</dt>
+<dd><p>Handling more than one pointer at the same time. </p> </dd>
+</dlentry>
+<dlentry>
+<dt>Proximity</dt>
+<dd><p>Proximity in this context means the distance of the pointer
+from the mobile device. Sensors detect the value of the proximity
+of the pointer from the mobile device. </p> </dd></dlentry>
+<dlentry>
+<dt>Pressure</dt>
+<dd><p>Pressure in this context is a value that indicates the force
+applied to the mobile device by the pointer. Sensors detect the value
+of the pressure of the pointer on the mobile device. </p> </dd>
+</dlentry>
+</dl> </section>
+<section><title>Logical model of pointing devices</title> <p>A logical
+model is used to handle all of the different pointing devices correctly.
+In this logical model, the pointer is <b>performing an action</b> when
+any of the following scenarios occur: </p> <ul>
+<li id="GUID-3A57E7AE-A8FB-5C2B-AC54-4F60DDD35783"><p>An <codeph>EButton1Down</codeph
+> event is sent to the client. </p> </li>
+<li id="GUID-BBD5660A-2A72-5F14-9A28-D7F31761F963"><p> <codeph>EDrag</codeph
+> events are sent to the client (optional). </p> </li>
+<li id="GUID-54B774E8-6BD8-51EB-9854-9953F95AFBF5"><p>An <codeph>EButton1Up</codeph
+> event is sent to the client. </p> </li>
+</ul> <p>Pointing devices can be in one of the following states: </p
+> <table id="GUID-AAE663FE-E94F-556B-B635-93DDD6C27902">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>State</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <b>Out of range</b>  </p> </entry>
+<entry><p>Not detected by the device's sensors. </p> </entry>
+</row>
+<row>
+<entry><p> <b>Up</b>  </p> </entry>
+<entry><p>Detected by sensors, coordinates available, not performing
+an action. </p> </entry>
+</row>
+<row>
+<entry><p> <b>Down</b>  </p> </entry>
+<entry><p>Detected by sensors, coordinates available, performing an
+action (as defined above). </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The mapping between these states and physical actions
+performed by the user vary for different pointing device types (mouse,
+finger) and different phone models. Here are two example interpretations
+of physical pointing device states: </p> <ul>
+<li id="GUID-E01E8EC4-8535-5FD4-980E-214FC7542717"><p> <b>Mouse</b
+>. An example interpretation by a driver of the physical state of
+a mouse is as follows: It is always in the <i>up</i> state except
+when the left button is pressed, when it is in the <i>down</i> state.
+It is never out of range. </p> </li>
+<li id="GUID-7CC705BF-FC6C-534B-B00B-0C07A6B9A856"><p> <b>Fingers
+with proximity support</b>. The following is an example interpretation
+of finger physical states when the device has proximity support (that
+is, it can measure the finger's proximity from the screen): </p> <ul>
+<li id="GUID-F4F27FC9-F4F3-5475-8DA5-771B804828CD"><p> <i>Out of range</i
+> when proximity > 10cm </p> </li>
+<li id="GUID-0B8F3832-24C1-5421-A224-5FFFC6EBA3F4"><p> <i>Up</i> when
+1cm &lt; proximity &lt;= 10cm </p> </li>
+<li id="GUID-CE65B2EC-AD8E-5B9D-A514-07EC73137518"><p> <i> Down</i
+> when proximity &lt;= 1cm </p> </li>
+</ul> <p>In this way the finger can perform actions (for example,
+press buttons, drag items) without touching the screen. </p> </li>
+</ul> </section>
+<section><title>Multiple pointers</title> <p>The system handles multiple
+pointers at the same time by identifying each one with a number and
+sending pointer events separately for each of them. A field (<codeph
+>iPointerNumber</codeph>) in the pointer event classes (<xref
+href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname
+></xref> and the <xref
+href="GUID-FADA3278-FF8B-308F-90AD-3DCF8911A023.dita"><apiname>TAdvancedPointerEvent</apiname
+></xref> class which extends <xref
+href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"><apiname>TPointerEvent</apiname
+></xref>) identifies the pointer for which the event occurred. The
+order and frequency of pointer events depends on the driver of the
+pointing device. </p> <p>On each phone there is a pool of available
+pointer numbers, ranging from 0 to <codeph>HALData::EPointerNumberOfPointers</codeph
+> - 1. Every time the driver detects a new pointer coming into the
+range of the device, the driver assigns a number from the pool. After
+the pointer goes out of the range of the device, the number no longer
+identifies that particular pointer and the driver sends <xref
+href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita#GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD/GUID-C7FB5C5F-B7E1-3738-B72D-1AD81699414F"
+><apiname>TRawEvent::EPointer3DOutOfRange</apiname></xref> with this
+pointer number. The number is then released back to the pool and may
+be reused to identify another pointer coming into the device's range. </p
+> </section>
+<section><title>Pressure and proximity</title> <p>The pressure of
+the pointer on the screen is represented as a positive integer. The
+proximity of the pointer to the screen is represented as a negative
+integer. It is up to the UI Platform to define units of pressure and
+proximity, which may be non-linear. In the <xref
+href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname
+></xref> class, pressure and proximity are expressed in terms of the
+Z coordinate of the pointer. The definition of the Z coordinate is
+based on the assumption that the pointer is either hovering over the
+screen (proximity &lt; 0, pressure = 0) or touching the screen (proximity
+= 0, pressure >= 0): </p> <ul>
+<li id="GUID-21CB6F60-3076-5EBE-9900-D870C670FE5B"><p>If proximity
+&lt; 0 and pressure = 0 then the Z coordinate = proximity. </p> </li>
+<li id="GUID-B5EA992D-4F86-54E1-A64C-673691460945"><p>If proximity
+= 0 and pressure >= 0 then the Z coordinate = pressure. </p> </li>
+</ul> <fig id="GUID-FCE3CEAF-CCF3-5472-AC15-5DF5F092AA5E">
+<title>              Relationships between the pointer proximity,
+pressure and z              coordinate            </title>
+<image
+href="GUID-1A0FB98B-8DB3-5067-9B71-FF838F6AE402_d0e192246_href.png"
+placement="inline"></image></fig> </section>
+<section><title>API summary</title> <table
+id="GUID-07002499-484E-500E-AC57-4089AB0197E8">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>API</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita"
+><apiname>HALData</apiname></xref>  </p> </entry>
+<entry><p>Includes z coordinate, pressure precision and number of
+pointers. Also contains threshold values for proximity and pressure. </p
+> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"
+><apiname>TRawEvent</apiname></xref>  </p> </entry>
+<entry><p>Includes the pointer number and a structure for proximity
+and pressure data. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-1460DD8F-9AA1-3B99-8FFD-F309959CCA34.dita"
+><apiname>RWindowBase</apiname></xref>  </p> </entry>
+<entry><p>Enables advanced pointer events for the window. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-5D0B1595-1AC7-3C44-AC6B-0EFB5EABCF31.dita"
+><apiname>TWsEvent</apiname></xref>  </p> </entry>
+<entry><p>Supports <codeph>TAdvancedPointerEvent</codeph> (derived
+from <codeph>TPointerEvent)</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-1FFA0073-3D83-388E-A824-08C31F90CC54.dita"
+><apiname>TPointerEvent</apiname></xref>  </p> </entry>
+<entry><p>Includes event types for pressing and closeness. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-FADA3278-FF8B-308F-90AD-3DCF8911A023.dita"
+><apiname>TAdvancedPointerEvent</apiname></xref>  </p> </entry>
+<entry><p>Inherits from <codeph>TPointerEvent</codeph>. </p> <p>Provides
+capabilities for pressure, proximity and multiple pointers. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita"
+><apiname>RWsSession</apiname></xref>  </p> </entry>
+<entry><p>Provides get and set methods to manipulate threshold values
+for proximity and pressure. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section><title>Typical uses</title> <ul>
+<li id="GUID-CA055058-AAD6-5A89-BC7E-7B5E81FA8963"><p> <b>Enabling
+many pointers for a window</b>  </p> <p>Enables multiple pointers
+to act on one window. </p> </li>
+<li id="GUID-DBD49B85-207D-5722-8AE3-B00946899559"><p> <b>Enabling
+concurrent control of many objects</b>  </p> <p>Controls many objects
+on one or more windows with many pointers. </p> </li>
+<li id="GUID-AF442CD4-FDEC-5FF4-B8F9-6ED8CDB9E957"><p> <b>Getting
+z coordinates from TPointerEvent</b>  </p> <p>Reads the pressure and
+proximity values for a pointer. </p> </li>
+<li id="GUID-13E0E5DA-609A-52B3-A90A-9A84C3A8BF22"><p> <b>Pinch zooming</b
+>  </p> <p>Enables the user to zoom in and out of data by using two
+fingers to pinch an area of the screen. Pinch zooming is normally
+used in web-page, map, picture, chart and control applications. </p
+> </li>
+<li id="GUID-C038F18F-94DE-5391-A1F8-BEF83274D143"><p> <b>Responding
+to high pressure events</b>  </p> <p>As the pointer state changes,
+the pressure value can be checked. When it passes over a threshold
+value, the Window Server responds appropriately to the client. </p
+> </li>
+</ul> </section>
+</conbody>
+<related-links>
+<link href="GUID-9AD75103-CD56-5279-B639-5CA2BBF979B5.dita"><linktext
+>Pointer States and Event                 Communication</linktext>
+</link>
+<link href="GUID-C60DC070-572B-5960-B394-550426FDB909.dita"><linktext
+>Advanced Pointer                 Tutorial</linktext></link>
+</related-links>
+</concept>
+<?Pub *0000011675?>
