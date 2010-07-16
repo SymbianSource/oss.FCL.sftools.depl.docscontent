@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EC7DE823-BFAC-47E5-B7CC-154B11FE5D77" xml:lang="en"><title>Obsolete
+NKern Interrupt Methods</title><shortdesc>This document specifies two obsolete interrupt handling methods
+and describes their replacement.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-5AE312EB-D12B-4836-AAEA-9A54E179DE5C"><title>Description
+of the obsolete interrupt methods</title><p>The obsolete <codeph>NKern</codeph> interrupt
+methods are: </p><ul>
+<li><p><xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-CA1C36B7-02EE-31D5-B700-27DE4769ECCF"><apiname>NKern::DisableInterrupts()</apiname></xref> and</p></li>
+<li><p><xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-8C251C65-FDE7-3161-8D2B-61401FB6487F"><apiname>NKern::DisableAllInterrupts()</apiname></xref></p></li>
+</ul><p>These methods are used (with other methods in the <codeph>NKern</codeph> class)
+to protect shared data between an ISR (Interrupt Service Request) and a thread
+(or a DFC (Delayed Function Call )). </p><p>The steps involved in disabling/enabling
+an interrupt are:</p><ol>
+<li id="GUID-68D7CCE7-6855-4817-BC0C-D5B70E485450"><p>Disable the interrupts</p></li>
+<li id="GUID-81CB8BE3-8663-4CF6-A0CA-E2A43B0ADB74"><p>Process the data</p></li>
+<li id="GUID-8D5DBB24-4FB7-4E9B-8714-AFFBDE060346"><p>Re-enable the interrupts</p></li>
+</ol><note>The time spent processing the data must be as short as possible,
+otherwise performance problems could occur.</note> </section>
+<section id="GUID-E58BC240-4388-4BD8-A5CB-A79C3502AD07"><title>The reason
+why these methods are obsolete</title><p>These methods only affect the core
+that the thread is running on instead of all the cores on the system.</p></section>
+<section id="GUID-9F89D474-D2AB-4DE9-92F3-7B1A1677EDB7"><title>The replacement
+for these methods</title><p>These methods have been replaced by the following:</p><ul>
+<li><p><xref href="GUID-16AB388A-ED3E-4901-857D-834072437D25.dita">Spin Lock</xref> macros</p><p>These
+macros automatically carry out the required interrupt operations.</p></li>
+<li><p><xref href="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68.dita">Atomic Operations</xref></p></li>
+</ul></section>
+<section id="GUID-B6EEC990-2DBF-4858-8B40-7D0BC489C6DE"><title>Areas that
+could be affected</title><p>These obsolete methods are used within drivers
+and the following points should be considered when removing them:</p><ul>
+<li><p>Could the same functionality be accomplished by disabling the interrupts
+in hardware?</p></li>
+<li><p>Are these methods required at all?</p><p>If memory is not accessible
+in ISR (Interrupt Service Request) routines, then use spin locks or atomic
+operations.</p></li>
+<li><p>Explore the use of DFC (Delayed Function Call) signalling.</p></li>
+</ul></section>
+</conbody><related-links>
+<link href="GUID-734588CA-5644-438A-9CC9-77ECBE0C1EEA.dita"><linktext>Obsolete
+Mechanisms</linktext></link>
+<link href="GUID-16AB388A-ED3E-4901-857D-834072437D25.dita"><linktext>Spin Locks</linktext>
+</link>
+<link href="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68.dita"><linktext> Atomic Operations</linktext>
+</link>
+</related-links></concept>

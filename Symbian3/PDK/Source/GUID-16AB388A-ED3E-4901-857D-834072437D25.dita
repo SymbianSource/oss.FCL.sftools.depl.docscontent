@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-16AB388A-ED3E-4901-857D-834072437D25" xml:lang="en"><title>Spin
+Locks</title><shortdesc>Spin locks allow resource execution control through fast lock context
+switching. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-9AE2107C-CEA2-453E-9E89-5F1075370F86"><title>Introduction</title><p>Spin
+locks are a type of lock mechanism. In a spin lock, the thread will simply
+wait in a loop checking for the resource to become available. It is the execution
+of the thread waiting in a loop ("spins"), that gives this lock mechanism
+its name. The thread will only come out of the loop once the resource is available.</p><p>When
+using a spin lock, the following should be noted :</p><ul>
+<li><p>Spin locks should only be used in environments where the waiting period
+will be short</p></li>
+<li><p>Spin locks are very wasteful, since the thread in question is always
+in the active state</p></li>
+<li><p>Spin locks can lock/unlock very quickly, since the thread never changes
+state</p></li>
+<li><p>For spin locks to work on the Symbian platform, the interrupts have
+to be disabled before use. This is due to the fact that spin locks do not
+protect against interrupts from occurring on the same CPU.</p></li>
+</ul><p>Because of these properties, spin locks are used in environments where
+the operation has to be fast and where the waiting times have to be short.
+For this reason, on the Symbian platform they are only used in kernel code.
+If a more efficient use of thread processing time is required, then a mutex
+should be used.</p><p>There are two types of spin lock:</p><ul>
+<li><p>spin locks and</p></li>
+<li><p>read write spin locks.</p></li>
+</ul><p>The difference between the two types of spin locks is that the read
+write spin locks have been optimised to allow multiple reading threads to
+acquire the lock simultaneously.</p>     </section>
+<section id="GUID-B99EB4FC-3845-4B04-928F-914EFCB879F5"><title>Required interrupt
+behaviour</title><p>When using spin locks, the following steps have to be
+carried out:</p><ol>
+<li id="GUID-B1271135-AC0F-4E19-9077-915B71E8618E"><p>disable the interrupts</p></li>
+<li id="GUID-0422F03D-D250-47C9-9255-49BEA54B9D54"><p>acquire the lock</p></li>
+<li id="GUID-593FDE3C-8509-4329-B258-009139095785"><p>enable the interrupts
+after the lock is released.</p></li>
+</ol><p>If the above steps have not been carried out, then a dead lock condition
+could occur.</p></section>
+<section id="GUID-5DBAD802-F902-4B5E-A190-40BC05313FEA"><title>The types of
+spin locks available</title><p>There are two types of spin locks on the Symbian
+platform. These are spin locks and read write spin locks. Read write spin
+locks are described in the next section.</p><p>There are two ways of implementing
+spin locks on the Symbian platform:</p><ul>
+<li><p>A Spin lock API and</p></li>
+<li><p>the use of spin lock macros.</p></li>
+</ul><p>The spin lock API should never be used directly, instead the macros
+should be used. This is due to:</p><ul>
+<li><p>The spin lock macros carry out the required interrupt enable/disable
+operations</p></li>
+<li><p>The spin lock macros provide compatibility between SMP and non-SMP
+builds.</p></li>
+</ul><p>The spin lock API is only for internal use and should never be used.
+For spin locks it is provided by the <xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref> class and
+is defined in <filepath>nkern.h</filepath>. It will not be discussed any further.</p><p>The
+spin lock macros available are :</p><table id="GUID-CF9670A1-AB07-4451-AB4F-20F44D8FC5F9">
+<tgroup cols="5"><colspec colname="col1" colwidth="0.96*"/><colspec colname="col2" colwidth="0.96*"/><colspec colname="col3" colwidth="0.97*"/><colspec colname="COLSPEC0" colwidth="0.97*"/><colspec colname="col4" colwidth="1.15*"/>
+<tbody>
+<row>
+<entry><p><b>Macro</b></p></entry>
+<entry><p><b>Parameter 1</b></p><p><b>Purpose and Data Type</b></p></entry>
+<entry><p><b>Parameter 2</b></p><p><b>Purpose and Data Type</b></p></entry>
+<entry><p><b>Return Value</b></p><p><b>Purpose and Data Type</b></p></entry>
+<entry><p><b>Operation</b></p></entry>
+</row>
+<row>
+<entry><p>__SPIN_LOCK_IRQSAVE(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>The original interrupt state.</p><xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref></entry>
+<entry><p>Disable interrupts and acquire the lock.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_UNLOCK_IRQRESTORE(lock,irq)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>The interrupt state</p><xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Release the lock, then restore the interrupt state.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_FLASH_IRQRESTORE(lock,irq)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>The interrupt state.</p><xref href="GUID-7A2A43EC-6125-3BFE-834B-23C37F7B40D5.dita"><apiname>TInt</apiname></xref></entry>
+<entry><p>ETrue if the lock/unlock operation has occurred, otherwise EFalse.</p><xref href="GUID-4B942C06-1BAC-3A21-B3B1-89FB5C51ADA0.dita"><apiname>TBool</apiname></xref></entry>
+<entry><p>If another thread is waiting for the spin lock or there is an interrupt
+pending, then execute the __SPIN_UNLOCK_IRQRESTORE macro and then execute
+the __SPIN_LOCK_IRQ macro.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_LOCK(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Acquire the lock, assuming the interrupts and preemption have been
+disabled.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_UNLOCK(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Release the lock without changing the interrupt and preemption states.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_FLASH_PREEMPT(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>ETrue if the lock/unlock operation has occurred, otherwise EFalse.</p><xref href="GUID-4B942C06-1BAC-3A21-B3B1-89FB5C51ADA0.dita"><apiname>TBool</apiname></xref></entry>
+<entry><p>If another thread is waiting for the lock, then execute (after the
+unlock <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-C9314237-B43B-34E0-9108-E8861196022E"><apiname>NKern::PreemptionPoint</apiname></xref> has been called) the __SPIN_UNLOCK
+macro and then the __SPIN_LOCK macro.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_LOCK_IRQ(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Disable interrupts and acquire the lock.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_UNLOCK_IRQ(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Release the lock, then enable the interrupts.</p></entry>
+</row>
+<row>
+<entry><p>__SPIN_FLASH_IRQ(lock)</p></entry>
+<entry><p>The spin lock order.</p><xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref></entry>
+<entry><p>N/A</p></entry>
+<entry><p>ETrue if the lock/unlock operation has occurred, otherwise EFalse.</p><xref href="GUID-4B942C06-1BAC-3A21-B3B1-89FB5C51ADA0.dita"><apiname>TBool</apiname></xref></entry>
+<entry><p>If another thread is waiting for the spin lock or if there is an
+interrupt pending, then execute the __SPIN_UNLOCK_IRQ macro and then execute
+the __SPIN_LOCK_IRQ macro.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The spin lock order parameter is used to provide a priority of
+the spin lock. The spin lock order parameter allows spin locks to be nested
+and to guard against deadlocks.</p><p>The list of acceptable spin lock order
+values are defined in <filepath>nkern.h</filepath>.</p><p>Which spin lock
+macro should be used is shown in the following table :</p><table id="GUID-FD737DFA-85A9-4C8F-BE02-2CCB08096E65">
+<tgroup cols="4"><colspec colname="col1" colwidth="0.58*"/><colspec colname="col2" colwidth="0.84*"/><colspec colname="col3" colwidth="1.29*"/><colspec colname="col4" colwidth="1.29*"/>
+<tbody>
+<row>
+<entry><p><b>Is the spin lock to be used within an ISR ?</b></p></entry>
+<entry><p><b>The ISR State</b></p></entry>
+<entry><p><b>Other Circumstances to Consider</b></p></entry>
+<entry><p><b>The Spin Lock Macros to Use</b></p></entry>
+</row>
+<row>
+<entry><p>Yes</p></entry>
+<entry><p>Unknown</p></entry>
+<entry><p>None</p></entry>
+<entry><p>__SPIN_LOCK_IRQSAVE(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_UNLOCK_IRQRESTORE(lock,irq)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_FLASH_IRQRESTORE(lock,irq)</p></entry>
+</row>
+<row>
+<entry><p>N/A</p></entry>
+<entry><p>The interrupts have already been disabled.</p></entry>
+<entry><p>None</p></entry>
+<entry><p>__SPIN_LOCK(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_UNLOCK(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_FLASH_IRQRESTORE(lock,irq)</p></entry>
+</row>
+<row>
+<entry><p>No</p></entry>
+<entry><p>N/A</p></entry>
+<entry><p>Code is within a pair of <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-61C8A02A-B7F9-3BF9-B677-6BF83C6972B0"><apiname>NKern::Lock</apiname></xref>/<xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-A1DA547A-B5C2-3951-9613-DC1D6A313C70"><apiname>NKern::Unlock</apiname></xref> statements.</p></entry>
+<entry><p>__SPIN_LOCK(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_UNLOCK(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_FLASH_PREEMPT(lock)</p></entry>
+</row>
+<row>
+<entry><p>Yes</p></entry>
+<entry><p>Known</p></entry>
+<entry><p>The interrupts must already be disabled.</p></entry>
+<entry><p>__SPIN_LOCK_IRQ(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_UNLOCK_IRQ(lock)</p></entry>
+</row>
+<row>
+<entry/>
+<entry/>
+<entry/>
+<entry><p>__SPIN_FLASH_IRQ(lock)</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><note/><p>Only the above combinations of interrupt states and
+spin lock macros are allowed.</p><p>The spin lock macros __SPIN_LOCK_IRQSAVE
+and __SPIN_UNLOCK_IRQRESTORE would be used in almost all cases.</p></section>
+<section id="GUID-85F32921-FE0C-48EE-9B88-C45A76DC8481"><title>How to Use
+Spin Locks</title><p>An example of how to use the spin lock macros is :</p><codeblock xml:space="preserve">TInt irq = __SPIN_LOCK_IRQSAVE(EOrderThread);
+// some code...
+__SPIN_UNLOCK_IRQSTORE(EOrderThread,irq);</codeblock><p>The first line calls
+the macro to disable the interrupts and acquire the spin lock. This line returns
+the original interrupt state (stored in the variable irq).</p><p>The last
+line calls the macro to release the spin lock and then restore the IRQ to
+its original state.</p></section>
+<section id="GUID-66A13635-5DDD-40D3-B113-234D811ACBF2"><title>Read Write
+Spin Locks</title><p>This sub set of spin locks allows for the multiple reading
+threads to acquire the lock simultaneously. The operation of read write spin
+locks is :</p><table id="GUID-FB47DAFD-955C-4E3B-93B3-293CC54910FD">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><b>Behaviour</b></p></entry>
+<entry><p><b>Required Conditions</b></p></entry>
+</row>
+<row>
+<entry><p>Acquire the lock for a read operation</p></entry>
+<entry><p>The lock is either free or is being held for reading</p></entry>
+</row>
+<row>
+<entry><p>Blocked for a read operation</p></entry>
+<entry><p>The lock is held for a write operation</p></entry>
+</row>
+<row>
+<entry><p>Acquire the lock for a write operation</p></entry>
+<entry><p>The lock is free</p></entry>
+</row>
+<row>
+<entry><p>Blocked for a write operation</p></entry>
+<entry><p>The lock is held for a read or a write operation</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The macros are the same name as for the spin locks, except :</p><table id="GUID-7FB86C27-DDC5-4AC3-982F-2736FBA9BAA8">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><b>Operation</b></p></entry>
+<entry><p><b>Postfix</b></p></entry>
+</row>
+<row>
+<entry><p>read access</p></entry>
+<entry><p>_R</p></entry>
+</row>
+<row>
+<entry><p>write access</p></entry>
+<entry><p>_W</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>An example of the use of read write spin lock macros are __SPIN_LOCK_IRQ_R(lock)
+and __SPIN_UNLOCK_IRQ_W(lock).</p><p>Read write spin locks are implemented
+by the <xref href="GUID-F8145088-041C-35E3-9AB2-AF151832ECC8.dita"><apiname>TRWSpinLock</apiname></xref> class. As with the <xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref> class,
+this class is for internal use only and will not be discussed any further.</p><p>An
+example of the use of read write spin locks is :</p><codeblock xml:space="preserve">
+__SPIN_LOCK_IRQ_R(EOrderThread);
+// some code...
+__SPIN_UNLOCK_IRQ_R(EOrderThread);</codeblock></section>
+</conbody><related-links>
+<link href="GUID-CE72E71B-6ED3-4961-B4C5-C43D823ACA9D.dita"><linktext>SMP Overview</linktext>
+</link>
+</related-links></concept>

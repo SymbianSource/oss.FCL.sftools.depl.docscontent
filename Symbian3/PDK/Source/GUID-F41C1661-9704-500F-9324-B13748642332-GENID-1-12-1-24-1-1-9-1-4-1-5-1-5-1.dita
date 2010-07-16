@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F41C1661-9704-500F-9324-B13748642332-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1" xml:lang="en"><title>Configuring
+the Server Name Indication : Tutorial</title><shortdesc>This topic describes how to configure the server name indication. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context><p>Servers that support a virtual name-based hosting must know the
+virtual names of the client that tries to establish a connection. The virtual
+name-based hosts controls the decision of the server. The decision of server
+is to return the server certificate or PSK if you use a <xref href="GUID-5927A119-C520-572D-83AF-7265DEEF4553-GENID-1-12-1-24-1-1-8-1-4-1-4-1-5-1-4-1.dita">PSK
+ciphersuite</xref>. </p> <p>To address this issue, Symbian implements the <i>server
+name indication</i> extension which is specified in <xref href="http://www.ietf.org/rfc/rfc4366.txt" scope="external">RFC4366</xref>. </p> <p>Note: To maintain maximum compatibility
+with the existing servers, a server name indication extension is not sent
+to the server unless the server explicitly requests it. For example the implementer
+Secure User Plane Location (SUPL) has to use this feature explicitly. </p><p>The
+steps required to establish a connection are shown below:</p> </context>
+<steps id="GUID-3E3F3827-9E36-5698-B243-762A6F5CEB05-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1-3-2">
+<step id="GUID-F7137318-D1E9-5B27-BD99-21EB74F17312-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1-3-2-1"><cmd>Create an array
+class. </cmd>
+</step>
+<step id="GUID-B891B8D2-A519-5B86-9922-F089586C5F41-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1-3-2-2"><cmd>Wrap the array class. </cmd>
+</step>
+<step id="GUID-8394FCDF-6AA7-5603-9E6E-F7DB8EE5C83D-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1-3-2-3"><cmd>Call <xref href="GUID-C1DE3BCF-CEEB-32AC-A870-EE6A7A80DEE5.dita"><apiname>Setopt()</apiname></xref> on
+CSecureSocket to pass the array of names.</cmd>
+</step>
+</steps>
+<example><title> Example</title> <p>The following example code shows how to
+find the server names that the client is attempting to establish a connection: </p> <codeblock id="GUID-BD9A80A0-823A-5360-9AF3-415F47BD882D-GENID-1-12-1-24-1-1-9-1-4-1-5-1-5-1-3-3-3" xml:space="preserve">
+
+//Create an array class
+  CDesC8ArrayFlat *serverNames = new(ELeave) CDesC8ArrayFlat(1);
+  CleanupStack::PushL(serverNames);
+//Wrap the array class
+  serverNames-&gt;AppendL(serverName);
+//Call Setopt() on CSecureSocket to pass the array of names in
+  TPckgC&lt;CDesC8Array *&gt; serverNameIndicationPkg(serverNames);
+  User::LeaveIfError(secureSocket-&gt;SetOpt(KSoServerNameIndication, KSolInetSSL, serverNameIndicationPkg));
+//SecureSocket now owns the serverNames object
+  CleanupStack::Pop(serverNames); 
+
+</codeblock> </example>
+</taskbody></task>

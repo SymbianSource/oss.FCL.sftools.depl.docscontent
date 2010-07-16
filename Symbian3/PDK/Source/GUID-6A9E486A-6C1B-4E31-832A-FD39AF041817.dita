@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-6A9E486A-6C1B-4E31-832A-FD39AF041817" xml:lang="en"><title>Publishing the SIF operation progress</title><shortdesc>Installers must publish the SIF operation progress to notify
+clients about the progress of operations (installation or uninstallation).</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-743E5646-74B5-4D97-87FD-A97F05B8DBC6"><p>The installers
+must link against <filepath>Sifnotification.dll</filepath> . It is
+the utility library that provides the APIs to publish the SIF operation
+progress. </p></prereq>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-12-1-5-1-1-6-1-4-1-4-1-5-1-3-2">
+<step id="GUID-72EBB7F4-DBCA-47B2-85D6-B96230084CB1"><cmd>Create an
+object of <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita"><apiname>CPublishSifOperationInfo</apiname></xref>.</cmd>
+<info><codeblock xml:space="preserve">CPublishSifOperationInfo* sifPublisher = CPublishSifOperationInfo::NewL();</codeblock></info>
+</step>
+<step id="GUID-F1AE134F-0EFB-4415-88A5-FFF213197B87"><cmd>Publish
+the operation start information.</cmd>
+<substeps id="GUID-043BDAD9-5001-424F-B9DF-184892A14F0D">
+<substep id="GUID-A55F772D-79B5-4624-9AD9-926428D5282D"><cmd>Create
+a <xref href="GUID-F1D2CE7E-B5B9-3E35-B648-55F1B24E6272.dita"><apiname>CSifOperationStartData</apiname></xref> object.</cmd>
+<info><p>The parameters that need to be initialized are:<ul>
+<li><p>global component id that uniquely identifies the package across
+devices. For example, this could be the package uid in case of a native
+SIS package or the midlet name for java.</p></li>
+<li><p>name of the software component (can be the same as global component
+id)</p></li>
+<li><p>list of applications associated with the software component
+(an empty array in case of no applications)</p></li>
+<li><p> list of corresponding application icon names (without path)
+for every application (an empty array in case of no applications). </p></li>
+<li><p> total size of the component in bytes</p></li>
+<li><p>path where all application and component icons are found. All
+icon files will be checked with respect to this path.</p></li>
+<li><p>name of the component icon (without path)</p></li>
+<li><p>unique software type name of the component</p></li>
+</ul></p><codeblock xml:space="preserve">_LIT(KGlobalCompId, "12345");
+_LIT(KComponentName, "Testcomponent");
+RPointerArray&lt;HBufC&gt; appNameSet;
+RPointerArray&lt;HBufC&gt; appIconSet;
+TInt componentSize = 1024;
+_LIT(KIconPath, "c:\data\test");
+_LIT(KCompIcon, "TestIcon.mbm");
+_LIT(KSoftwareType, "native");
+CSifOperationStartData* startdata = CSifOperationStartData::NewLC(KGlobalCompId, KComponentName, &amp;appNameSet, &amp;appIconSet, componentSize, KIconPath, KCompIcon, KSoftwareType);
+</codeblock></info>
+</substep>
+<substep id="GUID-D89D10DA-C76A-42DF-BE97-A80C0F41CFC4"><cmd>Invoke
+the <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-9F99E500-1FEE-308C-82A6-39523B1DCCDB"><apiname>CPublishSifOperationInfo::PublishStartL()</apiname></xref>.</cmd>
+<info><codeblock xml:space="preserve">sifPublisher-&gt;PublishStartL(*startdata);</codeblock></info>
+</substep>
+</substeps>
+<info><xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-9F99E500-1FEE-308C-82A6-39523B1DCCDB"><apiname>CPublishSifOperationInfo::PublishStartL()</apiname></xref> can be invoked only once per operation. However, two parallel installations
+can be initiated and <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-9F99E500-1FEE-308C-82A6-39523B1DCCDB"><apiname>CPublishSifOperationInfo::PublishStartL()</apiname></xref> can be invoked by each of the installation.</info>
+</step>
+<step id="GUID-60FC9468-9D44-4B9D-A554-2205C476D2B9"><cmd>Publish
+the operation progress information.</cmd>
+<substeps id="GUID-2D687BD2-783F-4D11-814B-E0B1270BCFC6">
+<substep id="GUID-8C9D0A0B-551C-43E8-8D80-FDCAA70C07C3"><cmd>Create
+a <xref href="GUID-DBEB6AEF-2128-3566-93AA-3CDB5D554B1E.dita"><apiname>CSifOperationProgressData</apiname></xref> object.</cmd>
+<info>The parameters that need to be initialized are:<ul>
+<li><p>global component id that uniquely identifies the package across
+devices. For example, this could be the package uid in case of a native
+SIS package or the midlet name for java.</p></li>
+<li><p>phase of SIF operation</p></li>
+<li><p>current stage in the type of SIF operation</p></li>
+<li><p>progress of operation completed in current subphase</p></li>
+<li><p>total operation required by this subphase</p></li>
+</ul><codeblock xml:space="preserve">// A pointer to the newly allocated object is returned if creation is successful.
+TInt phase = TSifOperationPhase::ESifOperationStart; 
+TInt subPhase = TSifOperationSubPhase::EOCSPCheck; 
+TInt curProgress = 75; 
+TInt total = 100;
+CSifOperationProgressData* progressdata = CSifOperationProgressData::NewLC(KGlobalCompId, phase, subPhase, curProgress, total);
+</codeblock></info>
+</substep>
+<substep id="GUID-C6974F25-8B7B-4439-AC00-246D68C629F2"><cmd>Invoke
+the <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-F8F8059B-DC62-32AB-931D-6E365CB6E6CC"><apiname>CPublishSifOperationInfo::PublishProgressL()</apiname></xref>.</cmd>
+<info><codeblock xml:space="preserve">sifPublisher-&gt;PublishProgressL(*progressdata);</codeblock></info>
+</substep>
+</substeps>
+<info><p><xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-F8F8059B-DC62-32AB-931D-6E365CB6E6CC"><apiname>CPublishSifOperationInfo::PublishProgressL()</apiname></xref> can be called iteratively to show the linear progress of the operation.</p></info>
+</step>
+<step id="GUID-829FAD26-C37B-4572-AEC2-64956F5511EC"><cmd>Publish
+the operation completion information (on success or failure of operation).</cmd>
+<substeps id="GUID-E5345271-C6F8-4732-BBC9-56EA7A8864A6">
+<substep id="GUID-DEC78AB9-E3F9-4175-8163-099FECB54646"><cmd>Create
+a <xref href="GUID-4F0E57D3-CE4C-3A41-951B-F2BB43E7BA34.dita"><apiname>CSifOperationEndData</apiname></xref> object.</cmd>
+<info><p>The parameters that need to be initialized are:<ul>
+<li><p>global component id that uniquely identifies the operation</p></li>
+<li><p>a SIF error category</p></li>
+<li><p>Installer (or runtime) specific error code</p></li>
+<li><p>Installer (or runtime) specific localized error message</p></li>
+<li><p>Installer (or runtime) specific localized error message details</p></li>
+</ul></p><codeblock xml:space="preserve">TInt errCategory = TErrorCategory::ESecurityError;
+TInt errCode = -10255;
+_LIT(KErrMsg, "Un-trusted package");
+_LIT(KErrMsgDetails, "The package is not signed with a trusted certificate.");
+CSifOperationEndData* enddata = CSifOperationEndData::NewLC(KGlobalCompId, errCategory, errCode, KErrMsg, KErrMsgDetails);
+</codeblock></info>
+</substep>
+<substep id="GUID-F16B9612-C128-4275-9B3A-0E7561A4531C"><cmd>Invoke
+the <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-F7299F8C-9043-31FD-9758-8E25E839D2D7"><apiname>CPublishSifOperationInfo::PublishCompletionL()</apiname></xref>.</cmd>
+<info><codeblock xml:space="preserve">sifPublisher-&gt;PublishCompletionL(*enddata);</codeblock></info>
+</substep>
+</substeps>
+<info><p><xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-F7299F8C-9043-31FD-9758-8E25E839D2D7"><apiname>CPublishSifOperationInfo::PublishCompletionL()</apiname></xref> can be called only once per operation. Every call to <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-9F99E500-1FEE-308C-82A6-39523B1DCCDB"><apiname>CPublishSifOperationInfo::PublishStartL()</apiname></xref> by an operation must have a corresponding <xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita#GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6/GUID-F7299F8C-9043-31FD-9758-8E25E839D2D7"><apiname>CPublishSifOperationInfo::PublishCompletionL()</apiname></xref>, else an
+progress place holder is blocked for this operation.</p></info>
+</step>
+</steps>
+</taskbody></task>

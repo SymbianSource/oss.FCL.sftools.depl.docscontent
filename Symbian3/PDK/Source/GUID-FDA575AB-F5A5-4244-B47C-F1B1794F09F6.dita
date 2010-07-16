@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FDA575AB-F5A5-4244-B47C-F1B1794F09F6" xml:lang="en"><title>Subscribing to SIF operation progress</title><shortdesc>Clients must subscribe to SIF operation progress to receive
+status of operations (installation or uninstallation).</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-E8D8FA6D-7CFE-457F-9B3C-E77DC1823132"><p>The client
+applications must link against <filepath>Sifnotification.dll</filepath> . It is the utility library that provides the APIs to subscribe
+for SIF operation progress.</p></prereq>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-12-1-5-1-1-6-1-4-1-4-1-6-1-3-2">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-12-1-5-1-1-6-1-4-1-4-1-6-1-3-2-1"><cmd>Derive from
+the <xref href="GUID-4683B704-D21C-3D42-82BB-2B4B88B4974C.dita"><apiname>MSifOperationsHandler</apiname></xref> abstract handler class.
+Clients must implement<xref href="GUID-4683B704-D21C-3D42-82BB-2B4B88B4974C.dita"><apiname> MSifOperationsHandler</apiname></xref> interfaces
+to receive notifications. </cmd>
+<info><codeblock xml:space="preserve">Class CMySifOperationHandler : public MSifOperationsHandler
+    {
+    //  Virtual Handler Functions
+    void StartOperationHandler(TUint aKey,const CSifOperationStartData&amp; aStartData);
+    void EndOperationHandler(const CSifOperationEndData&amp; aEndData);
+    void ProgressOperationHandler(const CSifOperationProgressData&amp; aProgressData);
+    private:
+    CSifOperationsNotifier* iNotifier;
+    }
+</codeblock><p>Create a <xref href="GUID-33D234E5-2970-3521-BDB9-EE29C9165856.dita"><apiname>CSifOperationsNotifier</apiname></xref> object
+by passing the handler object. </p><codeblock xml:space="preserve">CMySifOperationHandler::ConstructL()
+    {
+    iNotifier = CSifOperationsNotifier::NewL(*this);
+    }
+</codeblock><p>Implement the virtual functions <xref href="GUID-0AFB93FF-539D-3342-AB9C-8E15C440DB47.dita"><apiname>StartOperationHandler()</apiname></xref>, <xref href="GUID-C2E7966B-6EA5-376D-91E3-2467AF6CCF4E.dita"><apiname>EndOperationHandler()</apiname></xref>, <xref href="GUID-43E7CE06-D669-3BAF-A12E-318C2DD8E49F.dita"><apiname>ProgressOperationHandler()</apiname></xref> .</p><p><xref href="GUID-0AFB93FF-539D-3342-AB9C-8E15C440DB47.dita"><apiname>StartOperationHandler()</apiname></xref> is called when
+a new operation is started. The subscriber must use the <xref href="GUID-33D234E5-2970-3521-BDB9-EE29C9165856.dita#GUID-33D234E5-2970-3521-BDB9-EE29C9165856/GUID-245A356C-D1B4-37B7-BFC6-08D1439156F4"><apiname>CSifOperationsNotifier::SubscribeL()</apiname></xref> to register for progress and end notification for the operation.</p><p><xref href="GUID-33D234E5-2970-3521-BDB9-EE29C9165856.dita#GUID-33D234E5-2970-3521-BDB9-EE29C9165856/GUID-245A356C-D1B4-37B7-BFC6-08D1439156F4"><apiname>CSifOperationsNotifier::SubscribeL()</apiname></xref> must be
+invoked in the implementation of StartOperationHandler(). The first
+parameter is the key to uniquely identify an ongoing operation. The
+second parameter is a boolean  to specify optional subscription to
+progress information. Setting the value to ETrue subscribes to both
+progress and end notification  and setting the value to Efalse subscribes
+to only end notification. </p><codeblock xml:space="preserve">void CMySifOperationHandler::StartOperationHandler(TUint aKey,
+	const CSifOperationStartData&amp; aStartData)
+    {
+    iNotifier-&gt;SubscribeL(aKey, ETrue);
+    DEBUG_PRINTF2(_L8("Subscribing to progress information for component: %S."),
+    aStartData.GlobalComponentId());
+    }</codeblock><p><xref href="GUID-43E7CE06-D669-3BAF-A12E-318C2DD8E49F.dita"><apiname>ProgressOperationHandler()</apiname></xref> is
+invoked when progress update is available .</p><codeblock xml:space="preserve">void ProgressOperationHandler(const CSifOperationProgressData&amp; aProgressData)
+    {
+    DEBUG_PRINTF2(_L8("%S progress: %d out of %d."), aProgressData.GlobalComponentId(),
+    	aProgressData.CurrentProgress(), aProgressData.Total());
+    }</codeblock><p><xref href="GUID-C2E7966B-6EA5-376D-91E3-2467AF6CCF4E.dita"><apiname>EndOperationHandler()</apiname></xref> functions
+are invoked when operation completes.</p><codeblock xml:space="preserve">void CMySifOperationHandler::EndOperationHandler(const CSifOperationEndData&amp; aEndData)
+    {
+    DEBUG_PRINTF2(_L8("SIF operation on %S is complete."),  
+    	aEndData.GlobalComponentId());
+    DEBUG_PRINTF2(_L8("ErrorCode: %d."), aEndData.ErrorCode());
+    DEBUG_PRINTF2(_L8("ErrorMessage: %S."), aEndData.ErrorMessage());
+    }</codeblock><p>Both <xref href="GUID-43E7CE06-D669-3BAF-A12E-318C2DD8E49F.dita"><apiname>ProgressOperationHandler()</apiname></xref> and <xref href="GUID-C2E7966B-6EA5-376D-91E3-2467AF6CCF4E.dita"><apiname>EndOperationHandler()</apiname></xref> should return quickly
+as they are run as part of an active object request completion handler. </p><p>The client can cancel the subscription by invoking <xref href="GUID-33D234E5-2970-3521-BDB9-EE29C9165856.dita#GUID-33D234E5-2970-3521-BDB9-EE29C9165856/GUID-760423DF-24A6-384D-9882-25130933FCB1"><apiname>CSifOperationsNotifier::CancelSubscribeL()</apiname></xref>.<codeblock xml:space="preserve"> iNotifier-&gt;CancelSubscribeL(aKey);</codeblock></p></info>
+</step>
+</steps>
+<result id="GUID-904D6009-3DC7-497A-93CC-17B28872A316"><p>The client
+now receives the start, progress and end status notifications as and
+when published by the installer. </p></result>
+</taskbody></task>

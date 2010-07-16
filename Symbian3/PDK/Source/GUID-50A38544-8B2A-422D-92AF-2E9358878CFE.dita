@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-50A38544-8B2A-422D-92AF-2E9358878CFE" xml:lang="en"><title>NKern::Lock()</title><shortdesc>This document specifies that the method <codeph>NKern::Lock()</codeph> is now obsolete and suggests alternative locking mechanisms.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-960B22FE-BF66-49F7-86F0-126C5E54BD91"><title>Description
+of NKern::Lock()</title><p>This method disables the scheduler and
+the <codeph>IDFC</codeph> (Immediate Deferred Function Call), so that
+the currently running thread cannot be pre-empted.</p><p>This is used
+to prevent a thread from being re-entered while it is processing data,
+and so that no data will be corrupted as a result.</p>     </section>
+<section id="GUID-CC1DDBC0-CE7D-450A-AC93-E620F2235054"><title>The
+reason why NKern::Lock() is now obsolete</title><p>The <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref> method can no longer be used as a means to stop scheduling, since
+it only affects the core that the code is running on.</p></section>
+<section id="GUID-BE4893E5-A300-49B9-B8A0-CBC5BAD83287"><title>The
+replacement for NKern::Lock()</title><p>This method should be replaced
+with one of the following (depending on the circumstances ):</p><ul>
+<li><p><xref href="GUID-F5593B97-DBAD-3F84-8981-DA0994B78E52.dita"><apiname>DMutex</apiname></xref></p></li>
+<li><p><xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref></p></li>
+<li><p><xref href="GUID-16AB388A-ED3E-4901-857D-834072437D25.dita">Spin
+Locks</xref></p></li>
+<li><p><xref href="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68.dita">Atomic
+Operations</xref></p></li>
+</ul></section>
+<section id="GUID-04223DE5-D9B6-44D7-B1FC-1CC4DECD390D"><title>Areas
+that could be affected</title><p>At present, the replacement of this
+method only affects kernel services to user side code through an executive
+call (these are made via the <codeph>Exec</codeph> class). This can
+occur in the following areas:</p><ul>
+<li><p>A <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref> derived driver</p></li>
+<li><p>A HAL (Hardware Abstraction Layer) handle implementation</p></li>
+<li><p>Drivers that contain multiple threads</p></li>
+<li><p>Code which is called back in the context of an unrelated thread.
+For example,<xref href="GUID-37BE6748-4281-393A-A85C-C04B625A1F23.dita"><apiname>TTickLink</apiname></xref> or BSP (Board Support Package)
+drivers.</p></li>
+</ul></section>
+</conbody><related-links>
+<link href="GUID-734588CA-5644-438A-9CC9-77ECBE0C1EEA.dita"><linktext>Obsolete
+Mechanisms</linktext></link>
+<link href="GUID-16AB388A-ED3E-4901-857D-834072437D25.dita"><linktext>Spin
+Locks</linktext></link>
+<link href="GUID-1F280171-A3F3-4129-8DBE-3B1C4D629C68.dita"><linktext>Atomic
+Operations</linktext></link>
+</related-links></concept>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-821C254A-40C6-45F9-B2F9-2CF28CAEB8CC" xml:lang="en"><title>Interrupt
+Handling</title><shortdesc>Describes how interrupts are handled in the SMP environment.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An interrupt is a signal from a hardware device or from an executable which
+causes a CPU to suspend normal execution, enter the interrupt handling state
+and jump to an interrupt handler. An interrupt handler, or ISR (interrupt
+service routine), schedules a DFC (delayed function call) on a DFC queue.</p>
+<section id="GUID-71D802FC-9A50-4BEB-8F21-497A7D04C814"><title>SMP-Safe Interrupt
+Handling</title><p>Interrupt handlers are used to implement the functionality
+of device drivers.</p><p>When a DFC executes on a unicore system, it disables
+interrupts to avoid clashing with its own ISR. </p><p>On a multicore system
+this is not sufficient to maintain data integrity. To maintain data integrity
+on an SMP system the code must:</p><ol>
+<li id="GUID-9A9C8A79-D53C-4B39-B108-86A0B04FCBE9"><p> acquire a spin lock
+on any data to be written, to block other cores from accessing the data.</p></li>
+<li id="GUID-87F5A9E5-2932-4BE8-8126-ECC1D4458476"><p>Interrupts must be disabled,
+as on unicore, before the spin lock is acquired.</p></li>
+</ol><p> Although these are conceptually two separate tasks, you use the spin
+lock API <xref href="GUID-FB1605A8-9946-364C-A649-DEF60E1F761B.dita"><apiname>TSpinLock</apiname></xref> in <filepath>nkern.h</filepath> to perform
+both tasks at the same time.</p><p>The following macros provide SMP-safe interrupt
+handling in most situations.</p><ul>
+<li><p><xref href="GUID-DBC27EF9-9C56-3FE8-B93C-BA2A74E1E6E6.dita"><apiname>__SPIN_LOCK_IRQSAVE</apiname></xref></p></li>
+<li><p><xref href="GUID-04EEFC44-C7FF-37D2-A8F1-7FBCDBAF9EE2.dita"><apiname>__SPIN_LOCK_IRQRESTORE</apiname></xref></p></li>
+</ul><p>If code using these macros is executed on a unicore system, they will
+disable interrupts in the normal way.</p><p>There are several other macros
+that can be used in the non standard situations or when you require greater
+control over the interaction of interrupt disabling and spin locks. </p><ul>
+<li><p><xref href="GUID-A6C6CADA-1552-3873-89BA-6DBDC6402FF2.dita"><apiname>__SPIN_LOCK_IRQSAVE(lock)</apiname></xref></p><p>Standard SMP-safe
+macro</p></li>
+<li><p><xref href="GUID-E7AB9188-3C0C-3267-96CF-751FD7C778EF.dita"><apiname> __SPIN_UNLOCK_IRQRESTORE(lock,irq)</apiname></xref></p><p>Standard
+SMP-safe macro</p></li>
+<li><p> <xref href="GUID-8E0151AC-1F70-35BE-9DBA-659C3054C8FA.dita"><apiname>__SPIN_FLASH_IRQRESTORE(lock,irq)</apiname></xref></p></li>
+<li><p><xref href="GUID-33E2A493-8F2F-32C1-A93C-A50F358C8126.dita"><apiname> __SPIN_LOCK(lock) __SPIN_UNLOCK(lock)</apiname></xref></p></li>
+<li><p><xref href="GUID-A9CDB15E-D435-3043-B9CA-265CC5C598DA.dita"><apiname> __SPIN_FLASH_PREEMPT(lock)</apiname></xref></p></li>
+<li><p> <xref href="GUID-5EF6D33D-998F-3BFD-95F1-478541221B35.dita"><apiname>__SPIN_LOCK_IRQ(lock)</apiname></xref></p></li>
+<li><p><xref href="GUID-F8FA6FEA-56A2-3924-BA59-8DF4B0546AC9.dita"><apiname> __SPIN_UNLOCK_IRQ(lock)</apiname></xref></p></li>
+<li><p> <xref href="GUID-E474AC45-13AE-3DE5-857C-7BE76EE084E3.dita"><apiname>__SPIN_FLASH_IRQ(lock)</apiname></xref></p></li>
+</ul><note><p> To ensure SMP Safety in Symbian^3, the kernel ensures that
+device driver, ISR and DFC are all tied to the same CPU. CPU0 has been stipulated
+for this purpose.</p></note></section>
+<example><title>Using a spin lock</title><p>In the following example, a spin
+lock protects memory being written by <codeph>DfcFun()</codeph> on CPU0 from
+corruption by <codeph>ISRFun()</codeph> running on a different core.</p><p>This
+code runs on CPU0:<codeblock xml:space="preserve">void DfcFun(TAny* aPtr)
+	{
+	…
+   irq = __SPIN_LOCK_IRQSAVE(iLock);
+   iState = EProcessed;
+   __SPIN_UNLOCK_IRQRESTORE(iLock,irq);
+
+	...
+	}
+</codeblock></p><p>This code runs on a different core:<codeblock xml:space="preserve">void ISRFun(TAny* aPtr)
+	{
+   __SPIN_LOCK(iLock);	
+	iState = EProcessing;
+	__SPIN_UNLOCK(iLock);
+	}
+</codeblock></p></example>
+<section id="GUID-8BF9726E-B8E4-4558-98A4-7163CD13774A"><title>Making your
+device driver SMP safe</title><p>Once a device driver has been migrated to
+be SMP Safe using the advice above, the mmp file of each driver's binaries
+must be updated with the keyword <keyword>SMPSAFE</keyword>. </p><p>This indicates
+to the scheduler that the kernel side threads and associated interrupts can
+be can be run and executed according to the kernel SMP policies.</p></section>
+<section id="GUID-6B58F8D8-2776-4301-8914-96F4ABECE7C8"><title>SMP Safe</title><draft-comment time="2010-01-20T13:49" translate="no">This information will be moved to a new topic dealing
+with SMP safety during 10T10. -RF</draft-comment><p>The <keyword>SMPSAFE</keyword> keyword
+should only be used if the code is proven to be SMP-Safe.</p><p>Impact of
+using the <keyword>SMPSAFE</keyword> keyword:</p><ul>
+<li><p>If your code is proven to be SMP-Safe you can identify it is such by
+inserting the <keyword>SMPSAFE</keyword> keyword into your mmp file. The kernel
+will mark your application or service as SMP-safe and use whatever processors
+are available according to the policies of that baseport.</p></li>
+<li><p>If the code is not SMP-Safe do not use the keyword. The kernel will
+run your code using the behaviours defined by the appropriate compatibility
+mode, ensuring that all threads are run on a single CPU.</p></li>
+</ul><p>There are two <i>SMP compatibility modes</i>: basic and enhanced.</p><ul>
+<li><p>In basic mode all threads in unsafe processes are set to CPU0. There
+is no chance these threads will run concurrently and therefore they are executed
+in priority order, as on a single processor system.</p></li>
+<li><p>In enhanced mode all the threads of a process are tied together in
+a thread group. Only one thread of a thread group can be run at any time,
+meaning they are executed in priority order. The benefit of the enhanced mode
+is that the entire thread group may be moved from one CPU to another as system
+resources and kernel policy demands. The default SMP compatibility mode is
+enhanced.</p></li>
+</ul><p>The decision to use basic or enhanced SMP-Safe compatibility mode
+is made at design time and assigned to the kernel iby/oby file as part of
+the baseport. Once set this can not be changed. This is an either or choice
+and therefore mutually exclusive.</p></section>
+</conbody><related-links>
+<link href="GUID-387E98B0-568D-4DBB-9A9E-616E41E96B58.dita"><linktext>SMP Overview</linktext>
+</link>
+<link href="GUID-16AB388A-ED3E-4901-857D-834072437D25.dita"><linktext>Spin Locks</linktext>
+</link>
+</related-links></concept>

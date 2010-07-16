@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-34EF6527-14D0-5C8B-9E20-A3A3B3320054" xml:lang="en"><title>SIF Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A3BAEDB1-D62E-4877-84E2-8C247FF9DDFF"><title>Purpose</title> <p>SIF provides uniform interfaces for installation of software
+and management of software Symbian platform devices regardless of
+the type of a package. The uniform interfaces provided by SIF enable: </p> <ul>
+<li id="GUID-3A207AF4-C957-566D-94A6-0EE9D4FC46A8"><p>Installation
+of software, for example SIS or JAR files. </p> </li>
+<li id="GUID-85E29288-459D-5FE2-8668-E32848B4AF19"><p>Management of
+software, for example removing an existing software component installed
+on a device. </p> </li>
+<li id="GUID-F8C01B68-14DF-5631-A0C5-C27BB1A005E7"><p>Extracting package
+information. </p> </li>
+</ul> </section>
+<section id="GUID-ED363D15-01A7-4D9D-A8DF-F4D9A0618788"><title>Architecture</title> <p>The following diagram illustrates the SIF interaction with SWI,
+AppArc and other components of the Universal Software Installation
+Framework : </p><fig id="GUID-2F4266C8-C5C7-44A3-A65A-4448919BBEDF">
+<title>SIF interaction diagram</title>
+<image href="GUID-9B97E076-22CB-434A-B16A-E4CE3A859F05_d0e41292_href.jpg" placement="inline"/>
+</fig><fig id="GUID-14AE4786-0AFB-4B5C-9306-1B112985FF7B">
+<image href="GUID-41CE73A7-4820-417D-8AD7-92F9DB9C552A_d0e41296_href.jpg" placement="inline"/>
+</fig> <p> <b>SIF Transport Library</b>  </p> <p>This is a client-server
+framework used to send and receive SIF requests across a process boundary.
+It significantly reduces the time needed to implement an installer
+client and a server for sending and receiving SIF requests. The SIF
+Transport Library consists of a SIF Transport Client and a Server. </p> <p>The SIF Transport Client sends software management requests (for
+example, installation, uninstallation, activation, deactivation and
+so on) across the process boundary to a specified SIF Transport Server.
+The SIF Transport Server processes the requests from the SIF Transport
+Client by instantiating a SIF Transport session object and hands over
+further processing to it. </p> <p> <b>SIF Utility library</b>  </p> <p>This library provides an API for uninstalling a software component
+from the system and is for simple installers. It removes the component
+from the System Component Registry (SCR) and deletes its files from
+the file system. </p> <p> <b>SIF Launcher</b>  </p> <p>SIF Launcher
+is a SIF component that handles installation requests from the AppArc
+APIs. Installation requests are issued by generic clients, such as
+file or web browsers. When the user clicks on a file or link, a browser
+may use <xref href="GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA.dita#GUID-5EEE8745-F483-33C0-A5B1-AEB5544DE2BA/GUID-FE6E7F9F-86AB-398E-A979-90F1DAC93E71"><apiname>RApaLsSession::StartDocument()</apiname></xref> to start
+the SIF Launcher automatically.</p> <p><b>Notifier Framework</b></p><p>There is a need to receive progress notifications during package
+management operations, such as installation, upgradation and uninstallion.
+The native and non-native installers follow legacy mechanisms to publish
+the installation context.  If each installer provides a different
+publication mechanism, the observers of the events need to make additional
+changes relevant to the installer. To overcome this redundancy, SIF
+provides a unified notification mechanism that makes receiving progress
+notifications simpler. </p><p>The Notifier framework delivers the
+start, progress and completion status of SIF operation (install or
+uninstall) to registered clients in a unified mechanism. The Publish
+and Subscribe Keys defined by the Universal Software Install Framework
+(USIF) can be used by all installers to <xref href="GUID-6A9E486A-6C1B-4E31-832A-FD39AF041817.dita">publish the progress
+of operations</xref>. The clients must <xref href="GUID-FDA575AB-F5A5-4244-B47C-F1B1794F09F6.dita">subscribe to receive
+the progress notifications</xref>.</p><p> A utility library is provided
+with APIs that set and publish the SIF operation progress. Installers
+and client applications can use these APIs to publish and subscribe
+for install, upgrade and uninstall status notifications.</p></section>
+<section id="GUID-B0AD8013-8166-411C-BA70-E0FC494094B2"><title>Key
+Classes</title> <p>The following table summarizes the key classes
+of SIF: </p> <table id="GUID-95FAE876-4A42-5AFA-8D92-B14E4B3C3B8B">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<thead>
+<row>
+<entry>Class Name</entry>
+<entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p> <xref href="GUID-1A295877-CBEF-3C5C-A72E-FFB5D2E57B22.dita"><apiname>RSoftwareInstall</apiname></xref>  </p> </entry>
+<entry><p>Provides an asynchronous interface to SIF. This class wraps
+all the details of client-server communication with the SIF server
+residing in a separate process. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-CD380D01-8649-36E4-8435-C6F600D5A5CF.dita"><apiname>CSifPlugin</apiname></xref>  </p> </entry>
+<entry><p>Is an abstract SIF plug-in
+interface. Derived classes must implement the functions of the interface
+for each particular software type. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-D526646E-45DB-3DC4-9384-CFF02C590F74.dita"><apiname>RSifTransportClient</apiname></xref>  </p> </entry>
+<entry><p>Is a client side of the SIF Transport. This class sends
+software management requests across the process boundary to a specified
+Transport Server. </p> </entry>
+</row>
+<row>
+<entry><p> <xref href="GUID-6C066A48-4889-302B-879B-4A07552C3AFC.dita"><apiname>CSifTransportTask</apiname></xref>  </p> </entry>
+<entry><p>Defines an abstract interface for SIF Transport tasks. It
+is the core class of the SIF Transport library. Transport tasks are
+instantiated and run to handle incoming software management requests. </p> </entry>
+</row>
+<row>
+<entry><p><xref href="GUID-F1D2CE7E-B5B9-3E35-B648-55F1B24E6272.dita"><apiname>CSifOperationStartData</apiname></xref></p></entry>
+<entry><p>Contains basic information
+about packages to be installed or uninstalled.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-4F0E57D3-CE4C-3A41-951B-F2BB43E7BA34.dita"><apiname>CSifOperationEndData</apiname></xref> </p></entry>
+<entry><p>Contains the error status
+information after an installation or uninstallation.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-DBEB6AEF-2128-3566-93AA-3CDB5D554B1E.dita"><apiname>CSifOperationProgressData</apiname></xref></p></entry>
+<entry><p>Provides the progress
+status.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-59E1372C-F4F8-3762-B6D9-B92BB5F53FC6.dita"><apiname>CPublishSifOperationInfo</apiname></xref></p></entry>
+<entry><p>Is used by installers
+to publish a single install, uninstall or update operation information.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-4683B704-D21C-3D42-82BB-2B4B88B4974C.dita"><apiname>MSifOperationsHandler</apiname></xref></p></entry>
+<entry><p>Is an interface class
+required to be implemented by the client class to receive notifications.
+This class has functions that notify about the SIF operation start,
+end and progress updates.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-33D234E5-2970-3521-BDB9-EE29C9165856.dita"><apiname>CSifOperationsNotifier</apiname></xref></p></entry>
+<entry><p> An object of the class
+is created for carrying out subscription to notification. </p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-7B431AC3-6B81-40A1-98E4-31CA7B20B5DE"><title>Typical
+uses</title> <p>You can use the APIs provided by SIF to <xref href="GUID-51EDBA17-41AF-58FB-A96F-D5A136F83977.dita">create an installer</xref> . When you use SIF with SCR you can perform <xref href="GUID-8EE40A1A-7905-522B-A1A1-3F4ED053B042.dita">application management
+functions</xref> such as listing software components on a device and
+extracting package information about a software component. </p> </section>
+</conbody><related-links>
+<link href="GUID-B2BD19A4-132E-5D5C-8870-04BADB6E7815.dita"><linktext>SIF
+Tutorial</linktext></link>
+<link href="GUID-2AB7F53A-5EDF-574D-866D-EF2592881559.dita"><linktext>Configuring
+the SIF Launcher</linktext></link>
+</related-links></concept>

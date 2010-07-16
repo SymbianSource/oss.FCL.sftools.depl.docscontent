@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-267D1E20-002E-53C7-8AE5-E063206C1562-GENID-1-12-1-26-1-1-9-1-12-1-6-1"><title>Secure stream encryption example support code</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Below is the supporting code for the <xref href="GUID-598B6698-3518-50CA-98DE-D85CB255BA2D-GENID-1-12-1-26-1-1-9-1-12-1-5-1.dita">secure stream example code</xref>. </p> <section id="GUID-77E39C51-FE08-4EEB-B94A-4ECD8104E1ED-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2"><title/><codeblock id="GUID-02ECEC04-E291-51B3-86DF-2FB28347F5AD-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2-2" xml:space="preserve">
+#include "e32std.h"
+#include "f32file.h"
+#include "s32file.h"
+#include "pbe.h"
+#include "pbedata.h"
+#include "s32crypt.h"
+            </codeblock> <codeblock id="GUID-13A09565-981A-56C0-9AC7-B849FFBE7395-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2-3" xml:space="preserve">
+/*
+ * Class to demonstrate the use of secure stream encryption APIs.
+ */
+class CSecureStreamExample : public CBase
+         {
+public:
+         static CSecureStreamExample* NewLC();
+         virtual ~CSecureStreamExample();
+         
+         void WriteEncryptedDataL(const TDesC8&amp; aInput, const TDesC&amp; aFilename, const TDesC&amp; aPassword);
+         HBufC8* ReadEncryptedDataLC(const TDesC&amp; aFilename, const TDesC&amp; aPassword);
+private:
+         CSecureStreamExample();
+         void ConstructL();
+private:
+         RFs iFs;
+         };
+            </codeblock> <codeblock id="GUID-B23E19C7-F6AD-5CB4-A944-EFEDC45AB623-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2-4" xml:space="preserve">
+CSecureStreamExample* CSecureStreamExample::NewLC()
+         {
+         CSecureStreamExample* self = new (ELeave) CSecureStreamExample();
+         CleanupStack::PushL(self);
+         self-&gt;ConstructL();
+         return self;
+         }
+
+CSecureStreamExample::CSecureStreamExample()
+         {
+         }
+
+void CSecureStreamExample::ConstructL()
+         {
+         User::LeaveIfError(iFs.Connect());
+         }
+
+CSecureStreamExample::~CSecureStreamExample()
+         {
+         iFs.Close();
+         }
+            </codeblock> <codeblock id="GUID-11B8C0DD-AD05-53BB-BAD2-6F31457A2DD9-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2-5" xml:space="preserve">
+LOCAL_D void RunPBEExampleL()
+         {
+         _LIT(KFilename, "c:\\pbe_example_data.dat");
+         _LIT8(KInputData, "This is the data to be encrypted.");
+         _LIT(KPassword, "pa55w0rd");
+
+         CSecureStreamExample* main = CSecureStreamExample::NewLC();
+         main-&gt;WriteEncryptedDataL(KInputData, KFilename, KPassword);
+         HBufC8* outputData = main-&gt;ReadEncryptedDataLC(KFilename, KPassword);
+         ASSERT(*outputData == KInputData);
+         CleanupStack::PopAndDestroy(2, main);
+         }
+            </codeblock> <codeblock id="GUID-0B93114C-6801-5053-85C3-181779A6185F-GENID-1-12-1-26-1-1-9-1-12-1-6-1-2-2-6" xml:space="preserve">
+GLDEF_C TInt E32Main() // main function called by E32
+    {
+         __UHEAP_MARK;
+         CTrapCleanup* cleanup = CTrapCleanup::New(); // get clean-up stack
+         TRAPD(error, RunPBEExampleL());
+         __ASSERT_ALWAYS(!error,User::Panic(_L("pbe_example_code"),error));
+         delete cleanup; // destroy clean-up stack
+         __UHEAP_MARKEND;
+         return 0;
+    }
+        </codeblock> </section> </conbody></concept>

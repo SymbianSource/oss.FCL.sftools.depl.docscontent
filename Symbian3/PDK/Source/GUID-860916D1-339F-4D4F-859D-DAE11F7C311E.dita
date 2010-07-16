@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-860916D1-339F-4D4F-859D-DAE11F7C311E" xml:lang="en"><title>Building for an SMP Platform</title><shortdesc>This document describes the issues raised when building
+code for an SMP platform.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The only difference between building for an SMP and non-SMP system,
+is the inclusion of the <codeph>SMPSAFE</codeph> keyword in the mmp
+file.</p>
+<p>However, before the <codeph>SMPSAFE</codeph> keyword can be used,
+the ROM compatibility mode should be understood and enabled. It is
+described below.</p>
+<section id="GUID-1D9BD7C9-7CAA-47DC-BD4F-DC00C5F13C50"><title>ROM
+compatibility mode</title><p>This specifies how the resulting build
+will execute code that has not been marked as SMP safe, for example,
+existing applications produced by third party developers. However,
+ROM compatibility mode does not guarantee that non-SMP code will work.
+By default, ROM compatibility is turned off. It is expected that code
+will be tested on a SMP platform to verify that it is SMP safe. Which
+compatibility mode is to be used will be decided during the ROM integration
+stage.</p><p>The ROM compatibility mode takes the form of two new <codeph>rombuild</codeph> parameters (only one can be used at any one time).</p><p>There are two parts to using ROM compatibility mode:</p><ul>
+<li><p>Specifying that it is to be turned on and which type of ROM
+compatibility is to be used. This is done with a new parameter for
+the <codeph>rombuild</codeph> tool.</p></li>
+<li><p>Adding the appropriate macros in the baseport iby and oby files.</p></li>
+</ul><p>The arguments of <codeph>rombuild</codeph> that relate to
+ROM compatibility are:</p><table id="GUID-F8F1F2CF-94FB-4264-A9EF-6F29DC188207">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.42*"/><colspec colname="col2" colwidth="1.58*"/>
+<thead>
+<row>
+<entry align="center" valign="top"><p>rombuild argument</p></entry>
+<entry align="center" valign="top"><p>Description</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="center"><p>-d SMPCOMPATMODE</p></entry>
+<entry><p>Enables regular compatibility mode. This means that all
+the threads in unsafe processes (non-SMP safe) are restricted, so
+that only the ready thread with the highest priority can run.</p><p>In regular compatibility mode, a thread group is created for each
+process. This thread group will have the same priority as the highest
+priority thread that it contains. These thread groups can be assigned
+to any of the available processors, not just CPU 0.</p></entry>
+</row>
+<row>
+<entry align="center"><p>-d SMPCOMPATCPU0</p></entry>
+<entry><p>Enables CPU 0 only mode. This means that all threads in
+unsafe processes (non-SMP safe) can only execute on CPU 0.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>In order for the ROM compatibility mode arguments to work,
+changes have to be made to the iby and oby files of the baseport being
+used. This takes the form of setting the appropriate flags:</p><table id="GUID-7F082639-8BA4-45F0-BF59-32A2E1B8EF4D">
+<tgroup cols="3"><colspec colname="col1" colwidth="0.48*"/><colspec colname="col2" colwidth="1.55*"/><colspec colname="COLSPEC1" colwidth="1.55*"/>
+<thead>
+<row>
+<entry align="center" valign="top"><p>Flag</p></entry>
+<entry align="center" valign="top"><p>Description</p></entry>
+<entry align="center" valign="top"><p>Default Value</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="center"><p>SMPUNSAFECOMPAT</p></entry>
+<entry><p>Sets the state of the regular compatibility mode.</p></entry>
+<entry align="center"><p><codeph>off</codeph></p></entry>
+</row>
+<row>
+<entry align="center"><p>SMPUNSAFECPU0</p></entry>
+<entry><p>Sets the state of the CPU 0 mode.</p></entry>
+<entry align="center"><p><codeph>off</codeph></p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The only valid values for these flags are <codeph>on</codeph> or <codeph>off</codeph>.</p><p>The following line has to be added
+to the baseport iby and oby files:</p><p><codeblock xml:space="preserve">#include &lt;rom/include/kernel.hby&gt;</codeblock></p><p>An example of the use of above flags is:</p><codeblock xml:space="preserve">#ifdef SMP
+#if defined(SMPCOMPATMODE) &amp;&amp; defined(SMPCOMPATCPU0)
+#error "Can't have SMPCOMPATMODE and SMPCOMPATCPU0 at once!"
+#endif
+#ifdef SMPCOMPATMODE
+SMPUNSAFECOMPAT(on)
+#endif
+#ifdef SMPCOMPATCPU0
+SMPUNSAFECPU0(on)
+#endif
+#endif //SMP
+</codeblock><p><note>There is no guarantee that the use of compatibility
+mode will make SMP unsafe code work correctly. The compatibility mode
+is only a temporary migration strategy.</note></p><p>Now that the
+build system has been set up to work with non-SMP safe code, the use
+of the <codeph>SMPSAFE</codeph> can be described.</p></section>
+<section id="GUID-DF199EB5-BAEF-4035-9F6A-4264DC5F5E3F"><title>The
+SMPSAFE keyword</title><p>The <codeph>SMPSAFE</codeph> keyword is
+used to tell the system that the project can work correctly in an
+SMP environment.</p><p>It is indicated by placing the word <codeph>SMPSAFE</codeph> on a single line of the project's mmp file.</p><p>An example of the use of the <codeph>SMPSAFE</codeph> keyword is
+given below:</p><codeblock xml:space="preserve">capability all
+
+VENDORID 0x70000001
+
+SMPSAFE
+
+</codeblock><p>The effect of this keyword is as follows:</p><table id="GUID-F6787493-246D-40E1-A74F-1C88A808DD03">
+<tgroup cols="3"><colspec colname="col1" colwidth="0.92*"/><colspec colname="col2" colwidth="0.92*"/><colspec colname="col3" colwidth="1.17*"/>
+<thead>
+<row>
+<entry align="center" valign="top"><p>Is the SMPSAFE keyword present?</p></entry>
+<entry align="center" valign="top"><p>State of ROM Compatibility Mode</p></entry>
+<entry align="center" valign="top"><p>Resulting Behavior</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry align="center"><p>Yes</p></entry>
+<entry align="center"><p>N/A</p></entry>
+<entry><p>The code is assumed to be SMP safe and will be executed
+accordingly.</p></entry>
+</row>
+<row>
+<entry align="center"><p>No</p></entry>
+<entry align="center"><p>Disabled</p></entry>
+<entry><p>The code will be executed, but SMP related problems can
+occur.</p></entry>
+</row>
+<row>
+<entry align="center"><p>No</p></entry>
+<entry align="center"><p>Enabled</p></entry>
+<entry><p>The code will be executed. </p><p>How it is executed, depends
+on which ROM compatibility mode has been enabled.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The build process for an SMP platform will be described.</p></section>
+<section id="GUID-318B743D-3D7C-4773-8A15-E34E800C3911"><title>The
+build process for an SMP platform</title><p>The build process for
+an SMP platform is exactly the same as the build process for a non-SMP
+platform.</p><p><note>The target must be ARMV5SMP. This can be insured
+if the bld.inf files specify BASE_DEFAULT in the PRJ_PLATFORMS line.</note></p><p>For the description of this process, follow the <xref href="GUID-2EDB8C13-959F-590B-9C1D-67E09B7C8874.dita">Build Tool Guide</xref> link below.</p> </section>
+</conbody><related-links>
+<link href="GUID-2EDB8C13-959F-590B-9C1D-67E09B7C8874.dita"><linktext>Build
+Tools Guide</linktext></link>
+<link href="GUID-E55F9286-F586-4665-93D8-86F1E7BE2C7C.dita"><linktext>SMP
+Developer Tips</linktext></link>
+</related-links></concept>
