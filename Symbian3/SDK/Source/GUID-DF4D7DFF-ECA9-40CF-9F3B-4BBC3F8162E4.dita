@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DF4D7DFF-ECA9-40CF-9F3B-4BBC3F8162E4" xml:lang="en"><title>Converting
+between UTC and local time</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-9CB60EE8-93DA-473B-AF76-5DBFAEED0E09"><title>Time zone ID</title> 
+     <p>Each time zone is uniquely identified by its time zone ID which is
+a numeric reference or a name. The <codeph>CTzId</codeph> class encapsulates
+a time zone identifier. A time zone ID is created using the <xref href="GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE.dita#GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE/GUID-72A203C7-593F-34E3-9D7A-646D8A1E85D3"><apiname>CTzId::NewL()</apiname></xref> factory
+method, for example: </p><codeblock xml:space="preserve">_LIT8( KAsiaHongKong,"Asia/Hong_Kong" ); //A valid time zone name
+CTzId* zoneId = CTzId::NewL( KAsiaHongKong );</codeblock><p>The time zone’s
+numeric ID or name can be retrieved using <xref href="GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE.dita#GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE/GUID-5165FA78-3EB8-3099-BA0A-EA727BF75AED"><apiname>CTzId::TimeZoneNumericID()</apiname></xref> or <xref href="GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE.dita#GUID-0B5453C5-76A2-31B2-A32C-2CDC1F3367CE/GUID-A9F74527-2885-326E-9516-FDE2AE8A0425"><apiname>CTzId::TimeZoneNameID()</apiname></xref> respectively.
+ </p><p><codeph>operator==()</codeph> and <codeph>operator!=()</codeph> can
+be used to check if the time zone ID matches or differs from another time
+zone ID.  </p></section>
+<section id="GUID-4A2ED95F-8697-47FF-A89A-0871449ADFEE"><title>Converting
+between UTC and local time</title><p>You can convert between times expressed
+in UTC and local time using either the <xref href="GUID-37A4A4ED-FFF8-3C98-B028-EA1947EA7BEF.dita"><apiname>CTzConverter</apiname></xref> or <codeph>RTz</codeph> class.
+ </p><p> <xref href="GUID-37A4A4ED-FFF8-3C98-B028-EA1947EA7BEF.dita"><apiname>CTzConverter</apiname></xref> does the conversion on the client
+side by caching rules which it gets from the time zone server. This class
+should be used for conversion between UTC and local time for the system time
+zone, for performance reasons.   </p><p>If the conversion involves foreign
+time zones, the <codeph>RTz</codeph> class can be used instead.  </p><p> The
+following types of time conversion are possible:  </p><ul>
+<li id="GUID-0B4E9E64-99DB-4BF2-A0FF-E62508F8E54A"><p><xref href="GUID-237E0861-EC1B-41DA-BDB0-1DEB50620CC8.dita">UTC
+to local time in any time zone</xref></p></li>
+<li id="GUID-B90DEC70-F232-43CD-AC8B-6D3D64090E2A"><p><xref href="GUID-F2487AEE-966E-472E-9162-E0400C9A8234.dita">UTC
+to local time in the system time zone</xref></p></li>
+<li id="GUID-2CC49848-516F-4345-91A4-8DE97566E297"><p><xref href="GUID-7A16B6E1-16F7-41EC-ABCC-4A2BEBD66FFF.dita">Local
+time in the system time zone to UTC</xref> </p></li>
+<li id="GUID-474CB987-56DB-4596-AC9F-7333A8619A0F"><p><xref href="GUID-043A9408-1A97-4122-9364-965ECC08B40F.dita">Local
+time in any time zone to UTC</xref></p></li>
+</ul></section>
+<section id="GUID-9B7F2465-48B5-40E5-A459-FFE839DEF58C"><title>Setting the
+local time </title><p><xref href="GUID-052221AD-916E-3E47-9510-AC0495A19A70.dita#GUID-052221AD-916E-3E47-9510-AC0495A19A70/GUID-ED5486E0-392F-37C5-992F-16421560C49B"><apiname>RTz::SetHomeTime()</apiname></xref> sets the local
+time in the system time zone:</p><codeblock xml:space="preserve">_LIT8( KMyTime, "20050105:103000.00" ); // Local time to set (5th January 2005 10:30 hrs).
+TTime myTime( KMyTime ); //Create the time as a TTime object
+TInt errCode = myTZoneServer.SetHomeTime( myTime );</codeblock><p>The <codeph>WriteDeviceData</codeph> capability
+is needed to set the system time.  </p></section>
+<section id="GUID-12459F4B-EEF2-44DB-BB85-A180DA3FBD47"><title>Automatic UTC
+offset</title><p>Whenever DST begins or ends, the UTC offset needs to be updated
+accordingly. This can be done automatically by calling <xref href="GUID-052221AD-916E-3E47-9510-AC0495A19A70.dita#GUID-052221AD-916E-3E47-9510-AC0495A19A70/GUID-7CF53489-5FF4-3665-8660-263433D8F090"><apiname>RTz::SetAutoUpdateBehaviorL()</apiname></xref>.
+This function takes a value from the <codeph>TTzAutoDSTUpdateModes</codeph> enum.
+When set to <xref href="GUID-C94A18B2-5652-3F2C-8D87-1B59A37E6122.dita#GUID-C94A18B2-5652-3F2C-8D87-1B59A37E6122/GUID-0B745B98-814D-3157-9290-557339119877"><apiname>TTzAutoDSTUpdateModes::ETZAutoDSTUpdateOn()</apiname></xref>,
+the UTC offset is automatically updated for changes to DST. </p></section>
+<section id="GUID-BF084ED0-7E7C-4A5B-8BEF-9F809F1F1DC0"><title>See also</title><p><xref href="GUID-A0E21681-F1EF-4E79-965A-040AC7D72A01.dita">Time zone conversion overview</xref></p><p><xref href="GUID-71DCEB48-8E8C-59A0-A99F-23245FF2DF13.dita">timezoneconversion: Using
+the time zone server</xref></p></section>
+</conbody></concept>

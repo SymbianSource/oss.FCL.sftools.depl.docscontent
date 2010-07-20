@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-676D1493-0035-4AD3-A0E5-A207B25809E4" xml:lang="en"><title>Time
+Zone Services Overview</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-30F76544-4824-4979-93A6-CC7F09818443">       <title>Purpose</title><p>Interfaces
+within Time Zone Services are used to enable client applications to make updates
+to system TZ data, receive notification of time changes, and manage user-defined
+TZ data. Conversion services enable a client to convert time between Universal
+Time Coordinated and any other time.  </p></section>
+<section id="GUID-8C787174-5ABD-4CE5-A205-986873AA5F00"><title>Key concepts/terms</title>The following terms are used throughout
+Time Zone Services documentation:<p><dl>
+<dlentry>
+<dt>P&amp;S</dt>
+<dd><p>Publish and Subscribe. </p></dd>
+</dlentry>
+
+
+
+<dlentry>
+<dt>System TZ data </dt>
+<dd><p>Refers to the time zone database found in the TZ Server component and
+the TZ localization resources found in the TZ Localization component.</p></dd>
+</dlentry>
+<dlentry>
+<dt>TZID</dt>
+<dd><p>Refers to the time zone database found in the TZ Server component and
+the TZ localization resources found in the TZ Localization component.</p></dd>
+</dlentry>
+<dlentry>
+<dt>TZ rules data</dt>
+<dd><p>Refers to the TZ rules found in the TZ database, the TZ rules that
+define the current/system TZ and the user-defined TZ rules.</p></dd>
+</dlentry>
+<dlentry>
+<dt>User-defined TZ data</dt>
+<dd><p>The TZ rules and TZ names (city name, region name and long/short standard
+time name and long/short daylight time names). User-defined TZ data may be
+added by the user of the device. </p></dd>
+</dlentry>
+<dlentry>
+<dt>UTC </dt>
+<dd><p>Universal Time Coordinated.</p></dd>
+</dlentry>
+</dl></p></section>
+<section id="GUID-4E5DB06A-4729-4008-BB03-9C3A27C4DE96"><title>Architectural relationships</title><p>Alarm Server and Calendar
+Server components depend on the latest TZ rules information. When notified
+of changes to TZ rules data these components update their TZ-dependent data.
+TZ conversion rules are used to convert between UTC and a time in the past,
+present or future, for any time zone.</p><p>Time zone conversion allows you
+to set the device time zone and to convert time between UTC and any time,
+past, present or future, for any time zone, as long as a rule exists for the
+conversion.  </p></section>
+<section id="GUID-5C98F76D-C181-4D43-8784-1306830E4D7D"><title>Time Zone Services interfaces </title><p>The following classes
+form the main interface to Time Zone Services:</p><table id="GUID-F78AECCB-AEDE-4054-929C-DC756DA901AC">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.58*"/><colspec colname="col2" colwidth="1.42*"/>
+<thead>
+<row>
+<entry valign="top"><p>Interface</p></entry>
+<entry valign="top"><p>Description</p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p><codeph>CTzUserData</codeph></p></entry>
+<entry><p>Allows a client to manage user-defined time zones.</p></entry>
+</row>
+<row>
+<entry><p><codeph>CTzUserNames</codeph></p></entry>
+<entry><p>Contains the names for a user-defined time zone.</p></entry>
+</row>
+<row>
+<entry><p><codeph>CTzRules</codeph></p></entry>
+<entry><p>Encapsulates a collection of time zone rules</p></entry>
+</row>
+<row>
+<entry><p><codeph>CTzId</codeph></p></entry>
+<entry><p>Contains a time zone identifier.</p></entry>
+</row>
+<row>
+<entry><p><codeph>RTz</codeph></p></entry>
+<entry><p>Converts between UTC time and local time, and sets the current local
+time zone.</p></entry>
+</row>
+<row>
+<entry><p><codeph>CTzConverter</codeph></p></entry>
+<entry><p>Provides client-side caching for conversions in the local time zone.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The following interfaces are also used: </p><ul>
+<li><p>SWI service - see System TZ Data Update </p></li>
+<li><p>Resource files - see User-defined TZ Data </p></li>
+<li><p>Publish and Subscribe - see TZ Data Change Notification </p></li>
+</ul><p><b>System TZ data update</b></p><p>The system TZ data can be updated
+at run-time. The installation mechanism uses the standard SWI service to install
+a SIS file containing the updated TZ data onto a device.</p><p>Once the system
+TZ data has been updated using the SIS file, the device will automatically
+make use of the updated data. This includes updating any cached data managed
+by Symbian platform components and notifying all registered clients of the
+system TZ data change.</p><p/><p><b>User-defined TZ data</b></p><p><codeph>CTzUserData</codeph> provides
+functions to create, read, update or delete user-defined TZ data. The API
+also allows the TZIDs for all existing user-defined TZ data to be determined.
+  </p><p><codeph>CTzUserNames</codeph> is used to contain the names for user-defined
+time zones. These include long/short standard time names, long/short daylight
+time names, city name and region name.</p><p>TZID is a time zone identifier
+contained in the <codeph>CTzId</codeph> class. There are two components to
+a TZID: a numeric identifier and a name identifier. </p><p><b>TZ data change
+notification</b></p><p>The Time Zone Services APIs support several Publish
+and Subscribe (P&amp;S) properties, some of which are described below. Clients
+can attach and subscribe to these properties to allow them to be notified
+of TZ data changes.</p><p> The Calendar uses the callback API <codeph>MCalChangeCallBack2</codeph> for
+asynchronous change notification.</p><ul>
+<li><p><b>Publish and Subscribe</b> - The <codeph>NTzUpdate</codeph> namespace
+contains a property category and property keys. The property key <codeph>ETzRulesChange</codeph> is
+used to inform clients of changes to:</p><ul>
+<li><p>the system TZ database </p></li>
+<li><p>current and system TZ rules </p></li>
+<li><p>user-defined rules.</p></li>
+</ul><p>The property key <codeph>ETzNamesChange</codeph> is responsible for
+changes to the localized system TZ names and non-localized user-defined TZ
+names. </p> </li>
+<li><p><b>Alarm Server client</b> - The Alarm Server supports fixed UTC time
+and floating local time to express the expiry time of an alarm. The TZ Server
+then recalculates and sets the current UTC offset.</p><p>See <xref href="GUID-9BE3DEBE-A1CE-5A2F-9746-1E6F2B5B050E.dita">System
+Time and Locale Changes</xref>. </p></li>
+<li><p><b>Calendar client</b> - The Calendar API allows a client to be notified
+of changes to Calendar entries.</p><p>For more information, see <xref href="GUID-3987D040-27F7-5226-96AC-D578ECA4C0A2.dita">Callback
+Interfaces</xref>.</p></li>
+</ul></section>
+<section id="GUID-5102801C-87DC-4AC1-8733-F216C043A36F"><title>See also</title><ul>
+<li><p><xref href="GUID-F0C71D6E-CAF1-49CC-A697-FC1A810DF1D5.dita">Time zone services
+tutorials</xref></p></li>
+<li><p><xref href="GUID-A0E21681-F1EF-4E79-965A-040AC7D72A01.dita">Time Zone Conversion
+Overview</xref></p></li>
+</ul></section>
+</conbody></concept>

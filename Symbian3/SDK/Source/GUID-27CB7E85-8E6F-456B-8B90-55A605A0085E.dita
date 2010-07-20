@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E" xml:lang="en"><title>Setting
+universal time and offset</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Internally, the kernel uses UTC (Coordinated Universal Time) and stores
+an offset for the difference between UTC and local time which is made up of
+both the time zone and any daylight saving time added. This removes the responsibility
+for handling time zones and daylight saving from the kernel to a user side
+"timezone" server. A positive offset indicates a time ahead of UTC: a negative
+offset indicates a time behind UTC.</p>
+<p>The API below is used to set and get the UTC offset values. </p>
+<ul>
+<li><p><xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-145F52E6-2A29-3FF1-8AD1-7009BE0074D7"><apiname>User::SetUTCTime()</apiname></xref></p></li>
+<li><p><xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-68D881BA-E4BA-3795-90E0-236E07112325"><apiname>User::SetUTCOffset()</apiname></xref></p></li>
+<li><p><xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-D1A4CF1D-1F4F-3745-BD3D-671925D16CD3"><apiname>User::SetUTCTimeAndOffset()</apiname></xref></p></li>
+<li><p><xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-3CC64469-C1E1-330F-9B4D-B8F95957904F"><apiname>User::UTCOffset()</apiname></xref></p></li>
+</ul>
+<note><p>Setting the UTC time and offset requires the <codeph>WriteDeviceData</codeph> security
+capability.</p></note>
+<section id="GUID-D4CD566E-3DF6-4F40-8821-304F45C75C54"><title>Customizing
+the default time zone setting</title>       <p>The local time zone is calculated
+using an offset from UTC. <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-68D881BA-E4BA-3795-90E0-236E07112325"><apiname>User::SetUTCOffset()</apiname></xref> is used
+to set the offset to the required value. This function is called by three
+different components at boot up:  </p><ul>
+<li><p><xref href="GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E.dita#GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E/GUID-C028BE6B-AE48-40AC-8D5F-BF1DED206450">EStart</xref> -
+sets the offset at the start of the boot process and then provides the correct
+time for parts of the system that are initialized before the TimeZone and
+Locale services are running. </p></li>
+<li><p><xref href="GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E.dita#GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E/GUID-EB566340-35CD-445B-8F93-960BB4D35769">InitialiseLocale</xref> -
+sets and gets the locale information stored within the repository. This is
+necessary if the TimeZoneServer is not included. </p></li>
+<li><p><xref href="GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E.dita#GUID-27CB7E85-8E6F-456B-8B90-55A605A0085E/GUID-6F418656-2D12-4090-90A3-C2DF3D749601">TimeZoneServer</xref> -
+is an optional service that device manufactures can choose to include. It
+is recommended that the offset is set both here and within InitialiseLocale.
+ </p></li>
+</ul></section>
+<section id="GUID-C028BE6B-AE48-40AC-8D5F-BF1DED206450"><title>EStart</title><p>The
+call in EStart is required for backwards compatibility with systems that do
+not use the TimeZoneServer. The call in EStart also allows many parts of the
+system to see the correct time before the timezone/locale services are up
+and running. If the timezone offset is not set during startup then many components
+may, for that period, see the wrong time.  </p><p> The data format for the
+persisted locale data makes no allowance for daylight savings that are not
+equal to one hour, but in new code the daylight savings flag is never used
+(specifically because of this issue) and the offset is adjusted by the correct
+amount instead.  </p><p> To alter the default time zone operation within <b>EStart</b>,
+provide your own implementation of the EStart virtual function <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita#GUID-7A6C0343-7B98-3429-9162-4C0357594230/GUID-165D453E-8B09-3B22-96BC-076E01DB8F26"><apiname>TFSStartup::LoadLocale()</apiname></xref>.
+See <xref href="GUID-BFE1422D-3B4A-5B25-A757-B5B68D6390F8.dita">EStart: customizing
+code</xref>.   </p><p>The offset set through EStart is retrieved through <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-3CC64469-C1E1-330F-9B4D-B8F95957904F"><apiname>User::UTCOffset()</apiname></xref>.
+ </p></section>
+<section id="GUID-EB566340-35CD-445B-8F93-960BB4D35769"><title>InitialiseLocale</title><p>InitialiseLocale
+initializes and persists changes to the system locale settings. The system
+locale data is persisted using the central repository. The executable <codeph>initialiseLocale.exe</codeph> loads
+the system locale data at device boot and ensures that changes to the system
+locale data are persisted.   </p><p>Once <codeph>initialiseLocale.exe</codeph> has
+been loaded (as part of the system boot sequence) the contents of the system
+locale data are initialized and any subsequent changes to the system locale
+settings are persisted without any intervention from the application or component
+making the changes.  </p><p/><p><b>Changing System Locale Settings</b></p><p>Create
+an empty <codeph>TExtendedLocale</codeph> object and use <codeph>LoadSystemSettings()</codeph> to
+get the settings from the repository, make changes and save them with <codeph>SaveSystemSettings()</codeph>.
+This function generates a notification for system locale changes so changes
+to the locale information may not be immediate.  </p><p> For example, an application
+that wishes to change the system time and date settings (without changing
+any other locale settings) goes through the following steps: </p><ol>
+<li id="GUID-049A63A9-D3AB-4E88-AB94-EEBD61B15027"><p>Create an empty instance
+of <codeph>TExtendedLocale</codeph>.</p><codeblock xml:space="preserve">TExtendedLocale myExtendedLocale;
+</codeblock></li>
+<li id="GUID-362D9D13-2DAA-4A80-9EA1-ABE9E0EE8152"><p>Initialize it to the
+current system settings.</p><codeblock xml:space="preserve">myExtendedLocale.LoadSystemSettings();
+</codeblock></li>
+<li id="GUID-FC7F35DA-2A46-4AF2-A580-D9EF292A031B"><p>Change the time and
+date settings locally.</p><codeblock xml:space="preserve">myExtendedLocale.LoadLocaleAspect( ELocaleTimeDateSettings, KLocaleDllTimeDateSettings );
+</codeblock></li>
+<li id="GUID-B6C19192-C396-4A3E-A534-141AE5D8426B"><p>Write the new settings
+to the system locale data.</p><codeblock xml:space="preserve">myExtendedLocale.SaveSystemSettings();</codeblock></li>
+</ol><p>The <b>security capability</b> <codeph>WriteDeviceData</codeph> is
+required to save settings.</p></section>
+<section id="GUID-6F418656-2D12-4090-90A3-C2DF3D749601"><title>TimeZoneServer</title><p>The
+time zone server simplifies the synchronisation between handsets in different
+time zones. For example, if one handset is in the UK and another in the US
+a meeting can be scheduled at the same time (UTC) and the local time is calculated
+for each by the time zone server.  </p><p> The Time Zone Server converts UTC
+to local time based on different time zones and DST rules, and publishes any
+change to subscribing clients, for example the Calendar application. See <xref href="GUID-A81C65CF-CF4E-571C-8080-9D387F46AAD6.dita">Publish and Subscribe</xref>.</p><p>The
+time zone server is an optional service that licensees can choose to include
+otherwise another method can be used to supply the UTC offset, for example,
+Network time update, see <xref href="GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8.dita#GUID-AA81AFA4-6FAC-3B0D-A082-BE0AEC58CCA8/GUID-1676D1E4-AD15-3265-B1A8-1C7B9B56FB66"><apiname>RMobilePhone::GetNITZInfo()</apiname></xref>. Because
+the time zone server may not be included in the product it is necessary to
+persist the UTC offset as part of the locale data (<codeph>TLocale</codeph>).
+The time zone server persists the current time zone and updates the UTC offset
+based on whether daylight savings applies or not.  </p><p> The following code
+example should help to illustrate the interactions that may occur if <xref href="GUID-1BD54E95-218F-3B43-B427-F9EA6DA9AB69.dita"><apiname>User:SetUTCOffset()</apiname></xref> or <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-D1A4CF1D-1F4F-3745-BD3D-671925D16CD3"><apiname>User::SetUTCTimeAndOffset()</apiname></xref> are called while the time zone server is running.  </p><p>Preconditions
+for this code are:</p><ul>
+<li><p>The time zone server is not already running. </p></li>
+<li><p>It is assumed that the current UTC offset is not 36000 seconds (10
+hours). For describing this example, we will take the UTC to be 18000 seconds
+(5 hours). </p></li>
+</ul><codeblock xml:space="preserve">void MainL()
+    {
+    RTz tz;
+    TTimeIntervalSeconds offsetWhenTzRunningInitial;
+    TTimeIntervalSeconds offsetWhenTzRunningAfterSetting;
+    TTimeIntervalSeconds offsetWhenTzNotRunningInitial;
+    TTimeIntervalSeconds offsetWhenTzNotRunningAfterSetting;
+
+    TInt err = tz.Connect();
+    User::LeaveIfError( err );
+    offsetWhenTzRunningInitial = User::UTCOffset(); 
+    User::SetUTCOffset( 36000 );
+    User::After( 1*1000*1000 );
+    offsetWhenTzRunningAfterSetting = User::UTCOffset(); 
+    tz.Close();
+
+    offsetWhenTzNotRunningInitial = User::UTCOffset(); 
+    User::SetUTCOffset( 36000 );
+    offsetWhenTzNotRunningAfterSetting = User::UTCOffset(); 
+    }</codeblock><p>Given the preconditions listed, the values for the offsets
+retrieved are:</p><ol>
+<li id="GUID-9D41985D-620F-4954-897B-B2F2558304D1"><p><codeph>offsetWhenTzRunningInitial</codeph> 18000
+(seconds). </p></li>
+<li id="GUID-89867FF7-27ED-4B48-9CCE-0A011F14DF43"><p><codeph>offsetWhenTzRunningAfterSetting</codeph> 18000
+(seconds). </p></li>
+<li id="GUID-2A04B812-C409-4376-8964-856C75647D44"><p><codeph>offsetWhenTzNotRunningInitial</codeph> 18000
+(seconds).</p></li>
+<li id="GUID-5498BB66-8437-4A0A-A2D5-BE6E776A6810"><p><codeph>offsetWhenTzNotRunningAfterSetting</codeph> 36000
+(seconds).</p></li>
+</ol><p>The value of <codeph>offsetWhenTzRunningAfterSetting</codeph> is not
+36000 as one might expect from just looking at the code. This is because the
+time zone server observes the kernel setting of the UTC offset and when this
+value is changed, it checks the current time zone and ensures that the offset
+matches this value. The delay is placed in this example code to ensure that
+the time zone server is given a chance to run and to change the value. </p><p>If
+a call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-3CC64469-C1E1-330F-9B4D-B8F95957904F"><apiname>User::UTCOffset()</apiname></xref> were made before the call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-4FDD3CEB-9D30-33BD-BAF3-14A1E2D56B18"><apiname>User::After()</apiname></xref>,
+then the value can be either 36000 or 18000 depending on the CPU load, presence
+of other processes and their relative priorities. </p></section>
+</conbody></concept>

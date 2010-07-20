@@ -9,48 +9,47 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-1F1A6FCD-DA06-5F8B-8F2C-0BAA08DE0041" xml:lang="en"><title>How to
-allocate buffers</title><shortdesc>Explains the functions to create and allocate flat and segmented
-buffers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<p>Allocating buffers is simple: use the desired class’s static <codeph>NewL()</codeph> function.
-You must specify a <i>granularity</i>, whose meaning is particular to the
-buffer type.</p>
-<section id="GUID-35823578-F609-41ED-B4A3-00BAE20C4AAC"><title>Flat buffer</title> <p>To allocate a flat buffer, use <codeph>CFlatBuf::NewL()</codeph>.
-The granularity in this case means the number of bytes by which the buffer
-will be re-allocated, whenever expansion is necessary. If expansion by a greater
-amount than this is required, the next highest multiple of the granularity
-will be used.</p> <p>In this example, the buffer pointer is pushed to the
-cleanup stack for the lifetime of the buffer. If any operation involving the
-buffer should leave, the buffer will be destroyed. In real use, the buffer
-pointer would be stored as member data, and care should be taken to ensure
-that the consequences of a leave are not fatal to the application. For example,
-if the buffer is being used to store a word processor document, an attempt
-to add a character may fail due to lack of memory. This should never cause
-the entire document to be destroyed! Instead, the editing code should function
-in such a way that the update is either implemented successfully, or no change
-is made to the document.</p> <p>The function <codeph>StandardBufferStuffL()</codeph> is
-one which takes a <codeph>CBufBase</codeph> type.</p> <codeblock id="GUID-EF6F9CDB-0D9A-5AB8-9BBC-958DEE5C382E" xml:space="preserve"> // do flat buffer tests
+<concept id="GUID-1F1A6FCD-DA06-5F8B-8F2C-0BAA08DE0041" xml:lang="en"><title>How to allocate buffers</title><shortdesc>Explains the functions to create and allocate flat and
+segmented buffers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Allocating buffers is simple: use the desired class’s static <codeph>NewL()</codeph> function. You must specify a <i>granularity</i>,
+whose meaning is particular to the buffer type.</p>
+<section id="GUID-35823578-F609-41ED-B4A3-00BAE20C4AAC"><title>Flat
+buffer</title> <p>To allocate a flat buffer, use <codeph>CFlatBuf::NewL()</codeph>. The granularity in this case means the number of bytes by which
+the buffer will be re-allocated, whenever expansion is necessary.
+If expansion by a greater amount than this is required, the next highest
+multiple of the granularity will be used.</p> <p>In this example,
+the buffer pointer is pushed to the cleanup stack for the lifetime
+of the buffer. If any operation involving the buffer should leave,
+the buffer will be destroyed. In real use, the buffer pointer would
+be stored as member data, and care should be taken to ensure that
+the consequences of a leave are not fatal to the application. For
+example, if the buffer is being used to store a word processor document,
+an attempt to add a character may fail due to lack of memory. This
+should never cause the entire document to be destroyed! Instead, the
+editing code should function in such a way that the update is either
+implemented successfully, or no change is made to the document.</p> <p>The function <codeph>StandardBufferStuffL()</codeph> is one which
+takes a <codeph>CBufBase</codeph> type.</p> <codeblock id="GUID-EF6F9CDB-0D9A-5AB8-9BBC-958DEE5C382E" xml:space="preserve"> // do flat buffer tests
  CBufFlat* flatBuf=CBufFlat::NewL(4);
  CleanupStack::PushL(flatBuf);
  StandardBufferStuffL(flatBuf);
  CleanupStack::PopAndDestroy();</codeblock> </section>
-<section id="GUID-0E671A5E-99A9-4ED6-9CA1-519BA5E3A8D9"><title>Segmented buffer</title> <p>A segmented buffer is allocated
-in a similar way to a flat buffer. The granularity in this case specifies
-the size of each segment. During buffer operations, each segment may contain
-less data than the granularity. After a compress, data is optimally distributed
-to segments, so that all segments except possibly the last one are full.</p> <p>During
-their lifetime, all standard buffer operations can be performed on either
-flat or segmented buffers. This is shown in the examples above by calling <codeph>standardBufferStuffL()</codeph> with
-both a flat and a segmented buffer pointer. The argument to this function
-is a <codeph>CBufBase*</codeph>.</p> <p>The granularities chosen for these
-examples are much smaller than would be used in most real applications. </p> <codeblock id="GUID-70676BB5-F806-5860-A96D-77EF0897FFA7" xml:space="preserve"> // do segmented buffer tests
+<section id="GUID-0E671A5E-99A9-4ED6-9CA1-519BA5E3A8D9"><title>Segmented
+buffer</title> <p>A segmented buffer is allocated in a similar way
+to a flat buffer. The granularity in this case specifies the size
+of each segment. During buffer operations, each segment may contain
+less data than the granularity. After a compress, data is optimally
+distributed to segments, so that all segments except possibly the
+last one are full.</p> <p>During their lifetime, all standard buffer
+operations can be performed on either flat or segmented buffers. This
+is shown in the examples above by calling <codeph>standardBufferStuffL()</codeph> with both a flat and a segmented buffer pointer. The argument to
+this function is a <codeph>CBufBase*</codeph>.</p> <p>The granularities
+chosen for these examples are much smaller than would be used in most
+real applications. </p> <codeblock id="GUID-70676BB5-F806-5860-A96D-77EF0897FFA7" xml:space="preserve"> // do segmented buffer tests
  CBufSeg* segBuf=CBufSeg::NewL(4);
  CleanupStack::PushL(segBuf);
  standardBufferStuffL(segBuf);
  CleanupStack::PopAndDestroy();</codeblock> </section>
 </conbody><related-links>
-<link>
-<desc><xref href="GUID-E3DD768F-752F-5414-9E9A-86E046806903.dita">Space management
-and granularity</xref></desc>
-</link>
+<link href="GUID-E3DD768F-752F-5414-9E9A-86E046806903.dita">
+<linktext>Space management and granularity</linktext></link>
 </related-links></concept>

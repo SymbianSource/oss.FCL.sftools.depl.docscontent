@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3F0FCBB5-98D2-4355-96E3-2DA938DE1C16" xml:lang="en"><title>DSA Migration Guide</title><shortdesc>This migration guide explains the guidelines that applications
+that use direct screen access (DSA) must follow in order to run on
+ScreenPlay (NGA) devices.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Introduced in an earlier version of the Symbian platform, DSA enables
+applications that require high frame rates (such as video and games)
+to bypass the Window Server and write to the screen directly.  On
+ScreenPlay, Symbian recommends the use of EGL window surfaces in preference
+to DSA.</p>
+<p>Support for DSA is maintained for backward compatibility reasons.
+ However, whereas on some earlier devices, applications might work
+without fully conforming to the rules of DSA, these rules are now
+necessarily enforced.  Applications that follow the following guidelines
+should run correctly on a ScreenPlay device.</p>
+<section id="GUID-3725C49E-4804-4AF3-9797-1D052685893F"><title>Always
+use a DSA session when using DSA</title>             <p>The main classes
+of the DSA framework are <xref href="GUID-24C7AE25-B44A-3B6F-AA05-EA90A8D36129.dita"><apiname>CDirectScreenAccess</apiname></xref>, <xref href="GUID-E2092CF9-98E8-3206-91B2-36011AA6FB77.dita"><apiname>RDirectScreenAccess</apiname></xref> and <xref href="GUID-5A289A8A-1485-3AB9-94CF-177B83D4F450.dita"><apiname>MDirectScreenAccess</apiname></xref>. Before drawing to the screen, the DSA application must create a
+DSA session; for example, by instantiating <codeph>CDirectScreenAccess</codeph> and calling <codeph>CDirectScreenAccess::StartL()</codeph>.  This
+rule applies regardless of whether the application accesses the DSA
+framebuffer using <xref href="GUID-4A501086-7EFF-376D-8901-6D9B2EB4EFF2.dita"><apiname>CFbsBitGc</apiname></xref>, <xref href="GUID-B229156F-2344-3F46-8542-AC65882D80DE.dita"><apiname>CFbsScreenDevice</apiname></xref> or gains a pointer directly through HAL.</p><p>Applications that
+fail to create a DSA session will not work.  Applications that draw
+outside of an active period of DSA will not work.  This is because
+all DSA rendering is directed into a virtual framebuffer and the Operating
+System uses the DSA session to determine when that framebuffer should
+be made visible.</p><p>The following example demonstrates requesting
+direct screen access:</p><codeblock xml:space="preserve">voidCMyDSAEngine::StartDrawingL()
+    {
+    // Initialize DSA.
+    TRAPD(dsaError,iDSA-&gt;StartL());
+    if (dsaError==KErrNone)
+        {
+        // Get the graphics context for drawing.
+        iGc=iDSA-&gt;Gc();
+
+        // Get the region to draw to.
+        iRegion=iDSA-&gt;DrawingRegion();
+
+        // Set the clipping region to this region.
+        iGc-&gt;SetClippingRegion(iRegion); 
+
+        // Start generating timer events (the drawing is done in a timer callback).
+        iPeriodicTimer=CPeriodic::NewL(CActive::EPriorityStandard);
+        iPeriodicTimer-&gt;Start(0,KInterval,TCallBack(DrawNextFrame, this));
+        iDrawing=ETrue;
+        }
+    }
+</codeblock></section>
+<section id="GUID-ED2BEF42-7E4D-484F-8142-011271D7A584"><title>Inform
+the Operating System after updating the DSA buffer</title><p>Applications
+can access the screen by writing to the video hardware framebuffer
+or by using <xref href="GUID-B229156F-2344-3F46-8542-AC65882D80DE.dita"><apiname>CFbsScreenDevice</apiname></xref>.  Regardless which
+of these methods you use, the application must inform the OS that
+the framebuffer has been updated in order for the DSA drawing to be
+pushed to the display.</p><p>Applications that fail to declare modifications
+to the framebuffer will not see their content correctly appear on-screen.
+ This is because the OS uses event-driven updating to copy the contents
+of the DSA framebuffer into the display.</p><p>When writing to the
+video hardware frame buffer, force a screen update by creating a redraw
+event like this:</p><codeblock xml:space="preserve">TRawEventredraw;
+redraw.Set(TRawEvent::ERedraw);
+UserSvr::AddEvent(redraw);</codeblock><p>When using <xref href="GUID-B229156F-2344-3F46-8542-AC65882D80DE.dita"><apiname>CFbsScreenDevice</apiname></xref>, force a screen update by calling one of the following:</p><codeblock xml:space="preserve">void CFbsScreenDevice::Update();
+void CFbsScreenDevice::Update(constTRegion &amp;aRegion);
+</codeblock>         </section>
+<section id="GUID-862F9788-B580-4D93-84B4-677D4B964BB9"><title>Do
+not mix DSA and non-DSA rendering</title><p>The application must not
+issue <xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref> rendering to a window when DSA
+is active on that window.  If both types of rendering are required,
+the application must ensure that they only happen in distinct periods
+demarcated by the DSA session.</p><p>Applications that interleave
+periods of DSA rendering with periods of standard indirect (<xref href="GUID-0AEE5955-C530-35F1-A904-69183331B294.dita"><apiname>CWindowGc</apiname></xref>) rendering, expecting to see each painted on
+top of the previous, will not work.  This is because the OS now uses
+two separate framebuffers; one for DSA rendering and one for indirect
+rendering.  Previous versions of the OS use a single
+framebuffer for both types of rendering.</p><p>Applications must be
+written to render the entire contents of their window using either
+DSA or indirect rendering at any one point of time.</p></section>
+</conbody><related-links>
+<link href="GUID-D93978BE-11A3-5CE3-B110-1DEAA5AD566C.dita"><linktext>The
+ScreenPlay Graphics Architecture</linktext></link>
+<link href="GUID-484B51EC-2209-5492-8E9C-9D792AB0DF35.dita"><linktext>Graphics
+and Drawing</linktext></link>
+</related-links></concept>

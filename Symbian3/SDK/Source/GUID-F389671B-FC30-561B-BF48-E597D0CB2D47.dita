@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-F389671B-FC30-561B-BF48-E597D0CB2D47" xml:lang="en"><title>Using
+Secure Sockets : Tutorial</title><shortdesc>This topic describes how to use secure sockets. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<steps id="GUID-9C1C62FF-403D-5B8A-BB71-C6B931C23D88">
+<step id="GUID-4C65F526-6188-5957-9F2B-EC9C697C00D7"><cmd>Open a socket using
+RSocket::Open() function and connect it with RSocket::Connect() function. </cmd>
+</step>
+<step id="GUID-3B20F63F-1CB8-5DA8-9228-5DD96EDC9C4B"><cmd/>
+<info>Create a secure socket by calling CSecureSocket::NewL() function with
+the parameters as socket and secure protocol name. </info>
+</step>
+<step id="GUID-200AFAD0-FE35-5213-9B26-CA4714F2FECC"><cmd/>
+<info>To start the application acting as a client, use the CSecureSocket::StartClientHandshake()
+function to initiate a handshake with the remote server. To start the application
+acting as a server, use the CSecureSocket::StartServerHandshake() function. </info>
+<info>The call completes with an error code, if the handshake fails. </info>
+</step>
+</steps>
+<example><title>Secure Sockets example</title> <p>In the following example
+iSocket is a reference to the already opened and connected socket and KSSLProtocol
+is the descriptor containing the name of a protocol, in this case TLS1.0.
+The function should return a pointer to the CSecureSocket. </p> <codeblock id="GUID-ADF8A6E8-87EB-5EB5-A224-0DAFC61FBD44" xml:space="preserve">
+// Connect the socket server
+   User::LeaveIfError(iSocketServ.Connect());
+// Open the socket
+   User::LeaveIfError(iSocket.Open(iSocketServ, KAfInet, KSockStream, KProtocolInetTcp)); 
+//Connect the socket
+   connectInetAddr.SetAddress(KTestAddress);
+   connectInetAddr.SetPort(KSSLPort);  //TLS port
+
+   iSocket.Connect(connectInetAddr, iStatus); 
+
+   ...
+
+    
+// Construct the Tls socket
+   iTlsSocket = CSecureSocket::NewL(iSocket, KSSLProtocol());
+
+// start the handshake 
+   iTlsSocket-&gt;StartClientHandshake(iStatus);
+
+</codeblock> </example>
+<postreq><p>Use CSecureSocket::Send() to send data over the socket. Use CSecureSocket::Recv()
+and CSecureSocket::RecvOneOrMore() to receive data from the socket. </p> </postreq>
+</taskbody></task>
