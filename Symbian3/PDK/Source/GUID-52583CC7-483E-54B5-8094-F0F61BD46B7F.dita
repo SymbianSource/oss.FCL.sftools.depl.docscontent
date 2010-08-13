@@ -9,114 +9,97 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F" xml:lang="en"><title>Configuration:
-Attribute Definition Files</title><shortdesc>Describes the format of configuration files</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
-<p>The attributes that can be used on a device are defined in two configuration
-files. . </p>
+<concept id="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F" xml:lang="en"><title>Configuration: Attribute Definition Files</title><shortdesc>Describes the format of configuration files.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The attributes that can be used on a device are defined in two
+configuration files. . </p>
 <section id="GUID-8648B87A-B712-5458-850A-FDF318669FE3"><title>Config.hcf
-file</title> <p>The purpose of this file, <filepath>config.hcf</filepath>,
-is to define the <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attributes</xref> that
-have meaning on this hardware. It specifies whether attributes: </p> <ul>
+file</title> <p>The purpose of this file, <filepath>config.hcf</filepath>, is to define the <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attributes</xref> that have meaning on this hardware. It specifies
+whether attributes: </p> <ul>
 <li id="GUID-F47EC58A-2E93-5D57-ADD8-F2D7B440F555"><p>are read-only </p> </li>
-<li id="GUID-F8BEB68C-3D90-5517-80D5-AC7B2EA6FDEC"><p>can be read and written </p> </li>
-<li id="GUID-9FFE7AE2-32FF-5B30-8458-728A08F5EBC7"><p>are simply stored by
-the HAL - the non-derived attributes </p> </li>
-<li id="GUID-BE8EB94D-ED03-5066-A8AE-DC0294A828D9"><p>require calls to other
-components to obtain or set their values - the derived attributes. </p> </li>
-</ul> <p>The file must be created in the <filepath>...\Variant\hal\...</filepath> directory. </p> <p>Note
-that: </p> <ul>
+<li id="GUID-F8BEB68C-3D90-5517-80D5-AC7B2EA6FDEC"><p>can be read
+and written </p> </li>
+<li id="GUID-9FFE7AE2-32FF-5B30-8458-728A08F5EBC7"><p>are simply stored
+by the HAL - the non-derived attributes </p> </li>
+<li id="GUID-BE8EB94D-ED03-5066-A8AE-DC0294A828D9"><p>require calls
+to other components to obtain or set their values - the derived attributes. </p> </li>
+</ul> <p>The file must be created in the <filepath>...\Variant\hal\...</filepath> directory. </p> <p>Note that: </p> <ul>
 <li id="GUID-46D60900-655F-5DEC-AED2-5AC7F3D5C32A"><p> <i>all</i> supported
 attributes must have an entry in the Config file <filepath>config.hcf</filepath>  </p> </li>
 <li id="GUID-0A474EFD-E146-5D65-AD22-54FE50FA7E68"><p> <i>all</i> non-derived
-attributes also need an entry in <xref href="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F.dita#GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F/GUID-3514023A-9CB6-578F-9928-FD0971B81BEF">the
-Values file</xref> <filepath>values.hda</filepath>. </p> </li>
-</ul> <p>The build system uses the Perl script <filepath>halcfg.pl</filepath> to
-convert text information in the Config file into a C++ source file before
-the C++ compiler is invoked. The generated binary maps to the data members
-defined in the <codeph>HalInternal</codeph> class. <i>Note that this class
-is internal to Symbian</i>. </p> <p>After initial implementation, any changes
-to the files will be picked up by the supplied makefile, <filepath>...\hal\config.mke</filepath>.
-The necessary changes are made to the generated <filepath>config.cpp</filepath> file
-when the HAL is built. </p> <p>Any additional functions must be added to the
-implementation file by hand, e.g. in a file called <filepath>imp.cpp</filepath>.
-However, this would be unusual because all likely functions are already implemented
-in <filepath>...\hal\src\userhal.cpp</filepath>. </p> <p>The config file consists
-of a number of lines of text in the form: </p> <codeblock id="GUID-837B7F2C-E2CB-5DB6-97D5-AA009C335DA7" xml:space="preserve">&lt;attrib&gt; [:&lt;prop1&gt;, &lt;prop2&gt;, ...] = &lt;implementation&gt;</codeblock> <p>where the pair of square brackets indicates optional items. </p> <p><b>&lt;attrib&gt;</b> </p> <p>This is one of the values of the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> in
-the source file <filepath>...\hal\inc\hal_data.h</filepath>  </p> <p><b>&lt;prop1&gt;, &lt;prop2&gt;,...</b> </p> <p>These are optional property specifications
-defined by the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-F1E5A60F-FB3C-387A-9055-BC5478ADB815"><apiname>HALData::TAttributeProperty</apiname></xref> in
-the source file <filepath>...\hal\inc\hal_data.h</filepath>. Where more than
-one property is specified, they are separated by commas. If specified, the
-initial colon is required. Currently, only the two properties <xref href="GUID-59379CFA-F4FD-36B0-855F-A9528B3458B4.dita"><apiname>EValid</apiname></xref> and <xref href="GUID-490A3E37-17DB-3702-9E8C-FD3F555A3080.dita"><apiname>ESettable</apiname></xref> are
-defined. Note that any substring which is not ambiguous within the enumerated
-type is acceptable; matching is not case sensitive. </p> <p>The property <xref href="GUID-59379CFA-F4FD-36B0-855F-A9528B3458B4.dita"><apiname>EValid</apiname></xref> is
-defined implicitly for all attributes that appear in the Config file. It indicates
-that the attribute is meaningful on this platform. Attributes that do not
-appear in the Config file do not have this property, and calls to <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> or <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> which
-refer to those attributes return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p> <p>The
-property <xref href="GUID-490A3E37-17DB-3702-9E8C-FD3F555A3080.dita"><apiname>ESettable</apiname></xref>, means that an attribute is modifiable.
-Calls to <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> for attributes without this property
-return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p> <p><b>&lt;implementation&gt;</b> </p> <p>Defines whether an <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attribute</xref> is derived. It can be: </p> <ul>
-<li id="GUID-F9FE0364-512E-5348-B50D-041DD54DD5F3"><p>0, which means that
-the specified attribute is not derived, but is just a constant stored by the
-HAL. </p> </li>
-<li id="GUID-C078572B-3E53-571E-8B2F-04516D3D7C9D"><p>the name of a function
-used to implement <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> and <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> for
-that specified attribute. </p> </li>
-</ul> <p><b>Comments</b> </p> <p>The
-order in which attributes are defined is not important. Comments may be included
-by starting a line with //. A comment <i>must</i> be on its own line and cannot
-be appended to an attribute specification. </p> </section>
+attributes also need an entry in the<xref href="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F.dita#GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F/GUID-3514023A-9CB6-578F-9928-FD0971B81BEF">Values file</xref> <filepath>values.hda</filepath>. </p> </li>
+</ul> <p>The build system uses the Perl script <filepath>halcfg.pl</filepath> to convert text information in the Config file into a C++ source
+file before the C++ compiler is invoked. The generated binary maps
+to the data members defined in the <codeph>HalInternal</codeph> class. <i>Note that this class is internal to Symbian</i>. </p> <p>After initial
+implementation, any changes to the files will be picked up by the
+supplied makefile, <filepath>...\hal\config.mke</filepath>. The necessary
+changes are made to the generated <filepath>config.cpp</filepath> file
+when the HAL is built. </p> <p>Any additional functions must be added
+to the implementation file by hand, e.g. in a file called <filepath>imp.cpp</filepath>. However, this would be unusual because all likely
+functions are already implemented in <filepath>...\hal\src\userhal.cpp</filepath>. </p> <p>The config file consists of a number of lines of text in
+the form: </p> <codeblock id="GUID-837B7F2C-E2CB-5DB6-97D5-AA009C335DA7" xml:space="preserve">&lt;attrib&gt; [:&lt;prop1&gt;, &lt;prop2&gt;, ...] = &lt;implementation&gt;</codeblock> <p>where the pair of square brackets indicates optional items. </p> <p><b>&lt;attrib&gt;</b> </p> <p>This is one of the values of the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> in the source file <filepath>...\hal\inc\hal_data.h</filepath>  </p> <p><b>&lt;prop1&gt;, &lt;prop2&gt;,...</b> </p> <p>These are optional property
+specifications defined by the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-F1E5A60F-FB3C-387A-9055-BC5478ADB815"><apiname>HALData::TAttributeProperty</apiname></xref> in the source file <filepath>...\hal\inc\hal_data.h</filepath>.
+Where more than one property is specified, they are separated by commas.
+If specified, the initial colon is required. Currently, only the two
+properties <xref href="GUID-59379CFA-F4FD-36B0-855F-A9528B3458B4.dita"><apiname>EValid</apiname></xref> and <xref href="GUID-490A3E37-17DB-3702-9E8C-FD3F555A3080.dita"><apiname>ESettable</apiname></xref> are defined. Note that any substring which is not ambiguous within
+the enumerated type is acceptable; matching is not case sensitive. </p> <p>The property <xref href="GUID-59379CFA-F4FD-36B0-855F-A9528B3458B4.dita"><apiname>EValid</apiname></xref> is defined implicitly
+for all attributes that appear in the Config file. It indicates that
+the attribute is meaningful on this platform. Attributes that do not
+appear in the Config file do not have this property, and calls to <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> or <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> which refer
+to those attributes return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p> <p>The property <xref href="GUID-490A3E37-17DB-3702-9E8C-FD3F555A3080.dita"><apiname>ESettable</apiname></xref>, means that an attribute
+is modifiable. Calls to <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> for attributes
+without this property return <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p> <p><b>&lt;implementation&gt;</b> </p> <p>Defines whether an <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attribute</xref> is derived. It can be: </p> <ul>
+<li id="GUID-F9FE0364-512E-5348-B50D-041DD54DD5F3"><p>0, which means
+that the specified attribute is not derived, but is just a constant
+stored by the HAL. </p> </li>
+<li id="GUID-C078572B-3E53-571E-8B2F-04516D3D7C9D"><p>the name of
+a function used to implement <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-573C49D6-7763-37AE-B2B2-4C8FB1327E21"><apiname>HAL::Get()</apiname></xref> and <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita#GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8/GUID-9454F1B2-D525-3D6D-A872-C6457CACD4FC"><apiname>HAL::Set()</apiname></xref> for that specified attribute. </p> </li>
+</ul> <p><b>Comments</b> </p> <p>The order in which attributes are defined
+is not important. Comments may be included by starting a line with
+//. A comment <i>must</i> be on its own line and cannot be appended
+to an attribute specification. </p> </section>
 <section id="GUID-3514023A-9CB6-578F-9928-FD0971B81BEF"><title>Values.hda
-file</title> <p>The purpose of this file, <filepath>values.hda</filepath>,
-is to specify the initial values of the non-derived <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attributes</xref>, i.e. those attributes which are simply stored in, and
-retrieved from, the HAL. It must be created in the <filepath>...\variant\hal\...</filepath> directory. </p> <p>The
-build system uses the Perl script <filepath>halcfg.pl</filepath> to convert
-text information in the Values file into a C++ source file before the C++
-compiler is invoked. </p> <p>After initial implementation, any changes to
-the file will be picked up by the supplied makefile, <filepath>...\hal\config.mke</filepath>.
-The necessary changes are made to the generated <filepath>values.cpp</filepath> file
-when the HAL is built. </p> <p>Any additional functions must be added to the
-implementation file by hand, e.g. in a file called <filepath>imp.cpp</filepath>.
-However, this would be unusual because all likely functions are already implemented
-in <filepath>...\hal\src\userhal.cpp</filepath>. </p> <p>The values file consists
-of a number of lines of text in the form: </p> <codeblock id="GUID-2BD2A5EA-376A-5B7A-BF2F-7DDFEC9F39EC" xml:space="preserve">&lt;attrib&gt; = &lt;value&gt;</codeblock> <p><b>&lt;attrib&gt;</b> </p> <p>This is one of the values of the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> defined
-in the header file <filepath>...\hal\inc\hal_data.h</filepath>. </p> <p><b>&lt;value&gt;</b> </p> <p>This is the initial value of the attribute. It
-may be specified in various ways, but depends on the attribute, and may be
-one of the following: </p> <ul>
-<li id="GUID-5C0A1713-DC06-58F1-988C-CD8EB4F774A2"><p>a decimal integer constant </p> </li>
-<li id="GUID-1D5479D3-AA7D-587E-89CF-F2ACF4E222AE"><p>a hexadecimal integer
-constant, by prepending <codeph>0x</codeph>  </p> </li>
-<li id="GUID-FD6C4845-8D85-54F3-AB82-D4A92D09CB8D"><p>an enumerated value
-for those attributes that have a corresponding enumeration in <filepath>...\hal\inc\hal_data.h</filepath>.
-Note that any substring which is not ambiguous within the enumerated type
-is acceptable; matching is not case sensitive. For example, <codeph>intel</codeph> would
-be an acceptable abbreviation for <codeph>EManufacturer_Intel</codeph> in
-the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-FF91E5FE-CD00-3D2F-AE88-F601611F9A55"><apiname>HALData::TManufacturer</apiname></xref>. </p> </li>
-<li id="GUID-912B02EB-A3A7-5EA0-B350-1637D5D62EFD"><p> <codeph>bit1 + bit2
-+ ... + bitn</codeph>, for those attributes with corresponding bitmask enumerations
-in <filepath>...\hal\inc\hal_data.h</filepath>, and declared with the <codeph>bitmask</codeph> pseudo-keyword. <codeph>bit1</codeph>, <codeph>bit2</codeph> etc. are values of the enumeration. Any substring which is not ambiguous
-within the bitmask type is acceptable and matching is not case sensitive. </p> </li>
-</ul> <p><b>Comments</b> </p> <p>The
-order in which attributes are defined is not important. Comments may be included
-by starting a line with //. A comment <i>must</i> be on its own line and cannot
-be appended to an attribute specification. </p><p><note> Attributes <xref href="GUID-81DC05E0-DEF1-3A67-B0D5-C5B65FC42E9C.dita"><apiname>EMachineUid</apiname></xref> and <xref href="GUID-641E454C-59AD-39C4-8BC6-A9A86042A77B.dita"><apiname>EManufacturer</apiname></xref> should
-be allocated UID values in the normal
-way. These values should be placed in the values file and in product specific
-header files, not in <filepath>...\hal\inc\hal_data.h</filepath></note>.</p> <codeblock xml:space="preserve"> </codeblock> </section>
-<section id="GUID-A939F6FD-F3AD-4445-BF25-B2DC26369F91"><title>Example of a non-derived attribute</title> <p>A line similar
-to the following in the <filepath>values.hda</filepath> file defines the machine
-Uid to the HAL, and shows how a value is paired to an attribute. </p> <codeblock id="GUID-15C4C6A7-10F2-5782-96CE-3A66C074683E" xml:space="preserve">EMachineUid= 0x1000a682</codeblock> <p>A
-line similar to the following in the <filepath>config.hcf</filepath> file
-indicates that the value is not derived but is simply stored by the HAL. </p> <codeblock id="GUID-2E744820-D5A6-50E1-8449-F8FE69F92796" xml:space="preserve">EMachineUid= 0</codeblock> </section>
-<section id="GUID-B8778DDA-DDC5-46D5-B668-D8B788AE23C9"><title>Example (1) of a derived attribute</title> <p>The following
-line in the <filepath>config.hcf</filepath> file shows how to configure the
-API for the display contrast. This states that the display contrast is settable,
+file</title> <p>The purpose of this file, <filepath>values.hda</filepath>, is to specify the initial values of the non-derived <xref href="GUID-9AE254D4-AA60-579E-8D9D-F2797106A413.dita#GUID-9AE254D4-AA60-579E-8D9D-F2797106A413/GUID-174A663C-3943-5D36-B507-D97A687C168C">attributes</xref>, those attributes which are simply stored in, and
+retrieved from, the HAL. It must be created in the <filepath>...\variant\hal\...</filepath> directory. </p> <p>The build system uses the Perl script <filepath>halcfg.pl</filepath> to convert text information in the Values file
+into a C++ source file before the C++ compiler is invoked. </p> <p>After initial implementation, any changes to the file will be picked
+up by the supplied makefile, <filepath>...\hal\config.mke</filepath>. The necessary changes are made to the generated <filepath>values.cpp</filepath> file when the HAL is built. </p> <p>Any additional functions must
+be added to the implementation file by hand, e.g. in a file called <filepath>imp.cpp</filepath>. However, this would be unusual because all likely
+functions are already implemented in <filepath>...\hal\src\userhal.cpp</filepath>. </p> <p>The values file consists of a number of lines of text in
+the form: </p> <codeblock id="GUID-2BD2A5EA-376A-5B7A-BF2F-7DDFEC9F39EC" xml:space="preserve">&lt;attrib&gt; = &lt;value&gt;</codeblock> <p><b>&lt;attrib&gt;</b> </p> <p>This is one of the values of the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-1959915A-BA99-3F94-AFD4-FD1AA540BFBF"><apiname>HALData::TAttribute</apiname></xref> defined in the header file <filepath>...\hal\inc\hal_data.h</filepath>. </p> <p><b>&lt;value&gt;</b> </p> <p>This is the initial value of the attribute.
+It may be specified in various ways, but depends on the attribute,
+and may be one of the following: </p> <ul>
+<li id="GUID-5C0A1713-DC06-58F1-988C-CD8EB4F774A2"><p>a decimal integer
+constant </p> </li>
+<li id="GUID-1D5479D3-AA7D-587E-89CF-F2ACF4E222AE"><p>a hexadecimal
+integer constant, by prepending <codeph>0x</codeph>  </p> </li>
+<li id="GUID-FD6C4845-8D85-54F3-AB82-D4A92D09CB8D"><p>an enumerated
+value for those attributes that have a corresponding enumeration in <filepath>...\hal\inc\hal_data.h</filepath>. Note that any substring which
+is not ambiguous within the enumerated type is acceptable; matching
+is not case sensitive. For example, <codeph>intel</codeph> would be
+an acceptable abbreviation for <codeph>EManufacturer_Intel</codeph> in the enumeration <xref href="GUID-8BE90160-2C60-3582-82C8-4A108C7C0317.dita#GUID-8BE90160-2C60-3582-82C8-4A108C7C0317/GUID-FF91E5FE-CD00-3D2F-AE88-F601611F9A55"><apiname>HALData::TManufacturer</apiname></xref>. </p> </li>
+<li id="GUID-912B02EB-A3A7-5EA0-B350-1637D5D62EFD"><p> <codeph>bit1
++ bit2 + ... + bitn</codeph>, for those attributes with corresponding
+bitmask enumerations in <filepath>...\hal\inc\hal_data.h</filepath>, and declared with the <codeph>bitmask</codeph> pseudo-keyword. <codeph>bit1</codeph>, <codeph>bit2</codeph> etc. are values of the enumeration.
+Any substring which is not ambiguous within the bitmask type is acceptable
+and matching is not case sensitive. </p> </li>
+</ul> <p><b>Comments</b> </p> <p>The order in which attributes are defined
+is not important. Comments may be included by starting a line with
+//. A comment <i>must</i> be on its own line and cannot be appended
+to an attribute specification. </p><p><note> Attributes <xref href="GUID-81DC05E0-DEF1-3A67-B0D5-C5B65FC42E9C.dita"><apiname>EMachineUid</apiname></xref> and <xref href="GUID-641E454C-59AD-39C4-8BC6-A9A86042A77B.dita"><apiname>EManufacturer</apiname></xref> should be allocated UID values
+in the normal way. These values should be placed in the values file
+and in product specific header files, not in <filepath>...\hal\inc\hal_data.h</filepath></note>.</p> <codeblock xml:space="preserve"> </codeblock> </section>
+<section id="GUID-A939F6FD-F3AD-4445-BF25-B2DC26369F91"><title>Example
+of a non-derived attribute</title> <p>A line similar to the following
+in the <filepath>values.hda</filepath> file defines the machine Uid
+to the HAL, and shows how a value is paired to an attribute. </p> <codeblock id="GUID-15C4C6A7-10F2-5782-96CE-3A66C074683E" xml:space="preserve">EMachineUid= 0x1000a682</codeblock> <p>A line similar to the following in the <filepath>config.hcf</filepath> file indicates that the value is not derived but is simply stored
+by the HAL. </p> <codeblock id="GUID-2E744820-D5A6-50E1-8449-F8FE69F92796" xml:space="preserve">EMachineUid= 0</codeblock> </section>
+<section id="GUID-B8778DDA-DDC5-46D5-B668-D8B788AE23C9"><title>Example
+(1) of a derived attribute</title> <p>The following line in the <filepath>config.hcf</filepath> file shows how to configure the API for the
+display contrast. This states that the display contrast is settable,
 and that the function to do this is called <codeph>ProcessDisplayContrast</codeph>. </p> <codeblock id="GUID-BC43C02A-4436-5BFF-AA35-BF3D2F33AE3C" xml:space="preserve">EDisplayContrast : set = ProcessDisplayContrast</codeblock> </section>
-<section id="GUID-83AF21A8-517D-442F-B621-1921A2A8C40E"><title>Example (2) of a derived attribute</title> <p>The following
-lines in the <filepath>config.hcf</filepath> file shows how to configure the
-API for the display size. </p> <codeblock id="GUID-ACD86D8C-887C-5B32-813A-6E468DE46E74" xml:space="preserve">EDisplayXPixels=ProcessDisplayCurrentModeInfo
-EDisplayYPixels=ProcessDisplayCurrentModeInfo</codeblock> <p>This is read
-only information, so the entries do not contain the "set" keyword. The values
-are derived via the API function <codeph>ProcessDisplayCurrentModeInfo</codeph>,
-and there is no corresponding entry in <filepath>values.hda</filepath>. </p> </section>
+<section id="GUID-83AF21A8-517D-442F-B621-1921A2A8C40E"><title>Example
+(2) of a derived attribute</title> <p>The following lines in the <filepath>config.hcf</filepath> file shows how to configure the API for the
+display size. </p> <codeblock id="GUID-ACD86D8C-887C-5B32-813A-6E468DE46E74" xml:space="preserve">EDisplayXPixels=ProcessDisplayCurrentModeInfo
+EDisplayYPixels=ProcessDisplayCurrentModeInfo</codeblock> <p>This
+is read only information, so the entries do not contain the "set"
+keyword. The values are derived via the API function <codeph>ProcessDisplayCurrentModeInfo</codeph>, and there is no corresponding entry in <filepath>values.hda</filepath>. </p> </section>
 </conbody></concept>

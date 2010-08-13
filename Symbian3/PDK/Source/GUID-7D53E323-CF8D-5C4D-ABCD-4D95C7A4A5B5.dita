@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-7D53E323-CF8D-5C4D-ABCD-4D95C7A4A5B5"><title>Secure store encryption example support code</title><prolog><metadata><keywords/></metadata></prolog><conbody><p>Below is the supporting code for the <xref href="GUID-36BCDD1F-3713-5DF0-8D8A-CF093694B636.dita">secure store example code</xref>. </p> <section id="GUID-5DE9A95D-C755-429A-A3E3-7A8FF06008B9"><title/><codeblock id="GUID-36F57493-4F6E-559A-B51B-7261F57AF1B1" xml:space="preserve">
+#include "e32std.h"
+#include "f32file.h"
+#include "s32file.h"
+#include "pbe.h"
+#include "pbedata.h"
+#include "s32crypt.h"
+            </codeblock> <codeblock id="GUID-EE52D935-4E72-5D4A-809C-BA0FEE19C90F" xml:space="preserve">
+/*
+ * Class to demonstrate the use of secure store APIs.
+ */
+class CSecureStoreExample : public CBase
+         {
+public:
+         static CSecureStoreExample* NewLC(const TDesC&amp; aFilename);
+         virtual ~CSecureStoreExample();
+
+         void CreateNewStoreL(const TDesC&amp; aPassword);
+         TStreamId WriteEncryptedDataL(const TDesC8&amp; aInput);
+         void OpenExistingStoreL(const TDesC&amp; aPassword);
+         HBufC8* ReadEncryptedDataLC(TStreamId aStreamId);
+         void CloseStore();
+         void ChangePasswordL(const TDesC&amp; aNewPassword);
+private:
+         CSecureStoreExample(const TDesC&amp; aFilename);
+         void ConstructL();
+private:
+         RFs iFs;
+         const TDesC&amp; iFilename;
+         CPermanentFileStore* iFileStore;
+         CPBEncryptSet* iEncryptSet;
+         CSecureStore* iSecureStore;
+         };
+            </codeblock> <codeblock id="GUID-DB3DBE48-DCEC-5CDD-9066-246AD37A5C12" xml:space="preserve">
+CSecureStoreExample* CSecureStoreExample::NewLC(const TDesC&amp; aFilename)
+         {
+         CSecureStoreExample* self = new (ELeave) CSecureStoreExample(aFilename);
+         CleanupStack::PushL(self);
+         self-&gt;ConstructL();
+         return self;
+         }
+
+CSecureStoreExample::CSecureStoreExample(const TDesC&amp; aFilename)
+         : iFilename(aFilename)
+         {
+         }
+
+void CSecureStoreExample::ConstructL()
+         {
+         User::LeaveIfError(iFs.Connect());
+         }
+
+CSecureStoreExample::~CSecureStoreExample()
+         {
+         CloseStore();
+         iFs.Close();
+         }
+            </codeblock> <codeblock id="GUID-4485993E-0561-5688-85FA-3914AECDF12B" xml:space="preserve">
+LOCAL_D void RunPBEExampleL()
+         {
+         _LIT(KFilename, "c:\\pbe_example_data.dat");
+         _LIT8(KInputData, "This is the data to be encrypted.");
+         _LIT(KPassword, "pa55w0rd");
+         _LIT(KNewPassword, "chang3m3");
+
+         CSecureStoreExample* main = CSecureStoreExample::NewLC(KFilename);
+
+         // Create a secure store and write some data to it
+         main-&gt;CreateNewStoreL(KPassword);
+         TStreamId streamId = main-&gt;WriteEncryptedDataL(KInputData);
+         main-&gt;CloseStore();
+
+         // Open it again, and read the data back out
+         main-&gt;OpenExistingStoreL(KPassword);
+         HBufC8* outputData = main-&gt;ReadEncryptedDataLC(streamId);
+         ASSERT(*outputData == KInputData);
+         CleanupStack::PopAndDestroy(outputData);
+
+         // Change the password
+         main-&gt;ChangePasswordL(KNewPassword);
+
+         // Check we can still read the data
+         outputData = main-&gt;ReadEncryptedDataLC(streamId);
+         ASSERT(*outputData == KInputData);         
+         main-&gt;CloseStore();
+
+         CleanupStack::PopAndDestroy(2, main);
+         }
+            </codeblock> <codeblock id="GUID-7FF91AD3-106A-56EA-9199-0E261B8D044C" xml:space="preserve">
+GLDEF_C TInt E32Main() // main function called by E32
+    {
+         __UHEAP_MARK;
+         CTrapCleanup* cleanup = CTrapCleanup::New(); // get clean-up stack
+         TRAPD(error, RunPBEExampleL());
+         __ASSERT_ALWAYS(!error,User::Panic(_L("pbe_example_code"),error));
+         delete cleanup; // destroy clean-up stack
+         __UHEAP_MARKEND;
+         return 0;
+    }
+            </codeblock> </section> </conbody></concept>

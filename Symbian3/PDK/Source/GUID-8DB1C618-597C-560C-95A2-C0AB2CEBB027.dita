@@ -24,7 +24,7 @@ diagram). When this is performed as redraw drawing, the application
 calculates the bounding rectangles of the "Hello!" text and the red
 line (B). For each one, the application passes the rectangle to <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-F5E85A7B-0DAE-32C1-AF71-8FC2F5F01509"><apiname>RWindow::BeginRedraw(const TRect &amp;)</apiname></xref>, then calls the
 draw commands and afterwards calls <xref href="GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79.dita#GUID-683603DD-F3D3-3193-BEB3-8236C7DE7F79/GUID-3DE16607-AD3B-3946-BEB3-88512EAAB9CE"><apiname>RWindow::EndRedraw()</apiname></xref>. </p> <fig id="GUID-53B962F7-D425-5D72-8148-F822A3462243">
-<image href="GUID-1DDFFB60-BBA8-500E-A9B1-F048EE5BFBD0_d0e242754_href.png" placement="inline"/>
+<image href="GUID-1DDFFB60-BBA8-500E-A9B1-F048EE5BFBD0_d0e240588_href.png" placement="inline"/>
 </fig> <p>This has the advantage that the Window Server knows that
 the area of the window that has the "Hello!" text is not affected
 by the drawing of the red line. There are also advantages when some
@@ -41,7 +41,7 @@ Server to invalidate the entire window. This means that the client
 application must then perform a full window redraw, as shown in the
 next diagram. </p> <fig id="GUID-A36DF80C-6B53-5D9D-878B-0854BB36E44A">
 <title>              Non-redraw drawing sequence            </title>
-<image href="GUID-7C51BC7A-CB97-5A7E-A5EF-BB3623DFFFED_d0e242777_href.png" placement="inline"/>
+<image href="GUID-7C51BC7A-CB97-5A7E-A5EF-BB3623DFFFED_d0e240611_href.png" placement="inline"/>
 </fig> <p>This is less efficient than the Window Server replaying
 the draw operations for the affected area. </p> <p>Symbian recommends
 that all drawing is now performed as redraw drawing. Typically this
@@ -49,7 +49,7 @@ involves dividing the window up into rectangular areas that represent
 different aspects of the user interface—for example, as shown in the
 following diagram. If anything spoils the screen, the Window Server
 then only needs to redraw the corresponding portions of the user interface. </p> <fig id="GUID-BAD0C762-0EBD-51E2-BC64-DF38749CA7D8">
-<image href="GUID-F2E8CB4B-C1BB-577D-B018-7FF231B70D8C_d0e242788_href.png" placement="inline"/>
+<image href="GUID-F2E8CB4B-C1BB-577D-B018-7FF231B70D8C_d0e240622_href.png" placement="inline"/>
 </fig> <p>In earlier versions of Symbian, before the introduction
 of the <xref href="GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160.dita#GUID-B06F99BD-F032-3B87-AB26-5DD6EBE8C160/GUID-250ED45A-76F3-3623-BA4B-22D31613A2EF"><apiname>CCoeControl::DrawNow(const TRect &amp;)const</apiname></xref> overload, developers sometimes used non-redraw drawing to update
 a small part of a control. This technique has often been used for
@@ -83,22 +83,22 @@ results in poor performance, because, for example, there is a large
 amount of incremental screen updating, the recommended solution in
 ScreenPlay is to render to a surface. </p><p><b>High frequency rendering</b> </p><p>It is possible for a client to provide batches of redraw
 drawing (that is, drawing bracketed in <codeph>BeginRedraw()</codeph> and <codeph>EndRedraw()</codeph> calls) for the same region of a
-window faster than they can be displayed on the screen.
-When this happens, the Window Server may discard the drawing commands
-in one or more of the earlier batches of redraw drawing and simply
-draw the pixels defined in a later redraw batch to the screen. This
-can result in missing frames, but is only likely to be noticeable
-in an application like a game that performs high-frequency rendering.</p><p>The solution is to call <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-B431DC60-D11F-3239-8F52-4257B9B0E0C9"><apiname>RWsSession::Finish()</apiname></xref> after each <codeph>EndRedraw()</codeph> call. This slows the client
-so that it does not generate pixel content faster than the Window
-Server can display it on the screen. </p><p>To summarize: When you
-want to ensure that every single frame is shown on the screen, call <codeph>Finish()</codeph> after each <codeph>EndRedraw()</codeph> call.</p> <p><b>Delay of execution </b> </p> <p>After you migrate non-redraw
-drawing to redraw drawing, the execution of the drawing operations
-is deferred compared to previously. This means that if the arguments
-of the drawing operations result in a panic, the panic also appears
-later than before. </p> <p><b>CRemoteGc usage </b> </p> <p>Device
-creators can use <xref href="GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE.dita"><apiname>CRemoteGc</apiname></xref> to create a data buffer
-containing a series of drawing operations. These can then be executed
-to display the drawing on the screen by using <xref href="GUID-B25363C2-8757-36D4-93D2-769CDA1BDF86.dita#GUID-B25363C2-8757-36D4-93D2-769CDA1BDF86/GUID-35C68602-7684-3A1C-ADA2-9C8822E18DE0"><apiname>CCommandBuffer::Play()</apiname></xref>. </p> <p>For example, consider a weather program that has one sub-system
+window faster than they can be displayed on the screen. When this
+happens, the Window Server may discard the drawing commands in one
+or more of the earlier batches of redraw drawing and simply draw the
+pixels defined in a later redraw batch to the screen. This can result
+in missing frames, but is only likely to be noticeable in an application
+like a game that performs high-frequency rendering.</p><p>The solution
+is to call <xref href="GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9.dita#GUID-643DDA78-C7A7-386D-AB3F-8710141DDDA9/GUID-B431DC60-D11F-3239-8F52-4257B9B0E0C9"><apiname>RWsSession::Finish()</apiname></xref> after each <codeph>EndRedraw()</codeph> call. This slows the client so that it does
+not generate pixel content faster than the Window Server can display
+it on the screen. </p><p>To summarize: When you want to ensure that
+every single frame is shown on the screen, call <codeph>Finish()</codeph> after each <codeph>EndRedraw()</codeph> call.</p> <p><b>Delay of
+execution </b> </p> <p>After you migrate non-redraw drawing to redraw
+drawing, the execution of the drawing operations is deferred compared
+to previously. This means that if the arguments of the drawing operations
+result in a panic, the panic also appears later than before. </p> <p><b>CRemoteGc usage </b> </p> <p>Device creators can use <xref href="GUID-9965F9F1-ACEE-398C-BDAB-B3D5D61D4EBE.dita"><apiname>CRemoteGc</apiname></xref> to create a data buffer containing a series of
+drawing operations. These can then be executed to display the drawing
+on the screen by using <xref href="GUID-B25363C2-8757-36D4-93D2-769CDA1BDF86.dita#GUID-B25363C2-8757-36D4-93D2-769CDA1BDF86/GUID-35C68602-7684-3A1C-ADA2-9C8822E18DE0"><apiname>CCommandBuffer::Play()</apiname></xref>. </p> <p>For example, consider a weather program that has one sub-system
 responsible for deciding the drawing operations that comprise a weather
 symbol and another sub-system that places weather symbols at different
 locations on the screen. Here we potentially have a Cloud symbol buffer
@@ -135,6 +135,6 @@ on an ad hoc basis in the TechView emulator, press <userinput>Ctrl-Alt-Shift-F</
 </conbody><related-links>
 <link href="GUID-484B51EC-2209-5492-8E9C-9D792AB0DF35.dita"><linktext>Graphics
 and Drawing </linktext></link>
-<link href="GUID-6C16417B-5B37-5310-B59A-750D971AA6D4.dita"><linktext>The
-UI Control Framework (CONE)</linktext></link>
+<link href="GUID-6C16417B-5B37-5310-B59A-750D971AA6D4.dita"><linktext>The UI Control Framework
+(CONE)</linktext></link>
 </related-links></concept>

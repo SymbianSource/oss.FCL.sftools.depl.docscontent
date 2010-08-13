@@ -25,9 +25,6 @@ Symbian. This is the base virtual class for the Power Resource Controller
 Layer - the PSL is developed specifically to interface with the target
 hardware by licensees. This is the class derived from <codeph>DPowerResourceController</codeph>. </p> </li>
 </ul> <p>Other acronyms used in this document set: </p> <ul>
-<li id="GUID-ED8A465C-B8CB-5C7A-8D57-D207AAA41F89"><p>H4 HRP - OMAP2420
-SDP hardware reference platform referred to in these documents as
-examples of the base port, </p> </li>
 <li id="GUID-97B58DBF-51DA-5982-A2D2-BF3453B062F2"><p>LDD - Logical
 Device Driver. The higher layer of abstraction within the Symbian
 platform device driver framework which implements common functionality
@@ -41,15 +38,10 @@ to be used by Symbian platform device creators. </p> <p><b>Required
 background</b> </p> <p>The reader of this document is assumed to have
 knowledge of the Symbian platform device driver model and <keyword>base port</keyword> layering and components. </p> <ul>
 <li id="GUID-611721D2-17C4-56F4-9101-6088B062BB2C"><p> <xref href="GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89.dita">Device Driver Concepts</xref>, </p> </li>
-<li id="GUID-938A492F-B9CB-5DFB-B382-2B7E6C5E3711"><p> <xref href="GUID-A7F6C8D5-B85B-537B-8A19-99149FBE8C01.dita">The core porting
-process</xref>. </p> </li>
-</ul> <p>This document refers to the reference implementation of the
-PRM PSL for the H4 HRP platform wherever possible. The source code
-for the reference implementation can be found in <filepath>\omap_hrp\h4\resman</filepath>. The MMC and Sound_SC (in H4 HRP) device drivers are modified to
-use the new PRM framework. </p> <p><b>Introduction</b> </p> <p>The
-PRM provides a unique place where all the current power states for
-resources can be obtained at any time. The sum of all internal and
-external power states defines the current system-wide power state. </p> <p id="GUID-0F328055-DBCE-5B2B-A1EB-77F73BA1FC82"><b>Setup and configuration
+</ul> <p><b>Introduction</b> </p> <p>The PRM provides a unique place
+where all the current power states for resources can be obtained at
+any time. The sum of all internal and external power states defines
+the current system-wide power state. </p> <p id="GUID-0F328055-DBCE-5B2B-A1EB-77F73BA1FC82"><b>Setup and configuration
 requirements</b> </p> <p>The PRM component is implemented as a kernel
 extension with an exported public interface that is accessible to
 kernel side components through statically linking against its export
@@ -73,10 +65,11 @@ the target platform</b> </p> <p>The PRM is an early extension, so
 the <codeph>targettype</codeph> in the <keyword>mmp</keyword> file
 must be set to <codeph>kext</codeph>. If the PRM is implemented as
 a PDD the <codeph>targettype</codeph> in the mmp file should be should
-be <codeph>pdd</codeph>. </p> <p><b>Boot sequence</b> </p> <p>The PRM cannot be used to operate on power resources until
-later in the boot sequence when the kernel allows the scheduling of
-other threads. During this time it is not possible to read or change
-the state of resources, but <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-9D07A9C1-C0AE-36E9-8438-3BF71D3CBB0C"><apiname>DPowerResourceController::PostBootLevel()</apiname></xref> can be used to specify the state of specific resources and the PRM
+be <codeph>pdd</codeph>. </p> <p><b>Boot sequence</b> </p> <p>The
+PRM cannot be used to operate on power resources until later in the
+boot sequence when the kernel allows the scheduling of other threads.
+During this time it is not possible to read or change the state of
+resources, but <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-9D07A9C1-C0AE-36E9-8438-3BF71D3CBB0C"><apiname>DPowerResourceController::PostBootLevel()</apiname></xref> can be used to specify the state of specific resources and the PRM
 can change the state of resources to appropriate levels before the
 PRM is fully initialised. </p> <p> <codeph>PostBootLevel()</codeph> is used within the extension entry point, during this time PRM is
 not fully initialised. <b>Note</b>: This function can only be used

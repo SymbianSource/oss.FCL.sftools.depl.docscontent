@@ -9,74 +9,77 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-D34DB4A1-1B17-5FAF-A48B-E06D247B0A83" xml:lang="en"><title>Keyboard
-Mapping DLL Tutorial</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
-<p>A keyboard mapping DLL provides a set of lookup tables that the generic <filepath>ektran.dll</filepath> uses
-to convert scancodes to keycodes. A keyboard mapping DLL is implemented in
-a base port. </p>
+<concept id="GUID-D34DB4A1-1B17-5FAF-A48B-E06D247B0A83" xml:lang="en"><title>Keyboard Mapping DLL Tutorial</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A keyboard mapping DLL provides a set of lookup tables that the
+generic <filepath>ektran.dll</filepath> uses to convert scancodes
+to keycodes. A keyboard mapping DLL is implemented in a base port. </p>
 <p>The basic purpose of the tables is to provide a mapping from scancodes
-to keycodes, so that, given a scancode, the corresponding keycode can be found.
-The tables are organised so that there is, in effect, one set of lookup tables
-for each likely combination of modifier key states. <filepath>ektran.dll</filepath> compares
-the modifier keys that have been pressed with the stored modifier key state
-combinations to decide which set of lookup tables to use. </p>
-<p>An outline set of tables is provided in the template port. The ports for
-the H4 reference board provide useful examples of how the tables can be constructed. </p>
+to keycodes, so that, given a scancode, the corresponding keycode
+can be found. The tables are organized so that there is, in effect,
+one set of lookup tables for each likely combination of modifier key
+states. <filepath>ektran.dll</filepath> compares the modifier keys
+that have been pressed with the stored modifier key state combinations
+to decide which set of lookup tables to use. </p>
+<p>An outline set of tables is provided in the template port.</p>
 <p>The following list outlines the structure of the tables. </p>
 <ol id="GUID-54817A2B-F65D-5BDF-BFCF-3E68A582C91A">
-<li id="GUID-0C32BD32-0EFD-5622-9C66-2610A3D7F660"><p>The tables are organised
-in a hierarchical structure. The start of this hierarchy is the root table,
-defined by a <xref href="GUID-F7DFE751-C534-36A8-9B57-9C8417B1BE06.dita"><apiname>SConvTable</apiname></xref> struct. This contains: </p> <ul>
-<li id="GUID-98675F02-D273-5C0D-8AF1-A9F93F8A5AC2"><p>an array of pointers
-to nodes, where each node is defined by the <xref href="GUID-3D2F56DB-DD36-3787-8653-C5AC114D69A1.dita"><apiname>SConvTableNode</apiname></xref> struct.
-Each node corresponds to a specific combination of modifier key states. </p> </li>
-<li id="GUID-8321989A-20FE-58C3-90D0-2D3BE29E11F6"><p>a field containing the
-total number of such nodes. </p> </li>
+<li id="GUID-0C32BD32-0EFD-5622-9C66-2610A3D7F660"><p>The tables are
+organized in a hierarchical structure. The start of this hierarchy
+is the root table, defined by a <xref href="GUID-F7DFE751-C534-36A8-9B57-9C8417B1BE06.dita"><apiname>SConvTable</apiname></xref> struct.
+This contains: </p> <ul>
+<li id="GUID-98675F02-D273-5C0D-8AF1-A9F93F8A5AC2"><p>an array of
+pointers to nodes, where each node is defined by the <xref href="GUID-3D2F56DB-DD36-3787-8653-C5AC114D69A1.dita"><apiname>SConvTableNode</apiname></xref> struct. Each node corresponds to a specific combination of modifier
+key states. </p> </li>
+<li id="GUID-8321989A-20FE-58C3-90D0-2D3BE29E11F6"><p>a field containing
+the total number of such nodes. </p> </li>
 </ul> <fig id="GUID-A8C68654-2D56-501F-8D45-C0F75E63B630">
-<image href="GUID-FB69F45C-2256-5F2D-8D2C-98C93B865962_d0e388142_href.png" placement="inline"/>
+<title>Keyboard Mapping Table</title>
+<image href="GUID-FB69F45C-2256-5F2D-8D2C-98C93B865962_d0e385988_href.png" placement="inline"/>
 </fig> </li>
-<li id="GUID-C232C328-190D-59F1-A1CB-BC9D736367B0"><p>The combination of modifier
-key states that each node represents is encapsulated by a <xref href="GUID-7D0DE872-AC17-3045-9F97-E25A13B5CFB0.dita"><apiname>TMaskedModifiers</apiname></xref> object.
-One of these objects is embedded within each node. </p> <p>A <xref href="GUID-7D0DE872-AC17-3045-9F97-E25A13B5CFB0.dita"><apiname>TMaskedModifiers</apiname></xref> object
-consists of a mask, and a value for comparison. For example, if an instance
-is set to the following: </p> <codeblock id="GUID-E53A8286-C304-50BD-9DB5-81777B48A2E3" xml:space="preserve">iMask = EModifierShift | EModifierCtrl | EModifierFunc
-iValue = EModifierShift | EModifierFunc</codeblock> <p>then a match occurs
-only for the following combination of modifier key states: </p> <p> <codeph>ctrl</codeph> + <codeph>shift</codeph> + <i>not</i> <codeph>Fn</codeph>  </p> <p>i.e. a match occurs only if <codeph>ctrl</codeph>  <i>and</i> <codeph>shift</codeph> are
-pressed, and only if <codeph>Fn</codeph> is <i>not</i> pressed. Other modifier
-keys are ignored, i.e. it does not matter whether or not they are pressed. </p> <p>In
+<li id="GUID-C232C328-190D-59F1-A1CB-BC9D736367B0"><p>The combination
+of modifier key states that each node represents is encapsulated by
+a <xref href="GUID-7D0DE872-AC17-3045-9F97-E25A13B5CFB0.dita"><apiname>TMaskedModifiers</apiname></xref> object. One of these objects
+is embedded within each node. </p> <p>A <xref href="GUID-7D0DE872-AC17-3045-9F97-E25A13B5CFB0.dita"><apiname>TMaskedModifiers</apiname></xref> object consists of a mask, and a value for comparison. For example,
+if an instance is set to the following: </p> <codeblock id="GUID-E53A8286-C304-50BD-9DB5-81777B48A2E3" xml:space="preserve">iMask = EModifierShift | EModifierCtrl | EModifierFunc
+iValue = EModifierShift | EModifierFunc</codeblock> <p>then a match
+occurs only for the following combination of modifier key states: </p> <p> <codeph>ctrl</codeph> + <codeph>shift</codeph> + <i>not</i> <codeph>Fn</codeph>  </p> <p>i.e. a match occurs only if <codeph>ctrl</codeph>  <i>and</i> <codeph>shift</codeph> are pressed, and only if <codeph>Fn</codeph> is <i>not</i> pressed. Other modifier keys are ignored,
+i.e. it does not matter whether or not they are pressed. </p> <p>In
 C++ code, this is expressed as: </p> <codeblock id="GUID-E84542A2-932F-50C6-90B6-2AFC72CBE75F" xml:space="preserve">inline TBool MatchesMaskedValue(TInt aModifiers,const TMaskedModifiers &amp;aMaskedModifiers)
     {
     return (TBool)((aModifiers &amp; aMaskedModifiers.iMask) == aMaskedModifiers.iValue);
-    }</codeblock> <p>where <codeph>aModifiers</codeph> contains the modifier
-key combination to be tested. </p> </li>
-<li id="GUID-C147C929-63EE-593B-8CB7-689E5E6E60C2"><p>In principle, each node
-represents scancode-to-keycode mappings by associating one or more <i>pairs</i> (or
-range) of scancodes with corresponding blocks of keycodes. Each pair represents
-an inclusive and contiguous range of scancodes. </p> <p>Each pair (or range)
-of scancodes may be "discontiguous" from the next. </p> <p>The association
-is made through a table defined by the <xref href="GUID-35A21F70-F080-364D-8655-5E1781B378EB.dita"><apiname>SConvSubTable</apiname></xref> struct.
-This has: </p> <ul>
-<li id="GUID-9A023CDD-FADF-5641-8DD8-30C11F73E8BE"><p>a <xref href="GUID-DB86A3E5-D118-3A1D-8A76-BEC6111993E8.dita"><apiname>SScanCodeBlockList</apiname></xref> object
-that contains pointers to a number of <xref href="GUID-F18D6A71-122E-3202-927B-25DCEF1576A4.dita"><apiname>SScanCodeBlock</apiname></xref> objects,
-each of which contains the start and end values defining a range of scancodes. </p> </li>
-<li id="GUID-AC4820E0-F3D9-547A-9437-964D5A7FE540"><p>a pointer to a table
-containing the target keycodes. The target keycodes are arranged so that successive
-scancode pairs are associated with successive blocks of keycodes as the following
-diagram shows. </p> </li>
+    }</codeblock> <p>where <codeph>aModifiers</codeph> contains the
+modifier key combination to be tested. </p> </li>
+<li id="GUID-C147C929-63EE-593B-8CB7-689E5E6E60C2"><p>In principle,
+each node represents scancode-to-keycode mappings by associating one
+or more <i>pairs</i> (or range) of scancodes with corresponding blocks
+of keycodes. Each pair represents an inclusive and contiguous range
+of scancodes. </p> <p>Each pair (or range) of scancodes may be "discontiguous"
+from the next. </p> <p>The association is made through a table defined
+by the <xref href="GUID-35A21F70-F080-364D-8655-5E1781B378EB.dita"><apiname>SConvSubTable</apiname></xref> struct. This has: </p> <ul>
+<li id="GUID-9A023CDD-FADF-5641-8DD8-30C11F73E8BE"><p>a <xref href="GUID-DB86A3E5-D118-3A1D-8A76-BEC6111993E8.dita"><apiname>SScanCodeBlockList</apiname></xref> object that contains pointers to a number of <xref href="GUID-F18D6A71-122E-3202-927B-25DCEF1576A4.dita"><apiname>SScanCodeBlock</apiname></xref> objects, each of which contains the start and end values defining
+a range of scancodes. </p> </li>
+<li id="GUID-AC4820E0-F3D9-547A-9437-964D5A7FE540"><p>a pointer to
+a table containing the target keycodes. The target keycodes are arranged
+so that successive scancode pairs are associated with successive blocks
+of keycodes as the following diagram shows. </p> </li>
 </ul> <fig id="GUID-4B2FBB49-6CBD-5030-82D0-9B4DDF2D3DBF">
-<image href="GUID-DFADEB44-4D57-564F-ABDF-A3CCD38ACABC_d0e388253_href.png" placement="inline"/>
-</fig> <p>This means that successive scancodes, for example, from "A1" through
-to "B1" are represented by the successive keycodes "keycode for A1" through
-to "keycode for B1"; scancode "A2" is represented by "keycode for A2", which
-follows "keycode for B1" in the keycode table. </p> </li>
-<li id="GUID-68C8A342-A3D2-5975-82F1-F635E366F741"><p>To allow for possible
-reuse of keycode tables, a node can point to more than one <xref href="GUID-35A21F70-F080-364D-8655-5E1781B378EB.dita"><apiname>SConvSubTable</apiname></xref>.
-The following diagram shows an example of this: </p> <fig id="GUID-3F5514B5-86E6-52BE-A4C2-38882A1CEACA">
-<image href="GUID-5FDAF564-6BE1-544A-B5C0-E0D6E25D82E7_d0e388270_href.png" placement="inline"/>
+<title>Target keycodes</title>
+<image href="GUID-DFADEB44-4D57-564F-ABDF-A3CCD38ACABC_d0e386102_href.png" placement="inline"/>
+</fig> <p>This means that successive scancodes, for example, from
+"A1" through to "B1" are represented by the successive keycodes "keycode
+for A1" through to "keycode for B1"; scancode "A2" is represented
+by "keycode for A2", which follows "keycode for B1" in the keycode
+table. </p> </li>
+<li id="GUID-68C8A342-A3D2-5975-82F1-F635E366F741"><p>To allow for
+possible reuse of keycode tables, a node can point to more than one <xref href="GUID-35A21F70-F080-364D-8655-5E1781B378EB.dita"><apiname>SConvSubTable</apiname></xref>. The following diagram shows an example of
+this: </p> <fig id="GUID-3F5514B5-86E6-52BE-A4C2-38882A1CEACA">
+<title>Reusing keycode tables</title>
+<image href="GUID-5FDAF564-6BE1-544A-B5C0-E0D6E25D82E7_d0e386123_href.png" placement="inline"/>
 </fig> </li>
-<li id="GUID-C6001149-460A-57D4-A9FE-BCB050B49791"><p>If no keycode can be
-found that matches the scancode, for a given modifier combination, then the
-algorithm returns the <xref href="GUID-76B2E62E-EC09-3CA9-8B2D-EBAC6BF1FFDB.dita"><apiname>EKeyNull</apiname></xref> keycode. </p> </li>
+<li id="GUID-C6001149-460A-57D4-A9FE-BCB050B49791"><p>If no keycode
+can be found that matches the scancode, for a given modifier combination,
+then the algorithm returns the <xref href="GUID-76B2E62E-EC09-3CA9-8B2D-EBAC6BF1FFDB.dita"><apiname>EKeyNull</apiname></xref> keycode. </p> </li>
 </ol>
-<section id="GUID-A7823728-26DD-4C2F-A97F-91CC4D58B404"><title>See also</title> <p> <xref href="GUID-EB76FAF8-CD4B-5CB6-9F23-C852ED91866F.dita">Concepts</xref>  </p> </section>
+<section id="GUID-A7823728-26DD-4C2F-A97F-91CC4D58B404"><title>See
+also</title> <p> <xref href="GUID-EB76FAF8-CD4B-5CB6-9F23-C852ED91866F.dita">Concepts</xref>  </p> </section>
 </conbody></concept>

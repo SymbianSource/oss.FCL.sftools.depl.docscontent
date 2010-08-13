@@ -9,25 +9,24 @@ Contributors:
 -->
 <!DOCTYPE concept
   PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
-<concept id="GUID-110DB7EF-5E85-5BC4-9BBB-9A37B2D0C3A6" xml:lang="en"><title>Dynamic
-Behaviour</title><shortdesc/><prolog><metadata><keywords/></metadata></prolog><conbody>
-<p>This topic describes in detail the dynamic relationships between a keyboard
-driver, the Window Server, and related components. </p>
-<section id="GUID-DACF5D8F-DCA6-5C84-969D-53346034EF48"><title>What the keyboard
-driver does</title> <p>The keyboard driver's job is to interpret keyboard
-presses and to generate key-up and key-down events. How the keyboard driver
-deals with the hardware depends to a great extent on that hardware, and also
-on whether the hardware generates interrupts as a result of key presses or
-whether the driver needs to poll the hardware at regular intervals. </p> <p>The
-template Base port, which can be found at <filepath>...\cedar\template\...</filepath>,
-gives two skeleton implementations, one for an interrupt driven implementation
-and one for a poll driven implementation. See <xref href="GUID-2E42E7EA-FED8-522C-8A5F-F65D799476C9.dita">Keyboard
-Driver Implementation Tutorial</xref>. </p> <p>Whichever type is used, the
-end result is the addition of a stream of events onto the kernel's event queue.
-Events are represented by <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects, and each one
-represents either a key-up or a key-down event, together with the scancode
-value for that key and the accompanying modifier key values, for example, <userinput>Shift</userinput> and <userinput>Ctrl</userinput>.
-The driver adds these events onto the kernel's event queue using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-81C82FED-0E26-351A-901E-806843C808FE"><apiname>Kern::AddEvent()</apiname></xref>. </p> <p>The
+<concept id="GUID-110DB7EF-5E85-5BC4-9BBB-9A37B2D0C3A6" xml:lang="en"><title>Dynamic Behavior</title><shortdesc>This topic describes in detail the dynamic relationships
+between a keyboard driver, the Window Server, and related components.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-DACF5D8F-DCA6-5C84-969D-53346034EF48"><title>What
+the keyboard driver does</title> <p>The keyboard driver's job is to
+interpret keyboard presses and to generate key-up and key-down events.
+How the keyboard driver deals with the hardware depends to a great
+extent on that hardware, and also on whether the hardware generates
+interrupts as a result of key presses or whether the driver needs
+to poll the hardware at regular intervals. </p> <p>The template Base
+port, which can be found at <filepath>...\cedar\template\...</filepath>, gives two skeleton implementations, one for an interrupt driven
+implementation and one for a poll driven implementation. See <xref href="GUID-2E42E7EA-FED8-522C-8A5F-F65D799476C9.dita">Keyboard Driver Implementation
+Tutorial</xref>. </p> <p>Whichever type is used, the end result is
+the addition of a stream of events onto the kernel's event queue.
+Events are represented by <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects, and
+each one represents either a key-up or a key-down event, together
+with the scancode value for that key and the accompanying modifier
+key values, for example, <userinput>Shift</userinput> and <userinput>Ctrl</userinput>. The driver adds these events onto the kernel's
+event queue using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-81C82FED-0E26-351A-901E-806843C808FE"><apiname>Kern::AddEvent()</apiname></xref>. </p> <p>The
 general pattern, taken from the template keyboard driver, is as follows: </p> <codeblock id="GUID-312BE5FF-7E8B-593F-9569-204B571AEED4" xml:space="preserve">TRawEvent e;
 ...
 e.Set(TRawEvent::EKeyUp,stdKey,0);
@@ -36,74 +35,70 @@ Kern::AddEvent(e);</codeblock> <codeblock id="GUID-3261FF68-D313-5E33-AFC8-10CF1
 ...
 e.Set(TRawEvent::EKeyDown,stdKey,0);
 ...
-Kern::AddEvent(e);</codeblock> <p>More generally, <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects
-represent and encapsulate information about events such as screen pointer
-events, mouse events, etc. as well as keyboard key presses. Such events are
-mostly intended to result in a change to the device display(s) or the finer
-details of the User Interface, and for this reason, such events are captured
-by the Window Server. </p> <p>The kernel event queue is a mechanism that allows
-this to happen. <i>It is internal to Symbian platform</i>, but to help you
-understand what happens, it works like this: </p> <ul>
+Kern::AddEvent(e);</codeblock> <p>More generally, <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects represent and encapsulate information about events such
+as screen pointer events, mouse events, etc. as well as keyboard key
+presses. Such events are mostly intended to result in a change to
+the device display(s) or the finer details of the User Interface,
+and for this reason, such events are captured by the Window Server. </p> <p>The kernel event queue is a mechanism that allows this to happen. <i>It is internal to Symbian platform</i>, but to help you understand
+what happens, it works like this: </p> <ul>
 <li id="GUID-357EC331-CB32-571B-AD17-A772AAED921F"><p>The kernel maintains
-a circular buffer of <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects anchored in <codeph>K::EventBufferStart</codeph>,
-and this buffer is allocated at system initialisation. </p> </li>
-<li id="GUID-91389CBC-11E4-5019-BA89-202E3ABC3225"><p>As part of its initialisation,
-the Window Server calls the <i>internal function</i>  <codeph>UserSvr::CaptureEventHook()</codeph>.
-This registers the Window Server's interest in capturing these events, and
-subsequent to this call, all such events are delivered to the Window Server.
-However, do note that the kernel does not permit any process other than the
-Window Server from registering to receive these events. </p> </li>
-<li id="GUID-5BD630E8-34D5-52F3-BA63-1B337A2E7B26"><p>A call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-81C82FED-0E26-351A-901E-806843C808FE"><apiname>Kern::AddEvent()</apiname></xref> causes
-a <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> object to be added to this queue; the kernel
-subsequently attempts to deliver this to the Window Server. </p> </li>
-<li id="GUID-D6F17A9A-5E13-54EF-8CDC-BCA533A62EC9"><p>The Window Server uses
-an active object to wait for and subsequently dispatch the handling of events
-(and most importantly, key press events). It makes a request for further events
-by a call to the <i>internal function</i>  <codeph>UserSvr::RequestEvent()</codeph>. </p> </li>
+a circular buffer of <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects anchored
+in <codeph>K::EventBufferStart</codeph>, and this buffer is allocated
+at system initialization. </p> </li>
+<li id="GUID-91389CBC-11E4-5019-BA89-202E3ABC3225"><p>As part of its
+initialization, the Window Server calls the <i>internal function</i>  <codeph>UserSvr::CaptureEventHook()</codeph>. This registers the
+Window Server's interest in capturing these events, and subsequent
+to this call, all such events are delivered to the Window Server.
+However, do note that the kernel does not permit any process other
+than the Window Server from registering to receive these events. </p> </li>
+<li id="GUID-5BD630E8-34D5-52F3-BA63-1B337A2E7B26"><p>A call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-81C82FED-0E26-351A-901E-806843C808FE"><apiname>Kern::AddEvent()</apiname></xref> causes a <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> object
+to be added to this queue; the kernel subsequently attempts to deliver
+this to the Window Server. </p> </li>
+<li id="GUID-D6F17A9A-5E13-54EF-8CDC-BCA533A62EC9"><p>The Window Server
+uses an active object to wait for and subsequently dispatch the handling
+of events (and most importantly, key press events). It makes a request
+for further events by a call to the <i>internal function</i>  <codeph>UserSvr::RequestEvent()</codeph>. </p> </li>
 </ul> <fig id="GUID-03C2DFBA-F3C9-5A3F-9DE4-3FE30DECB239">
-<image href="GUID-8A1B6104-4B13-5200-AF3D-64B3929707BB_d0e387702_href.png" placement="inline"/>
+<title>Dynamic Behavior</title>
+<image href="GUID-8A1B6104-4B13-5200-AF3D-64B3929707BB_d0e385547_href.png" placement="inline"/>
 </fig> </section>
-<section id="GUID-98528897-D236-56A8-BBDE-6CF09BFDE499"><title>What the Window
-Server does</title> <p>There are two services that the Window Server needs
-when dealing with key presses: </p> <ul>
+<section id="GUID-98528897-D236-56A8-BBDE-6CF09BFDE499"><title>What
+the Window Server does</title> <p>There are two services that the
+Window Server needs when dealing with key presses: </p> <ul>
 <li id="GUID-FBEA62A9-37E4-58AA-97AF-6D3312D7D35E"><p>it needs a translation
 of a (hardware) scancode to a (Symbian platform or logical) keycode. </p> </li>
-<li id="GUID-8A9BE092-ED85-5E36-9670-24F5BF2E39F2"><p>it needs to know whether
-a key and combination of modifier key states is a "hot-key", i.e. one that
-is intended to be sent to a specific window group, instead of the window group
-that currently has focus. Note that, in this context, a "hot-key" is more
-commonly referred to as a <i>capture key</i>. </p> </li>
-</ul> <p>To perform the translation, it creates an instance of a <codeph>CKeyTranslator</codeph> class. </p> <p>To
-deal with capture keys, it creates an instance of a <codeph>CCaptureKeys</codeph> class. </p> <p>Both
-classes are implemented in <filepath>ektran.dll</filepath>, the key translation
-DLL, which is built and delivered as part of the generic Symbian platform.
-The Window Server statically links to <filepath>ektran.dll</filepath>. </p> <p>[<i>Note
-that CKeyTranslator and CCaptureKeys are internal to Symbian platform and
-are not part of the public interface. This is an attempt to provide an outline
-understanding of the mechanisms involved.</i>] </p> <p>The Window Server also
-decides on the name of the key mapping tables DLL to be loaded. By default,
-the name of this DLL is <filepath>ekdata.dll</filepath>. However, if the Hardware
-Abstraction Layer (HAL) for the device records a language index, then this
-index value is used to form the name of the DLL to be loaded. For example,
-if the keyboard index value returned by a call to: </p> <codeblock id="GUID-150E4C78-6434-57AA-8C4D-819CB2814801" xml:space="preserve">TInt keyboardIndex;
-HAL::Get(HALData::EKeyboardIndex,keyboardIndex);</codeblock> <p>is 99, then
-the DLL loaded is <filepath>ekdata99.dll</filepath>. </p> <p>The loading of
-this DLL is done by a member of <codeph>CKeyTranslator</codeph>, so although
-the Window Server decides which DLL is to be loaded, the actual loading is
-done by <filepath>ektran.dll</filepath>. For ease of explanation, we will
-continue to refer to this DLL as <filepath>ekdata.dll</filepath>. </p> <p>On
-receipt of key-up and key-down events, the Window Server calls <codeph>CKeyTranslator::TranslateKey()</codeph>.
-This function takes the (hardware) scancode and translates it into the (logical)
-keycode. It also reports whether the key and combination of modifier key states
-is a capture key, and if so, returns the handle to the window group that is
-associated with it. </p> <p>Before the Window Server can be told that a capture
-key has been pressed, it must previously have registered a pair of items: </p> <ul>
-<li id="GUID-F379A692-70EC-57A7-B5C0-4EAC13672496"><p>the capture key itself,
-i.e. the (logical) keycode and combination of modifier key states. </p> </li>
-<li id="GUID-099ADF78-448F-58F3-945C-3CF048FF2AAF"><p>a handle to a window
-group. </p> </li>
-</ul> <p>Registration is simply the act of adding this information into the <codeph>CCaptureKey</codeph> object
-by a call to <codeph>CCaptureKeys::AddCaptureKeyL()</codeph>. The Window Server
-does this as a result of a call to <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-433AD95D-5F34-3AB2-A077-E9AED2CF0AED"><apiname>RWindowGroup::CaptureKey()</apiname></xref>,
-either by applications or the UI. </p> </section>
+<li id="GUID-8A9BE092-ED85-5E36-9670-24F5BF2E39F2"><p>it needs to
+know whether a key and combination of modifier key states is a "hot-key",
+i.e. one that is intended to be sent to a specific window group, instead
+of the window group that currently has focus. Note that, in this context,
+a "hot-key" is more commonly referred to as a <i>capture key</i>. </p> </li>
+</ul> <p>To perform the translation, it creates an instance of a <codeph>CKeyTranslator</codeph> class. </p> <p>To deal with capture keys,
+it creates an instance of a <codeph>CCaptureKeys</codeph> class. </p> <p>Both classes are implemented in <filepath>ektran.dll</filepath>, the key translation DLL, which is built and delivered as part of
+the generic Symbian platform. The Window Server statically links to <filepath>ektran.dll</filepath>. </p> <p>[<i>Note that CKeyTranslator and CCaptureKeys
+are internal to Symbian platform and are not part of the public interface.
+This is an attempt to provide an outline understanding of the mechanisms
+involved.</i>] </p> <p>The Window Server also decides on the name
+of the key mapping tables DLL to be loaded. By default, the name of
+this DLL is <filepath>ekdata.dll</filepath>. However, if the Hardware
+Abstraction Layer (HAL) for the device records a language index, then
+this index value is used to form the name of the DLL to be loaded.
+For example, if the keyboard index value returned by a call to: </p> <codeblock id="GUID-150E4C78-6434-57AA-8C4D-819CB2814801" xml:space="preserve">TInt keyboardIndex;
+HAL::Get(HALData::EKeyboardIndex,keyboardIndex);</codeblock> <p>is
+99, then the DLL loaded is <filepath>ekdata99.dll</filepath>. </p> <p>The loading of this DLL is done by a member of <codeph>CKeyTranslator</codeph>, so although the Window Server decides which DLL is to be loaded,
+the actual loading is done by <filepath>ektran.dll</filepath>. For
+ease of explanation, we will continue to refer to this DLL as <filepath>ekdata.dll</filepath>. </p> <p>On receipt of key-up and key-down
+events, the Window Server calls <codeph>CKeyTranslator::TranslateKey()</codeph>. This function takes the (hardware) scancode and translates it into
+the (logical) keycode. It also reports whether the key and combination
+of modifier key states is a capture key, and if so, returns the handle
+to the window group that is associated with it. </p> <p>Before the
+Window Server can be told that a capture key has been pressed, it
+must previously have registered a pair of items: </p> <ul>
+<li id="GUID-F379A692-70EC-57A7-B5C0-4EAC13672496"><p>the capture
+key itself, i.e. the (logical) keycode and combination of modifier
+key states. </p> </li>
+<li id="GUID-099ADF78-448F-58F3-945C-3CF048FF2AAF"><p>a handle to
+a window group. </p> </li>
+</ul> <p>Registration is simply the act of adding this information
+into the <codeph>CCaptureKey</codeph> object by a call to <codeph>CCaptureKeys::AddCaptureKeyL()</codeph>. The Window Server does this
+as a result of a call to <xref href="GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25.dita#GUID-64D4D428-D65F-3D9D-A0D4-C8338C848B25/GUID-433AD95D-5F34-3AB2-A077-E9AED2CF0AED"><apiname>RWindowGroup::CaptureKey()</apiname></xref>, either by applications or the UI. </p> </section>
 </conbody></concept>
