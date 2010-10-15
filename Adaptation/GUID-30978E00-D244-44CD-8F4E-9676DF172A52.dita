@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-30978E00-D244-44CD-8F4E-9676DF172A52" xml:lang="en"><title>Driver-side
+Handling</title><shortdesc>This document describes how device drivers handle asynchronous
+requests.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Drivers generally implement the <xref href="GUID-9D910016-5611-30DD-A139-EE46705A4912.dita"><apiname>DoRequest()</apiname></xref> function
+in the LDD to handle the received asynchronous messages. </p>
+<p>The implementation reads the request type and other passed arguments, and
+initiates handling of the request appropriately. </p>
+<p>The return value of this function only indicates the status of the message
+reception to the driver. It does not actually indicate the request completion
+result. </p>
+<codeblock id="GUID-335BB3F8-7B2B-5FC4-A8D1-204E6B24FECD" xml:space="preserve">TInt DExDriverLogicalChannel::DoRequest(TInt aReqNo, TRequestStatus* aStatus,
+        TAny* a1, TAny* a2)
+    {
+    switch (aReqNo)
+        {
+        case RExDriverChannel::ERequestTransmitData:
+            // Call TransmitData function
+            r = TransmitData ((const TDesC8*)a1);
+            // The status object is stored 
+            // to be used when notifying the completion of the 
+            // request at a later point.
+            //
+            iTxDataStatus = aStatus;
+            break;
+        }
+    return r;
+    }</codeblock>
+</conbody></concept>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F20D5802-7B83-5B78-8753-A88E74E28398" xml:lang="en"><title>PSL Implementation</title><shortdesc>This topic describes how to implement the <codeph>DUsbClientController</codeph> interface to provide a platform-specific layer implementation for
+the USB client controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The platform-specific layer only contains functionality that cannot
+be abstracted and made generic because different USB device controller
+designs operate differently. For example, the internal (and therefore
+external) management of the endpoint FIFOs can be different. In some
+USB device controller designs, the endpoints have hardwired FIFOs
+of specific sizes, which may possibly be configured, whereas other
+designs have a defined maximum amount of FIFO RAM available that has
+to be shared by all endpoints in use in a given configuration. The
+way that the chip is programmed can also differ. Some designs have
+a single register into which all commands and their parameters are
+written, whereas others are programmed via a number of special purpose
+control registers. </p>
+<p>Everything else that has to be common because it is defined in
+the USB specification, is contained in the <i>platform-independent
+layer</i>. </p>
+<p>The operation of the USB device controller is hardware specific
+and the implementers of the platform-specific layer is free to do
+whatever is necessary to use the hardware. All of this is transparent
+to the platform-independent layer, which uses only the fixed set of
+pure virtual functions defined in <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita"><apiname>DUsbClientController</apiname></xref> to communicate with the platform-specific layer, and therefore with
+the hardware. </p>
+<p>The platform-specific layer is also responsible for managing the
+transfer of data over the endpoints, and it is important that it can
+provide the services expected by the platform-independent layer. Data
+transfers are normally set up by the platform-independent layer by
+calling one of the following member functions of <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita"><apiname>DUsbClientController</apiname></xref>: </p>
+<codeblock id="GUID-34B3EEE2-F83F-5063-9885-5CC0092FB518" xml:space="preserve">TInt SetupEndpointRead(TInt aRealEndpoint, TUsbcRequestCallback&amp; aCallback) = 0;
+TInt SetupEndpointWrite(TInt aRealEndpoint, TUsbcRequestCallback&amp; aCallback) = 0;
+TInt SetupEndpointZeroRead() = 0;
+TInt SetupEndpointZeroWrite(const TUint8* aBuffer, TInt aLength, TBool aZlpReqd=EFalse) = 0;
+TInt SendEp0ZeroByteStatusPacket() = 0;</codeblock>
+<p>which the platform-specific layer implements. </p>
+<p>These data transfer functions fall into two groups: one for handling
+endpoint-0 and another for handling general endpoints. Endpoint-0
+is handled differently from general endpoints throughout the USB stack.
+The functions for handling general endpoints are used to transfer
+user data. In addition to taking an endpoint number, these functions
+also take a reference to a <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita"><apiname>TUsbcRequestCallback</apiname></xref> object. This is a request callback, it is key to the data transfer
+mechanism. </p>
+<section id="GUID-B9C7FD99-E5D9-5E08-A219-AD1FE89ED139"><title>Reading
+data</title> <ul>
+<li id="GUID-96C81B48-9C6A-5EDB-86B3-8F8EC9F94DF0"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-4076097E-5FC3-594B-BA00-4A45B78E84CD">General endpoints</xref>  </p> </li>
+<li id="GUID-260D22D3-5BA7-50A3-B382-D2E5F74CA5D5"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-DD28FFFD-9433-57C9-A517-81BA8E001129">Endpoint-0</xref>  </p> </li>
+</ul> <p id="GUID-4076097E-5FC3-594B-BA00-4A45B78E84CD"><b>General endpoints</b> </p> <p>The platform-independent layer issues a request to read
+data by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-907F6988-4336-3160-BD41-7FBECE9C6E88"><apiname>DUsbClientController::SetupEndpointRead()</apiname></xref>, which is implemented by the platform-specific layer, passing it
+the endpoint and a <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita"><apiname>TUsbcRequestCallback</apiname></xref> object. </p> <p>Data is read into a large buffer, whose address and length are
+passed as data members of the <codeph>TUsbcRequestCallback</codeph> object: <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-B8507E01-B472-3FE6-82E7-281094A491C5"><apiname>TUsbcRequestCallback::iBufferStart</apiname></xref> and <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-565F9CC5-15CE-3AF3-87DD-539737E0E628"><apiname>TUsbcRequestCallback::iLength</apiname></xref> respectively. For Bulk reads,
+this buffer is intended to catch a burst of data transmitted from
+the host rather than just a single packet. </p> <p>For all other transfer
+types (Control, Interrupt, Isochronous) it is usual to return only
+single packets to the LDD. The amount of data returned is controlled
+– and limited - by the USB client driver (the LDD) through the <codeph>iLength</codeph> value. </p> <p>The <codeph>TUsbcRequestCallback</codeph> object also supplies a pair of arrays: </p> <ul>
+<li id="GUID-D1993F45-0E58-5ECA-A845-3B300558759B"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-843E57D1-4703-3127-B1BE-4C93F1AD54FC"><apiname>TUsbcRequestCallback::iPacketIndex</apiname></xref> containing the offset(s) into the data buffer of the single packet
+or burst data. </p> </li>
+<li id="GUID-6A2DDA06-DCB4-5675-AF62-6A9A5226AA2B"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-2C7B48F0-5A57-3D72-91ED-9FABC99D25EE"><apiname>TUsbcRequestCallback::iPacketSize</apiname></xref> containing the size(s) of the packet or burst data. </p> </li>
+</ul> <p>These arrays are logically linked; both are the same size
+and can hold information for two entries each. </p> <p>Therefore,
+received single packets have to be merged into one 'superpacket' in
+the read buffer. It is assumed that these merged packets consist of
+maximum packet sized packets, possibly terminated by a short packet.
+A zero length packet or ZLP must appear separately; this would be
+the optional second packet in the respective array. </p> <p>For example,
+for a Bulk endpoint with a maximum packet size of 64 bytes: </p> <ul>
+<li id="GUID-65A91C14-FD6C-5FDD-9DDF-9E9A5F11271A"><p>If 10 x 64 byte
+packets and one 10 byte packet arrive, then these are marked as a
+single large 650 byte packet. </p> </li>
+<li id="GUID-AEA01430-333D-5A6E-B32D-017FEF9B93F7"><p>If 10 x 64 byte
+packets and one ZLP arrive, then these should be entered as two packets
+in the arrays; one of size 640 bytes and one of size zero. </p> </li>
+</ul> <p>The general aim when servicing a Bulk read request from the
+platform-independent layer is to capture as much data as possible
+whilst not holding onto data too long before returning the data to
+the LDD and receiving another buffer. There is considerable flexibility
+in how this is achieved and the design does not mandate any particular
+method; it also depends to a certain extent on the USB device controller
+hardware used. </p> <p>The platform implementation can use a re-startable
+timer to see whether data has been received in the time (usually milliseconds)
+since the last data was received. If data has been received, then
+the timer is restarted. If data has not been received, then the timer
+is not restarted, and the buffer is marked as complete for the platform-independent
+layer by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-30D6B783-B27B-3ECD-AF34-D22ADF34A12D"><apiname>DUsbClientController::EndpointRequestComplete()</apiname></xref>. </p> <p>Note the following: </p> <ul>
+<li id="GUID-60992745-5A02-5177-9707-B9DD6F087AE0"><p>In the interrupt
+service routine (ISR), the flag <codeph>iRxMoreDataRcvd</codeph> is
+used to indicate that data has been received. </p> </li>
+<li id="GUID-2B15F54F-66A6-5788-89E9-68D12D3EB8AF"><p>The timer is
+not restarted in the ISR - the timer is allowed to expire and then
+a test is made for received data. </p> </li>
+<li id="GUID-F5FEF7D6-8DD1-5B12-9AF3-2EBBB18F75A4"><p>Typical values
+for the timer range from 1—5 ms. </p> </li>
+<li id="GUID-D46B9ABA-5719-5FC3-89F0-3745779F5900"><p>Each OUT endpoint
+requires a separate timer. </p> </li>
+<li id="GUID-585E00C0-FE41-5176-8DEF-54C0AD8F55E2"><p>The read is
+not flagged as complete to the platform-independent layer if no data
+has been received. The timer is only started once the first packet/transfer
+has been received. </p> </li>
+<li id="GUID-62CCCC78-AD45-5570-BC15-050BD4509BC7"><p>The bare minimum
+of work is done in the ISR. After draining the FIFO, update the <codeph>iPacketSize</codeph> and <codeph>iPacketIndex</codeph> arrays and
+recalculate the buffer address ready for the next packet, taking into
+account any alignment restrictions. </p> </li>
+</ul> <p>The platform-specific layer completes a non endpoint-0 read
+request by calling the platform-independent layer function <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-30D6B783-B27B-3ECD-AF34-D22ADF34A12D"><apiname>DUsbClientController::EndpointRequestComplete()</apiname></xref>. This function
+takes as its sole argument a pointer to the updated request callback
+structure that was initially passed to the platform-specific layer
+for that read. Members that need to be updated, in addition to the
+packet arrays <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-843E57D1-4703-3127-B1BE-4C93F1AD54FC"><apiname>TUsbcRequestCallback::iPacketIndex</apiname></xref> and <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-2C7B48F0-5A57-3D72-91ED-9FABC99D25EE"><apiname>TUsbcRequestCallback::iPacketSize</apiname></xref>, are: </p> <ul>
+<li id="GUID-7EF9E9C2-DE14-5290-B3FE-B91918669AE2"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-8B2D125B-9943-386F-9A27-11CC1A25A0C2"><apiname>TUsbcRequestCallback::iRxPackets</apiname></xref>, with possible values: 1 or 2. </p> </li>
+<li id="GUID-9E1800A9-8D39-5D5D-92D0-13AF9CD3EF2A"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-A00F6B27-655A-3182-96E2-8B3D2404CB7C"><apiname>TUsbcRequestCallback::iError</apiname></xref>  </p> </li>
+</ul> <p><b>Summary of Completion Criteria for general Endpoints</b> </p> <p>The platform-specific layer completes a read request by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-30D6B783-B27B-3ECD-AF34-D22ADF34A12D"><apiname>DUsbClientController::EndpointRequestComplete()</apiname></xref> when any
+of the following conditions are met: </p> <ul>
+<li id="GUID-F66AF5EC-56D4-5133-A930-2BB793478B31"><p>The requested
+number of bytes has been received. </p> </li>
+<li id="GUID-91D9D4E4-2196-55C9-9595-1BA6AE2C2848"><p>A short packet,
+including a ZLP, is received. In the case of a ZLP being received,
+it must be represented separately in the <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-E5FD5F91-B22B-31A9-8482-635B2F1EB0B4"><apiname>DUsbClientController::iPacketIndex</apiname></xref> and <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-BFB565F1-C8F9-3E44-88FB-E81E88D2DF3A"><apiname>DUsbClientController::iPacketSize</apiname></xref> arrays. </p> </li>
+<li id="GUID-42124450-1AC8-59F3-9C30-8C74EC425CAE"><p>If the number
+of bytes in the current packet (still in the FIFO) were to cause the
+total number of bytes to exceed the buffer length <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-A0A7399A-A51E-3544-A181-5C45B69AB121"><apiname>DUsbClientController::iLength</apiname></xref>. </p> </li>
+<li id="GUID-09281AB5-7240-5B29-B0C1-C5A4A8289B7F"><p>The timer has
+expired, data is available, but no further packets have been received. </p> </li>
+</ul> <p id="GUID-DD28FFFD-9433-57C9-A517-81BA8E001129"><b>Endpoint-0</b> </p> <p>The handling of endpoint-0 read requests is similar to general
+endpoints except for the following: </p> <ul>
+<li id="GUID-D9361990-1591-522E-9F9E-7E38A6EB0B08"><p>The platform-independent
+layer issues the request by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-B3B4793E-7B75-3C40-A6FA-CD17B460CC73"><apiname>DUsbClientController::SetupEndpointZeroRead()</apiname></xref>. This function does not take any parameters because: </p> <ul>
+<li id="GUID-4AED5324-65B5-5BD3-AACA-5EA9FB7CB90A"><p>The endpoint
+number is known, this is zero. </p> </li>
+<li id="GUID-9CEAFC92-DF2D-5B07-B623-5BA562EC61BE"><p>The request
+is completed after every received packet, and a <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita"><apiname>TUsbcRequestCallback</apiname></xref> object is not needed. </p> </li>
+</ul> </li>
+</ul> <p>All the platform-specific layer needs to know is where to
+place the received data, and its size. Both are fixed values: <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-BC2DF410-292B-354A-BCEF-2C9E520024B8"><apiname>DUsbClientController::iEp0_RxBuf</apiname></xref> and <xref href="GUID-D0DFABCF-15B4-347E-BAE5-0F050E137949.dita"><apiname>KUsbcBufSzControl</apiname></xref> respectively. </p> <p>An endpoint-0 read request is completed by
+calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-71E33976-C185-34FA-A8BF-7DB3404DDA78"><apiname>DUsbClientController::Ep0RequestComplete()</apiname></xref>, passing the endpoint number (0, or symbolically, <codeph>KEp0_Out</codeph>), the number of bytes received, and the resulting error code for
+this request. </p> </section>
+<section id="GUID-2617EDBD-6792-53B9-9CE0-6B0CC729728C"><title>Writing
+data</title> <ul>
+<li id="GUID-97BDD391-F5BE-509C-AF67-51AD4822FD11"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-69839EA3-9DC0-5A3C-BE62-AC91708477BA">General endpoints</xref>  </p> </li>
+<li id="GUID-8E0F6F8F-D3DA-5E67-8E8C-E4BE983DBF1A"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-C674608C-393B-5397-A1E4-3C8368E2144C">Endpoint-0</xref>  </p> </li>
+</ul> <p id="GUID-69839EA3-9DC0-5A3C-BE62-AC91708477BA"><b>General endpoints</b> </p> <p>The platform-independent layer issues a request to write
+data by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-F7880D1C-7E7D-3214-BF84-8811DA935B0C"><apiname>DUsbClientController::SetupEndpointWrite()</apiname></xref>, which is implemented by the platform-specific layer, passing the
+function an endpoint and a <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita"><apiname>TUsbcRequestCallback</apiname></xref> object. </p> <p>The address of the buffer, containing the data to
+be written, is passed into the data member <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-B8507E01-B472-3FE6-82E7-281094A491C5"><apiname>TUsbcRequestCallback::iBufferStart</apiname></xref>. The length of this buffer is passed into <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-565F9CC5-15CE-3AF3-87DD-539737E0E628"><apiname>TUsbcRequestCallback::iLength</apiname></xref>. The buffer is a single contiguous piece of memory. </p> <p>The
+platform-specific layer's implementation needs to set up the transfer,
+either using DMA or a conventional interrupt driven mechanism, and
+then wait for the host to collect, by sending an IN token, the data
+from the respective endpoint’s primed FIFO. This continues until all
+data from the buffer has been transmitted to the host. </p> <p>If
+the ZLP request flag <codeph>iZlpReqd</codeph> in the <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita"><apiname>TUsbcRequestCallback</apiname></xref> structure is set (=<xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref>), then the platform
+specific layer must determine, after all data has been sent, whether
+to send a ZLP or not. The decision is based on the size of the last
+packet sent and the current maximum packet size of the endpoint. </p> <p>To summarize, a ZLP should be sent at the end of a write request
+if: </p> <ul>
+<li id="GUID-B3AFEC6D-EB74-57FE-9618-E44C6AE10460"><p>The ZLP flag
+is set. </p> </li>
+<li id="GUID-970EE707-24D1-53B8-A830-3824562F2AA8"><p>The last packet
+of the write request was not a short packet (i.e. it was a max-packet-sized
+packet). </p> </li>
+</ul> <p>The platform-specific layer completes a non endpoint-0 write
+request by calling the platform-independent layer function <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-30D6B783-B27B-3ECD-AF34-D22ADF34A12D"><apiname>DUsbClientController::EndpointRequestComplete()</apiname></xref>. This function
+takes only one argument, a pointer to the updated request callback
+structure passed to the platform-specific layer for this write. Members
+that need to be updated are: </p> <ul>
+<li id="GUID-F02F662E-ABAE-5519-A80C-DA4D66F7A51A"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-31AF87D2-C1F3-3367-93AA-52924612A7D0"><apiname>TUsbcRequestCallback::iTxBytes</apiname></xref>  </p> </li>
+<li id="GUID-D8416C51-7A46-560F-9F6F-2565DA445004"><p> <xref href="GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F.dita#GUID-D395BF82-65B3-3A98-800B-E6EF43150E8F/GUID-A00F6B27-655A-3182-96E2-8B3D2404CB7C"><apiname>TUsbcRequestCallback::iError</apiname></xref>  </p> </li>
+</ul> <p id="GUID-C674608C-393B-5397-A1E4-3C8368E2144C"><b>Endpoint-0</b> </p> <p>The handling of endpoint-0 write requests is similar to general
+endpoints except for the following: </p> <p>The platform-independent
+layer issues the request by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-DBE7AC29-8B85-3D98-BAF9-8EF059B33331"><apiname>DUsbClientController::SetupEndpointZeroWrite()</apiname></xref>. Unlike the equivalent read function, this function takes a number
+of parameters: </p> <ul>
+<li id="GUID-9831D5A3-2032-5C6C-B2AF-C78D9E00D09C"><p>the address
+of the location containing the data to be written </p> </li>
+<li id="GUID-C7F55C63-4AD4-5A37-B25B-1249850C5A92"><p>the length of
+the data to be written </p> </li>
+<li id="GUID-C2D21E5A-6FB9-5170-80F2-6B6351E5B11A"><p>a <xref href="GUID-4B942C06-1BAC-3A21-B3B1-89FB5C51ADA0.dita"><apiname>TBool</apiname></xref> parameter that indicates whether a zero length packet (ZLP) is to
+be sent immediately after the data has been sent. </p> </li>
+</ul> <p>An endpoint-0 write request is completed by calling <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-71E33976-C185-34FA-A8BF-7DB3404DDA78"><apiname>DUsbClientController::Ep0RequestComplete()</apiname></xref>, in the platform-independent
+layer, passing the function the endpoint number (0, or symbolically <codeph>KEp0_In</codeph>), the number of bytes written, and the error code
+for this write request. </p> <p>There is another endpoint-0 write
+function, <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita#GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941/GUID-95CCCE69-C8AA-39B1-8152-37AA0A7B9CEB"><apiname>DUsbClientController::SendEp0ZeroByteStatusPacket()</apiname></xref>, which is used for sending a zero length packet (ZLP) on its own.
+This separate function is provided because the USB device controller
+mechanism for transmitting a ZLP on its own can be different to the
+mechanism for transmitting the ZLP at the end of a data transmission. </p> </section>
+<section id="GUID-0805DDC6-2C17-50A2-97B6-F51C77DF3E4F"><title>Using
+DMA</title> <p>When planning to use DMA for transferring data from
+and to the endpoints’ FIFOs, there are two things that must be considered: </p> <ul>
+<li id="GUID-0E6B3A5B-CA84-5BB1-9447-70C7E493D8D2"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-838483AC-BDDD-5A6A-AB8A-F26587851D9E">Flushing cached information for the data buffers</xref>  </p> </li>
+<li id="GUID-B9545262-93E4-5AA9-837F-D909B278B19F"><p> <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-840EB8C0-8C29-5FDE-9505-D6D7131E61A4">Implementing DMA mode for OUT transfers (DMA reads)</xref>  </p> </li>
+</ul> <p id="GUID-838483AC-BDDD-5A6A-AB8A-F26587851D9E"><b>Flushing cached
+information for the data buffers</b> </p> <p>The cached information
+for the data buffers must be flushed before a DMA write operation,
+(i.e. transfer memory to a FIFO), and both before and after a DMA
+read operation, (i.e. transfer a FIFO to memory). </p> <p>The kernel
+provides three functions for that purpose. These are static functions
+in the class <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita"><apiname>Cache</apiname></xref>, declared in <filepath>...\e32\include\kernel\cache.h</filepath>: </p> <ul>
+<li id="GUID-4402C336-1638-5830-90A8-0A9746BC3CC7"><p> <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-5F08DEAA-1237-32DE-AE41-CE7B18230972"><apiname>Cache::SyncMemoryBeforeDmaWrite()</apiname></xref>  </p> </li>
+<li id="GUID-BD880077-FF37-5604-BECF-EB4D86803EB4"><p> <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-3FF3C567-C1BD-3D4E-97E1-B036456A374E"><apiname>Cache::SyncMemoryBeforeDmaRead()</apiname></xref>  </p> </li>
+<li id="GUID-49E1143C-2B5C-5E92-8ED8-66F75EB41D69"><p> <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-78E6DE46-61F0-3840-B555-6926D21141BF"><apiname>Cache::SyncMemoryAfterDmaRead()</apiname></xref>  </p> </li>
+</ul> <p id="GUID-840EB8C0-8C29-5FDE-9505-D6D7131E61A4"><b>Implementing DMA
+mode for OUT transfers (DMA reads)</b> </p> <p>The implementation
+of DMA mode for IN transfers is normally relatively straightforward,
+however complications can occur with OUT transfers (DMA reads), depending
+on the DMA controller, the USB device controller and the way the two
+are connected. </p> <p>There are two issues: </p> <ol id="GUID-324F21A0-F3EB-5994-B23C-B0AD18973C2B">
+<li id="GUID-7513B814-D305-50A0-B18D-779D8F5B741E"><p>If we set up
+a DMA read for 4kB, for example, and this request returns after a
+short packet, we must be able to tell how much data has been received
+and is now in our buffer. In other words, the DMA controller must
+provide a way of finding out how many bytes have been received, otherwise
+we cannot complete the read request to the LDD. </p> <p>Here is a
+theoretical solution for a Scatter/Gather controller that doesn’t
+provide information about the number of bytes transferred directly. <b>Note: </b> This proposal has not been tested in practice! </p> <p>Instead of using one large DMA descriptor for 4kB, we could set up
+a chain of descriptors for max-packet-size bytes each. When the DMA
+completes, it will be: </p> <ul>
+<li id="GUID-B088943E-BEC6-568B-8E0E-7AA177566599"><p>for the whole
+transfer, in which case we know the number of bytes received. </p> </li>
+<li id="GUID-33974049-2069-57A3-A784-4A312BA846D8"><p>because it is
+a short packet. In this case we can try and find out which descriptor
+was being served at the time. The number of bytes received is then </p> <codeblock id="GUID-56C3A794-4077-5A83-BA17-E6BE58A675D4" xml:space="preserve">number of completed descriptors * max-packet-size + number of bytes in short packet.</codeblock> </li>
+</ul> </li>
+<li id="GUID-E7406164-A6C4-5508-AD5D-A8DA4F2E4AAC"><p>Another potential
+problem is posed by the restartable OUT endpoint timer described in
+the section <xref href="GUID-F20D5802-7B83-5B78-8753-A88E74E28398.dita#GUID-F20D5802-7B83-5B78-8753-A88E74E28398/GUID-B9C7FD99-E5D9-5E08-A219-AD1FE89ED139">Reading data</xref>. The situation in the timer callback DFC, when
+the LDD read request is about to complete, has to be handled with
+care in order to avoid data loss. If at this point the pending DMA
+request has already started transferring data from the endpoint FIFO
+into our data buffer, then we cannot complete the LDD request anymore
+(this data would be lost because the LDD would not know about it as
+the variables in the request structure do not take account of it).
+The buffer cannot be removed while it is receiving data from a DMA
+transfer. A possible solution would be as follows: (again, this is
+just an idea and therefore untested). In the timer DFC, before we
+complete to the LDD, we cancel the pending DMA request. If a DMA transfer
+was already happening, then this will somehow complete and the DMA
+complete DFC will be queued. What we need to find out in that situation
+is whether or not that DFC is pending: </p> <ul>
+<li id="GUID-EA31A9E0-5783-5E3C-BFAF-AE041FBC61F1"><p>if not, then
+there was no DMA transfer ongoing, and we can just complete our read
+request to the LDD. </p> </li>
+<li id="GUID-E971CEC8-B0EA-5924-83A6-6FF4E4EB8C9E"><p>otherwise we
+have to abandon, at this point, the plan to complete and return from
+the timer callback (without doing any damage). In this case, the DMA
+complete DFC will run next, the LDD read request structure will be
+updated, the RX timer will be set again, and we can proceed as normal. </p> </li>
+</ul> </li>
+</ol> </section>
+</conbody></concept>

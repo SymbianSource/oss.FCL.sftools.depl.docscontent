@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3574BE12-9DA9-573D-8545-3B073005A139" xml:lang="en"><title>Configuration:
+Timer Constants</title><shortdesc>Describes how to set the values of timer constants that change
+the behaviour of the Digitizer Driver. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The timing constants are defined near the beginning of the template port
+implementation of the platform specific layer in <filepath>...\template\template_variant\specific\xyin.cpp</filepath>. </p>
+<p>The values and their meaning are as follows: </p>
+<section id="GUID-C8EC7A1D-7597-57BB-ADE4-0EDFFEB323D0"><title>KInterSampleTime</title> <p>This
+constant determines the rate at which individual samples within a group are
+collected. </p> <p>A group of samples is collected when the pen is down, and,
+in the template port, this is handled by <codeph>DTemplateDigitiser::TakeSample()</codeph>. </p> <p>Once
+all the samples in a group have been collected, the function calls <xref href="GUID-4C26DF22-B715-30DA-BBF1-8C1CA3A729DB.dita#GUID-4C26DF22-B715-30DA-BBF1-8C1CA3A729DB/GUID-28D95B3F-EC80-3D13-A7F1-EDDC46469732"><apiname>Digitiser::RawSampleValid()</apiname></xref> in
+the platform independent layer, whose main purpose is to ensure the validity
+of the samples by checking the spread. If the samples appear valid, it averages
+the samples to obtain the current position. </p> <p>The setting of the timer
+constant depends on the sample resolution of the digitizer: </p> <ul>
+<li id="GUID-6D570D10-EDFB-5DFA-803E-E4808367D51B"><p>A high resolution can
+lead to more jitter between samples, and therefore more smoothing is required
+to obtain nice steady values. This argues for higher sampling rates, and a
+smaller value of <codeph>KInterSampleTime</codeph>. </p> </li>
+<li id="GUID-44E06F7A-8B7E-5EB5-98E2-131C3BEE75C7"><p>A low resolution means
+that there is very little variation between consecutive samples, and therefore
+fewer are required. This argues for lower sampling rates, and a larger value
+of <codeph>KInterSampleTime</codeph>. </p> </li>
+</ul> <p>Another consideration when setting this constant is the speed of
+the communications between the MPU and the digitizer. </p> <p>In the Symbian
+reference ports, this value varies between 1 and 3. </p> </section>
+<section id="GUID-587D0895-7B8D-5FA1-A2DE-2F346780BB78"><title>KPenDownDelayTime</title> <p>This
+value is used in the implementation of the <xref href="GUID-AF71FDC2-A8CC-5035-91FE-36212844BC07.dita#GUID-AF71FDC2-A8CC-5035-91FE-36212844BC07/GUID-D74C94E4-83AD-5BC0-B435-754E7D3FECA4">pen
+interrupt</xref> interrupt service routine (ISR). It represents a delay, measured
+in nano-kernel ticks, between a pen down event and the start of the collection
+of digitizer samples. </p> <p>The value is optional. Choose a value of 0 if
+no delay is required. Typically, a value of 2 is chosen. </p> </section>
+<section id="GUID-84FF861C-F916-5F57-BA6D-ACD5010B0790"><title>KInterGroupTime</title> <p>This
+value is used in <codeph>DTemplateDigitiser::WaitForPenUp()</codeph> and <codeph>DTemplateDigitiser::WaitForPenUpDebounce()</codeph>.
+After a group of samples has been collected, there is a delay, dictated by
+the value of this constant, before the collection for the next group begins. </p> <p>The
+inverse of the sum of <xref href="GUID-3574BE12-9DA9-573D-8545-3B073005A139.dita#GUID-3574BE12-9DA9-573D-8545-3B073005A139/GUID-C8EC7A1D-7597-57BB-ADE4-0EDFFEB323D0">KInterSampleTime</xref>,
+and <codeph>KInterGroupTime</codeph> will therefore determine the frequency
+at which groups of samples are taken. This, in turn, dictates how often pen
+movement events are issued, and, if no interrupt is used on pen up, how quickly
+this situation is ascertained. The constant is optional. Typically it is set
+at 1ms </p> <p>The delay is optional, a value of zero meaning that there is
+no delay. Typically, a value of 1 is chosen. </p> </section>
+<section id="GUID-9BFC5FDA-FC84-5B54-93AA-BED4035F2A59"><title>KPenUpDebounceTime</title> <p>This
+value is used in <codeph>DTemplateDigitiser::TakeSample()</codeph>. If, during
+sample collection, the pen goes up, then the digitizer will wait for this
+period of time before deciding whether the removal of the pen is momentary,
+or whether it is an intentional removal - this is also referred to as debounce. </p> <p>If,
+after the delay, the pen is still up, then a pen-up event is issued; otherwise
+the state of the digitizer reverts to collecting mode, resetting the sample
+buffer </p> <p>Typically, this value is set to around 30. </p> </section>
+<section id="GUID-EDA72AF2-460E-52F0-9EC7-634B7AC14D46"><title>KPenUpPollTime</title> <p>This
+value is used in <codeph>DTemplateDigitiser::TakeSample()</codeph>. </p> <p>If
+the pen is down when the system powers on, then the digitizer is sampled using
+this delay until the pen is up. </p> <p>Typically, this value is set at 30. </p> </section>
+</conbody></concept>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52" xml:lang="en"><title>Boot
+Time Initialisation Implementation</title><shortdesc>How to write an initialisation function, implemented by the Media
+driver and called by the kernel at boot time. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You use the <xref href="GUID-7964FC46-4641-3BDD-92C9-50FA22C3321A.dita"><apiname>DECLARE_STANDARD_EXTENSION()</apiname></xref> macro as a
+wrapper around the code that does this. There are at two important things
+to do at this stage: </p>
+<ul>
+<li id="GUID-21EA5C7E-7147-596E-A340-1D6FED0328CE"><p>attach a DFC queue,
+if the underlying media driver supports asynchronous creation </p> </li>
+<li id="GUID-4E9CD255-B954-5B75-B639-2AC494296AA4"><p>register the media driver
+with the local media system. </p> </li>
+</ul>
+<section id="GUID-43EB0EC7-AAA3-5FFC-8724-E938F6BFB158"><title>Asynchronous
+creation of the media driver</title> <p>If the underlying media driver supports
+asynchronous creation, then a DFC queue <i>must</i> be attached at this stage.
+However, media drivers that interface to the Peripheral Bus Controller should
+create a new <xref href="GUID-B4E66372-2654-3434-AFB7-844B0B8D2FC9.dita"><apiname>DPBusPrimaryMedia</apiname></xref> object, as shown in the
+code above, but should not allocate a DFC for asynchronous creation; this
+is handled by the Peripheral Bus Controller. </p> <p>See also <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700">Create() - create the media driver object</xref>. </p> </section>
+<section id="GUID-4A8DEEAB-32C4-5431-8226-5623E2BD9098"><title>Register the
+media driver with the local media system</title> <p>The media driver must
+be registered with the Local Media Subsystem; this provides information such
+as the number of supported drives, partitions, names and drive numbers. This
+is done by calling <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-647D0858-FE04-3A4F-99CE-81CD0B34CE7B"><apiname>LocDrv::RegisterMediaDevice()</apiname></xref>, and passing
+appropriate values. </p> <p>The media device type can be any of the <xref href="GUID-0FE5A5FE-5D38-3620-8674-2B770CB9D049.dita"><apiname>TMediaDevice</apiname></xref> enumerated
+values provide that a given value is only used once. This value may sometimes
+be referred to as the media ID. </p> <p>The values passed to this function
+are highly dependent on the target hardware platform, and it is common practice
+to define them in a file contained within the Variant directory, instead of
+hard-coding them into generic Symbian platform code. For example, Variant
+A may provide two PC Card slots, while Variant B may provide 4. </p> <p>The
+port for the template reference board has the header file <filepath>...\template_variant\inc\variantmediadef.h</filepath>,
+which defines constants that are used when registering a media driver for
+that specific hardware. </p> <p>Your code may find it convenient to use the
+struct <xref href="GUID-FC0F974E-9ABB-348B-9AE9-778B3A1F413A.dita"><apiname>SMediaDeviceInfo</apiname></xref> to capture this information. </p> </section>
+<example><p>The following code is used: </p> <codeblock id="GUID-2A3ADFBB-C2D4-51DD-AE3E-21C5C34554D9" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+    {
+    TInt r=KErrNoMemory;
+    DPrimaryMediaBase* pM=new DPrimaryMediaBase;
+    if (pM)
+        {
+        //…Required here for Asynchronous creation (if supported)
+        pM-&gt;iDfcQ = &amp;MyDfcQ;
+ 
+        //…Perform registration here
+        r = LocDrv::RegisterMediaDevice(MEDIA_DEVICE_TYPE,
+                                        MEDIA_DRIVECOUNT,
+                                        &amp;IMediaDriveNumbers[0],
+                                        pM,MEDIA_NUMMEDIA,KMediaDriveName
+                                       );
+        }
+    return(r);
+    }
+      </codeblock> <p>You can also do any further initialisation that is appropriate
+to your driver. </p></example>
+</conbody></concept>

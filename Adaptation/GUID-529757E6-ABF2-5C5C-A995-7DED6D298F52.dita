@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-529757E6-ABF2-5C5C-A995-7DED6D298F52" xml:lang="en"><title>Design</title><shortdesc>This topic describes how to design the USB client controller
+for different types of USB hardware.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>On most hardware platforms, the variant is split into a common,
+or ASSP, layer and a device specific, or variant, layer; for example,
+the Symbian port for the template board is split into a core layer
+for the ASSP (in <filepath>...\template_assp\...</filepath>) and code
+specific to the template board (in <filepath>...\template_variant\...</filepath>). </p>
+<p>On some hardware configurations, the USB platform-specific layer
+functionality is not only dependent on the USB device controller (in
+the ASSP) but also on the variant. As an example, the USB cable connection/disconnection
+notification mechanism is not defined in the USB specification. This
+means that some USB device controllers have a mechanism for detecting
+the status of a cable connection that is internal to the ASSP, while
+for other controllers the mechanism is variant specific, and requires
+software support in the variant layer. </p>
+<p>In the template example port, the ASSP layer is implemented by
+the <codeph>TemplateAssp</codeph> class defined in <filepath>...\template_assp\template_assp_priv.h</filepath>. This class defines a number of pure virtual functions that act
+as the interface to the cable connection status mechanism. </p>
+<codeblock id="GUID-4E7ED63E-5383-53D8-AC79-29AE307B1FED" xml:space="preserve">class TemplateAssp : public Asic
+    {
+
+    ...
+  /**
+     * USB client controller - Some example functions for the case that USB cable detection and
+     * UDC connect/disconnect functionality are part of the variant.
+     * Pure virtual functions called by the USB PSL, to be implemented by the variant (derived class).
+     * If this functionality is part of the ASSP then these functions can be removed and calls to them
+     * in the PSL (./pa_usbc.cpp) replaced by the appropriate internal operations.
+     */
+    virtual TBool UsbClientConnectorDetectable()=0;
+    virtual TBool UsbClientConnectorInserted()=0;
+    virtual TInt RegisterUsbClientConnectorCallback(TInt (*aCallback)(TAny*), TAny* aPtr)=0;
+    virtual void UnregisterUsbClientConnectorCallback()=0;
+    virtual TBool UsbSoftwareConnectable()=0;
+    virtual TInt UsbConnect()=0;
+    virtual TInt UsbDisconnect()=0;
+</codeblock>
+<p>In the template example port, the variant layer is implemented
+by the <codeph>Template</codeph> class defined in <filepath>...\template_variant\inc\variant.h</filepath>. The variant layer provides the implementation for these USB pure
+virtual functions. </p>
+<codeblock id="GUID-D697E009-5C21-5C7A-A31A-7A526413655E" xml:space="preserve">NONSHARABLE_CLASS(Template) : public TemplateAssp
+    {
+
+    ...
+     /**
+     * USB client controller - Some example functions for the case that USB cable detection and
+     * UDC connect/disconnect functionality are part of the variant.
+     * These virtual functions are called by the USB PSL (pa_usbc.cpp).
+     * If this functionality is part of the ASSP then these functions can be removed as calls to them
+     * in the PSL will have been replaced by the appropriate internal operations.
+     */
+    virtual TBool UsbClientConnectorDetectable();
+    virtual TBool UsbClientConnectorInserted();
+    virtual TInt RegisterUsbClientConnectorCallback(TInt (*aCallback)(TAny*), TAny* aPtr);
+    virtual void UnregisterUsbClientConnectorCallback();
+    virtual TBool UsbSoftwareConnectable();
+    virtual TInt UsbConnect();
+    virtual TInt UsbDisconnect();
+</codeblock>
+<p>The implementation for these functions can be found in <filepath>...\template_variant\specific\variant.cpp</filepath>. </p>
+<p>The USB port also needs interrupt handling code to deal with USB
+external interrupts. See the <xref href="GUID-3C34724F-B476-5329-B0B1-6D5A34294979.dita">Interrupt Dispatcher
+Tutorial</xref> for details about how to do this. </p>
+<note>This may be done by others as a specialist porting activity. </note>
+</conbody></concept>

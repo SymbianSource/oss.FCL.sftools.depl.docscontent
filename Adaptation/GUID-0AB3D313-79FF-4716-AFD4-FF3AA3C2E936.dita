@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0AB3D313-79FF-4716-AFD4-FF3AA3C2E936" xml:lang="en"><title>Trace-Based
+Debugging</title><shortdesc>This document describes how to generate traces with the Kernel
+Trace and BTrace APIs.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-58E18DB3-8E47-4625-9F66-FEAEA3315587">       <title>Kernel
+debug messages</title><p><b>KTRACE</b> </p> <p>During development,
+drivers can display information for debugging purposes. The basic API to use
+for this is <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-CAAD1252-CBEF-318B-B61D-D12D4E80C5CF"><apiname>Kern::Printf()</apiname></xref>. </p> <p>You can make the display
+of debugging messages conditional on whether certain flags have been set in
+the ROM. To do this, use the print command with the <xref href="GUID-9C275309-15B4-34D0-AD05-44C6C501FC08.dita"><apiname>__KTRACE_OPT()</apiname></xref> macro.
+For example: </p> <codeblock id="GUID-BB56427E-762B-5B77-B3DA-369751A262D8" xml:space="preserve">_KTRACE_OPT(KDEVICE,Kern::Printf("++DExDriverLogicalChannel::DoCreate"));</codeblock> <p>This macro's first argument is a mask that must be enabled for the message
+to be displayed. The <codeph>kerneltrace</codeph> keyword, defined in <filepath>header.iby</filepath>,
+sets which masks are enabled for a debug ROM image. </p> <p>The following
+are some of the mask definitions that can be found in <filepath>nk_trace.h</filepath>: </p> <ul>
+<li id="GUID-3F091877-D335-5F73-A752-6D80E272D6E7"><p> <codeph>KHARDWARE</codeph>  </p> </li>
+<li id="GUID-CF060894-A381-5253-BA21-344DD6334E16"><p> <codeph>KEXTENSION</codeph>  </p> </li>
+<li id="GUID-BD44067A-0FCA-5C40-9F96-2996FAE96B4D"><p> <codeph>KDMA</codeph>  </p> </li>
+<li id="GUID-20E085C0-ECD6-5119-AC33-449D6F2EDA6C"><p> <codeph>KBOOT</codeph>  </p> </li>
+<li id="GUID-8221B2F2-6773-53DE-9784-EA609BA57900"><p> <codeph>KSCRATCH</codeph>  </p> </li>
+<li id="GUID-E395983C-A76B-5EC3-AA07-258074A0AE71"><p> <codeph>KPANIC</codeph>  </p> </li>
+<li id="GUID-AFCF4A79-C5E0-531C-97CE-A55F9BCE4E8C"><p> <codeph>KPBUS1</codeph>  </p> </li>
+<li id="GUID-A908027F-B8BC-54CC-B784-5FE45BA20E4F"><p> <codeph>KPBUS2</codeph>  </p> </li>
+</ul>     </section>
+<section id="GUID-B404E745-2D37-4D63-88D9-1ABAA474B58A"><title>BTrace service</title> <p>BTrace
+is a Kernel service that is designed to generate and capture trace information
+with minimal impact on a running system. It is useful for generating trace
+information in the Kernel and in drivers, for which fast tracing is required
+and general serial debug is not possible. </p> <p>BTrace defines API and macros
+to use in programs to create trace information in <filepath>e32btrace.h</filepath>.
+The generated trace messages can be retrieved from the driver or Kernel during
+execution. To do this, BTrace must be built into the ROM image; it is included
+by default in a text shell ROM. The <codeph>BTrace</codeph> command should
+then be executed from the text shell with the appropriate options. For example,
+the following commands sets various filter and buffer size options, runs a
+program called <filepath>t_expio</filepath> that generates some trace data,
+and finally writes the trace data into a file <filepath>d:\expiolog.txt</filepath>. </p> <codeblock id="GUID-F631555E-2736-5D57-9543-8566A22590B8" xml:space="preserve">BTRACE -f1,2,3 -m3 -b1024
+t_expio.exe
+BTRACE d:\expiolog.txt</codeblock> <p>The basic macros used for generating
+traces are: </p> <ul>
+<li id="GUID-C4CED603-6EAB-5CC3-8C8F-F72962F14F6D"><p> <codeph> BTrace0 (aCategory,aSubCategory)</codeph>  </p> </li>
+<li id="GUID-099F0EA6-60A2-50F7-B855-CC0DE97B70C2"><p> <codeph> BTrace4 (aCategory,aSubCategory,a1)</codeph>  </p> </li>
+<li id="GUID-1D643E7D-2C8B-51A1-B702-CA6BB644F61B"><p> <codeph> BTrace8 (aCategory,aSubCategory,a1,a2)</codeph>  </p> </li>
+<li id="GUID-B895DBA3-D4A2-59F7-952B-7E6E1856E1A4"><p> <codeph> BTrace12(aCategory,aSubCategory,a1,a2,a3)</codeph>  </p> </li>
+</ul> <p>The macros set category and sub-category values with their first
+two arguments. The category indicates the type of information being recorded,
+which is specified using a value from the enumeration <xref href="GUID-5BF17780-AD31-30CF-AFD9-915CBDA74441.dita#GUID-5BF17780-AD31-30CF-AFD9-915CBDA74441/GUID-E26B390F-390C-372B-B60F-9F788119A98B"><apiname>BTrace::TCategory</apiname></xref>.
+The sub-category is an enumeration specific to each category. The other arguments, <codeph>a1</codeph> -<codeph>a3</codeph>,
+set the trace data, of lengths 0, 4, 8 or 12 bytes, to record. </p> <p>For
+longer traces that include a context ID, program counter values, and different
+filters, more macros are provided. Performance logging macros are also available
+which in turn use BTrace to <xref href="GUID-9D26E38F-5C7B-5330-A54B-8F97D0F204D0-GENID-1-2-1-8-1-1-7-1-1-5-1.dita">log
+performance</xref> related data. For example: </p> <codeblock id="GUID-20F3E42A-B6F6-55B6-B0B5-D466518AC6DC" xml:space="preserve">TKName nameBuf;
+Name(nameBuf);
+
+// Output a fast-trace record of the specified category which also 
+// includes a Context ID 
+BTraceContextN(BTrace::EChunks,BTrace::EChunkCreated,this,iMaxSize,
+    nameBuf.Ptr(),nameBuf.Size());</codeblock></section>
+</conbody></concept>

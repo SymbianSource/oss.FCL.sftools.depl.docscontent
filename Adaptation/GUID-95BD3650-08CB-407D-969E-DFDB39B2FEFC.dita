@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-95BD3650-08CB-407D-969E-DFDB39B2FEFC" xml:lang="en"><title>What is a Platform Service?</title><shortdesc>A platform service is an interface designed to make it
+quick, easy and inexpensive to integrate hardware into a mobile device.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F3ACE06A-E619-416A-BC4B-4AA4771404D2"><title>Platform
+Service</title>       <p>A platform service is a set of defined functionality,
+usually providing an abstraction or encapsulation for functionality
+provided by hardware.</p><p>For example, a platform service may provide
+a standard interface for using a serial bus to send commands and data
+between integrated circuits on the base board. Another example would
+be providing a standard interface for Direct Memory Access (DMA) hardware
+for moving blocks of data from one block of memory locations to another
+or from a block of memory to a hardware device.</p><p>The platform
+service separates the functionality required by kernel, device driver
+and application processes from the specific hardware implementation.
+This means, for example, that a device driver can be written for a
+platform service that uses the published APIs, without needing to
+know the specifics of the actual hardware device/chipset.</p><fig id="GUID-D1D306BB-EFDD-4365-8259-39A4F4EB6AE3">
+<title>Platform service</title>
+<image href="GUID-99637158-DE86-4BB4-98D4-3A3E64AB768F_d0e87314_href.png" placement="inline"/>
+</fig><p>The platform service is a consistent hardware interface at
+the bottom of the operating system platform software stack. In the
+past much of the logic and configuration required to enable a new
+piece of hardware was higher up in the operating system stack and
+that made it difficult to support new or variant hardware. The platform
+service architecture separates out the hardware specific interfaces
+and encapsulates them behind a standard set of platform service (client
+interface) APIs. </p><p>The platform service consists of :</p><ul>
+<li><p>Client Interface/Platform service APIs </p></li>
+<li><p>Implementation of the APIs:</p><ul>
+<li><p>Platform Independent Layer (PIL)/Framework/Generic implementation</p></li>
+<li><p>SHAI interface</p></li>
+<li><p>Platform Specific Layer (PSL)/SHAI Implementation/Hardware
+implementation</p></li>
+</ul></li>
+</ul><p>The PIL contains all the common functionality code such as
+maintaining a list of available channels for communication or holding
+the pending list of memory transfers to be processed by DMA when the
+hardware becomes available. Usually the PIL provides the implementation
+of the Client Interface APIs. This is sometimes referred to as the
+Framework.</p><p>The interface between the framework code and the
+PSL code is known as the Symbian Hardware Adaptation Interface (SHAI).
+The SHAI interface specifies how the PIL and PSL talk to each other
+(APIs, shared memory areas etc.)</p><p>The PSL consists of the specific
+code required to work with a particular piece of hardware. This means
+that supporting a new or variant chipset only requires the PSL to
+be amended or to have detection code to handle a particular piece
+of hardware. </p><p>Some Platform Services, such as GPIO, provide
+APIs that directly address the hardware, and so the PSL provides the
+client interface API implementation directly. For example, there is
+no GPIO PIL/framework.</p></section>
+<section id="GUID-15BD58D5-12D7-4871-9A98-940F39B95182"><title>Variations
+on platform service</title><p>Not all platform services are as simple
+as the diagram above suggests. Some platform services do not talk
+to hardware directly or at all, but provide a higher-level abstraction,
+often with further low-level platform services below them in the OS
+stack. For example, the Power Manager Policy platform service, provides
+APIs to control power management policy, but does not interface with
+any hardware directly. In these cases there is either no PSL, or the
+PSL provides configuration specific responses to a generic PIL. For
+example, if a handset can be built in two variants, one with a hardware
+graphics accelerator and one without but with a software emulated
+graphics accelerator, then the PSL would be responsible for directing
+graphics requests either to the hardware, or to the software and returning
+the results back through the PIL to the client.</p><p>Some plaftorm
+services, for example TV-Out, may use additional platform services
+to output sound as well as providing hardware support for the TV-Out
+chipset.</p><p>Some platform services may share a piece of hardware,
+such as a radio chip. The chip may provide cellular telephony, WiFi,
+FM radio transmission and other features all on one chip, but there
+may be several separate platform services, each exposing an API for
+one particular technology.</p><p>Both the PIL and PSL may make calls
+to other OS components, including other platform services, for information
+such as Hardware Configuration, power status, and the availability
+of other services.</p></section>
+<section id="GUID-1D50AC84-89A3-4BA3-BB7F-032FF499E56D"><title>Why
+have a platform service</title><p>Platform services
+benefit both device creators and third party hardware/chipset developers
+since they specify a standard software interface between the operating
+system and standard functionality provided by hardware.</p><p>This
+means that it is possible for a device creator to easily integrate
+the best hardware for their device, and allows hardware creators to
+work to a standard interface that can be used across multiple devices
+and multiple customers.</p><p>As the platform service interface provides
+a consistent interface to functionality, it allows the device creator
+to concentrate on the core functionality and not worry about how the
+hardware will provide it. And since the interface is standard for
+each type of hardware component, each manufacturer can provide the
+information or code for the PSL comparatively easily for each additional
+variant they produce. So this means less code required from hardware
+manufacturers per hardware component, and a larger market as each
+new mobile device, from any device creator, can use that compliant
+hardware.</p><p>The platform services abstraction for hardware adaptation
+also means more common code that can be shared across the Symbian
+Foundation member community. This includes sharing PSL code with other
+hardware providers, and sharing code for device drivers and other
+higher-level components that need to use the platform services APIs.
+For example, if a device driver for a particular piece of hardware
+also needs to use a serial inter-IC bus (IIC) to send commands to
+that hardware, then it can use the IIC platform service APIs and re-use
+code that other components have already tested for using the IIC client
+interface APIs.</p><p>Platform services also allow the use of standardized
+test tools and test suites. Each new piece of hardware in a particular
+category (for example, camera, Bluetooth radio) has to comply with
+the SHAI interface (PIL/PSL interface). This means that an existing
+test suite that works with another camera module can be used to test
+that this new piece of hardware works. This reduces the time taken
+for testing and increases speed to market.</p></section>
+<section id="GUID-173DF644-98BC-415C-8DA5-5428FF560622"><title>Who
+uses the Platform Service?</title><ul>
+<li><p>Application developers, who need to use the functionality of
+a hardware device, but do not need to know the specific details of
+the hardware/hardware implementation. They use the client interface
+and need to know what the APIs are, and what order they must be called
+in and so on.</p></li>
+<li><p>Framework developers, who need to know how to implement each
+of the client interface APIs , and a description of the functionality
+required within the framework.</p></li>
+<li><p>Hardware Developers, who need to understand the hardware interface,
+and have to write or update the hardware implementation (PSL) to support
+their particular chipset/hardware.</p></li>
+</ul></section>
+<section id="GUID-84DAC762-23F9-4756-8D3A-EB03280E93CA"><title>Platform
+service client interface APIs</title><p>In general these are function
+calls, and associated enumerations. There are two main types of function
+call:<ul>
+<li><p>Synchronous</p></li>
+<li><p>Asynchronous</p></li>
+</ul></p><p>A synchronous function call from the client/device-driver
+waits for the platform service to process it and make any return value.
+The client thread waits for the synchronous call to complete.</p><p>An asynchronous function call asks the platform service to do something,
+but then execution of the client continues immediately. For example,
+this would be the case of any function that starts a long data transmission
+or receive process, such as streaming video. One of the standard components
+of an asynchronous function call is a way for the result to be communicated
+back to the client. Often this is done by a “callback function” where
+the client specifies a pointer to a function (and parameters) during
+the original call, and the platform service puts the callback on the
+Delayed Function Call (DFC) queue for the client when the platform
+service has completed the request. This may indicate “transfer completed”
+or “transfer failed, error code 123”, it may release a lock or other
+functionality defined by the author of the client.</p></section>
+</conbody><related-links>
+<link href="http://developer.symbian.org/wiki/index.php/Prop/SHAI.dita">
+<linktext>Symbian Foundation SHAI page</linktext></link>
+</related-links></concept>

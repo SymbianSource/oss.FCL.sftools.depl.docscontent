@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D" xml:lang="en"><title>Publish
+and Subscribe</title><shortdesc>Publish and Subscribe allows global variables to be set and retrieved,
+and allows subscribers to be notified that variables have changed. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The general pattern for using on the kernel side is almost the same as
+for the user side. However, different classes are used on the kernel side.
+It may be useful to compare kernel side usage with user side usage as described
+in the <xref href="GUID-A81C65CF-CF4E-571C-8080-9D387F46AAD6.dita">Publish and
+Subscribe</xref> guide for the user-side API. </p>
+<ul>
+<li id="GUID-BDAE8BFE-B0F9-5A3D-9E2B-6AC6280195E5"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-AD33A76A-9A27-5D66-B583-64F360EC996E">Properties</xref> </p> </li>
+<li id="GUID-3D892E85-C506-5FF6-A8E2-3A9458800CBB"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-E2261227-E747-53E0-9EE3-9CEC824C1832">Creating and closing a reference to a property</xref>  </p> </li>
+<li id="GUID-728CCCEB-8F5F-5CA1-A650-803C94E64194"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-C41886EF-24EC-58C2-A906-C4890CED3F3A">Defining a property</xref>  </p> </li>
+<li id="GUID-FB0EC3DC-38E1-5701-AF84-47A814238163"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-60F19D41-F9B5-5A21-9654-5D96CA6EE83E">Deleting a property</xref>  </p> </li>
+<li id="GUID-FAE51C6E-1C39-593C-B2AD-7BEFAA257F72"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-EBAA6B5C-CC73-5AE2-85CA-68B445828608">Publishing a property value</xref>  </p> </li>
+<li id="GUID-2F1A3E2F-44C8-5532-8FA2-F49A4FC58623"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-CA858A2A-4BF0-565D-8A6D-58AE32FEE304">Retrieving a property value</xref>  </p> </li>
+<li id="GUID-C39FCE8D-082E-56E8-85B2-137B25B88C61"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-984AB90D-FCCD-5383-B5D9-8D80AA83D989">Subscribing to, and unsubscribing from, a property </xref>  </p> </li>
+<li id="GUID-E02C9293-56B4-5AC0-9DA8-F47E6796A07D"><p> <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-21D8ADCA-9B39-5079-B4AD-FEBFCCB92049">Usage patterns</xref>  </p> </li>
+</ul>
+<section id="GUID-AD33A76A-9A27-5D66-B583-64F360EC996E"><title>Properties</title> <p>A
+property has the two attributes: identity and type. </p> <p><b>Identity</b> </p> <p>A
+property is identified by a 64-bit integer made up of two 32-bit parts: the
+category and the key. </p> <p>A property belongs to a category, and a category
+is identified by a UID. </p> <p>A key is a 32-bit value that identifies a
+specific property within a category. The meaning applied to the key depends
+on the kind of enumeration scheme set up for the category. At its simplest,
+a key can be an index value. It can also be another UID, if the category is
+designed to be generally extensible. </p> <p><b>Type</b> </p> <p>A property
+can be: </p> <ul>
+<li id="GUID-083AF1CA-ACA1-53A3-A251-370DD1D06554"><p>a single 32-bit value </p> </li>
+<li id="GUID-6EA61CFF-F549-5FA2-A6AA-43683C802B8D"><p>a contiguous set of
+bytes, referred to as a byte-array, whose length can vary from 0 to 512 bytes </p> </li>
+</ul><p>Once defined, a property value can change, but the property type cannot.
+Byte-array type properties can also change length provided the length does
+not exceed the value <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-57E64054-610A-31D1-AD7F-E2F9F9FC1DCB"><apiname>RProperty::KMaxPropertySize</apiname></xref>. The limit
+on size of property ensures some limit on RAM usage. </p><p>The API allows
+a byte-array text type property to be pre-allocated when it is defined. This
+means that the time taken to set the values is bounded. However, if the length
+of this property type subsequently increases, then memory allocation may take
+place, and no guarantees can be made on the time taken to set them.</p><p>Note
+that the <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-F8DE443B-B208-353C-A98E-AA52C4FE6530"><apiname>RProperty::ELargeByteArray</apiname></xref> property type can never
+provide a real-time guarantee. </p><p>For code running kernel side, properties
+and their values are defined, set and retrieved using a <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> object.</p> </section>
+<section id="GUID-E2261227-E747-53E0-9EE3-9CEC824C1832"><title>Creating and
+closing a reference to a property</title> <p>On the kernel side, all accesses
+to a property <i>must</i> be done through a property reference, an instance
+of a <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref>. </p> <p>You must create a reference
+to a property, before doing any operation on that property. By operation,
+we mean defining a property, subscribing to a property, publishing and retrieving
+a property value. The kernel will fault if you have not first created a reference. </p> <p>Only
+one property, as uniquely identified by its category and key, can be accessed
+by an instance of <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref>; however a property can
+be referenced by more than one instance of <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref>. </p> <p>Internally,
+properties are represented by <codeph>TProperty</codeph> objects, and these
+are reference counted. The act of creating a reference to a property results
+either in the creation of a <codeph>TProperty</codeph> object or an increase
+in the reference count of an existing object. The property itself has no attributes
+or "structure" until it is defined. </p> <p>Please note that the structure
+and management of <codeph>TProperty</codeph> objects are part of Symbian platform's
+internal implementation and will not be discussed further. </p> <fig id="GUID-8A0D9C1E-00D7-5369-AD9C-28AA9151612F">
+<title>Objects internal to Symbian platform</title>
+<image href="GUID-31CE66F2-B36C-56ED-A399-BA9EFA179DED_d0e75538_href.png" placement="inline"/>
+</fig> <p>To establish a reference to a property, create an <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> object,
+and then use one of the following functions: </p> <ul>
+<li id="GUID-87D76A73-6429-5D4C-8321-A98F756C30F5"><p> <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-DBEDDC3A-AE6F-3CAF-B251-4AA556EAF21C"><apiname>RPropertyRef::Attach()</apiname></xref> -
+tries to open the property identified by the category and key, if it exists,
+but creates that property if it does not exist. Creation is simply the act
+of creating the internal <codeph>TProperty</codeph> object. The object has
+no type or "structure" associated with it other than the use of the category
+and key as identification markers. </p> </li>
+<li id="GUID-7D1AFF17-BB0A-57B9-9782-001E983D9EDE"><p> <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6F8EB0AB-C01A-3BFD-B334-D9C9FB923865"><apiname>RPropertyRef::Open()</apiname></xref> -
+tries to open the property identified by the category and key, and assumes
+that the property already exists; this fails if the property does not exist. </p> </li>
+</ul> <p>You can call these functions from a user thread running in supervisor
+mode, from a kernel thread or from a DFC. If calling from a user thread running
+in supervisor mode, then your thread must be running in a critical section.
+In debug mode, if a user thread is not in a critical section, then the kernel
+will fault. </p> <p>On successful return from these functions, the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> object
+owns a resource, the property, and this can then be defined and accessed through
+the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> object. </p> <p>It is difficult to make
+firm rules as to which one your code should use, but generally, you use <codeph>Open()</codeph> if
+you have no responsibility or interest in ensuring that the property exists.
+You would use <codeph>Attach()</codeph> if you were to have single or <i>joint</i> responsibility
+for ensuring that the property exists. It depends on the intent of the property
+and the role of your driver code in the system. </p> <p>Note that responsibility
+for creating the property does not necessarily align with who can define,
+delete, publish (write) or retrieve (read) a property value. This is governed
+by the intent of the property and, for retrieving and publishing, by the security
+policies in place. </p> <p>When the property is no longer needed, you can
+release it by calling <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-3465CD78-C107-3AD9-AEAF-F97A94C1C462"><apiname>RPropertyRef::Close()</apiname></xref>. Closing the
+reference does not cause the property to disappear. This only happens when
+the <i>final</i> reference to the property is closed. </p> <p>Note that it
+is quite legitimate to attach to, or to open, a property that has not been
+defined, and in this case no error will be returned either. This enables the
+lazy definition of properties as used in some of the usage patterns. </p> <codeblock id="GUID-7F4295E4-F822-5128-B4EC-3AD3E71BD444" xml:space="preserve">const TUid KMyPropertyCat={0x10012345};
+enum TMyPropertyKeys={EMyPropertyCounter,EMyPropertyName};
+
+. . .
+
+// Attach to the ‘counter’ property. This creates the property
+// if it does not already exist.
+RPropertyRef counter;
+TInt r;
+r=counter.Attach(KMyPropertyCat,EMyPropertyCounter);
+
+// r should be KErrNone if sucessful or KErrNoMemory if there
+// is an out of memory failure.
+if (r != KErrNone)
+    {
+    // Handle the bad return value
+    }
+
+// use the counter object...
+
+// when finished, release the property
+counter.Close();
+    </codeblock> </section>
+<section id="GUID-C41886EF-24EC-58C2-A906-C4890CED3F3A"><title>Defining a
+property </title> <p>Defining a property gives it "structure" i.e. attributes
+such as the property type, and the security policies that define the capabilities
+that a process must have to publish and retrieve the property value. </p> <p>A
+property is defined using the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref> function.
+You can call this function from a user thread running in supervisor mode,
+from a kernel thread or from a DFC. If calling from a user thread running
+in supervisor mode, then your thread must be running in a critical section.
+In debug mode, if a user thread is not in a critical section, then the kernel
+will fault. </p> <p>You can call this function from a user thread running
+in supervisor mode, from a kernel thread or from a DFC. If calling from a
+user thread running in supervisor mode, then your thread must be running in
+a critical section. In debug mode, if a user thread is not in a critical section,
+then the kernel will fault. </p> <p>The information needed to define the property
+is passed to <codeph>Define()</codeph>. Note that a reference to the property
+must already have been established using <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-DBEDDC3A-AE6F-3CAF-B251-4AA556EAF21C"><apiname>RPropertyRef::Attach()</apiname></xref> or <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6F8EB0AB-C01A-3BFD-B334-D9C9FB923865"><apiname>RPropertyRef::Open()</apiname></xref>. </p> <p>A
+property does not need to be defined before it can be accessed. This supports
+programming patterns where both publishers and subscribers may define the
+property. </p> <p>Once defined, a property persists until the system reboots,
+or the property is explicitly deleted. Its lifetime is not tied to that of
+the thread or process that originally defined it. This means that, when defining
+a property, it is important to check the return code from the call to <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref> to
+deal with the possibility that the property has previously been defined. </p> <p>The
+following code shows the definition of two properties, which we call: 'name'
+and 'counter': </p> <codeblock id="GUID-318DC2A6-FFE4-5781-9F78-5D5B4392585F" xml:space="preserve">const TUid KMyPropertyCat={0x10012345};
+enum TMyPropertyKeys={EMyPropertyCounter,EMyPropertyName};
+
+static _LIT_SECURITY_POLICY_PASS(KAllowAllPolicy);
+static _LIT_SECURITY_POLICY_C1(KPowerMgmtPolicy,ECapabilityPowerMgmt);
+
+TInt r;
+
+// Attaches to the ‘counter’ property. 
+// If the property already exists, a new reference to it is created.
+// If the property does not exist, it is created.
+RPropertyRef counter;
+r=counter.Attach(KMyPropertyCat,EMyPropertyCounter);
+if (r != KErrNone)
+    {
+    // Handle the bad return value
+    }
+
+// Attaches to the ‘name’ property. 
+// If the property already exists, a new reference to it is created.
+// If the property does not exist, it is created.
+RPropertyRef name;
+r=name.Attach(KMyPropertyCat,EMyPropertyName);
+if (r != KErrNone)
+    {
+    // Handle the bad return value
+    }
+
+// Now define the 'counter' property:
+// 1. Integer type
+// 2. Pre-allocated size has no meaning, and must be zero.
+// 3. Allow all processes to retrieve (read) the property.
+// 4. Only processes with power managament capability can write.
+// 5. Capability checks to be done against client thread's process.
+
+r=counter.Define(RProperty::EInt,KAllowAllPolicy,KPowerMgmtPolicy,0,iClientProcess);
+
+// You will probably need to check the return value.
+// It may legitimately by non-KErrNone.
+
+...
+
+// Now define the 'name' property:
+// 1. Byte array
+// 2. Pre-allocate 100 bytes.
+// 3. Allow all processes to retrieve (read) the property.
+// 4. Only processes with power managament capability can write.
+// 5. Capability checks to be done against client thread's process.
+
+r=name.Define(RProperty::EByteArray,KAllowAllPolicy,KPowerMgmtPolicy,100,iClientProcess);
+
+// You will probably need to check the return value.
+// It may legitimately be non-KErrNone.
+...</codeblock> <p>Once defined, a property value can change, but the property
+type cannot. Byte-array type properties can also change length provided the
+length does not exceed the 512 bytes, for <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-19066DA4-B407-3C31-8472-371CA341BDC7"><apiname>RProperty::EByteArray</apiname></xref> types
+or 65535 bytes or <xref href="GUID-C4776034-D190-3FC4-AF45-C7F195093AC3.dita#GUID-C4776034-D190-3FC4-AF45-C7F195093AC3/GUID-F8DE443B-B208-353C-A98E-AA52C4FE6530"><apiname>RProperty::ELargeByteArray</apiname></xref> types. </p> <p>The
+API allows byte-array type properties to be pre-allocated when they are defined.
+This means that the time taken to set the values is bounded. However, if the
+length of these property types subsequently increases, then memory allocation
+may take place, and no guarantees can then be made on the time taken to set
+them. </p> <p> <b>Security notes:</b>  </p> <ul>
+<li id="GUID-E46B65DD-5D93-5796-8762-D8637947350D"><p>Symbian platform defines
+a property category known as the system category that is reserved for system
+services, and is identified by the <xref href="GUID-A85740BD-BC85-345E-B24A-92F68EA56270.dita"><apiname>KUidSystemCategoryValue</apiname></xref> UID.
+To define a property within this category, then the process on whose behalf
+your code is doing the define operation must have the <i>writeDeviceData</i> capability, <xref href="GUID-C607209F-6FC5-31DE-8034-E5B799B857A8.dita"><apiname>ECapabilityWriteDeviceData</apiname></xref>. </p> <p>To
+ensure that this security check is made, you must pass a pointer to the appropriate <codeph>DProcess</codeph> object
+as the second parameter to <codeph>Define()</codeph>. If you omit this parameter,
+a null pointer is assumed by default, and <i>the security check is bypassed</i>.
+This may be legitimate if you are doing this on behalf of the kernel or on
+behalf of the driver itself. </p> </li>
+<li id="GUID-18AA5E54-23AE-564F-BCB0-0F9FF70DEFD5"><p>Whether you pass a <codeph>DProcess</codeph> pointer
+or not, the owner of the property is deemed to be the process that is <i>current</i> when
+the code runs. It is this, the current process, that you will need to pass
+to <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-73FB49F1-E9EF-3CE3-A317-8888BAE49403"><apiname>RPropertyRef::Delete()</apiname></xref> at a later time. </p> </li>
+<li id="GUID-A941BD4F-E288-5A71-9F78-08351665AE73"><p>You also need to define
+two security policies: one to define the capabilities that will be required
+to publish (write to) the property, and the other to define the capabilities
+that will be required to retrieve (read) the property. Security policies are <xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> objects
+or their static equivalents. </p> <p>In the above code fragment, we specify
+that all processes in the system will be able to read the defined property
+but only those with power management capability will be able to write to the
+property - this is an arbitrary choice and is for illustration only. </p> </li>
+</ul> <p>In the above code fragments, <codeph>iClientProcess</codeph> is a
+pointer to the client thread's owning process object, and assumes that the
+driver code is making the request on behalf of a client, although this may
+not necessarily be so. Typically, if you need to keep this information, you
+could set this up in the logical channel constructor using the following code: </p> <codeblock id="GUID-33D0D5EA-8BB2-57DB-A327-D17A6A5C2D8E" xml:space="preserve">iClientProcess=&amp;Kern::CurrentProcess();</codeblock> <p>The
+constructor code runs in the context of the client user thread. Note that <codeph>DProcess</codeph> is
+internal to Symbian. </p> </section>
+<section id="GUID-60F19D41-F9B5-5A21-9654-5D96CA6EE83E"><title>Deleting a
+property </title> <p>Deleting a property is the opposite of defining it. It
+removes type and security information. It does <i>not</i> remove a reference
+to the property. </p> <p>A property is deleted using the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-73FB49F1-E9EF-3CE3-A317-8888BAE49403"><apiname>RPropertyRef::Delete()</apiname></xref> function.
+You can call this function from a user thread running in supervisor mode,
+from a kernel thread or from a DFC. If calling from a user thread running
+in supervisor mode, then your thread must be running in a critical section.
+In debug mode, if a user thread is not in a critical section, then the kernel
+will fault. </p> <p>Any outstanding subscriptions for this property complete
+with <xref href="GUID-5E653C17-372C-32E1-A1B2-9E69A9991C40.dita"><apiname>KErrNotFound</apiname></xref>. </p> <p> <b>Security notes:</b>  </p> <ul>
+<li id="GUID-1B901363-70E9-560B-9C56-C63BB6D180C0"><p>Only the owning process
+is allowed to delete the property. This is deemed to be the process that was
+current when the property was defined. However, to enforce this, you <i>must</i> pass
+into <xref href="GUID-331FCC3D-B326-37A1-8AF5-381320224BBE.dita#GUID-331FCC3D-B326-37A1-8AF5-381320224BBE/GUID-2838E746-C917-3FB0-B2BA-464C38B5944B"><apiname>RPropertyref::Delete()</apiname></xref> a pointer to the <codeph>DProcess</codeph> object
+that represents the owning process. If you omit to pass this parameter to <codeph>Delete()</codeph>,
+a null pointer is assumed by default, and <i>the security check is bypassed.</i>.
+This may be legitimate if you are doing this on behalf of the kernel or on
+behalf of the driver itself. </p> </li>
+</ul> <p>For example, extending the code fragment introduced in defining a
+property above: </p> <codeblock id="GUID-25FBD12A-4461-5A92-9961-960DB26FE3F8" xml:space="preserve">const TUid KMyPropertyCat={0x10012345};
+enum TMyPropertyKeys={EMyPropertyCounter,EMyPropertyName};
+
+static _LIT_SECURITY_POLICY_PASS(KAllowAllPolicy);
+static _LIT_SECURITY_POLICY_C1(KPowerMgmtPolicy,ECapabilityPowerMgmt);
+
+TInt r;
+
+// Attaches to the ‘counter’ property. 
+// If the property already exists, a new reference to it is created.
+// If the property does not exist, it is created.
+RPropertyRef counter;
+r=counter.Attach(KMyPropertyCat,EMyPropertyCounter);
+if (r != KErrNone)
+    {
+    // Handle the bad return value
+    }
+
+// Attaches to the ‘name’ property. 
+// If the property already exists, a new reference to it is created.
+// If the property does not exist, it is created.
+RPropertyRef name;
+r=name.Attach(KMyPropertyCat,EMyPropertyName);
+if (r != KErrNone)
+    {
+    // Handle the bad return value
+    }
+
+// Now define the 'counter' property:
+// 1. Integer type
+// 2. Pre-allocated size has no meaning, and must be zero.
+// 3. Allow all processes to retrieve (read) the property.
+// 4. Only processes with power managament capability can write.
+// 5. Capability checks to be done against client thread's process.
+
+r=counter.Define(RProperty::EInt,KAllowAllPolicy,KPowerMgmtPolicy,0,iClientProcess);
+
+// You will probably need to check the return value.
+// It may legitimately by non-KErrNone.
+
+...
+
+// Now define the 'name' property:
+// 1. Byte array
+// 2. Pre-allocate 100 bytes.
+// 3. Allow all processes to retrieve (read) the property.
+// 4. Only processes with power managament capability can write.
+// 5. Capability checks to be done against client thread's process.
+
+r=name.Define(RProperty::EByteArray,KAllowAllPolicy,KPowerMgmtPolicy,100,iClientProcess);
+
+// You will probably need to check the return value.
+// It may legitimately by non-KErrNone.
+
+...
+
+// Delete the ‘name’ property.
+// Assumes that the owning process is iClientProcess. This will be checked
+// as being the valid owner of the property.
+r=name.Delete(iClientProcess);
+if (r != KErrNone)
+    {
+    // deal with a non-KErrNone return value.
+    }
+
+// Delete the ‘counter’ property.
+// Assumes that the owning process is iClientProcess. This will be checked
+// as being the valid owner of the property.
+r=name.Delete(iClientProcess);
+if (r != KErrNone)
+    {
+    // deal with a non-KErrNone return value.
+    }</codeblock> </section>
+<section id="GUID-EBAA6B5C-CC73-5AE2-85CA-68B445828608"><title>Publishing
+a property value </title> <p>A property is published (written), using the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-D4B0220A-EB30-327C-B878-FBC5294A08F6"><apiname>RPropertyRef::Set()</apiname></xref> family
+of functions. </p> <p>This is guaranteed to have bounded execution time, suitable
+for high-priority, real-time tasks, except when publishing a byte-array property
+that requires the allocation of a larger space for the new value, or when
+publishing a large byte-array property type, as identified by <xref href="GUID-0B4D1D87-8C1B-3AEF-9C3D-3091FBDF3A6B.dita"><apiname>ELargeByteArray</apiname></xref>. </p> <p>Property
+values are written atomically. This means that it is not possible for threads
+reading a property to get a garbled value. </p> <p>All outstanding subscriptions
+for a property are completed when the value is published, even if it is exactly
+the same as the existing value. This means that a property can be used as
+a simple broadcast notification service. </p> <p>Publishing a property that
+is not defined is not necessarily a programming error. The <codeph>Set()</codeph> functions
+just return an error. If this is not expected for any particular usage, then
+the error must be checked and processed by the caller. </p> <p> <b>Security
+notes:</b>  </p> <ul>
+<li id="GUID-DA84723A-B9F7-525C-908A-BC51AA8B0366"><p>If you pass a pointer
+to a <codeph>DProcess</codeph> object, then the capabilities of that process
+will be checked against those contained in the write security policy that
+was created and passed to <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref>. If you
+omit this <codeph>DProcess</codeph> parameter, a null pointer is assumed by
+default, and <i>the security check is bypassed</i>. This may be legitimate
+if you are doing this on behalf of the kernel or on behalf of the driver itself. </p> </li>
+</ul> <p>See the code fragment in the section <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-CA858A2A-4BF0-565D-8A6D-58AE32FEE304">Retrieving
+a property value</xref>  </p> </section>
+<section id="GUID-CA858A2A-4BF0-565D-8A6D-58AE32FEE304"><title>Retrieving
+a property value </title> <p>The current value of a property is retrieved
+(read) using the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-745E29E7-A26B-3207-ACA3-F8CC41FC7081"><apiname>RPropertyRef::Get()</apiname></xref> family of functions. </p> <p>This
+is guaranteed to have bounded execution time, suitable for high-priority,
+real-time tasks, except when retrieving a large byte-array property type,
+as identified by <xref href="GUID-0B4D1D87-8C1B-3AEF-9C3D-3091FBDF3A6B.dita"><apiname>ELargeByteArray</apiname></xref>. </p> <p>Property values
+are read atomically. This means that it is not possible for threads reading
+a property to get a garbled value. </p> <p>Retrieving a property that is not
+defined is not necessarily a programming error. The <codeph>Get()</codeph> functions
+just return an error. If this is not expected for any particular usage, then
+the error must be checked and processed by the caller. </p> <p>Integer properties
+must be accessed using the overload that takes an integer reference, whereas
+a byte-array property is accessed using the overload that takes a descriptor
+reference. </p> <p>The following code fragment shows publication and retrieval
+of a property. Note that it contains a race condition, especially if another
+thread is executing the same sequence to increment the ‘counter’ value. </p> <p> <b>Security
+notes:</b>  </p> <ul>
+<li id="GUID-B117308F-416E-5BAE-880C-A162869799AD"><p>If you pass a pointer
+to a <codeph>DProcess</codeph> object, then the capabilities of that process
+will be checked against those contained in the read security policy that was
+created and passed to <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref>. If you omit
+this <codeph>DProcess</codeph> parameter, a null pointer is assumed by default,
+and <i>the security check is bypassed</i>. This may be legitimate if you are
+doing this on behalf of the kernel or on behalf of the driver itself. </p> </li>
+</ul> <codeblock id="GUID-75549D12-A2CA-5039-BB91-2ABF19058DE5" xml:space="preserve">const TUid KMyPropertyCat={0x10012345};
+enum TMyPropertyKeys={EMyPropertyCounter,EMyPropertyName};
+
+TInt r;
+
+RPropertyRef counter;
+RPropertyRef name;
+
+
+// Assume that the 'name' and 'counter' property references have
+// already been created. They may have been defined.
+//
+// Assume that the process to be used for security checking is iClientProcess.
+
+...
+
+// publish a new name value. 
+_LIT8(KSomeExampleName,"My example name");
+r=name.Set(KSomeExampleName, iClientProcess);
+if (r != KErrNone)
+    {
+    // Check the return value. KErrNotFound means that the property has not yet been    
+    // defined which may be legitimate.
+    // KErrArgument is a serious problem at this stage.
+    // KErrPermissionDenied is a security violation; the process iClientProcess has 
+    // insufficient capability to do this operation. 
+    }
+
+
+// Retrieve the first 10 characters of the name value.
+// We are not doing any security checking for this operation, so no DProcess pointer 
+// is passed to Get(). 
+TBuf&lt;10&gt; n;
+r=name.Get(n);
+
+if ((r!= KErrNone) &amp;&amp; (r != KErrOverflow))
+    {
+    // Handle error value.
+    }
+
+// retrieve and publish a new value using the attached ‘counter’ property
+TInt count;
+r=counter.Get(count);
+if (r==KErrNone)
+    {
+    r=counter.Set(++count);
+    }
+else
+    {
+    // Handle bad return value
+    }
+...
+
+// When finised, release the property references.
+counter.Close();
+name.Close();</codeblock> </section>
+<section id="GUID-984AB90D-FCCD-5383-B5D9-8D80AA83D989"><title>Subscribing
+to, and unsubscribing from, a property </title> <p>Subscribing to a property
+is the act of making an asynchronous request to be notified of a change to
+that property. </p> <p>You make a request for notification of a change to
+a property by calling the <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6DC06192-78AF-3B3D-8077-8479789AF006"><apiname>RPropertyRef::Subscribe()</apiname></xref> member
+function on a property reference object. Only one subscription request can
+be outstanding at any time for a given <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita"><apiname>RPropertyRef</apiname></xref> instance. </p> <p>You
+can cancel an outstanding subscription request by calling <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-4AFB3074-E523-3404-8F0D-39995C35E045"><apiname>RPropertyRef::Cancel()</apiname></xref>.
+This is unsubscribing from the property. </p> <p>Subscribing to a property
+is a single request to be notified when the property is next updated, it does
+not generate an ongoing sequence of notifications for every change to that
+property's value. Neither does it provide the caller with the new value. In
+essence, the act of notification should be interpreted as “Property X has
+changed” rather than “Property X has changed to Y”. This means that the new
+value must be explicitly retrieved, if required. As a result, multiple updates
+may be collapsed into one notification, and subscribers may not have visibility
+of all intermediate values. </p> <p>This might appear to introduce a window
+of opportunity for a subscriber to be out of synchronisation with the property
+value – in particular, if the property is updated again before the subscriber
+thread has had the chance to process the original notification. However, a
+simple programming pattern, outlined in the second example below ensures this
+does not happen. The principle is that, before dealing with a subscription
+completion event, you should re-issue the subscription request. </p> <p>Note
+that if the property has not been defined, then a subscription request does
+not complete until the property is subsequently defined and published. Note
+that the request will complete with <xref href="GUID-213DE05E-24F7-3E94-9B35-F4A72B3EBFD8.dita"><apiname>KErrPermissionDenied</apiname></xref> if
+the subscribing process does not have sufficient capability as defined by
+the <xref href="GUID-81A285F6-3F87-3E77-9426-61BB16BC7109.dita"><apiname>TSecurityPolicy</apiname></xref> object supplied by the process defining
+the property. </p> <p>If the property is already defined, then the request
+completes immediately with <xref href="GUID-213DE05E-24F7-3E94-9B35-F4A72B3EBFD8.dita"><apiname>KErrPermissionDenied</apiname></xref> if the
+subscribing process does not have sufficient capability. </p> <p>The essence
+of subscribing to a property is that you pass a function into <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6DC06192-78AF-3B3D-8077-8479789AF006"><apiname>RPropertyRef::Subscribe()</apiname></xref> and
+that this function is called when the property value is published. You pass
+the function by wrapping it in <xref href="GUID-8A0F75CD-DC61-37EA-A23A-3A82080F0751.dita"><apiname>TPropertySubsRequest</apiname></xref> object
+and then pass this into <codeph>Subscribe()</codeph>. What the function does
+depends on the implementation, but you may want to re-subscribe to the property
+and then retrieve the property value, or you may want to set some flag. It
+all depends on the intent of the property and the driver code. </p> <p>The
+following code fragments show the general idea. </p> <codeblock id="GUID-DF8201DF-7812-5B39-8B0F-3CB664BA00FA" xml:space="preserve">const TUid KMyPropertyCat={0x10012345};
+enum TMyPropertyKeys={EMyPropertyCounter,EMyPropertyName};</codeblock> <codeblock id="GUID-2162EE7C-B834-50ED-9C84-3CE004C0B7D6" xml:space="preserve">class DMyLogicalChannel : public DLogicalChannel
+    {
+    public :
+        DMyLogicalChannel();
+        void OpenReference();
+        void SetUpSubscription();
+        ...
+    private :
+        static void HandleSubsComplete(TAny* aPtr, TInt aReason);
+        ...
+    private:
+        RCounterRef iName;
+        TBuf&lt;10&gt;    iNameValue;
+        DProcess    iClientProcess;
+        TPropertySubsRequest iSubsRequest;
+        TInt iReason;
+    }</codeblock> <codeblock id="GUID-4A655D83-07CD-5998-A540-16D4A5EABFC5" xml:space="preserve">DMyLogicalChannel::DMyLogicalChannel() : iSubsRequest(&amp;HandleSubsComplete, this)
+    {
+    iClientProcess = &amp;Kern::CurrentProcess();
+    // Other code omitted 
+    }</codeblock> <codeblock id="GUID-DB6F4AF7-8866-50C5-95FD-5BCA1F2B55CE" xml:space="preserve">void DMyLogicalChannel::OpenReference()
+    {
+    // Open a reference to the ‘name’ property, and assume that
+    // the property has already been created and defined.
+  
+    TInt r
+    ...
+    r=iName.Open(KMyPropertyCat,EMyPropertyName);
+    if (r != KErrNone)
+        {
+        // Handle bad return value.
+        }
+    ...
+    }</codeblock> <codeblock id="GUID-217CFAF4-2CA6-588B-B3A2-667EB9A04FCA" xml:space="preserve">void DMyLogicalChannel::SetUpSubscription()
+    {
+    // Now ask to be notified when the 'name' property is updated.
+    // This will eventually result in a call to the function HandleSubsComplete()
+    // at some later time (asynchronously).
+    // When eventually called, the pointer to this DMyLogicalChannel object will
+    // be passed to HandleSubsComplete().
+    //
+    ...
+    iReason = KRequestPending;
+    TInt r = iName.Subscribe(iSubsRequest); // ignoring security issues here.
+    if (r != KErrNone)
+        {
+        // handle bad return code.
+        }
+    return;
+    }</codeblock> <codeblock id="GUID-C2CD229F-F6CE-5EE3-9EBA-A69CED50FA07" xml:space="preserve">void DMyLogicalChannel::CancelSubscription()
+    {
+    if (iReason == KRequestPending)
+        {
+        iName.Cancel(iSubsRequest);
+        }
+    }</codeblock> <codeblock id="GUID-D5E046B5-4D56-5B82-B4B8-D943DC601338" xml:space="preserve">void DMyLogicaChannel::SubsCompleteFn(TAny* aPtr, TInt aReason)
+    {
+    // A static function called when a change to the property occurs.
+    // aPtr will point to the DMyLogicalChannel object 
+    // (see the DMyLogicalChannel constructor)
+    // aReason is the reason for the subscription completing. This may be:
+    //     KErrNone - for a normal completion.
+    //     KErrPermissionDenied - if the security check has failed.
+    //     KErrCancel - if the request was cancelled.
+    // For a normal completion, setup another notification request before
+    // getting the current value of the property.
+    //
+    DMyLogicaChannel* self = (DMyLogicaChannel*) aPtr;
+       self-&gt;iReason = aReason;
+    if (iReason == KErrNone)
+        {
+        self-&gt;SetUpSubscription();
+        self-&gt;Get(iNameValue,iClientProcess);
+        return;
+        }
+    // Investigate the non-zero reason code.
+    }</codeblock> </section>
+<section id="GUID-21D8ADCA-9B39-5079-B4AD-FEBFCCB92049"><title>Usage patterns</title> <p>There
+are three usage patterns that can easily be identified, labelled as: standard
+state, pure event distribution, and speculative publishing. </p> <p id="GUID-98103A8A-10E1-58FE-9613-A616E142AA2A"><b>Standard state</b> </p> <p>This
+pattern is used for events and state that are known to be used widely in the
+system. Examples of this might be battery level and signal strength, which
+are important in every phone. </p> <p>The publisher calls <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref> to
+create the appropriate property. For byte array or text properties, a size
+sufficient for all possible values should be reserved. An error of <xref href="GUID-D1D25122-F2B8-3C78-8599-84905BFD47B8.dita"><apiname>KErrAlreadyExists</apiname></xref> should
+be ignored. The publisher then publishes the property values as, and when,
+appropriate. If the <codeph>RPropertyRef::Set()</codeph> call fails, this
+should be treated as a serious error, since it indicates that important system
+state is not getting through. Appropriate action might include panicking or
+rebooting the system. Subscribers will use <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6DC06192-78AF-3B3D-8077-8479789AF006"><apiname>RPropertyRef::Subscribe()</apiname></xref> to
+request notification, and <codeph>RPropertyRef::Get()</codeph> to retrieve
+the property value on notification. </p> <p>The memory to store the property
+value will be permanently allocated, even if it turns out that no-one in the
+system needs that value. This does ensure that the value can always be published,
+even if the system is in an out of memory situation. For this reason, this
+approach should be limited to widely used and important state. The <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-8D9E6222-DDBA-55CA-A96F-1DCBD99E3FD3">Speculative publishing</xref> pattern offers an approach for dealing with
+less important state. </p> <p id="GUID-5C82A92C-168D-5CD2-BE43-EE79AB500B14"><b>Pure event distribution</b> </p> <p>This
+pattern is used when events need to be distributed, not values. </p> <p>The
+publisher of the event simply uses an integer property, and calls <codeph>RPropertyRef::Set()</codeph> with
+any value. Even if the value of the property is not changed by this operation,
+all subscribers will be notified that a <codeph>Set()</codeph> has occurred,
+and by implication that the related event has occurred. </p> <p>Subscribers
+will be able to detect that an event has occurred, but will get no other information.
+The minimum possible memory is wasted on storage for the dummy value. </p> <p id="GUID-8D9E6222-DDBA-55CA-A96F-1DCBD99E3FD3"><b>Speculative publishing</b> </p> <p>This
+pattern is used when it is not known whether a value will be of interest to
+others or not. Unlike the <xref href="GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D.dita#GUID-EBFD653D-6E6A-5F6F-88D7-8CCE07B4002D/GUID-98103A8A-10E1-58FE-9613-A616E142AA2A">standard
+state</xref> pattern, the publisher of the event does not call <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref> to
+create the property. Instead, it simply calls <codeph>RPropertyRef::Set()</codeph> as
+appropriate, and ignores any <xref href="GUID-5E653C17-372C-32E1-A1B2-9E69A9991C40.dita"><apiname>KErrNotFound</apiname></xref> error. </p> <p>When
+other code in the system, i.e. a potential subscriber, is interested in the
+state, it calls <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-47F367CB-E663-3F97-AC0C-31A9DD6BD5E5"><apiname>RPropertyRef::Define()</apiname></xref> to create the property
+and allocate the memory for the value. An error of <xref href="GUID-D1D25122-F2B8-3C78-8599-84905BFD47B8.dita"><apiname>KErrAlreadyExists</apiname></xref> should
+be ignored, as this only indicates that some other code in the system is also
+interested in the value and has already created the property. </p> <p>The
+subscriber then calls <xref href="GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2.dita#GUID-39D6B924-3FA3-39E6-A6EA-88E2D1927AC2/GUID-6DC06192-78AF-3B3D-8077-8479789AF006"><apiname>RPropertyRef::Subscribe()</apiname></xref> and <codeph>RPropertyRef::Get()</codeph> as
+usual to interact with the property. On the first <codeph>Get()</codeph>,
+the subscriber may retrieve the property default value (zero, or a zero length
+descriptor). This must be substituted with a sensible default value for the
+property in question. </p> <p>Using this pattern, no memory is wasted on properties
+that have no subscribers, while the publisher code is simpler as there is
+no need for configuration as to which properties to publish. </p> <p>The publisher,
+however, wastes some time attempting to publish unneeded values, but this
+should not be an issue unless the value is very frequently updated. </p> <p>Where
+events are published very infrequently, the subscriber could have a dummy
+value for a long time, until the next publish event updates the value. Often
+this is not a problem as a default value can be substituted. For example a
+full/empty indicator for a battery level, none for signal strength etc. This
+pattern is unlikely to be useful if there is no suitable default value. </p> </section>
+</conbody></concept>

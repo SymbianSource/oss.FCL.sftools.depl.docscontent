@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3" xml:lang="en"><title>Migration
+Tutorial: Demand Paging and Media Drivers</title><shortdesc>Describes how to change media drivers when demand paging is used.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Demand paging is a change made from Symbian platform v9.3 to how the Kernel
+uses RAM and storage media. This topic </p>
+<section id="GUID-AD70C4EE-F7E8-473D-B917-819B9852CB31"><title>Introduction</title> <p>If the ROM has been built with paging
+enabled, the image is divided into two sections: an unpaged section and a
+paged section. In addition to this, code that is not part of the ROM can be
+loaded on demand into RAM from other non-XIP partitions and/or media, for
+example FAT or ROFS partitions. </p> <p>Two types of paging are currently
+supported: </p> <ul>
+<li id="GUID-E838F239-2F8A-5441-AE76-59382AA75FF6"><p>ROM paging - paging
+from the paged section of the ROM image </p> </li>
+<li id="GUID-28970AFC-33C6-56B7-BBD3-383220359A90"><p>code paging - paging
+from non-removable media, for example, a FAT partition on an internal Multi
+Media Card (MMC) drive or an internal NAND ROFS/FAT partition. </p> <p>See
+also <xref href="GUID-90B5FDD9-7D59-5035-BF53-2B177655DCD6.dita">Paging from an
+internal MMC</xref>. </p> </li>
+</ul> <p> <note>: A difference between ROM paging and code paging is that
+all ROM pages are contiguous, whereas code that is paged from other drives
+may be split over several potentially non-contiguous clusters. This puts an
+extra burden on the paging subsystem as it needs to identify the layout of
+the DLL on the media before it is deemed pageable. This is achieved by using
+the file servers blockmap API.</note> </p> <p>Media drivers are typically
+PDDs with a filename of <filepath>med.pdd</filepath>. Normally they are declared
+in the <filepath>rombuild.oby</filepath> file with the keyword <codeph>extension</codeph> or <codeph>device</codeph> and
+are therefore flagged as unpaged. That is, once loaded their code and read-only
+data sections are not paged out. </p> <p>A media driver that is capable of
+servicing page requests from the paging subsystem must ensure that the thread
+in which the media driver runs takes the page fault itself otherwise a deadlock
+could occur. In theory, the only time this can happen is when a media driver
+accepts a write request from a user side client that points to data in the
+paged section of the ROM or to code that has been loaded into RAM from code
+paging enabled media. To remedy this, the local media subsystem has been modified
+to lock write requests to paging media drivers before they are dispatched
+and to split large write requests into a series of smaller ones to avoid exhausting
+available RAM. </p> <p>The two initial stages relevant to this discussion
+are: </p> <ul>
+<li id="GUID-02D2CBAA-8393-52C2-B940-31603B4AF9FA"><p>the kernel extension
+entry point - identified by the <codeph>DECLARE_STANDARD_EXTENSION</codeph> macro </p> </li>
+<li id="GUID-1EFE9978-780D-507C-B408-E0C3AE97A0A7"><p>the PDD entry point
+- identified by the <codeph>DECLARE_EXTENSION_PDD</codeph> macro. </p> </li>
+</ul> <p>To enable demand paging as soon as possible in the boot sequence
+it is desirable to instantiate and install the PDD factory object earlier,
+for example in the kernel extension entry point. </p> <p> <note> Some media
+drivers have no kernel extension entry point defined, the MMC media driver
+is an example. These drivers have a <xref href="GUID-73947402-2F32-35C7-94C4-22B4D63D5FB3.dita"><apiname>DECLARE_STANDARD_PDD</apiname></xref> macro
+defined rather than <xref href="GUID-52853C0D-CA98-3B92-B7D4-FF1C1F06C1A6.dita"><apiname>DECLARE_EXTENSION_PDD</apiname></xref>. They require
+modification to have a <xref href="GUID-52853C0D-CA98-3B92-B7D4-FF1C1F06C1A6.dita"><apiname>DECLARE_EXTENSION_PDD</apiname></xref> and a <xref href="GUID-8B6DF6D7-4995-3564-9303-272500D7E747.dita"><apiname>DECLARE_STANDARD_EXTENSION</apiname></xref>.</note> </p> <p>The
+steps needed to support ROM and/or code paging are as follows: </p> <ol id="GUID-CADDDC61-A3A2-5AC3-AD69-739FD61FA9CC">
+<li id="GUID-4D14D36E-5F3A-55E6-BAB8-A45243B34928"><p>determine whether code
+paging is supported, and if so, identify the relevant local drive number or
+numbers </p> </li>
+<li id="GUID-F97B3965-020F-5C16-9D09-5861C0B6C695"><p> <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita#GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3/GUID-77FBA53A-CC78-5CD1-8FDF-F6A8001DE466">modify variantmediadef.h</xref>  </p> </li>
+<li id="GUID-D608C61F-E297-5A0C-B0FD-4F0F98B36EEF"><p> <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita#GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3/GUID-686EFEF4-A514-51BC-8378-962A8899F270">modify the media drivers kernel extension entry point</xref> to register
+the media driver with the paging subsystem and to instantiate and install
+the <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> derived factory object </p> </li>
+<li id="GUID-5DEA2654-8954-52EC-B498-066AE05AB209"><p> <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita#GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3/GUID-C32CF25E-553B-5786-88ED-4587AC0DF3BA">modify the DLocalDrive::Ecaps() handling</xref>  </p> </li>
+<li id="GUID-CED0CA1D-44EF-51DC-BC56-60B88A9D0494"><p>modify the media drivers <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-EB244422-0BEC-3D3F-BDDA-3F050A2697A7"><apiname>DMediaDriver::Request</apiname></xref> function
+to accept the four new <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita#GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3/GUID-AE44672E-F60D-563C-BB6A-B70AF187C366">paging
+request</xref> types </p> </li>
+<li id="GUID-A7CFB8AA-4D95-5DD3-AF3F-0FAB0448F218"><p> <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita#GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3/GUID-0EA673E6-FEE4-51F6-9C84-9411316D7357">Handling fragmented write requests</xref>. </p> </li>
+</ol> </section>
+<section id="GUID-77FBA53A-CC78-5CD1-8FDF-F6A8001DE466"><title>Changes to
+variantmediadef.h</title> <p>The following should be defined using appropriate
+names in the variant's <i>variantmediadef.h</i> file: </p> <ul>
+<li id="GUID-F5EFB1C8-B7C4-52AD-88A2-8A7659527373"><p> <codeph>PAGING_TYPE</codeph> -
+flags that indicate whether code paging and/or ROM paging is supported </p> </li>
+<li id="GUID-2745304A-2FAF-5DCB-88D3-74BD56B475E0"><p> <codeph>NAND_PAGEDRIVELIST</codeph> -
+a list of the paging drives </p> </li>
+<li id="GUID-507FB105-E254-501E-B22A-33E93C3CABA5"><p> <codeph>NAND_PAGEDRIVECOUNT</codeph> -
+the total number of paging drives </p> </li>
+<li id="GUID-F3D6494E-A14D-5FB1-A3E7-3D75D3753E12"><p> <codeph>NUM_PAGES</codeph> -
+if a write request points to data that resides in paged ROM, the request is
+split up into separate fragments of the specified size. This value needs to
+be chosen with care, as if it is too small writes can take too long to finish. </p> </li>
+</ul><p> <note> Normal write requests which point to data that is not in paged
+ROM are not fragmented. However, large requests are split up into smaller
+requests by the file server, providing clients with a more responsive system.</note> </p> <p>The
+macros defined in the file <i>variantmediadef.h</i> are passed to <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-5FDD89C6-C34A-3A0D-A422-D148DDE23E42"><apiname>LocDrv::RegisterPagingDevice()</apiname></xref>.
+This function is similar to <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-647D0858-FE04-3A4F-99CE-81CD0B34CE7B"><apiname>LocDrv::RegisterMediaDevice()</apiname></xref> in
+that it takes a drive list as a parameter, but it identifies the drive or
+drives to be used for code paging. If code only ROM paging is needed, set
+the drive count to zero. </p> <p>Changes made to support paging on NAND: </p> <codeblock id="GUID-1425F457-8F28-5CD7-B8A4-3FC3D2777D73" xml:space="preserve">// Variant parameters for NAND flash media driver (mednand.pdd)
+#define NAND_DRIVECOUNT 8
+#define NAND_DRIVELIST 2,3,5,6,7,9,10,11
+#define NAND_NUMMEDIA 1
+#define NAND_DRIVENAME "Nand"
+
+#define PAGING_TYPE DPagingDevice::ERom | DPagingDevice::ECode
+
+// code paging from writeable FAT, Composite FAT and first ROFS
+#define NAND_PAGEDRIVELIST 2,5,6    
+#define NAND_PAGEDRIVECOUNT 3
+
+// defines the size of fragment
+#define NUM_PAGES 8</codeblock> </section>
+<section id="GUID-686EFEF4-A514-51BC-8378-962A8899F270"><title>Changes to
+the media driver kernel extension point</title> <p>The kernel-extension entry
+point must create a DFC queue to satisfy any page fault that occurs in the
+drive thread. Failure to do so results in a kernel fault. The entry point
+must then create a <xref href="GUID-3715787E-9ADD-39E7-B22A-62CBBD2CEF1B.dita"><apiname>DPrimaryMediaBase</apiname></xref> object and register
+it with the local media subsystem. To support paging, the entry point needs
+altering to register the paging device with the demand paging subsystem and
+instantiate and install the factory object. </p> <codeblock id="GUID-885C8178-46FB-5F4B-9755-E048A48C42A7" xml:space="preserve">DECLARE_STANDARD_EXTENSION()
+    {   
+    TInt r=Kern::DfcQInit(&amp;TestMediaDfcQ,KTestThreadPriority,&amp;KTestMediaThreadName);
+    if (r|=KErrNone)
+        return r;
+ 
+    DPrimaryMediaBase* pM=new DPrimaryMediaBase;
+    if (!pM)
+        return r;
+
+    pM-&gt;iDfcQ=&amp;TestMediaDfcQ;
+    r=LocDrv::RegisterMediaDevice(
+        MEDIA_DEVICE_NAND,
+        NAND_DRIVECOUNT,
+        NAND_DRIVELIST,
+        pM,
+        NAND_NUMMEDIA,
+        NAND_DRIVENAME);
+    if (r != KErrNone)
+        return r;
+
+    r = LocDrv::RegisterPagingDevice(
+        pM,
+        NAND_PAGEDRIVELIST,
+        NAND_PAGEDRIVECOUNT,
+        PAGING_TYPE,
+        SECTOR_SHIFT,
+        NUM_PAGES);
+    if (r == KErrNone)
+        {
+        device = new DPhysicalDeviceMediaTest;
+        if (device == NULL)
+            return KErrNoMemory;
+        r = Kern::InstallPhysicalDevice(device);
+        }
+    // Ignore error if demand paging not supported by kernel
+    else if (r == KErrNotSupported)
+        r = KErrNone;
+    else
+        return r;
+
+    pM-&gt;iMsgQ.Receive();
+    return KErrNone;
+    }</codeblock> <p>The fifth parameter passed to the function <xref href="GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF.dita#GUID-9E60E8D9-619E-3A76-BAC8-93A60D62C7DF/GUID-5FDD89C6-C34A-3A0D-A422-D148DDE23E42"><apiname>LocDrv::RegisterPagingDevice()</apiname></xref> named <codeph>SECTOR_SHIFT</codeph> is the log2 of the sector size for the given media. For example, passing
+a value of 9 corresponds to a sector size of 512 for most media. </p> <p> <note> The <xref href="GUID-52853C0D-CA98-3B92-B7D4-FF1C1F06C1A6.dita"><apiname>DECLARE_EXTENSION_PDD</apiname></xref> entry
+point is called some time later when the file server tries to load all the
+media drivers in the system. When this happens a second factory object is
+created by the media driver, but this is deleted by the kernel when it discovers
+that another factory object bearing the same name is already in its internal
+list.</note> </p> </section>
+<section id="GUID-C32CF25E-553B-5786-88ED-4587AC0DF3BA"><title>Changes to
+DLocalDrive::ECaps handling</title> <p>The <xref href="GUID-C57F8D34-DAB5-388F-A99F-A952916B7EA6.dita"><apiname>TLocalDriveCaps</apiname></xref> structure
+needs to be modified so that: </p> <ul>
+<li id="GUID-FECDE295-A9D3-5373-BD01-F2A7EAB83897"><p>the <xref href="GUID-FF7F3425-9F7C-3146-BA0A-FB68D1A2381C.dita"><apiname>KMediaAttPageable</apiname></xref> flag
+is set in <xref href="GUID-722A1F4D-3A76-3BE3-95AB-2AA7745930D0.dita"><apiname>iMediaAtt</apiname></xref>  </p> </li>
+<li id="GUID-82EC6B7C-FF34-5E2C-BFF1-832C0769B517"><p>the <xref href="GUID-ED80FF32-9226-31E4-8717-D4A29948A75B.dita"><apiname>KDriveAttPageable</apiname></xref> flag
+is set if a particular drive has been registered as code paging. This is determined
+by testing <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-F5F80522-E23D-3A3D-86B5-6DC6C9E5C3B1"><apiname>TLocDrvRequest::Drive()</apiname></xref> <codeph>-&gt;iPagingDrv</codeph>. </p> </li>
+</ul> <p>Additionally, the <xref href="GUID-C57F8D34-DAB5-388F-A99F-A952916B7EA6.dita"><apiname>TLocalDriveCaps</apiname></xref> <codeph>::iDriveAtt</codeph> must
+have the <xref href="GUID-89ABFCAC-65EF-3DF3-83B8-2B0A169CCAFA.dita"><apiname>KDriveAttLocal</apiname></xref> and <xref href="GUID-78343374-6F5D-365D-BF3E-9AD19C77FB80.dita"><apiname>KDriveAttInternal</apiname></xref> bits
+set and the <xref href="GUID-88C9C181-3BC3-35FB-BF82-A81C40EEDEB8.dita"><apiname>KDriveAttRemovable</apiname></xref> bit cleared. </p> <codeblock id="GUID-04F15DFB-144E-5966-88B5-227B7FC97B55" xml:space="preserve">TInt DMediaDriverTest::Request(TLocDrvRequest&amp; aRequest)
+    {
+    TInt r=KErrNotSupported;
+    TInt id=aRequest.Id();
+
+    if (id == DLocalDrive::ECaps)
+        {
+        TLocDrv* drive = aRequest.Drive();
+        TLocalDriveCapsV4&amp; c = *(TLocalDriveCapsV4*)aRequest.RemoteDes();   
+        r=Caps(*drive,c);
+        }
+    // etc…
+    }
+
+TInt DMediaDriverTest::Caps(TLocDrv&amp; aDrive, TLocalDriveCapsV4&amp; caps)
+    {
+    // fill in rest of caps structure as usual…
+
+    if(aDrive.iPrimaryMedia-&gt;iPagingMedia)
+        caps.iMediaAtt|=KMediaAttPageable;
+    if(aDrive.iPagingDrv)
+        caps.iDriveAtt|=KDriveAttPageable; 
+    }</codeblock> </section>
+<section id="GUID-AE44672E-F60D-563C-BB6A-B70AF187C366"><title>Handling page
+requests</title> <p>Four new request types need to be handled to support paging: </p> <ul>
+<li id="GUID-703713F1-9276-583A-9963-325C04F8D4B6"><p> <xref href="GUID-951FB996-24B3-3340-8386-24B1A895EA16.dita"><apiname>EWriteRequestFragment</apiname></xref> marks
+the start and middle of a sequence of writes. </p> </li>
+<li id="GUID-F40CCE14-17DF-52EB-937F-CEBC2B78CC94"><p>Each sequence is terminated
+by a <xref href="GUID-8B4109E6-B9F8-3C18-9F9A-0AB20FDA5E86.dita"><apiname>EWriteRequestFragmentLast</apiname></xref> request as long as none
+of the prior requests completed with an error. </p> </li>
+<li id="GUID-47C8C482-77B4-5447-8497-E8185BF1350B"><p> <xref href="GUID-F20251F4-A72D-32E5-B2AF-87F71CD5CD87.dita"><apiname>ERomPageInRequest</apiname></xref> is
+treated as a normal read except that: </p> <ol id="GUID-DEEF7484-32E1-5739-839D-D1257A51B83C">
+<li id="GUID-A90D4A45-05E4-5F9C-B47E-26F67F5462EE"><p>the list of partitions
+reported by <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-B2F42829-028C-341A-B34D-A8243CA434EB"><apiname>DMediaDriver::PartitionInfo</apiname></xref> does not normally
+include the partition containing the ROM image. Therefore, the local media
+subsystem does not know the absolute position from the start of the media
+of a particular ROM page. The position stored in <xref href="GUID-F20251F4-A72D-32E5-B2AF-87F71CD5CD87.dita"><apiname>ERomPageInRequest</apiname></xref> is
+offset from the start of the ROM image, rather than the start of the media.
+Therefore, the media driver must add the offset of the start of the ROM image
+to the position stored in <xref href="GUID-F20251F4-A72D-32E5-B2AF-87F71CD5CD87.dita"><apiname>ERomPageInRequest</apiname></xref> to obtain the
+absolute position before issuing a read request. </p> </li>
+<li id="GUID-E020A5D1-82FA-5857-AB1D-42A59D337EFD"><p>when the read is complete
+the media driver needs to call <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-362AB6B2-9C3D-342F-BB4A-F252ECD7EF3A"><apiname>TLocDrvRequest::WriteToPageHandler</apiname></xref> to
+write the data back to the client, rather than <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-2AC4DBA4-5C87-39C7-B6CF-95ECB7286339"><apiname>TLocDrvRequest::WriteRemote</apiname></xref> as
+for a normal read, </p> </li>
+</ol> </li>
+<li id="GUID-50298F39-D1A0-5731-8E50-D18514941D70"><p> <xref href="GUID-E42B407D-8E18-337B-9CBB-4DCDD0AABBE9.dita"><apiname>ECodePageInRequest</apiname></xref> is
+treated as a normal read, except that the function <xref href="GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C.dita#GUID-D84A9903-AE0F-3F54-8833-E8956A88E26C/GUID-362AB6B2-9C3D-342F-BB4A-F252ECD7EF3A"><apiname>TLocDrvRequest::WriteToPageHandler</apiname></xref> should
+be used to write the data back to the demand paging subsystem. However, the
+position in the request is offset from the start of the media as for a normal
+read. </p> </li>
+</ul> <p>These request types are enumerated in the <xref href="GUID-6C039CFA-BF2F-3272-80FE-71430C12F0F4.dita"><apiname>DMediaPagingDevice</apiname></xref> class: </p> <codeblock id="GUID-AD9B48CF-7757-5C8A-A2EF-B27F2DC9BDD8" xml:space="preserve">NONSHARABLE_CLASS(DMediaPagingDevice) : public DPagingDevice
+    {
+public:
+    enum TPagingRequestId
+        {
+        /** 
+        Identifies any middle fragment of a Write request on a partition of a media that supports paging.
+        */
+        EWriteRequestFragment = 
+            DLocalDrive::EFirstReqNumberReservedForPaging,
+
+        /** 
+        Identifies the last fragment of a Write request on a partition of a media that supports paging.
+        */
+        EWriteRequestFragmentLast = 
+            DLocalDrive::EFirstReqNumberReservedForPaging+1,
+
+        /** 
+        Request for paging in (read) data from the ROM store area.
+        */
+        ERomPageInRequest =
+            DLocalDrive::EFirstReqNumberReservedForPaging+2,
+
+        /** 
+        Request for paging in (read) data from the code store area.
+        */
+        ECodePageInRequest =
+            DLocalDrive::ELastReqNumberReservedForPaging
+        };
+        //etc…
+    }</codeblock> </section>
+<section id="GUID-0EA673E6-FEE4-51F6-9C84-9411316D7357"><title>Handling fragmented
+write requests</title> <p>In many respects, <xref href="GUID-951FB996-24B3-3340-8386-24B1A895EA16.dita"><apiname>EWriteRequestFragment</apiname></xref> and <xref href="GUID-8B4109E6-B9F8-3C18-9F9A-0AB20FDA5E86.dita"><apiname>EWriteRequestFragmentLast</apiname></xref> can
+be treated as normal write requests. It should be noted however, that these
+write requests can be interleaved with requests from other file server threads
+if the media supports more than one partition, the resulting operations may
+be perceived as a functional break in behaviour. </p> <p>If it is important
+to maintain backwards compatibility and to prevent write requests from being
+interleaved, the media driver must keep track of the current write-request
+chain and defer requests from other drive threads while a write-fragment chain
+is in progress by: </p> <ul>
+<li id="GUID-311A0DF2-601D-5623-A059-7E20FAFEEF1C"><p>ensuring the local media
+subsystem LDD has been built with the <codeph>__ALLOW_CONCURRENT_FRAGMENTATION__</codeph> macro
+undefined. This ensures that the local media subsystem never issues more than
+one write fragment at a time </p> </li>
+<li id="GUID-9504A0D1-2147-5968-AB8C-2B9D99A48C0F"><p>modifying the paging-media
+driver so that it keeps track of write-request chains and defers any read
+or format requests received after the first fragment and before the last in
+a sequence. When undefined, the macro subsystem does not issue more than one
+write-request chain at a time. </p> </li>
+</ul><p><note> Write fragments should never be deferred, only read or format
+requests may be deferred. </note></p>  <p>To achieve this the media driver
+can maintain a bit mask, each bit of which represents a write in progress
+flag for a particular drive: </p> <codeblock id="GUID-CB127C9B-51D5-5D1A-BAF6-4F8CEF308912" xml:space="preserve">iFragmenting|=(0x1&lt;&lt;iCurrentReq-&gt;Drive()-&gt;iDriveNumber);</codeblock> <p>If a read or format request is received while any of the bits in <codeph>iFragmenting</codeph> are
+set, that request may be deferred. </p> </section>
+</conbody></concept>

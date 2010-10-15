@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-43782364-0865-43D0-BC89-D63BA9912FB6" xml:lang="en"><title>Basic Management</title><shortdesc>This document describes how device drivers should manage shared
+chunks.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-A30FD089-100B-44A3-B174-A68C7BC00372"><title>Creation</title> <p>A
+shared chunk is created in kernel space. The user is given a handle to the
+shared chunk to access it, and can pass the handle to other process or other
+drivers. Chunks are represented by <xref href="GUID-85454082-6734-3F1D-983F-734D4C2AB12D.dita"><apiname>DChunk</apiname></xref> objects on the
+kernel side and by <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> on the user side. </p> <p>A shared
+chunk is created by using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref>, which takes
+a <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita"><apiname>TChunkCreateInfo</apiname></xref> argument that sets the chunk properties. </p> <p>Chunk
+creation should be done in a critical section, created using <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-841D587C-E9E6-34EE-8ED0-E9A206F64379"><apiname>NKern::ThreadEnterCS()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2C897BA5-2BD7-3ABA-9F2B-F0B1AC14D1AE"><apiname>NKern::ThreadLeaveCS()</apiname></xref>. The size of the chunk should be in multiples of MMU pages, which can be
+calculated using <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-B37D12CF-449A-3EC3-9C4F-854A35E98CE3"><apiname>Kern::RoundToSize(n)</apiname></xref>, where <varname>n</varname> is
+the actual size that needs to be rounded. </p> <codeblock id="GUID-5F307D2C-517B-505D-A8D3-A4820B612E53" xml:space="preserve">/**
+ Create a transmit shared chunk of specified size.
+ 
+ @param    aChunkSize
+         size of the chunk to be created
+             
+ @return    KErrNone on success, standard error code on failure
+ */    
+TInt DExUartPhysicalChannel::CreateTxChunk(TUint aChunkSize)
+    {
+    ...
+    // Round up the transmit chunk size to the page size. 
+    // Kern::RoundToPageSize() rounds up the argument to the size 
+    // of a MMU page. The size of one MMU page can be found out by 
+    // calling Kern::RoundToPageSize(1). 
+ 
+    size=Kern::RoundToPageSize(aChunkSize);
+        
+    // Thread must be in critical section 
+    NKern::ThreadEnterCS();
+    ...
+    // Create the chunk. Example is given in next code snippet
+    ...
+    // Commit the chunk. Example is given in following sections
+    ...
+    // Thread can leave the critical section 
+    NKern::ThreadLeaveCS();
+    }
+
+TInt DExUartPhysicalChannel::CreateTxChunk(TUint aChunkSize)
+    {
+    ...
+    NKern::ThreadLeaveCS(); // Enter the critical section
+        
+    // TChunkCreateInfo holds the parameters required to create a 
+    // chunk and is used by Kern::ChunkCreate()
+    TChunkCreateInfo info;
+    
+    // ESharedKernelMultiple specifies that a chunk which may be opened by 
+    // any number of user side processes
+    info.iType=TChunkCreateInfo::ESharedKernelMultiple;        
+    info.iMaxSize= size;        // Chunk size
+    
+    // This specifies the caching attributes for the chunk. It can 
+    // be no caching or fully caching (TMappingAttributes enum 
+    // type). If the MMU does not support the requested attributes,  
+    // then a lesser cached attribute will be used. The actual 
+    // value used is returned in aMapAttr of Kern::ChunkCreate() 
+    info.iMapAttr=EMapAttrFullyBlocking; // No Caching, suitable for DMA
+    
+    // Set to true if the chunk is to own its committed memory. 
+    // In this case all memory committed to the chunk will come 
+    // from the system's free pool and will be returned there when 
+    // the chunk is destroyed. If the chunk will be committed to 
+    // physical address, then EFalse can be set.
+    info.iOwnsMemory=ETrue;            // using RAM pages
+    
+    // As chunk destruction is asynchronous we can have 
+    // a DFC, if required, specifying a callback function to get 
+    // the chunk destroy notification exactly. This is used if any 
+    // follow up cleaning has to be done after chunk destruction.
+    info.iDestroyedDfc=NULL;    // No chunk destroy DFC.
+    
+    DChunk* chunk;
+    TUint32 mapAttr;
+    // Creates a chunk that can be shared between a user thread and a 
+    // kernel thread. This will be the initial step for a shared 
+    // chunk. Once created, the chunk owns a region of linear 
+    // address space of the requested size. This region is empty 
+    // (uncommitted) so before it can be used either RAM or I/O 
+    // devices must be mapped into it. This is achieved with the 
+    // Commit functions.
+    // Here iTxChunkKernAddr returns the linear address of the 
+    // chunk created.
+    //
+    TInt r=Kern::ChunkCreate(info,chunk,iTxChunkKernAddr, mapAttr);
+    if (r!=KErrNone)
+        {
+        // Thread can leave the critical section
+        NKern::ThreadLeaveCS();
+        return r;
+        }
+    ...
+    }</codeblock> </section>
+<section id="GUID-84D1C7D6-5EFE-4D88-BC87-1D8897693B8A"><title>Destruction</title> <p>To allow a chunk to be properly cleaned
+up, a driver should close the chunk when it is no longer required. When a
+chunk is closed, the reference count is decremented by one. The chunk gets
+destroyed when the reference count becomes zero. Closing the chunk should
+be done within a critical section. </p> <p>The destruction of the chunk happens
+asynchronously, and a notification of this can be requested. This is done
+using a DFC, by initialising <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-F6394BC5-16A9-383B-8E5D-446FB3136762"><apiname>TChunkCreateInfo::iDestroyDfc()</apiname></xref> with
+the DFC object. </p> <codeblock id="GUID-14F48A69-FCDF-5D5A-A6C6-42E4D57CB497" xml:space="preserve">/**
+ Close the transmit chunk, that was already created. This is 
+ called while closing the logical channel
+ */
+void DExUartPhysicalChannel::CloseTxChunk()
+    {
+    // Thread must be in critical section
+    NKern::ThreadEnterCS();
+    
+    // Atomically get pointer to our chunk and NULL the iChunk 
+    // member. Nkern::SafeSwap() atomically replaces the word 
+    // referenced by aPtr with aNewValue, here NULL.
+    //
+ DChunk* chunk = (DChunk*)NKern::SafeSwap(NULL,(TAny*&amp;)iTxChunk);
+    
+    if (chunk)
+        {
+        // Close the chunk that was created. This should be 
+        // done in a critical section. This function decrements 
+        // a chunk's access count, and, if the count reaches 
+        // zero, the chunk is scheduled for destruction.
+        // ChunkClose() has to be called the same number of times 
+        // as chunk creation. A mismatch in this will result 
+        // in either a memory leak or a panic.
+        //
+        Kern::ChunkClose(chunk);
+        }
+    // Thread can leave the critical section    
+    NKern::ThreadLeaveCS();        
+    }</codeblock></section>
+<section id="GUID-2CCEB305-03D7-44A4-A489-3B00680383F9"><title>Mapping</title> <p>Shared chunks must be mapped to memory,
+which means that either RAM or an I/O device must be committed to a shared
+chunk before it can be used. This maps the chunk to a certain address. The
+memory can be physical contiguous RAM pages, an arbitrary set of RAM pages,
+a physical region, or a physical region with a list of physical addresses.
+The Kernel provides the following APIs for committing these types of memory: </p> <codeblock id="GUID-256A14F7-D9D8-528A-8E8A-C573A492F803" xml:space="preserve">// Commit RAM to a shared chunk. The memory pages to commit are 
+// obtained from the system's free pool
+TInt Kern::ChunkCommit(DChunk *aChunk, TInt aOffset, TInt aSize);
+
+// Commit RAM to a shared chunk. The memory pages to commit are 
+// obtained from the system's free pool and will have physically 
+// contiguous addresses. Used when TChunkCreateInfo::iOwnsMemory 
+// is ETrue
+TInt Kern::ChunkCommitContiguous(DChunk *aChunk, TInt aOffset, 
+                TInt aSize, TUint32 &amp;aPhysicalAddress);
+
+// Commit memory to a shared chunk. The physical region committed 
+// is that which starts at the supplied physical address. 
+// Typically, this region either represents memory mapped I/O, or 
+// RAM that was set aside for special use at system boot time. 
+// This is used when TChunkCreateInfo::iOwnsMemory is EFalse.
+TInt Kern::ChunkCommitPhysical(DChunk *aChunk, TInt aOffset, 
+                TInt aSize, TUint32 aPhysicalAddress);
+
+// Commit memory to a shared chunk. The physical region committed
+// is determined by the list of physical addresses supplied to 
+// this function
+TInt Kern::ChunkCommitPhysical(DChunk *aChunk, TInt aOffset, 
+        TInt aSize, const TUint32 *aPhysicalAddressList);
+</codeblock></section>
+</conbody></concept>

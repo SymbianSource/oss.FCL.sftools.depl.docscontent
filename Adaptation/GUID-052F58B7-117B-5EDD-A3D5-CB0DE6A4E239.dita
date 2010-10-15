@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-052F58B7-117B-5EDD-A3D5-CB0DE6A4E239" xml:lang="en"><title>IIC SHAI Implementation Layer: Generic Considerations</title><shortdesc>This document explains how to implement the SHAI implementation
+layer for IIC.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-C3EE341A-BEAB-4E0C-A91E-7A1A285BCE96"><title>Purpose</title> <p>This document covers information which is generic to master and
+slave channel implementation </p> <p><b>Intended Audience</b> </p> <p>Base porting engineers. </p> <p><b>Introduction</b> </p> <p>IIC
+buses (a term used in this document to represent serial inter-chip
+buses that IIC can operate on) are a class of bus used to transmit
+non time-critical data between components of a hardware system. </p> </section>
+<section id="GUID-38B543E8-06DB-417F-8B8E-84F6B43DF8BF"><title>Generic
+architecture</title> <p>Different IIC buses have a large amount of
+functionality in common, but some functionality is specific to individual
+implementations. For this reason, the IIC software has an architecture
+consisting of two layers, the Platform Independent Layer (PIL) and
+the SHAI implementation layer. The Platform Independent Layer is a
+set of classes which encapsulate generic functionality and have been
+implemented for you. The SHAI implementation layer is an interface
+which you must implement yourself to encapsulate the functionality
+specific to the platform you are working on. </p> <p>You implement
+the SHAI implementation layer by subclassing the classes of the Platform
+Independent Layer and writing functions that provide an abstraction
+of your hardware. To access the hardware you are strongly recommended
+to use existing Symbian APIs such as e.g. <codeph>AsspRegister</codeph> to access hardware registers, or <codeph>GPIO</codeph> to access
+GPIO pins). </p> <p>An IIC channel operates in one of two modes, master
+and slave, and there are separate master and slave APIs to be implemented.
+In master mode, a channel and a client communicating with that channel
+execute in two separate threads. In slave mode there is only one thread
+for both channel and client. </p> <p>The SHAI implementation and platform
+independent APIs assume an interrupt-driven approach to implementation.
+An event on hardware triggers an interrupt, which then signals this
+event to the channel thread (where client is master) or client thread
+(where client is slave). This means that implementation involves writing
+interrupt service routines (ISRs) and a DFC queue to hold the callbacks
+which respond to them. For both master and slave operation, the callbacks
+are queued for execution on the client thread - so the client thread
+must not be blocked, otherwise the callbacks will never run.</p><p>Clients of a master channel request transactions for execution in
+either a synchronous or asynchronous manner. This results in the transaction
+being entered in the channel’s request queue.  </p><p>If synchronous
+execution is requested, the client thread is blocked until the transaction
+completes (either an ISR or polling mechanism in the SHAI implementation
+layer recognizes the transaction has completed, and it calls the PIL
+method <codeph>CompleteRequest()</codeph>, which will unblock the
+client thread.  </p><p>If asynchronous execution is requested, the
+client thread is not blocked, and may continue to perform other tasks.
+In the meanwhile, the channel thread will retrieve the next transaction
+from the request queue and pass it to the SHAI implementation layer
+for processing. When the transaction completes, the SHAI implementation
+layer calls the PIL method <codeph>CompleteRequest()</codeph> and
+this adds the client’s callback to the client’s DFC queue.  </p><p>A client of a slave channel provides receive and transmit buffers
+to be used and specifies the types of event (trigger) that it wishes
+to be notified of. When ANY event occurs, the SHAI implementation
+layer should call the PIL method <codeph>NotifyClient()</codeph>;
+this determines whether the reported triggers qualify for notifying
+the client – if so, the client callback is added to the client’s DFC
+queue for execution. Note that the same mechanism is used to notify
+the client of completion of asynchronous capture of the channel, and
+of bus errors.</p> <p>You should refer to the template port at <filepath>\os\kernelhwsrv\bsptemplate\asspandvariant\template_assp\iic</filepath> for more information. </p> </section>
+</conbody><related-links>
+<link href="GUID-0C8318B1-71D7-5384-97EB-85CBBC3E6B84.dita"><linktext>IIC
+SHAI Implementation Layer: Master Channel</linktext></link>
+<link href="GUID-C9644081-004E-5DA0-8133-A32EEA91EF5E.dita"><linktext>IIC
+SHAI Implementation Layer: Slave Channel</linktext></link>
+<link href="GUID-9986DCC6-EE73-59FB-BDAC-9B09DC64FBCE.dita"><linktext>Client
+of Master Channel Tutorial</linktext></link>
+<link href="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1.dita"><linktext>Client
+of Slave Channel Tutorial</linktext></link>
+<link href="GUID-B2F86F54-EF50-56DB-ADF7-15325AC9324D.dita"><linktext>IIC
+Concepts</linktext></link>
+<link href="GUID-3A30DA16-ECA8-5639-A9DC-6BE2AD55420B.dita"><linktext>I2C
+Technology Guide</linktext></link>
+</related-links></concept>

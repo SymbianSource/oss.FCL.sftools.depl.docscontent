@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3722B946-07CF-4AEA-B228-E50642D6B5BE" xml:lang="en"><title>Register Access Implementation Guide</title><shortdesc>Describes the implementation of the Register Access platform
+service.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A ASSP hardware register is a physical interface to an item of
+hardware which contains values, such as bit fields, for controlling
+ASSP features.</p>
+<section id="GUID-514E76B0-009C-48D4-935C-FBE48FDD3631-GENID-1-2-1-10-1-5-1-8-1-1-9-1-4-1-3-2"><title>ASSP</title><p> An ASSP (Application Specific Standard Product) is a class of
+integrated circuit. Different ASSPs have different architectures and
+instructions sets. The <xref href="GUID-66BB033A-3386-3913-9A25-EF3867D42C2C.dita"><apiname>AsspRegister</apiname></xref> class provides device driver writers with a simple interface to
+access ASSP registers. Hardware implementers must provide the specified
+functionality on a given platform and ASSP by writing the appropriate
+machine instructions. </p></section>
+<section id="GUID-DBEB025D-B457-493B-A052-274801C21B1E"><title>Pre-requisites</title><p>Before the implementing a register access implementation, the
+following must be decided:</p><ul>
+<li><p>The area in memory to which the registers are mapped. The start
+of this memory region is known as the base address.</p></li>
+<li><p>The location of each register in terms of an offset from the
+base address.</p></li>
+</ul><p>The above information will be present in a specific header
+file which is used by any device driver that uses this API. This header
+file also contains other information required to access the registers,
+such as:</p><ul>
+<li><p>constants for bit field offsets</p></li>
+<li><p>bit field values</p></li>
+</ul></section>
+<section id="GUID-CF41655A-5B14-47C4-811A-C9F9352B0688"><title>Implementation</title><p>To provide register access, hardware implementers need to implement
+the <xref href="GUID-66BB033A-3386-3913-9A25-EF3867D42C2C.dita"><apiname>AsspRegister</apiname></xref> class. </p><p>Generic access to a register is provided in the form of three
+operations on a hardware register: read, write and modify. All these
+functions can be called in any context. </p><p>Symbian platform provides
+the class header and inline implementations of the 8, 16 and 32-bit
+wide functions. You must implement all the register modify functions
+and all functions to access 64-bit wide registers. You may also need
+to replace the inline 8, 16 and 32-bit wide register read and write
+functions if the ASSP contains write-only registers. </p> <p>You must
+implement these functions atomically so that there is no possibility
+of another thread or interrupt service routine accessing the contents
+of the register before the function returns. Where you cannot implement
+the function with a single machine instruction you must disable interrupts
+during the register operation (if you are working with a single core
+architecture) or wrap a spinlock around the register operation (if
+you are working with a multicore architecture). </p> <p>There are
+three cases in which you must enforce atomicity with interrupt disabled
+or use of spinlocks. </p> <ul>
+<li id="GUID-3D835089-4626-584F-9FB1-EBD9CBF7A8D0"><p>The modify operations
+involve reading the register, taking a local copy, changing the local
+copy and writing it back to the register and cannot be performed with
+a single machine instruction. </p> </li>
+<li id="GUID-939FFD27-60EB-5465-95B7-A3654FBB5941"><p>Operations on
+write-only registers involve maintaining a copy of the current contents
+of the register within the <xref href="GUID-66BB033A-3386-3913-9A25-EF3867D42C2C.dita"><apiname>AsspRegister</apiname></xref> class. All write and modify operations therefore cannot be performed
+with a single machine instruction. </p> </li>
+<li id="GUID-26D38D30-DFF3-5DCD-8163-157A228C50D6"><p>Some architectures
+contain 64-bit registers. In this case, 64-bit operations involve
+at least two machine instructions. </p> </li>
+</ul><p>Baseport implementations of the Register Access platform service
+come in the form of a ASSP library (or DLL). To avoid the need for
+each device driver which uses the ASSP register class having to specify
+a baseport specific library file corresponding to the ASSP library,
+the name of the baseport specific library file should instead be included
+in a file used to define other variant specific settings such as the
+CPU core type, the memory model and the name of the variant. Each
+baseport will have a file called <filepath>variant.mmh</filepath>,
+where <codeph>variant</codeph> is the name of the baseport to be used.
+An example of this being used in a <filepath>variant.mmh</filepath> file is:</p><codeblock xml:space="preserve">#if defined(__USING_BASPORT__)
+library   VariantTarget(basport_name,assp_library)
+#endif
+</codeblock><note>baseport_name is the name of the variant and assp_library
+is the name of the ASSP specific library file.</note><p>In order to
+specify which baseport assp register set up is to be used in the client
+projects for this baseport, the following line is included in the
+MMP file of those projects</p><codeblock xml:space="preserve">#define __USING_BASEPORT___</codeblock></section>
+</conbody><related-links>
+<link href="http://developer.symbian.org/main/documentation/reference/s3/pdk/GUID-16AED228-539F-4BF7-A7FD-9A01FF1A9A84.html.dita">
+<linktext>SMP - Locking</linktext></link>
+</related-links></concept>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930" xml:lang="en"><title>Factory
+Implementation</title><shortdesc>Media driver must implement a PDD factory class derived from <codeph>DPhysicalDevice</codeph>. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The PDD factory creates the main media driver objects. </p>
+<p>The <xref href="GUID-0437DB4C-FC4E-51DC-BB4C-95C0B26834F5.dita">Device Driver
+Guide</xref> describes the general theory for implementing a derived class,
+while this section gives the specifics for the media driver. </p>
+<p>In implementing your <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> derived class,
+you must, as a minimum, provide an implementation for the following four functions,
+defined as pure virtual in <codeph>DPhysicalDevice</codeph>: </p>
+<ul>
+<li id="GUID-7D2FC41B-4294-5082-92D7-07DA9A991CF4"><p> <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-CBAFA0EC-B111-57B9-8E4F-EE8ADDB56252">Install() - complete the initialisation of the PDD factory object</xref>  </p> </li>
+<li id="GUID-BDCE51AB-897F-5609-971F-1F3E36AC34D0"><p> <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700">Create() - create the media driver object</xref>  </p> </li>
+<li id="GUID-B3F2FE95-F58A-5C48-99F1-39C2521153C5"><p> <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-9EAFB357-5770-529A-BED5-0721C38C7BD1">Validate() - check that the PDD is suitable for use</xref>  </p> </li>
+<li id="GUID-6D959402-0B3F-547D-B1E7-500C96768649"><p> <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-2F29C284-DE66-5A92-9D9A-0348E01D1139">GetCaps() - return the capabilities of the Media Driver</xref>  </p> </li>
+</ul>
+<p>The following function is virtual in <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref> but
+has a default implementation that must be changed: </p>
+<ul>
+<li id="GUID-53148446-2A45-5E6B-A9F8-B653383F2256"><p> <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-E3E875BD-F89D-5728-AF4B-658A595E9298">Info() - set the priority of the media driver</xref>  </p> </li>
+</ul>
+<section id="GUID-CBAFA0EC-B111-57B9-8E4F-EE8ADDB56252"><title>Install() -
+complete the initialisation of the PDD factory object</title> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-0065FAAF-D734-3ED2-816A-CCE9BF607BAB"><apiname>DPhysicalDevice::Install()</apiname></xref>. </p> <p>This
+PDD factory function is called after the PDD DLL has been successfully loaded,
+as a result of a call to <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-A0F4BF4A-9C58-3E5E-88E1-6D98597DDA18"><apiname>User::LoadPhysicalDevice()</apiname></xref>, and
+the factory object has been successfully created on the kernel heap. </p> <p>The
+function is a second stage constructor for the factory object, and allows
+any further initialisation of the factory object to be done. As a minimum,
+the function must set a name for the media driver's factory object. The name
+is important as it is the way in which the object will subsequently be found.
+The name should be of the form: </p> <codeblock id="GUID-DE6A4AD9-EE64-536D-8532-6624EDAB69AB" xml:space="preserve">Media.&lt;MDExt&gt;</codeblock> <p>where <codeph>&lt;MDExt&gt;</codeph> is descriptive of the specific media. For example, <codeph>Media.Ata</codeph>,
+and <codeph>Media.Iram</codeph>. </p> <p>When a <xref href="GUID-918D17D8-B751-35EE-A592-4F0EAB005EC7.dita"><apiname>DMedia</apiname></xref> object,
+created by the internal Symbian platform <filepath>ELOCD.LDD</filepath> logical
+device driver, attempts to mount a media device, i.e. to open a media driver,
+it does a search by name. This is a search through all loaded PDDs whose names
+match <codeph>Media.*</codeph>. </p> <p>The following simple function is typical: </p> <codeblock id="GUID-8FA1A096-470B-55EC-A0CE-282AD6ABC9CA" xml:space="preserve">TInt DMyPhysicalDeviceMedia::Install()
+    {
+    _LIT(KDrvNm, "Media.MyName");
+    return SetName(&amp;KDrvNm);
+    }
+        </codeblock> </section>
+<section id="GUID-32B157E9-0F71-5C1B-A0FA-08D5B1ACA700"><title>Create() -
+create the media driver object</title> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-B88265CA-0881-3666-BF76-C32E47F9A3A1"><apiname>DPhysicalDevice::Create()</apiname></xref>. </p> <p>This
+PDD factory function is called by the device driver framework to create, and
+return, the media driver object. This is an instance of a class derived from <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita"><apiname>DMediaDriver</apiname></xref>.
+Note that, occasionally, you may find this object referred to as the physical
+channel. </p> <p> <codeph>Create()</codeph> is called when initially mounting
+a media device, or accessing a removable media after an insertion event. Contrast
+this with <xref href="GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930.dita#GUID-A6D14A03-ADBF-570D-8AC7-E8BC2700F930/GUID-CBAFA0EC-B111-57B9-8E4F-EE8ADDB56252">Install()</xref>,
+which is only called once, when the PDD factory object is loaded. </p> <p>Typically, <codeph>Create()</codeph> does
+the following: </p> <ul>
+<li id="GUID-C5FF60E4-9512-597F-9F89-7C0E6BB75ED8"><p>Compares the build version
+of the media driver with the version requested, and returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref> if
+the versions are incompatible. </p> </li>
+<li id="GUID-B3F68A1C-320D-5CA5-BAE4-59A716C937B0"><p>Creates an instance
+of the <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita"><apiname>DMediaDriver</apiname></xref> derived class, the media driver object. </p> </li>
+<li id="GUID-13D14DBA-8629-54A8-9CFD-E50E7AF32CD7"><p>Initiates second-phase
+construction of the media driver object. Typically, this involves initialisation
+that is capable of failing. This may be done synchronously or asynchronously.
+You would probably do this asynchronously for removable media that is slow
+to power up, or for slow internal media, in which case, you would need to
+make sure that you attached a DFC queue during <xref href="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52.dita">media
+driver initialisation</xref>. Although the device driver framework does not
+mandate any specific function name in which to implement this, the example
+code fragment suggests a function name of <codeph>DoCreate()</codeph>. </p> </li>
+<li id="GUID-CB1D26B5-A868-5993-9ABF-BD101A94443F"><p>Acknowledges creation
+of the media driver object. The way you do this depends on whether creation
+is done synchronously or asynchronously: </p> <ul>
+<li id="GUID-0C8288F4-874D-5C34-8D38-FCF1665903BD"><p>Synchronous creation
+- call <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-DF0539A1-FDB2-3A31-A57B-863F9033B67A"><apiname>DMediaDriver::OpenMediaDriverComplete()</apiname></xref> passing <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>,
+or an error code if appropriate, and then return <codeph>KErrNone</codeph> from <codeph>Create()</codeph>.
+Do not return any value other than <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref> from Create(),
+otherwise the framework may call it again. </p> <p>Note that <xref href="GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC.dita#GUID-A0D4EB25-0BA4-39EE-874B-465EB9628DCC/GUID-DF0539A1-FDB2-3A31-A57B-863F9033B67A"><apiname>DMediaDriver::OpenMediaDriverComplete()</apiname></xref> can
+be called from within the media driver class, if that is the way the driver
+is designed, but <codeph>Create()</codeph> must still return <codeph>KErrNone</codeph>. </p> </li>
+<li id="GUID-AF5F1A17-990F-5475-8B0D-25DA45E74B72"><p>Asynchronous creation
+- return either <xref href="GUID-6CA4F1ED-7947-3087-B618-D35858FAA3BC.dita"><apiname>KErrNone</apiname></xref>, if initiation of the operation
+was successful, or an error code, if the operation failed immediately. However,
+it is the responsibility of the media driver object to signal completion. </p> </li>
+</ul> </li>
+</ul> <p>The following is a typical example: </p> <codeblock id="GUID-69BF7285-1086-5BD9-9624-61DAF0A22DE9" xml:space="preserve">TInt DMyPhysicalDeviceMedia::Create(DBase*&amp; aChannel, TInt aMediaId, const TDesC8* aInfo ,const TVersion &amp;aVer)
+    {
+    // Check the build version of the media driver
+    if (!Kern::QueryVersionSupported(iVersion,aVer))
+        {
+        return KErrNotSupported;
+        }
+
+    //Create my DMediaDriver derived object
+    DMyMediaDriver* pD=new DMyMediaDriver (aMediaId);
+    aChannel=pD;
+
+    // Call my media driver’s second-stage constructor
+    Tint r = KErrNoMemory;
+    if(pD)
+        {
+        r = pD-&gt;DoCreate(aMediaId);
+        }
+
+    // Synchronous Creation (don’t do this if Asynchronous)…
+    if(r == KErrNone)
+        {
+        pD-&gt;OpenMediaDriverComplete(KErrNone);
+        }
+
+    return r;
+    }
+        </codeblock> </section>
+<section id="GUID-9EAFB357-5770-529A-BED5-0721C38C7BD1"><title>Validate()
+- check that the PDD is suitable for use</title> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-70B6293C-9000-31D9-AE9E-441C9760B92E"><apiname>DPhysicalDevice::Validate()</apiname></xref>. </p> <p>This
+PDD factory function is called by the kernel's device driver framework to
+check whether this PDD is suitable for use with the media type specified in
+the function. </p> <p>A typical implementation of this function would perform
+the following steps: </p> <ul>
+<li id="GUID-A4708377-3D61-5115-92CA-BB0660D9B3F1"><p>Compare the build version
+of the media driver with the version requested </p> </li>
+<li id="GUID-47FECD2E-FF54-56F2-93A6-5CC08CB24DB7"><p>Confirm that this driver
+is responsible for the media type </p> </li>
+</ul> <p>The following is a very typical implementation: </p> <codeblock id="GUID-E08EC5CD-BCC7-517F-86A9-0B04E62D6E9E" xml:space="preserve">TInt DMyPhysicalDeviceMedia::Validate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer)
+    {
+    // Check the build version of the media driver
+    if (!Kern::QueryVersionSupported(iVersion,aVer))
+        {
+        return KErrNotSupported;
+        }
+
+    // Check that the given type of media is supported by this driver
+    if (aUnit!=MEDIA_DEVICE_MYMEDIA)
+        {
+        return KErrNotSupported;
+        }
+
+    return KErrNone;
+    }
+
+        </codeblock> <p>Note that the value passed in via the <codeph>aUnit</codeph> argument
+is the unique media ID used when the media driver was registered. In other
+contexts, the argument may be denoted by the symobol <codeph>aMediaId</codeph>. </p> </section>
+<section id="GUID-2F29C284-DE66-5A92-9D9A-0348E01D1139"><title>GetCaps() -
+return the capabilities of the Media Driver</title> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-CA336905-B068-3CFB-80D7-4DF29B92BF4F"><apiname>DPhysicalDevice::GetCaps()</apiname></xref>. </p> <p>For
+media drivers, this PDD factory function is not used. However, an implementation
+is required because the function is defined as pure virtual in the <codeph>DPhysicalDevice</codeph> base
+class. Simply implement an empty function, for example: </p> <codeblock id="GUID-D1DF97CF-7719-5414-9CFB-237E3079B280" xml:space="preserve">void DMyPhysicalDeviceMedia::GetCaps(TDes8&amp; /*aDes*/) const
+//
+// Return the media drivers capabilities.
+//
+    {
+    }
+        </codeblock> </section>
+<section id="GUID-E3E875BD-F89D-5728-AF4B-658A595E9298"><title>Info() - set
+the priority of the media driver</title> <p>See also <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-440B4A06-BA90-385B-A06D-B8553F0EE63F"><apiname>DPhysicalDevice::Info()</apiname></xref>. </p> <p>This
+PDD factory function is intended to return information relating to the media
+driver. The function can, potentially, return many different types of information,
+depending on the value passed as the first parameter. However, the only type
+of information that Symbian platform currently requires is the priority of
+the media driver. The returned priority value is used by Symbian platform
+to decide the order in which media drivers are to be opened. </p> <p>The default
+implementation just returns 0, and therefore needs to be overridden. </p> <p>Under
+most circumstances, you can return the value <xref href="GUID-CE45BE16-7122-3250-B9B5-8CD0F7F7FAEB.dita"><apiname>KMediaDriverPriorityNormal</apiname></xref>.
+You can, however, return <xref href="GUID-52FB0DED-240A-342A-8922-9450BE2F9E02.dita"><apiname>KMediaDriverPriorityHigh</apiname></xref> in circumstances
+where it is important that the driver is initialised before a lower priority
+driver. </p> <p>The following code fragment is a typical implementation: </p> <codeblock id="GUID-7A065EF3-FE4B-541D-B9E4-0F112A9B741B" xml:space="preserve">TInt DMyPhysicalDeviceMedia::Info(TInt aFunction, TAny* /*a1*/)
+    {
+    if (aFunction==EPriority)
+        {
+        return KMediaDriverPriorityNormal;
+        }
+    return KErrNotSupported;
+    }
+        </codeblock> <p>where <codeph>EPriority</codeph> indicates that priority
+information is required (this is an enum value of enum <codeph>TInfoFunction</codeph>,
+defined in <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita"><apiname>DPhysicalDevice</apiname></xref>. </p> </section>
+</conbody></concept>

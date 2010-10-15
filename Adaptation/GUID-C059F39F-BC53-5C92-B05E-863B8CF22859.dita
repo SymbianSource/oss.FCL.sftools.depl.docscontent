@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C059F39F-BC53-5C92-B05E-863B8CF22859" xml:lang="en"><title>Command
+Objects</title><shortdesc>The MultiMediaCard controller uses a <codeph>TMMCCommandDesc</codeph> object
+to contain command and parameter information when issuing a command over the
+bus.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> This object is also used to contain response information resulting from
+the execution of that command. </p>
+<p>As it can sometimes be necessary to temporarily save current command and
+parameter information, the controller implements a small stack of <xref href="GUID-6B3DDBFD-3A4A-3694-A058-7794700FEC7A.dita"><apiname>TMMCCommandDesc</apiname></xref> objects.
+The controller then has the concept of a <i>current</i> command information
+object. </p>
+<p>The platform independent layer provides three functions through which command
+and parameter information can be set up: </p>
+<ul>
+<li id="GUID-2E6A2192-CC7E-519C-9918-F9A21A340D7B"><p>Two variants of <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-DBD4FF2D-5443-3993-B63E-A19606D07C92"><apiname>DMMCStack::CurrentSessFillCmdDesc()</apiname></xref> </p> </li>
+<li id="GUID-95BD9ED0-773A-588E-801E-F248745A2160"><p> <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-0629AAB8-4F6D-363D-ACCD-EAD31B884211"><apiname>DMMCStack::CurrentSessFillCmdArgs()</apiname></xref> </p> </li>
+</ul>
+<p>These functions are used to fill the <i>current</i> <xref href="GUID-6B3DDBFD-3A4A-3694-A058-7794700FEC7A.dita"><apiname>TMMCCommandDesc</apiname></xref> object. </p>
+<p>The controller executes a single command by calling the state machine function <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-A48C1C16-B465-3DDA-9C83-00DEB8D27B68"><apiname>DMMCStack::IssueMMCCommandSM()</apiname></xref>;
+this is implemented by the platform specific layer as part of the porting
+activity. </p>
+<p>It calls <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-931547BD-665D-326A-92B5-909B2D57F8C6"><apiname>DMMCSession::Command()</apiname></xref> to access the <i>current</i> command
+and parameter information. </p>
+<section id="GUID-0F16D5E0-9A9F-597C-9865-4D44C39BD78E"><title>The command
+stack</title> <p>Internally, the command stack is implemented as a simple
+array of <xref href="GUID-6B3DDBFD-3A4A-3694-A058-7794700FEC7A.dita"><apiname>TMMCCommandDesc</apiname></xref> objects; this is the <codeph>DMMCSession::iCommand[]</codeph> private
+data member. The stack is <codeph>KMaxMMCCommandStackDepth</codeph> deep.
+Internally, the current command information object is identified and accessed
+through the <codeph>DMMCSession::iCmdSP</codeph> data member, which indexes
+into the array and acts as a pointer to the current command information object. </p> <p>The
+platform independent layer provides two protected functions that the platform
+specific layer can use to change the command information object that is current: </p> <ul>
+<li id="GUID-6DAD8BE5-666C-5C4D-AC45-D5D8BA4E952F"><p> <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-FE93890C-249A-3344-BC93-57E690A432C4"><apiname>DMMCStack::CurrentSessPushCmdStack()</apiname></xref> </p> </li>
+<li id="GUID-302438B8-7501-50DE-96FE-8AE7BA3D88B1"><p> <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-7B55B7E8-373D-39BE-BB15-A9F41E6A0255"><apiname>DMMCStack::CurrentSessPopCmdStack()</apiname></xref> </p> </li>
+</ul> </section>
+</conbody></concept>

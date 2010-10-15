@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F4B2D20B-8F1D-4A4B-8ECB-65BE8E9824DD" xml:lang="en"><title>Interrupt Overview</title><shortdesc>Hardware or software uses interrupts to indicate an event
+has occurred, such as a data buffer being ready or a key has been
+pressed.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Interrupts are sent by hardware or software to indicate an event
+has occurred. Interrupts typically cause an Interrupt Service Routine
+(ISR) to be executed. The Interrupt platform service specifies the
+interface APIs for setting up the ISRs and connecting them to specific
+Interrupt IDs. </p>
+<p>Interrupts can be managed using the <xref href="GUID-A5D862E4-3EC3-45C0-B635-23A02E5BB11F.dita">GPIO</xref> platform
+service when an interrupt source is connected through GPIO pins. </p>
+<p>The Interrupt platform service is used by the device drivers that
+use an interrupt source routed directly to the interrupt controller
+hardware. For more information on how to use GPIO to manage interrupts,
+see <xref href="GUID-745273E3-BB3A-59BF-9C33-6C8BB3D850A9.dita">GPIO Design
+Considerations</xref>.</p>
+<p>Not all hardware events are indicated by interrupts; hardware may
+indicate a status change by setting a value in a register or sending
+a command/signal over a bus.</p>
+<section id="GUID-DEAC516A-6147-5EFE-A6F9-5069F4B3310C"><title>What
+is the Interrupt platform service</title> <p>The Interrupt platform
+service specifies certain APIs for attaching an Interrupt Service
+Routine to an API. It is the low level interface between hardware/software
+interrupts, and the kernel and kernel level device drivers.</p> </section>
+<section id="GUID-E075BEC5-7112-4280-A65D-67933977AE01"><title>Required
+background</title> <p>You should be familiar with the following: </p> <ul>
+<li id="GUID-D06AC743-F0CD-5EDB-807E-04498CC89C92"><p>Writing a C++
+function that is either global or is in a static class so that the
+function address can be used for the ISR.</p> </li>
+<li id="GUID-C81342F9-001D-5E17-ABC2-A44D4A7837D2"><p>The specification
+for your hardware, including determining interrupt IDs.</p> </li>
+</ul> </section>
+<section id="GUID-FE8CA9F1-F07D-4D41-B0BC-CE08FFA6C9C9"><title>Key
+concepts and terms</title> <p>The following concepts are relevant
+to this component: </p> <dl>
+<dlentry>
+<dt>Interrupt ID</dt>
+<dd><p>An identifier which says which interrupt has occurred. Typically
+an unsigned integer.</p> </dd>
+</dlentry>
+<dlentry>
+<dt>Interrupt Service Routine (ISR)</dt>
+<dd><p>An ISR is a static function which is called when an interrupt
+is received. It should be very short, allocate no memory on the heap,
+store any volatile information that needs to be captured for that
+event, and, if required, queue a DFC for further processing.</p> </dd>
+</dlentry>
+<dlentry>
+<dt>Bind</dt>
+<dd><p>Connects an Interrupt ID to an Interrupt Service Routine. Unbind
+removes the connection.</p> </dd>
+</dlentry>
+<dlentry>
+<dt>Enable</dt>
+<dd><p>When an interrupt occurs, execute the associated Interrupt
+Service Routine.</p> </dd>
+</dlentry>
+</dl> </section>
+<section id="GUID-FE6584D8-C6E9-43F4-AF97-0DBBA0240E88-GENID-1-2-1-10-1-5-1-7-1-1-4-1-3-8"><title>The
+Interrupt class</title> <p>The interrupt interface is provided by
+functions of the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class. The class is
+defined in the <filepath>os/kernelhwsrv/kernel/eka/include/kernel/arm/assp.h</filepath> file. </p> </section>
+<section id="GUID-3D6816E8-2B1E-4709-81B5-D0A469A2A268"><title>Key
+users</title> <p>The key users of the Interrupt platform service are
+kernel and kernel-level device driver writers, and anyone who needs
+to specify code to be run when a system event occurs. </p> </section>
+<section id="GUID-FE6584D8-C6E9-43F4-AF97-0DBBA0240E88-GENID-1-2-1-10-1-5-1-7-1-1-4-1-3-10"><title>Limitations</title><ul>
+<li><p>The ISR needs to complete in short and finite time to prevent
+excessive interrupt latency.</p></li>
+<li><p>To keep ISRs short, most of the event processing should be
+delegated to a DFC. The DFC will execute in the context of a DFC thread
+allocated to itself by the device driver.</p></li>
+<li><p>It is safe to access the device driver objects using appropriate
+synchronization techniques such as spin-locks.</p></li>
+<li><p>The ISR should store critical data which may not be available
+later. </p></li>
+<li><p>Interrupts can happen in the middle of updating kernel heap
+free list or other non-atomic actions. ISRs must be coded with that
+in mind.</p></li>
+</ul><p>This means that ISRs cannot:</p><ul>
+<li><p>access user process memory.  This includes completing an asynchronous
+request.</p></li>
+<li><p>perform any allocation / de-allocation on heaps.  The current
+interrupt might have occurred when a heap operation is already in
+progress.</p></li>
+</ul><p>It is therefore necessary that ISRs must only use pre-allocated
+objects on the kernel heap.</p> </section>
+</conbody><related-links>
+<link href="GUID-862CA4C4-C6E8-4D60-8DD0-F3590C92E15D.dita"><linktext>Interrupt
+Client Interface</linktext></link>
+<link href="GUID-2E54DA7D-1094-41C6-AFB0-9999471991F8.dita"><linktext>Interrupt
+Implementation Guide</linktext></link>
+</related-links></concept>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-535E5C2A-DCFD-4BCB-B26B-11E88BDB8A8A" xml:lang="en"><title>TDmac Derived Class Implementation</title><shortdesc>Implementing the hardware-specific DMA controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> class is part of the PIL. It is a
+container for the DMA controller's channels, descriptors and descriptor
+headers. It also defines virtual functions for operations that require
+a PSL implementation.</p>
+<p>You need to derive <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> for each distinct type
+of DMA controller on your device, and implement these virtual functions.</p>
+<p><table id="GUID-2AB9BEBC-9C41-4CAC-A222-24083FAD5F2B">
+<tgroup cols="3"><colspec colname="col1"/><colspec colname="COLSPEC1" colwidth="1.00*"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">Function</entry>
+<entry valign="top">Mandatory/Conditional</entry>
+<entry valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><xref href="GUID-E0617B44-6C99-3327-9E20-2975E465AA8C.dita"><apiname>Transfer()</apiname></xref></entry>
+<entry>Mandatory</entry>
+<entry>For single buffer and scatter/gather, this starts the DMA transfer.
+For double buffer, this prepares the next fragment to transfer while
+a current transfer is in operation</entry>
+</row>
+<row>
+<entry><xref href="GUID-267716ED-F59A-35FB-89CC-FB82540FEA79.dita"><apiname>StopTransfer()</apiname></xref></entry>
+<entry>Mandatory</entry>
+<entry>Stop the specified channel synchronously. Must not return to
+the PSL implementation until the channel has stopped.</entry>
+</row>
+<row>
+<entry><xref href="GUID-ACF1D126-591B-3A84-9F53-94370B1BFA7B.dita"><apiname>IsIdle()</apiname></xref></entry>
+<entry>Mandatory</entry>
+<entry>Returns <codeph>ETrue</codeph> if specified channel is idle,
+otherwise <codeph>EFalse</codeph></entry>
+</row>
+<row>
+<entry><xref href="GUID-D8ECA8CE-7F7C-356D-9C9F-4BD37ED2618C.dita"><apiname>MaxTransferSize()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>Takes the parameters and evaluates the maximum transfer size
+in bytes.</entry>
+</row>
+<row>
+<entry><xref href="GUID-F6CBDDF7-A9C1-3534-9F5E-5B4FC77E888B.dita"><apiname>MemAlignMask()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry><i>This applies to DMA v1 only.</i></entry>
+</row>
+<row>
+<entry><xref href="GUID-AA9217AF-EF1C-3010-AA7E-A4D3FCA14B30.dita"><apiname>InitHwDes()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>For scatter-gather, initialise the array of memory areas and
+set up the first block of data to be transferred.</entry>
+</row>
+<row>
+<entry><xref href="GUID-DCEFF8BA-BC74-3DA4-88CC-6A2C2E928BFE.dita"><apiname>ChainHwDes()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>For scatter-gather, add additional blocks of data to transfer
+to the list of memory areas.</entry>
+</row>
+<row>
+<entry><xref href="GUID-7076A78C-24F8-36B0-8FC2-F4DA8AB6DC14.dita"><apiname>AppendHwDes()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>For scatter-gather, add to the array of memory areas while
+the transfer is active. This is used in particular for streaming data
+where new descriptors can be added to the end of the chain while data
+earlier in the train is being transferred. E.g. video streaming.</entry>
+</row>
+<row>
+<entry><xref href="GUID-9D519453-8CA5-3200-8E9A-BB1599C25CE9.dita"><apiname>UnlinkHwDes()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>For scatter-gather, remove items from the array of memory areas.</entry>
+</row>
+<row>
+<entry><xref href="GUID-5569F5DA-D5FD-3368-99E4-F9AE6E1A7752.dita"><apiname>FailNext()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>For a sequence of memory transfers, tell the next one to fail. </entry>
+</row>
+<row>
+<entry><xref href="GUID-ED81D339-84D6-3811-AC39-184D6AC723C0.dita"><apiname>MissNextInterrupts()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>DMA transfers start on the next interrupt, but sometimes you
+want to skip the next interrupt for synchronisation or other reasons.</entry>
+</row>
+<row>
+<entry><xref href="GUID-93A3F01A-3489-37E5-921C-5EA5228545AA.dita"><apiname>Extension()</apiname></xref></entry>
+<entry>Optional</entry>
+<entry>Pass a command from the application/client down to the DMA
+chipset. Hardware dependent.</entry>
+</row>
+</tbody>
+</tgroup>
+</table></p>
+<section id="GUID-525949BF-21B1-40DA-888E-D05B204BC382"><title>Implement
+the mandatory controller virtual functions</title> <p>The <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> class contains several pure virtual functions that
+must be implemented by the PSL implementation: </p><ul>
+<li id="GUID-5FE89E59-2C8F-417E-AC84-77C8F20EA2E7"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-81921A9D-41F5-34BC-B882-60CC4CD807FB"><apiname>TDmac::Transfer()</apiname></xref></li>
+<li id="GUID-1D62C97A-5DC6-4BEE-B3EC-9120808FBFD6"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-B738D1B9-80FA-334D-ABEB-DFFF093E0B9D"><apiname>TDmac::StopTransfer()</apiname></xref></li>
+<li id="GUID-1708E632-4C79-4274-9363-4528095342A6"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-7422834D-CE6B-32DB-A040-7762A8BAB7D7"><apiname>TDmac::IsIdle()</apiname></xref></li>
+</ul> <p>These functions start and stop transfers on a DMA channel
+and are the main interface between the PIL and the PSL. The implementation
+of these functions depends on the hardware available for performing
+DMA, and on the characteristics used to specify a DMA transfer: </p><ul>
+<li id="GUID-93F00482-7DB7-4D0B-9BBC-62D0DEDFC669">the source and
+destination addresses </li>
+<li id="GUID-2BF651D7-261B-4B70-A281-07C14C0837D0">the burst size </li>
+<li id="GUID-638B0F70-6595-4B8C-8B46-22023B5AAF12">the maximum transfer
+size </li>
+<li id="GUID-879FE6AA-0D3E-4BAD-AB32-C3F6B4CB6758">the transfer width,
+i.e. number of bits per memory access </li>
+<li id="GUID-FD9A86D2-2BE6-4600-B0EF-54CCC2854D5D">the memory alignment
+and endianness. </li>
+</ul> <p>The DMA Framework manages the transfer descriptors according
+to the descriptor parameter passed into the <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> constructor by the derived class constructor; the descriptor parameter
+is a <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-BBD2153C-4B41-357C-9299-D710930AFCBE"><apiname>TDmac::SCreateInfo</apiname></xref> structure. The per-request
+transfer parameters are passed into the descriptors for each request
+issued by a driver. </p></section>
+<section id="GUID-9D4B491F-2E42-407F-BC99-E1F32AE6549E"><title>The
+transfer function: Transfer()</title> <p>This function initiates a
+previously constructed request on a specific channel. This is the
+template implementation: </p> <codeblock xml:space="preserve">
+void TTemplateDmac::Transfer(const TDmaChannel&amp; aChannel, const SDmaDesHdr&amp; aHdr)
+//
+// Initiates a (previously constructed) request on a specific channel.
+//
+    {
+    const TUint8 i = static_cast&amp;&lt;TUint8&amp;&gt;(aChannel.PslId());
+    TDmaDesc* pD = HdrToHwDes(aHdr);
+
+    __KTRACE_OPT(KDMA, Kern::Printf("&amp;&gt;TTemplateDmac::Transfer channel=%d des=0x%08X", i, pD));
+
+    // Load the first descriptor address into the DMAC and start it
+    // by setting the RUN bit.
+    (void) *pD, (void) i;
+
+    }
+</codeblock> </section>
+<section id="GUID-56D77E64-1AD3-4F17-AD26-562AEB97DC56"><title>The
+stop transfer function: StopTransfer()</title> <p>This is the template
+implementation: </p> <codeblock xml:space="preserve">void TTemplateDmac::StopTransfer(const TDmaChannel&amp; aChannel)
+//
+// Stops a running channel.
+//
+    {
+    const TUint8 i = static_cast&amp;&lt;TUint8&amp;&gt;(aChannel.PslId());
+
+    __KTRACE_OPT(KDMA, Kern::Printf("&amp;&gt;TTemplateDmac::StopTransfer channel=%d", i));
+
+    }
+</codeblock></section>
+<section id="GUID-C2427406-8F3A-407D-8D3D-9B3040542054"><title>The
+function: IsIdle()</title> <p><xref href="GUID-ACF1D126-591B-3A84-9F53-94370B1BFA7B.dita"><apiname>IsIdle()</apiname></xref> returns
+the state of a given channel. This is the template implementation: </p> <codeblock xml:space="preserve">TBool TTemplateDmac::IsIdle(const TDmaChannel&amp; aChannel)
+//
+// Returns the state of a given channel.
+//
+    {
+    const TUint8 i = static_cast&amp;&lt;TUint8&amp;&gt;(aChannel.PslId());
+
+    __KTRACE_OPT(KDMA, Kern::Printf("&amp;&gt;TTemplateDmac::IsIdle channel=%d", i));
+
+    return ETrue;
+    }
+</codeblock> </section>
+<section id="GUID-A385DE6A-E267-4F0C-A0AC-A85316706D68"><title>Implement
+the non-mandatory controller virtual functions</title> <p>The following
+auxiliary functions are used to implement the scatter-gather transfer
+mode behavior by creating and manipulating the linked list of transfer
+fragment headers that describe a given scatter-gather transaction.
+They are called by the <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> base class functions
+when the instance of the <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> derived class reports
+itself as being capable of scatter-gather operations. </p> <ul>
+<li id="GUID-8CFB839A-A2A2-47C5-A75A-062CE205FB0A"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-90AC3E58-E589-3F91-85F7-16A4ADFFFA69"><apiname>TDmac::InitHwDes()</apiname></xref></li>
+<li id="GUID-58BDB319-0A8D-4C1B-8C75-6C9E119D26DF"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-05021B05-75DE-3F75-92C6-8B9445EB86D3"><apiname>TDmac::ChainHwDes()</apiname></xref></li>
+<li id="GUID-2998E58B-2A02-4A66-87F5-A87F1915F47C"><xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-AFCDDA16-991D-3BDA-B90B-87BCAFF66E5C"><apiname>TDmac::AppendHwDes()</apiname></xref></li>
+</ul></section>
+<section id="GUID-4B1544BB-A3BC-4938-8832-FCD86C647953"><title>First
+scatter-gather support function: InitHwDes()</title> <p>This is a
+function for creating a scatter-gather list. From the information
+in the passed-in request, the function sets up the descriptor with
+that fragment's: </p><ul>
+<li id="GUID-A585C7E8-0C14-4F62-BB6B-C34FB4DEC0D1">source and destination
+address </li>
+<li id="GUID-5A58FD8F-BC32-48B9-BFA3-B376E4BD2ACC">size </li>
+<li id="GUID-C5BC6402-011F-497A-B3C2-C3AB5F29E1C7">driver/DMA controller
+specific transfer parameters: memory/peripheral, burst size, transfer
+width. </li>
+</ul> <p>This is the template implementation: </p> <codeblock xml:space="preserve">void TTemplateDmac::InitHwDes(const SDmaDesHdr&amp; aHdr, TUint32 aSrc, TUint32 aDest, TInt aCount,
+                              TUint aFlags, TUint32 aPslInfo, TUint32 /*aCookie*/)
+//
+// Sets up (from a passed in request) the descriptor with that fragment's source and destination address,
+// the fragment size, and the (driver/DMA controller) specific transfer parameters (mem/peripheral,
+// burst size, transfer width).
+//
+    {
+    TDmaDesc* pD = HdrToHwDes(aHdr);
+
+    __KTRACE_OPT(KDMA, Kern::Printf("TTemplateDmac::InitHwDes 0x%08X", pD));
+
+    // Unaligned descriptor? Error in generic layer!
+    __DMA_ASSERTD(IsHwDesAligned(pD));
+
+    pD-&amp;&gt;iSrcAddr = (aFlags &amp; KDmaPhysAddrSrc) ? aSrc : Epoc::LinearToPhysical(aSrc);
+    pD-&amp;&gt;iDestAddr = (aFlags &amp; KDmaPhysAddrDest) ? aDest : Epoc::LinearToPhysical(aDest);
+    pD-&amp;&gt;iCmd = DcmdReg(aCount, aFlags, aPslInfo);
+    pD-&amp;&gt;iDescAddr = TDmaDesc::KStopBitMask;
+    }
+</codeblock> </section>
+<section id="GUID-FAAE402C-959D-40CD-B208-C5AB9E495CAB"><title>Second
+scatter-gather support function: ChainHwDes()</title> <p>If the framework
+needs to fragment the client’s request, either because of the transfer
+size or because the memory is not a single contiguous block, then
+the framework calls this function. It chains hardware descriptors
+together by setting the next pointer of the original descriptor to
+the physical address of the descriptor to be chained. It assumes that
+the DMAC channel is quiescent when called. </p> <p>This is the template
+implementation: </p> <codeblock xml:space="preserve">void TTemplateDmac::ChainHwDes(const SDmaDesHdr&amp; aHdr, const SDmaDesHdr&amp; aNextHdr)
+//
+// Chains hardware descriptors together by setting the next pointer of the original descriptor
+// to the physical address of the descriptor to be chained.
+//
+    {
+    TDmaDesc* pD = HdrToHwDes(aHdr);
+    TDmaDesc* pN = HdrToHwDes(aNextHdr);
+
+    __KTRACE_OPT(KDMA, Kern::Printf("TTemplateDmac::ChainHwDes des=0x%08X next des=0x%08X", pD, pN));
+
+    // Unaligned descriptor? Error in generic layer!
+    __DMA_ASSERTD(IsHwDesAligned(pD) &amp;&amp; IsHwDesAligned(pN));
+
+    pD-&amp;&gt;iDescAddr = DesLinToPhys(pN);
+    }
+</codeblock></section>
+<section id="GUID-60013038-5A06-4926-A7F4-68D6FBA79ABC"><title>Third
+scatter-gather support function: AppendHwDes() </title> <p>This function
+is called by the <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref> base class when a driver
+request is called for a channel that is still active, i.e. where the
+intent is to provide data streaming so that the target device is constantly
+provided with data; for example, an audio device playing a track.
+In this case, the function provided by the derived class must: </p> <ul>
+<li id="GUID-484E794E-A446-4AFD-8956-D072C6B5EC81">stop the DMAC to
+prevent any corruption of the scatter-gather list while appending
+the new fragment descriptor </li>
+<li id="GUID-2D05CB0A-450A-45DF-8736-E406CFC1C6A2">append the new
+descriptor </li>
+<li id="GUID-E638DFC8-8078-4D5A-AC78-1A06B01DDBE5">re-enable the channel,
+ideally before the target has detected the gap in service. </li>
+</ul> <p>This is the template implementation: </p> <codeblock xml:space="preserve">void TTemplateDmac::AppendHwDes(const TDmaChannel&amp; aChannel, const SDmaDesHdr&amp; aLastHdr,
+                                const SDmaDesHdr&amp; aNewHdr)
+//
+// Appends a descriptor to the chain while the channel is running.
+//
+    {
+    const TUint8 i = static_cast&amp;&lt;TUint8&amp;&gt;(aChannel.PslId());
+
+    TDmaDesc* pL = HdrToHwDes(aLastHdr);
+    TDmaDesc* pN = HdrToHwDes(aNewHdr);
+
+    __KTRACE_OPT(KDMA, Kern::Printf("&amp;&gt;TTemplateDmac::AppendHwDes channel=%d last des=0x%08X new des=0x%08X",
+                                    i, pL, pN));
+    // Unaligned descriptor? Error in generic layer!
+    __DMA_ASSERTD(IsHwDesAligned(pL) &amp;&amp; IsHwDesAligned(pN));
+
+    TPhysAddr newPhys = DesLinToPhys(pN);
+
+    const TInt irq = NKern::DisableAllInterrupts();
+    StopTransfer(aChannel);
+
+    pL-&amp;&gt;iDescAddr = newPhys;
+    const TTemplateSgChannel&amp; channel = static_cast&amp;&lt;const TTemplateSgChannel&amp;&amp;&gt;(aChannel);
+    TDmaDesc* pD = channel.iTmpDes;
+
+    (void) *pD, (void) i;
+
+    NKern::RestoreInterrupts(irq);
+
+    __KTRACE_OPT(KDMA, Kern::Printf("&amp;&lt;TTemplateDmac::AppendHwDes"));
+    }
+</codeblock></section>
+</conbody><related-links>
+<link href="GUID-4E3C086B-25BE-4DAC-9E21-CFC4F8B792A5.dita"><linktext>DMA
+Technology Guide</linktext></link>
+<link href="GUID-95A33491-17AC-4F12-948E-A1352ADDA483.dita"><linktext>DMA
+Implementation Guide</linktext></link>
+</related-links></concept>

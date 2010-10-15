@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-18DD4FE5-6641-5A0E-A00E-DC0C00639CE4" xml:lang="en"><title>Set
+the Configuration Descriptors</title><shortdesc>A short document that describes how to set the configuration descriptors. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+
+<section id="GUID-F52A5F12-309F-5E78-A352-BBB0D9E04E6E"><title>Introduction</title> <p>The
+configuration descriptor contains values required by the class drivers. The
+settings are: </p> <ul>
+<li id="GUID-0D8A7917-78D3-5EB9-8F96-FF612AB113B6"><p>number of interfaces
+in the configuration, </p> </li>
+<li id="GUID-96233C25-8EE1-56FF-977D-B7A891C4906B"><p>maximum power taken
+by the device, </p> </li>
+<li id="GUID-30F2978A-9FB3-5B73-B590-47DF2B8F2BA6"><p>is remote wakeup enabled. </p> </li>
+</ul> <p> <b>Note</b>: that the number of interfaces in the configuration
+must be set, all the other settings are optional. </p><p> The size of the
+data to be copied may be obtained by using  <xref href="GUID-0638B42E-9F0E-39F9-ADD3-95DAAE53D231.dita"><apiname>GetConfigurationDescriptorSize()</apiname></xref>.<codeblock xml:space="preserve">TInt desc_size = 0;
+gPort.GetConfigurationDescriptorSize(desc_size);</codeblock></p><p>The size
+should normally be <xref href="GUID-E03E6449-67E8-38EC-B0B6-A036E5C2D2C3.dita"><apiname>KUsbDescSize_Config</apiname></xref> as defined in <filepath>&lt;usb.h&gt;</filepath></p> </section>
+<section><title>Setting configuration descriptors</title> <p>Set the configuration
+descriptor using <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita#GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA/GUID-A2578FBD-5B74-3A24-939E-77D42B83BD55"><apiname>RDevUsbcScClient::SetConfigurationDescriptor()</apiname></xref>. </p> <codeblock id="GUID-116E9BD1-635F-5DC7-941F-DB7A8430C8E4" xml:space="preserve">TBuf8&lt;desc_size&gt; descriptor;
+
+// Invert Remote-Wakup support
+descriptor[KConfDesc_AttribOffset] = (descriptor[KConfDesc_AttribOffset] ^ KUsbDevAttr_RemoteWakeup);
+
+// Change the reported max power to 200mA (2 * 0x64)
+descriptor[KConfDesc_MaxPowerOffset] = 0x64;
+r = gPort.SetConfigurationDescriptor(descriptor);</codeblock> <p>Additional
+values may be set using the <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita"><apiname>RDevUsbcScClient</apiname></xref> class. These
+values can be set, retrieved and removed: </p> <ul>
+<li id="GUID-9344E027-E98A-55BC-8033-1E634DF05CD6"><p>Manufacturer, </p> </li>
+<li id="GUID-8FAD4957-D95E-5C1A-B6F9-3D3FC64D16EA"><p>Product, </p> </li>
+<li id="GUID-C103E88F-C44A-51BC-96F3-BF2CDABA74FC"><p>Serial numbers. </p> </li>
+</ul> </section>
+
+<section><p>After you have set the configuration descriptors you should <xref href="GUID-5F614B75-056D-5798-AE06-8DA6E9ED6834.dita">Set the Interface Descriptors</xref>. </p> </section>
+</conbody></concept>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DA62FD4F-2E74-5B2F-B703-4A40DF5F01CA" xml:lang="en"><title>MAKSYM
+Tool</title><shortdesc>MAKSYM is a command line tool that processes the log file generated
+when building a ROM image, and creates a text file that lists the address
+of every global and exported function in the ROM</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> <xref href="GUID-CC04A14B-A839-5613-820D-F1E65EB2DF7F.dita">Reference: tools:
+MAKSYM</xref> outlines the syntax of the command. </p>
+<p>If you know the address of the instruction which caused an exception, you
+can compare this address with the MAKSYM log to see which function this is
+in. You can narrow this down to the exact code within the function by using <codeph>ABLD
+LISTING</codeph> to get the assembler output from the compiler. </p>
+<p>The following example MAKSYM log is taken from an EKA1 build; however,
+the principle is the same for EKA2. </p>
+<codeblock id="GUID-D59F2E58-C39A-516B-8185-F4C8DBB9BE45" xml:space="preserve">From    \Epoc32\Release\Misa\UREL\ekern.exe
+
+50003040    0094    _E32Startup
+500030d4    002c    ImpDma::Init1(void)
+50003100    0004    ImpDma::Init3(void)
+50003104    0008    ImpDma::MaxBlockSize(void)
+</codeblock>
+<p>If, for example, the code address of the exception is at <codeph>0x500030dc</codeph>,
+then you can see from the log that this is in the <codeph>ImpDma::Init1()</codeph> function,
+at offset 8 from the start of the function. This function is in the file <filepath>...\e32\ekern\epoc\arm\sa1100\ka_dma.cpp</filepath>,
+so use<codeph> ABLD LISTING</codeph> to obtain the assembler: </p>
+<p><userinput>cd \e32</userinput> </p>
+<p><userinput>abld listing misa urel ekern ka_dma </userinput> </p>
+<p>Notice that you must specify the component that the file is part of, in
+this case <codeph>EKERN</codeph>, and that you do not put the <filepath>.cpp</filepath> extension
+on the source file name. If you do not specify a source file ABLD will create
+an assembler listing for every file in component <codeph>EKERN</codeph>. </p>
+<p>The listing file will be placed in the same directory as <codeph>ka_dma.cpp</codeph>,
+and will be called <codeph>ka_dma.lis</codeph>. If you look at this file you
+will see something like this: </p>
+<codeblock id="GUID-285B04C6-E2C4-5A62-A47B-C31F71231F57" xml:space="preserve">7                  Init1__6ImpDma:
+   8                      @ args = 0, pretend = 0, frame = 0
+   9                      @ frame_needed = 0, current_function_anonymous_args = 0
+  10                      @ I don't think this function clobbers lr
+  11 0000 18209FE5         ldr    r2, .L793
+  12 0004 0630A0E3         mov    r3, #6
+  13 0008 003082E5         str    r3, [r2, #0]
+  14 000c 10309FE5         ldr    r3, .L793+4
+  15 0010 10009FE5         ldr    r0, .L793+8
+  16 0014 000083E5         str    r0, [r3, #0]
+  17 0018 1810A0E3         mov    r1, #24
+  18 001c FEFFFFEA         b    FillZ__3MemPvi
+</codeblock>
+<p>Offset 8 is the first STR instruction. Comparing this with the C++ source: </p>
+<codeblock id="GUID-695798DA-4A00-5963-A3B8-F30D5D908FDA" xml:space="preserve">void ImpDma::Init1()
+//
+// Phase 1 initialisation of the Dma channels
+//
+    {
+    PP::DmaMaxChannels=KNumberOfDmaChannels;
+    PP::DmaChannelTable=(TDma **)(&amp;DmaChannels[0]);
+    Mem::FillZ(PP::DmaChannelTable,sizeof(TDma *)*KNumberOfDmaChannels);
+    }
+</codeblock>
+<p>The first store is to PP::DmaMaxChannels, so clearly there is a problem
+writing this memory. </p>
+</conbody></concept>

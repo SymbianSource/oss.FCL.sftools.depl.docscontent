@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-583F70B4-5C8C-54FA-A869-E6F073DE1FD6" xml:lang="en"><title>Interrupt::Enable()
+and Interrupt::Disable()</title><shortdesc>The functions <codeph>Interrupt::Enable()</codeph> and <codeph>Interrupt::Disable()</codeph> are
+used by device drivers to enable and disable the interrupt source in the interrupt
+controller hardware. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p/>
+<p>An <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-8E58F4C9-0290-55E0-A4FD-B6C2361BE205">Interrupt
+ID</xref> is passed to the functions to identify the interrupt source. All
+requests for enabling and disabling interrupts should go to these functions
+in the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class so that device drivers should never
+need to know where the interrupt is actually implemented. The general rule
+is that the interrupt ID is tagged in some way to allow these functions to
+decide whether the interrupt refers to the ASSP layer or to the Variant layer.
+These functions are implemented in the ASSP layer. </p>
+<p>The implementation of these functions is completely dependent on the interrupt
+hardware. In the template port, <codeph>Interrupt::Enable()</codeph> is implemented
+in <filepath>...\template_assp\interrupts.cpp</filepath>. The relevant part
+is: </p>
+<codeblock id="GUID-8A99386B-5681-5ABA-B4BB-735DF2C2695A" xml:space="preserve">EXPORT_C TInt Interrupt::Enable(TInt anId)
+    {
+     __KTRACE_OPT(KEXTENSION,Kern::Printf("Interrupt::Enable id=%d",anId));
+     TInt r=KErrNone;
+     // if ID indicates a chained interrupt, call variant...
+     if (anId&lt;0 &amp;&amp; ((((TUint)anId)&gt;&gt;16)&amp;0x7fff)&lt;(TUint)KNumTemplateInts)
+         r=TemplateAssp::Variant-&gt;InterruptEnable(anId);
+     else if ((TUint)anId&gt;=(TUint)KNumTemplateInts)
+         r=KErrArgument;
+     else if (TemplateInterrupt::Handlers[anId].iIsr==TemplateInterrupt::Spurious)
+         r=KErrNotReady;
+     else
+         {
+         //
+         // TO DO: (mandatory)
+         //
+         // Enable the corresponding Hardware Interrupt source
+         //
+         }
+     return r;
+    }
+          </codeblock>
+<p>Interrupts that 'belong' to the Variant Layer are passed to that layer
+through the call to: </p>
+<codeblock id="GUID-05C36364-3912-5EEE-B851-82803A731950" xml:space="preserve">r =TemplateAssp::Variant-&gt;InterruptEnable(anId);</codeblock>
+<p> <codeph>Interrupt::Disable()</codeph> follows the same general pattern. </p>
+<p>The Variant layer equivalent of this function, <codeph>Template::InterruptEnable()</codeph>,
+in <filepath>...\template_variant\specific\variant.cpp</filepath>, also follows
+the same pattern. </p>
+</conbody></concept>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-70041B11-4C03-42C6-9EC2-307E5FF0F626" xml:lang="en"><title>IIC Interface Overview</title><shortdesc>Provides a summary of IIC interface.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The IIC platform service provides APIs for a master channel and
+a slave channel. The PIL provides the generic platform independent
+functionality.</p>
+<section id="GUID-61CABBE0-B15D-47A1-9F12-95C74DAADFD6">         
+   <title>Master channel</title>             <p>You must derive a
+class from <xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita"><apiname>DIicBusChannelMaster</apiname></xref> and implement certain
+pure virtual functions.</p>      <table id="GUID-C138F5F0-138A-4C1B-A6DC-35548F413B64">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">API</entry>
+<entry valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-E64BFB0C-8959-3FF6-B3C1-F6FC918832BF"><apiname>DIicBusChannelMaster::DoRequest(TIicBusTransaction*
+aTransaction)</apiname></xref></entry>
+<entry>Gateway function for the PSL implementation. This function
+allows the client to request a new channel.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-6830B886-FD32-39E1-A0BE-1897131E27CB"><apiname>DIicBusChannelMaster::DoCreate()</apiname></xref></entry>
+<entry>Second phase constructor to create a new channel.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-FB025EB1-1632-360B-AFFB-AEC508D2C291"><apiname>DIicBusChannelMaster::HandleSlaveTimeout()</apiname></xref></entry>
+<entry>Function to be called in the event of slave time out. Implement
+this function to stop the transmission, disable the hardware or call
+PIL function<xref href="GUID-853C87F1-0E44-3B1E-A97E-6461F1188B3A.dita"><apiname> CompleteRequest()</apiname></xref>.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-DDF338C1-4F9F-3E01-9596-FAF42C3AE12A"><apiname>DIicBusChannelMaster::CheckHdr()</apiname></xref></entry>
+<entry>Function to check if the header of the transaction is valid.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>   </section>
+<section id="GUID-CBFFAB9D-B006-4B75-9508-44C29BEDD434"><title>PIL
+functions for master channel</title>The following functions can be
+used by the platform specific implementation of the IIC platform services.<table id="GUID-8ECF612B-CE35-4D94-9778-00481218D131">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">API </entry>
+<entry valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry> <xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-F1103884-A156-36E8-967B-5A65404B5D70"><apiname>DIicBusChannelMaster::Init()</apiname></xref></entry>
+<entry>Initialise the child class  <xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita"><apiname>DIicBusChannelMaster</apiname></xref>.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-3C7168AD-0832-3266-BDD2-991CC49971C5"><apiname>DIicBusChannelMaster::SetDfcQ()</apiname></xref></entry>
+<entry>To set the IIC driver's DFC queue to be used by the DFC of
+PIL.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-740EAD34-9338-319C-BFCC-32664B0680A0"><apiname>DIicBusChannelMaster::StartSlaveTimeOutTimer()</apiname></xref></entry>
+<entry>To start a timer to wait for the slave class functions, if
+the time expires the <xref href="GUID-AD480427-A00E-3BB3-AD62-1B91A86B37A2.dita"><apiname>HandleSlaveTimeout()</apiname></xref> call
+up function is invoked by the clients.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-540783BD-7970-3472-9812-FBE0040D9039"><apiname>DIicBusChannelMaster::CancelTimeOut()</apiname></xref></entry>
+<entry>To cancel the timer monitoring the transactions.</entry>
+</row>
+<row>
+<entry><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita#GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B/GUID-77CF7770-960A-314F-B97A-A59C9AA437AF"><apiname>DIicBusChannelMaster::CompleteRequest()</apiname></xref></entry>
+<entry>To notify the PIL of a completed transaction</entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+<section id="GUID-4F13084A-B068-4E94-A167-FFC7B9C82434"><title>Slave
+channel</title>You must derive a class from <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref> and implement the following pure virtual functions:<table id="GUID-F1E731D5-F983-4439-A7AC-2B82F8828677">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">API</entry>
+<entry valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry> <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-07172C58-9EAD-39E3-9F50-34E9F14FAA35"><apiname>DIicBusChannelSlave::DoRequest()</apiname></xref></entry>
+<entry>The gateway function to the SHAI implementation layer.</entry>
+</row>
+<row>
+<entry> <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-695FBFF9-3F47-3DAD-B416-E218BB7624D5"><apiname>DIicBusChannelSlave::DoCreate()</apiname></xref></entry>
+<entry>The second phase constructor function to create a new channel.</entry>
+</row>
+<row>
+<entry> <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-9217102F-6501-3B3D-BB6C-D6833EDB315A"><apiname>DIicBusChannelSlave::ProcessData()</apiname></xref></entry>
+<entry> Called by the PIL in response to the <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-0F1A82C1-E604-36F1-B71B-1387EC414A9A"><apiname>DIicBusChannelSlave::NotifyClient()</apiname></xref> function.</entry>
+</row>
+<row>
+<entry> <xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-C412A246-6565-331B-87C1-A32BF6CF6B89"><apiname>DIicBusChannelSlave::ChechHdr()</apiname></xref></entry>
+<entry>The function to validate a configuration.</entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+<section id="GUID-D7FE7B2B-A9ED-47A1-BC0F-7575BE8DB747"><title>PIL
+function for slave channel</title>The following are the generic functions
+provided by the PIL of the IIC platform service: <table id="GUID-C1016541-E8FD-4C1C-9E7A-D6861FC21050">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top">API</entry>
+<entry valign="top">Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-163A4AF3-21E4-359F-B10A-FDE2C2FECE82"><apiname>DIicBusChannelSlave::DIicBusChannelSlave()</apiname></xref></entry>
+<entry>Constructor function for PIL.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-F6DB5014-3AF9-3573-9B19-9E6761860226"><apiname>DIicBusChannelSlave::Init()</apiname></xref></entry>
+<entry>Initialise the slave channel.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-9B1B40FB-3767-3D73-8876-89EAAC96EFF0"><apiname>DIicBusChannelSlave::SetMasterWaitTime()</apiname></xref></entry>
+<entry>Set the timer to wait for the master channel to respond after
+a transmission is started.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-16535EB6-2DBB-3682-A704-3BCB0618DA31"><apiname>DIicBusChannelSlave::GetMasterWaitTime()</apiname></xref></entry>
+<entry>Get the current delay to wait for the master channel to respond
+after a transmission is started.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-E767FE3F-840C-3B5E-9DDC-CF00C3FF56BF"><apiname>DIicBusChannelSlave::SetClientWaitTime()</apiname></xref></entry>
+<entry>Set the timer of the client to respond for the next operation.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-2124E2FF-5F58-35C4-BDB3-E7E3353EB83F"><apiname>DIicBusChannelSlave::GetClientWaitTime()</apiname></xref></entry>
+<entry>Get the current delay of the client to respond for the next
+operation.</entry>
+</row>
+<row>
+<entry><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita#GUID-22FF70C1-A805-3EBB-B142-15FD16D00837/GUID-0F1A82C1-E604-36F1-B71B-1387EC414A9A"><apiname>DIicBusChannelSlave::NotifyClient()</apiname></xref></entry>
+<entry>Notify clients of the slave channel events.</entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The header file for the IIC can be found <xref href="http://developer.symbian.org/xref/oss/xref/MCL/sf/os/kernelhwsrv/kernel/eka/include/drivers/iic.h.dita">here</xref></p></section>
+</conbody><related-links>
+<link href="GUID-C24A5B52-0B40-53B2-BF85-6ECC35BDCBA5.dita"><linktext>IIC
+Implementation Guide</linktext></link>
+</related-links></concept>

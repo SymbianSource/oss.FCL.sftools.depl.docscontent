@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-1E43E258-A926-5D24-B0A5-8756491C687F" xml:lang="en"><title>Call
+Stack Information Commands</title><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Describes how to use the debug monitor commands to get information about
+the call stack. </p>
+<ul>
+<li id="GUID-9D1E42B6-658E-59DF-AC7D-0551B8EF6B61"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-D8F141D7-3BE2-5ADB-8A55-CFFE85E89804">General points</xref>  </p> </li>
+<li id="GUID-92B8F3E9-11C1-5260-A862-6CE017984DB0"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-1EC3F2E7-6BFF-56BE-B042-DA6940CC909E">Finding the stack</xref>  </p> </li>
+<li id="GUID-CEFC5F08-C19E-53DD-A0E2-C9C4FFFF3490"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-877742A5-F07F-54B6-B871-255FAAE790EB">Tracing through the call stack heuristically</xref>  </p> </li>
+<li id="GUID-8D00F8C3-B367-5C75-89E4-B712002E942D"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-7F160B0F-9921-578B-B9B0-7CC4CA3B24C3">Walking through the call stack</xref>  </p> </li>
+</ul>
+<section id="GUID-D8F141D7-3BE2-5ADB-8A55-CFFE85E89804"><title>General points</title> <p>Tracing
+the call stack is an advanced use of the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-2A0D5950-F1A5-5EE1-87A3-840B1EAD6AAD">m</xref> command that allows you to <xref href="GUID-DC2CF276-95E2-5810-9B8D-EB8B72E04FEC.dita">examine
+memory</xref>. </p> <p>Every time a function is called, the return address
+is automatically saved into register <codeph>R14</codeph> (Link Register).
+In addition to this the return address is generally pushed onto the call stack;
+it is always pushed in debug builds but the push operation is sometimes optimized
+out in release builds. This allows you to trace back through the value of <codeph>R14</codeph> and
+these saved addresses to see the sequence of function calls. Unfortunately
+this is quite tedious to do because the stack is also used for automatic variables
+and other data. You need to work out which values on the stack refer to return
+addresses. </p> <p>When you are debugging only ROM-based code, it is relatively
+easy to identify the pushed return addresses because all code addresses will
+be in the ROM range: <codeph>0xF800000</codeph> to <codeph>0xFFEFFFFF</codeph> for
+the <xref href="GUID-D520CBC3-FCAC-5A53-AE1A-E5254ABBC6A2.dita#GUID-D520CBC3-FCAC-5A53-AE1A-E5254ABBC6A2/GUID-A5845A0C-2C88-52BB-B7DE-210C2DE481B9">moving
+model</xref>. However, there is also data in the ROM, which means that an
+address on the stack which is in the ROM range could point to data instead
+of code. If you want to trace applications loaded into RAM, i.e. anything
+not run from drive Z:, then stack tracing is more difficult because the code
+can move about and RAM-loaded code is given an address assigned at load time. </p> <p>Note
+that <xref href="GUID-DA62FD4F-2E74-5B2F-B703-4A40DF5F01CA.dita">using the MAKSYM
+tool</xref> is essential for tracing back through the stack. </p> </section>
+<section id="GUID-1EC3F2E7-6BFF-56BE-B042-DA6940CC909E"><title>Finding the
+stack</title> <p>To trace back through a thread’s kernel or user stack, you
+first need to find the stack pointer value. On the ARM, <codeph>R13</codeph> always
+points to the stack, but there are different <codeph>R13</codeph> registers
+for each processor mode: </p> <ul>
+<li id="GUID-756C8CDD-AF47-561B-BAA7-EA8FBDEE5245"><p>In thread context: </p> <ul>
+<li id="GUID-81BC92C2-6022-5EBF-BF60-C4D69131C720"><p> <codeph>R13usr</codeph> points
+to the thread’s user stack, </p> </li>
+<li id="GUID-CA6CF8C9-0BA3-5BD4-AECE-80AB3DFCFAD1"><p> <codeph>R13svc</codeph> points
+to the thread’s kernel stack. </p> </li>
+</ul> </li>
+<li id="GUID-C4A1AD73-64E8-56F7-A7DF-129B2A35FC9D"><p>When handling interrupts,
+dedicated stacks are used: </p> <ul>
+<li id="GUID-7D27A691-1479-578B-9B05-7946C8D84010"><p> <codeph>R13Fiq</codeph> points
+to the stack used when processing fast interrupts (FIQ). </p> </li>
+<li id="GUID-CE76BE0F-A6BA-55A6-8CDD-B1E40D97A42D"><p> <codeph>R13Irq</codeph> points
+to the stack used when processing general purpose interrupts (IRQ). </p> </li>
+</ul> </li>
+</ul> <p>To find out which stack to inspect, you need to know what mode the
+CPU was in when the fault occurred. The <xref href="GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4.dita#GUID-7ECDCF7B-3B2A-561F-9136-04BC4DAE46E4/GUID-BFA2235C-1598-59E6-9F1F-A8281F13A957">processor
+mode</xref> is identified by the five least-significant bits of the CPSR register.
+To get the value of the CPSR register: </p> <ul>
+<li id="GUID-2FAF9E34-CCF0-5C6E-AA6A-9D274433FC49"><p>use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D5F2E0AF-EF03-5150-813B-DF989F12C47B">f</xref> command when the debug monitor is triggered by a hardware exception. </p> </li>
+<li id="GUID-EECA647F-38C8-5B57-80EA-B4D9EBA1928B"><p>use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-0CDF0190-A445-526B-AC1F-D9D58095B18B">r</xref> command when the debug monitor is triggered by a panic. </p> </li>
+</ul> <p>The following examples show how to find the stack(s): </p> <ul>
+<li id="GUID-A5533A14-EEF7-5A9F-B93B-E6E41ECF3928"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-4E735CB7-3171-58FB-9D93-EE86702952F6">Kernel &amp; user stacks of the current thread after a hardware exception</xref>  </p> </li>
+<li id="GUID-750F8489-5918-5062-9ABC-C8951E50716A"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-FB9D2307-01D9-562A-A46F-AAD91D61C32E">Kernel &amp; user stacks of the current thread after a panic</xref>  </p> </li>
+<li id="GUID-0ADBB680-827C-5AEF-96F9-B5684B146097"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-C265F9C5-3280-5A4F-B023-56E33D52DDE0">Interrupt stacks</xref>  </p> </li>
+<li id="GUID-B7CA8584-317C-5ECB-9D4D-2EEFED3F51EA"><p> <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-9637574E-A9A0-509D-B9B1-C672E2B13431">Kernel &amp; user stacks of a non-current thread</xref>  </p> </li>
+</ul> <p id="GUID-4E735CB7-3171-58FB-9D93-EE86702952F6"><b>Kernel &amp; user stacks
+of the current thread after a hardware exception</b> </p> <p>Use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D5F2E0AF-EF03-5150-813B-DF989F12C47B">f</xref> command. </p> <codeblock id="GUID-A92D63C6-1594-5C95-AAC2-42D2FDE5160F" xml:space="preserve">Fault Category: Exception  Fault Reason: 10000000
+ExcId 00000001 CodeAddr f816c908 DataAddr 80000001 Extra c0007003
+Exc 1 Cpsr=60000010 FAR=80000001 FSR=c0007003
+ R0=00000000  R1=00000000  R2=30000000  R3=80000001
+ R4=00000001  R5=00403d88  R6=00002000  R7=f816c768
+ R8=00000012  R9=00000040 R10=00000000 R11=00403fa4
+R12=00403d5c R13=00403d70 R14=f80906f8 R15=f816c908
+R13Svc=6571e000 R14Svc=f80074bc SpsrSvc=80000010
+</codeblock> <p>In this example: </p> <ul>
+<li id="GUID-7C35AE63-13E9-5D8D-A77F-CD1A0B9A5EF4"><p>the kernel stack is
+the value of <codeph>R13Svc</codeph>, i.e. <codeph>0x6571e00</codeph>. </p> </li>
+<li id="GUID-D70628B9-A750-5557-BACF-471D2D75A2E4"><p>the user stack is the
+value of <codeph>R13</codeph>, i.e. <codeph>0x00403d70</codeph>. </p> </li>
+</ul> <p id="GUID-FB9D2307-01D9-562A-A46F-AAD91D61C32E"><b>Kernel &amp; user stacks
+of the current thread after a panic</b> </p> <p>Use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-0CDF0190-A445-526B-AC1F-D9D58095B18B">r</xref> command. </p> <codeblock id="GUID-705AF9EC-4513-5C3C-BD28-A91992D73296" xml:space="preserve">MODE_USR:
+ R0=6571de54  R1=0000002a  R2=00000002  R3=ffffffff
+ R4=0000002a  R5=f8170414  R6=6571df14  R7=6403cc50
+ R8=00000001  R9=6403c44c R10=640002f8 R11=6571de70
+R12=00000020 R13=00404e00 R14=f80818c0 R15=f800bfa8
+CPSR=60000013
+MODE_FIQ:
+ R8=00000000  R9=ffffffff R10=ffffffff R11=00000000
+R12=00000000 R13=64000d0c R14=c080079c SPSR=e00000dc
+MODE_IRQ:
+R13=6400110c R14=00000013 SPSR=20000013
+MODE_SVC:
+R13=6571de54 R14=f80328bc SPSR=60000010
+MODE_ABT:
+R13=6400090c R14=ccbfd0e0 SPSR=b00000d9
+MODE_UND:
+R13=6400090c R14=b5a39950 SPSR=f000009d
+</codeblock> <p>In this example: </p> <ul>
+<li id="GUID-C23A3F68-FAEB-596A-AF51-810E7429D17B"><p>the kernel stack is
+the value of <codeph>R13</codeph> under <codeph>MODE_SVC:</codeph>, i.e. <codeph>0x6571de54</codeph>. </p> </li>
+<li id="GUID-98FD71CA-BD17-5CB3-B0A8-0FBECFBF3ECF"><p>the user stack is the
+value of <codeph>R13</codeph> under <codeph>MODE_USR:</codeph>, i.e. <codeph>0x00404e00</codeph>. </p> </li>
+</ul> <p id="GUID-C265F9C5-3280-5A4F-B023-56E33D52DDE0"><b>Interrupt stacks</b> </p> <p>Use
+the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-0CDF0190-A445-526B-AC1F-D9D58095B18B">r</xref> command. </p> <codeblock id="GUID-28065EA2-194E-5D8D-8C1B-D85299B91431" xml:space="preserve">MODE_USR:
+ R0=6571de54  R1=0000002a  R2=00000002  R3=ffffffff
+ R4=0000002a  R5=f8170414  R6=6571df14  R7=6403cc50
+ R8=00000001  R9=6403c44c R10=640002f8 R11=6571de70
+R12=00000020 R13=00404e00 R14=f80818c0 R15=f800bfa8
+CPSR=60000013
+MODE_FIQ:
+ R8=00000000  R9=ffffffff R10=ffffffff R11=00000000
+R12=00000000 R13=64000d0c R14=c080079c SPSR=e00000dc
+MODE_IRQ:
+R13=6400110c R14=00000013 SPSR=20000013
+MODE_SVC:
+R13=6571de54 R14=f80328bc SPSR=60000010
+MODE_ABT:
+R13=6400090c R14=ccbfd0e0 SPSR=b00000d9
+MODE_UND:
+R13=6400090c R14=b5a39950 SPSR=f000009d
+</codeblock> <p>In this example: </p> <ul>
+<li id="GUID-6A48007B-973A-50F1-BCF5-31A72EC68D57"><p>the IRQ stack is the
+value of <codeph>R13</codeph> under <codeph>MODE_IRQ:</codeph>, i.e. <codeph>0x6400110c</codeph>. </p> </li>
+<li id="GUID-65CD3376-7D50-548F-A473-04B049034D0D"><p>the FRQ stack is the
+value of <codeph>R13</codeph> under <codeph>MODE_FIQ:</codeph>, i.e. <codeph>0x64000d0c</codeph>. </p> </li>
+</ul> <p id="GUID-9637574E-A9A0-509D-B9B1-C672E2B13431"><b>Kernel &amp; user stacks
+of a non-current thread</b> </p> <p>Use the output of the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D0175D78-6F84-5F4F-BA90-2C591B473C69">i</xref>, <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-1DED2B2F-E780-50A0-8325-5DA22BC7D3E0">q</xref> and <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-FB2E24A6-9744-5169-BA90-DDF84DF1D3E5">c0</xref> commands. </p> <codeblock id="GUID-F45908AC-ADF8-5B92-AA8C-4C33D77D24B8" xml:space="preserve">THREAD at 6403c194 VPTR=f8046c18 AccessCount=5 Owner=6403bb4c
+Full name t_dmasim::Main
+Thread MState READY
+Default priority 12 WaitLink Priority 12
+ExitInfo 3,0,
+Flags 00000002, Handles 6403b418
+Supervisor stack base 6571d000 size 1000
+User stack base 00403000 size 2000
+Id=25, Alctr=00700000, Created alctr=00700000, Frame=00000000
+Trap handler=00000000, ActiveScheduler=007000c8, Exception handler=00000000
+TempObj=00000000 TempAlloc=00000000
+NThread @ 6403c44c Pri 12 NState READY
+Next=6403c44c Prev=6403c44c Att=03 iUserContextType=02
+HeldFM=00000000 WaitFM=00000000 AddrSp=6403bb4c
+Time=0 Timeslice=20 ReqCount=0
+SuspendCount=0 CsCount=1 CsFunction=00000000
+SavedSP=6571df98
+DACR f800bd2c
+R13_USR 0d404c38 R14_USR 00000001 SPSR_SVC 00000000
+ R4 f8022d84  R5 6571dfd4  R6 6571dfbc  R7 f8022db8
+ R8 f800bddc  R9 f800a454 R10 00000000 R11 f801daac
+ PC 60000010
+</codeblock> <p>In this example: </p> <ul>
+<li id="GUID-A4217DD4-A46C-5EAE-85D3-2EEAD763B726"><p>the kernel stack is
+the value of <codeph>SavedSP</codeph>, i.e. <codeph>0x6571df98</codeph>. </p> </li>
+<li id="GUID-8220888D-7411-5AC5-AD20-89E892301188"><p>the user stack is the
+value of <codeph>R13_USR</codeph>, i.e. <codeph>0x0d404c38</codeph>. </p> </li>
+</ul> </section>
+<section id="GUID-877742A5-F07F-54B6-B871-255FAAE790EB"><title>Tracing through
+the stack heuristically</title> <p>One way of tracing through the call stack
+is to assume that every word on the stack which looks like a ROM code address
+is a saved return address. We say that this heuristic because: </p> <ul>
+<li id="GUID-B5BF6BD6-0163-55F9-A34D-EB78982848B0"><p>some data words may
+look like code addresses in ROM. </p> </li>
+<li id="GUID-0A978212-73B6-5C89-B805-84327B9CF733"><p>there may be saved return
+addresses left over from previous function calls. For example, suppose that <codeph>F()</codeph> calls <codeph>A()</codeph> and
+then <codeph>B()</codeph> in sequence. <codeph>A()</codeph> itself calls <codeph>X()</codeph>,
+which calls <codeph>Y()</codeph>. If a crash occurs in <codeph>B()</codeph>,
+the saved return addresses from the calls to <codeph>X()</codeph> and <codeph>Y()</codeph> are
+still present on the stack and may be mistaken for function calls occuring
+while <codeph>B()</codeph> is active. </p> <p>This scenario happens frequently
+when <codeph>B()</codeph> allocates a buffer (e.g. <xref href="GUID-0B9C8884-6BFF-35E2-AA6F-E4057B85AFCF.dita"><apiname>TBuf</apiname></xref>)
+on the stack which overlaps old stack frames. </p> <fig id="GUID-FED8CC0F-F1A0-59C9-B082-2D3B499D00D5">
+<image href="GUID-A328F9E3-7D91-594A-A589-E8CE5FA9227A_d0e69077_href.png" placement="inline"/>
+</fig> </li>
+</ul> <p>If you want to trace applications loaded into RAM, then stack tracing
+is more difficult because RAM-loaded DLLs are given addresses assigned at
+load time. </p> <p>On ARM, the stack pointer starts at the higher address
+end and moves 'down' towards the lower address end. This means that values
+at the top of the memory dump are more recent. You need to look back through
+this for code addresses. For ROM code this will be words with most significant
+byte in the range <codeph>0xF8</codeph> to <codeph>0xFF</codeph>, remembering
+that they are little-endian. This can either be done manually, or automatically
+using the <filepath>printsym.pl</filepath> perl script, which can be found
+in <codeph>...\epoc32\tools</codeph>. </p> <p>Let's follow this in an example
+session: </p> <ul>
+<li id="GUID-D761405E-86BD-55ED-ACC6-C6D2125FDCE7"><p>Decide whether the crash
+has been caused by a panic or an exception using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-D5F2E0AF-EF03-5150-813B-DF989F12C47B">f</xref> command: </p> <codeblock id="GUID-480D9B52-C556-5733-91E2-87D7F12651FC" xml:space="preserve">.f
+Fault Category: EXAMPLE  Fault Reason: 0000002a
+ExcId 00000000 CodeAddr 00000000 DataAddr 00000000 Extra 00000000
+</codeblock> </li>
+<li id="GUID-73690262-2895-51ED-9532-E76638B0EC1E"><p>This shows that the
+crash was caused by a panic, so now use the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-0CDF0190-A445-526B-AC1F-D9D58095B18B">r</xref> command to find the CPU mode and the stack pointer: </p> <codeblock id="GUID-1FB9E3E1-54FF-5109-804D-2D6109626A66" xml:space="preserve">.r
+MODE_USR:
+ R0=6571de54  R1=0000002a  R2=00000002  R3=ffffffff
+ R4=0000002a  R5=f8170414  R6=6571df14  R7=6403cba8
+ R8=00000001  R9=6403c41c R10=640002f8 R11=6571de70
+R12=00000020 R13=00404e00 R14=f80818c0 R15=f800bfa8
+CPSR=60000013
+MODE_FIQ:
+ R8=00000000  R9=ffffffff R10=ffffffff R11=00000000
+R12=00000000 R13=64000d0c R14=c080079c SPSR=e00000dc
+MODE_IRQ:
+R13=6400110c R14=00000013 SPSR=20000013
+MODE_SVC:
+R13=6571de54 R14=f80328bc SPSR=60000010
+MODE_ABT:
+R13=6400090c R14=ffff0010 SPSR=400000d7
+MODE_UND:
+R13=6400090c R14=95221110 SPSR=f000009d
+</codeblock> <p>The panic happened in supervisor mode, because <codeph>CPSR
+&amp;                 0x1F == 0x13</codeph>, so <codeph>R13Svc</codeph>, i.e.
+the value of <codeph>R13</codeph> shown under <codeph>MODE_SVC:</codeph> in
+the above display, is the stack pointer to look at; this has the value <codeph>0x6571DE54</codeph>. </p> </li>
+<li id="GUID-CE74A8F7-97EF-5ACD-BA16-A35CDA293B3D"><p>Using the <xref href="GUID-08E14B34-5144-5AA8-AA55-7AF03671676C.dita#GUID-08E14B34-5144-5AA8-AA55-7AF03671676C/GUID-2A0D5950-F1A5-5EE1-87A3-840B1EAD6AAD">m</xref> command to look at memory starting at location <codeph>0x6571DE54</codeph> gives: </p> <codeblock id="GUID-BF6D6BD9-ADDE-587F-85B6-39140620B9AC" xml:space="preserve">.m6571de54+200
+6571de54: 07 00 00 10 14 04 17 f8 00 00 00 00 d4 4e 40 00 .............N@.
+6571de64: e8 de 71 65 74 de 71 65 74 fb 16 f8 88 28 03 f8 ..qet.qet....(..
+6571de74: 0c d4 03 f8 64 35 03 f8 00 00 00 00 00 00 00 00 ....d5..........
+6571de84: d0 00 00 00 14 df 71 65 a8 cb 03 64 a8 cb 03 64 ......qe...d...d
+6571de94: d0 00 00 00 14 df 71 65 1c df 71 65 ec 4e 40 00 ......qe..qe.N@.
+6571dea4: 1c c4 03 64 b4 2a 03 f8 00 00 00 00 14 df 71 65 ...d.*........qe
+6571deb4: d0 de 71 65 c4 de 71 65 b0 ab 03 f8 00 00 00 00 ..qe..qe........
+6571dec4: e0 ba 03 64 14 df 71 65 1c df 71 65 01 00 00 00 ...d..qe..qe....
+6571ded4: 1c c4 03 64 f8 02 00 64 10 df 71 65 ec de 71 65 ...d...d..qe..qe
+6571dee4: 84 da 01 f8 5c fb 16 f8 00 4e 40 00 00 00 00 00 ....\....N@.....
+6571def4: 00 4e 40 00 00 00 00 00 d3 00 00 00 ec 4e 40 00 .N@..........N@.
+6571df04: d4 df 71 65 14 df 71 65 e0 db 01 f8 c0 d9 01 f8 ..qe..qe........
+6571df14: a8 cb 03 64 e0 ba 03 64 01 00 01 00 00 00 00 00 ...d...d........
+6571df24: 00 00 00 00 d4 4e 40 00 00 00 00 30 40 00 00 00 .....N@....0@...
+6571df34: 13 00 00 60 98 df 71 65 48 df 71 65 f4 81 00 f8 ...`..qeH.qe....
+6571df44: 8c 7a 00 f8 68 df 71 65 58 df 71 65 6c df 71 65 .z..h.qeX.qel.qe
+6571df54: 60 df 71 65 0c 2b 00 f8 bc 2a 00 f8 84 df 71 65 `.qe.+...*....qe
+6571df64: 70 df 71 65 e4 7d 04 f8 08 2b 00 f8 0d 00 00 00 p.qe.}...+......
+6571df74: 0a 00 00 30 40 00 00 00 54 65 73 74 44 6d 61 53 ...0@...TestDmaS
+6571df84: 69 6d 04 f8 a9 4b 40 00 b8 df 71 65 9c df 71 65 im...K@...qe..qe
+6571df94: 2c be 00 f8 2c bd 00 f8 38 4c 40 0d 01 00 00 00 ,...,...8L@.....
+6571dfa4: 00 00 00 00 84 2d 02 f8 d4 df 71 65 bc df 71 65 .....-....qe..qe
+6571dfb4: b8 2d 02 f8 dc bd 00 f8 54 a4 00 f8 00 00 00 00 .-......T.......
+6571dfc4: ac da 01 f8 10 00 00 60 d8 df 71 65 70 74 00 f8 .......`..qept..
+6571dfd4: b8 da 01 f8 d4 4e 40 00 20 f7 16 f8 d0 4e 40 00 .....N@. ....N@.
+6571dfe4: 00 00 00 00 00 00 00 00 ec 4e 40 00 40 00 00 00 .........N@.@...
+</codeblock> <p>We can look for potential ROM addresses by scanning the log
+and look up the corresponding function name in the symbol file generated <xref href="GUID-DA62FD4F-2E74-5B2F-B703-4A40DF5F01CA.dita">using the MAKSYM tool</xref> .
+The first one is <codeph>0xF8170414</codeph> at offset <codeph>4</codeph> in
+the memory dump. </p> </li>
+<li id="GUID-3197B03A-FD94-5D78-B699-22BDCE71DD1D"><p>Alternatively, we can
+use the <filepath>printsym.pl</filepath> perl script, passing it the dump
+output. The following is part of the output: </p> <codeblock id="GUID-B4289E03-6E98-591D-9E26-CEEDC3CD9437" xml:space="preserve">R:\base\e32\rombuild&gt;perl -S printsym.pl ASSABETARM4D.symbol
+ROM Symbols from ASSABETARM4D.symbol
+Please enter data to be decoded
+6571de54: 07 00 00 10 14 04 17 f8 00 00 00 00 d4 4e 40 00 .............N@.
+= 10000007 ....    
+= f8170414 ....  etext=. + 0x0
+= 00000000 ....
+= 00404ed4 .N@.
+6571de64: e8 de 71 65 74 de 71 65 74 fb 16 f8 88 28 03 f8 ..qet.qet....(..
+= 6571dee8 ..qe
+= 6571de74 t.qe
+= f816fb74 t...  DDmaTestChannel::DoCreate(int, TDesC8 const *, TVersion const &amp;
+) + 0x24
+= f8032888 .(..  Kern::Fault(char const *, int) + 0xc
+6571de74: 0c d4 03 f8 64 35 03 f8 00 00 00 00 00 00 00 00 ....d5..........
+= f803d40c ....  RHeap::Alloc(int) + 0xf4
+= f8033564 d5..  Kern::MutexSignal(DMutex &amp;) + 0xc
+= 00000000 ....
+= 00000000 ....
+
+[............ truncated ...............]
+
+= f801da84 ....  DLogicalDevice::ChannelCreate(DLogicalChannelBase *&amp;, TChannelC
+reateInfo &amp;) + 0xd0
+= f816fb5c \...  DDmaTestChannel::DoCreate(int, TDesC8 const *, TVersion const &amp;
+) + 0xc
+= 00404e00 .N@.
+= 00000000 ....
+6571def4: 00 4e 40 00 00 00 00 00 d3 00 00 00 ec 4e 40 00 .N@..........N@.
+= 00404e00 .N@.
+= 00000000 ....
+= 000000d3 ....
+= 00404eec .N@.
+6571df04: d4 df 71 65 14 df 71 65 e0 db 01 f8 c0 d9 01 f8 ..qe..qe........
+= 6571dfd4 ..qe
+= 6571df14 ..qe
+= f801dbe0 ....  ExecHandler::ChannelCreate(TDesC8 const &amp;, TChannelCreateInfo &amp;
+, int) + 0x134
+= f801d9c0 ....  DLogicalDevice::ChannelCreate(DLogicalChannelBase *&amp;, TChannelC
+reateInfo &amp;) + 0xc
+
+[.......................... truncated .........................]
+
+= f8022db8 .-..  ExecHandler::DebugPrint(void *, int) + 0x34
+= f800bddc ....  A::UserDebugPrint(unsigned char const *, int, int) + 0xc
+= f800a454 T...  EpocSlowExecTable + 0xc
+= 00000000 ....
+6571dfc4: ac da 01 f8 10 00 00 60 d8 df 71 65 70 74 00 f8 .......`..qept..
+= f801daac ....  ExecHandler::ChannelCreate(TDesC8 const &amp;, TChannelCreateInfo &amp;
+, int) + 0x0
+= 60000010 ...`
+= 6571dfd8 ..qe
+= f8007470 pt..  __ArmVectorSwi + 0xd8
+6571dfd4: b8 da 01 f8 d4 4e 40 00 20 f7 16 f8 d0 4e 40 00 .....N@. ....N@.
+= f801dab8 ....  ExecHandler::ChannelCreate(TDesC8 const &amp;, TChannelCreateInfo &amp;
+, int) + 0xc
+= 00404ed4 .N@.
+= f816f720  ...  etext=. + 0x560
+= 00404ed0 .N@.
+6571dfe4: 00 00 00 00 00 00 00 00 ec 4e 40 00 40 00 00 00 .........N@.@...
+= 00000000 ....
+= 00000000 ....
+= 00404eec .N@.
+= 00000040 @...
+^C
+R:\base\e32\rombuild&gt;
+</codeblock> <p>There are several false positives in this output (and even
+more in the truncated parts). So some study of the source code is needed to
+discard the noise and find the actual call stack. Here it is (innermost frame
+first): </p> <ul>
+<li id="GUID-C83CA525-1731-56BC-8C98-4AEEB5809780"><p> <codeph>Kern::Fault</codeph>  </p> </li>
+<li id="GUID-40B7B48A-F6A0-5CD6-9C0C-2E432FF760BA"><p> <codeph>DDmaTestChannel::DoCreate</codeph>  </p> </li>
+<li id="GUID-E9327B91-F69C-5BC1-B964-FE1B90CA314C"><p> <codeph>ExecHandler::ChannelCreate</codeph>  </p> </li>
+<li id="GUID-0391ADD8-EF56-51F9-987F-B9111903EAC7"><p> <codeph> __ArmVectorSwi</codeph>  </p> </li>
+</ul> <p>Note that for the sake of the example, a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-45337A03-5893-3D0D-948C-23BDCF8AECBD"><apiname>Kern::Fault()</apiname></xref> was
+deliberately inserted into <xref href="GUID-63F99C5E-55C4-305B-BA86-CF73B0CF1520.dita#GUID-63F99C5E-55C4-305B-BA86-CF73B0CF1520/GUID-F0A1E76C-A0E1-39C9-845C-BE19FE2EB415"><apiname>DDmaTestChannel::DoCreate()</apiname></xref>. </p> <p>All
+other function names are false positives and should be ignored. </p> </li>
+</ul> </section>
+<section id="GUID-7F160B0F-9921-578B-B9B0-7CC4CA3B24C3"><title>Walking through
+the call stack</title> <p>The heuristic method is quick but produces lots
+of false positives. Another option is to manually reconstitute the call stack
+from the memory dump. This is relatively easy for debug builds because GCC
+uses R11 as a frame pointer (FP) and generates the same prologue/epilogue
+for every function. </p> <p>For release builds, there is no generic solution.
+It is necessary to check the generated assembler code as there is no standard
+prologue/epilogue and R11 is not used as frame pointer. </p> <p>A typical
+prologue for a debug ARM function looks like this: </p> <codeblock id="GUID-9C1F71E0-5F2A-50FF-ABD2-035EB9B5B4D9" xml:space="preserve">mov        ip, sp
+stmfd    sp!, {fp, ip, lr, pc}
+sub        fp, ip, #4        /* FP now points to base of stack frame */
+sub        sp, sp, #16    /* space for local variables */
+</codeblock> <p>noting that: <codeph>SP = R13</codeph>, <codeph>FP = R11</codeph>, <codeph>IP
+=           R12</codeph>, <codeph>LR = R14</codeph>, and <codeph>PC = R15</codeph>. </p> <p>This
+code creates the following stack frame: </p> <fig id="GUID-5CE044A2-CDD0-5A09-B824-BAF46324AB27">
+<image href="GUID-F12437C5-BD96-5B43-AD76-614CFAB104D2_d0e69275_href.png" placement="inline"/>
+</fig> <p>Looking at the example session listed in when <xref href="GUID-1E43E258-A926-5D24-B0A5-8756491C687F.dita#GUID-1E43E258-A926-5D24-B0A5-8756491C687F/GUID-877742A5-F07F-54B6-B871-255FAAE790EB">tracing through the stack heuristically</xref>. in which the crash is due
+to a panic, the FP value is the R11 value; this is <codeph>0x6571de70</codeph>.
+This gives us the innermost stack frame: </p> <codeblock id="GUID-DE5FFB23-A85D-562F-858B-CFF407448E36" xml:space="preserve">6571de64:    e8 de 71 65 &lt;------------- pointer to previous stack frame 
+            74 de 71 65 
+            74 fb 16 f8 &lt;------------- Saved return address 
+            88 28 03 f8 &lt;------------- FP points to this word
+</codeblock> <p>Looking up the saved return address, <codeph>0xf816fb74</codeph>,
+in the symbol file shows that the current function was called from <codeph>DDmaChannel::DoCreate()</codeph>. </p> <codeblock id="GUID-576615AE-2253-595C-97F5-1DC05F79B750" xml:space="preserve">f816fb50    0198    DDmaTestChannel::DoCreate(int, TDesC8 const *, TVersion const &amp;)
+f816fce8    007c    DDmaTestChannel::~DDmaTestChannel(void)
+f816fd64    0294    DDmaTestChannel::Request(int, void *, void *)
+</codeblock> <p>Using the pointer to the previous stack frame saved into the
+current frame, we can decode the next frame: </p> <codeblock id="GUID-570DB2F6-A76F-5858-816F-7A0E8562B35A" xml:space="preserve">6571ded4:    1c c4 03 64 
+            f8 02 00 64 
+            10 df 71 65 &lt;------------- pointer to previous stack frame 
+            ec de 71 65 
+
+6571dee4:    84 da 01 f8 &lt;------------- saved return address 
+            5c fb 16 f8 &lt;------------- start of second stack frame 
+            00 4e 40 00 
+            00 00 00 00 
+</codeblock> <p>Looking up the saved return address, <codeph>0xf801da84</codeph>,
+in the symbol file shows that <codeph>DDmaTestChannel::DoCreate()</codeph> was
+called from <codeph>DLogicalDevice::ChannelCreate()</codeph>. </p> <codeblock id="GUID-B36A9D49-5414-5CC3-8CBF-A2A0EE332B3C" xml:space="preserve">f801d9b4    00f8    DLogicalDevice::ChannelCreate(DLogicalChannelBase *&amp;, TChannelCreateInfo &amp;)
+f801daac    01b8    ExecHandler::ChannelCreate(TDesC8 const &amp;, TChannelCreateInfo &amp;, int)
+f801dc64    00e4    ExecHandler::ChannelRequest(DLogicalChannelBase *, int, void *, void *)
+</codeblock> <p>And here is the third stack frame: </p> <codeblock id="GUID-B07DEA17-BA2F-5FEA-8781-E44682BE2D1D" xml:space="preserve">6571df04:    d4 df 71 65 &lt;------------- pointer to previous stack frame 
+            14 df 71 65 
+            e0 db 01 f8 &lt;------------- saved return address 
+            c0 d9 01 f8 &lt;------------- start of third stack frame 
+</codeblock> <p>So <codeph>DLogicalDevice::ChannelCreate()</codeph> was called
+from <codeph>ExecHandler::ChannelCreate()</codeph>. </p> <p>Note that this
+mechanical way of walking the stack is valid only for debug functions. For
+release functions, it is necessary to study the code generated by the compiler. </p> <p>For
+completness, this is a typical prologue for a debug THUMB function: </p> <codeblock id="GUID-2DC6601E-6304-5638-A1F6-F44F1AB26288" xml:space="preserve">push    { r7, lr }
+sub        sp, #28
+add        r7, sp, #12 /* R7 is THUMB frame pointer */
+</codeblock> <p>and this creates the following stack frame: </p> <fig id="GUID-85FAEE94-6D61-5D6B-84CB-6A9491927077">
+<image href="GUID-5CF162CA-4395-58AC-A318-2BF178276A57_d0e69352_href.png" placement="inline"/>
+</fig> <p>A call stack can mix ARM and THUMB frames. Odd return addresses
+are used for THUMB code and even ones for ARM code. </p> </section>
+</conbody></concept>

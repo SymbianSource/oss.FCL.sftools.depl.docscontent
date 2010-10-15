@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B2F86F54-EF50-56DB-ADF7-15325AC9324D" xml:lang="en"><title>IIC Concepts</title><shortdesc>This document provides an overview of IIC concepts. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>IIC is a an abstraction of serial inter-IC buses such as I2C and
+SPI. It allows serial bus device drivers to be written that do not
+need to know the specifics of the underlying hardware technology.</p>
+<section id="GUID-F9D5DC69-0BFA-42AE-9044-678AAED780A2"><title>Serial
+inter-IC buses</title> <p>Serial inter-chip buses are a class of bus
+used to transmit data between components of a hardware system. Examples
+are: </p> <ul>
+<li id="GUID-AF4E3C14-BA37-5028-A66E-0C2481A68E7E"><p>I2C,</p> </li>
+<li id="GUID-D5633729-DFD4-5E03-BC1B-F2EE13223E02"><p>SPI</p> </li>
+<li id="GUID-E33F3C5F-D824-5B09-BB55-BCE3A3D068BC"><p>SMBus </p> </li>
+<li id="GUID-3ED0A9E8-FEB7-5707-9782-1307E930A124"><p>Microwire</p> </li>
+<li id="GUID-56521027-9D91-5640-9BEF-8513B1B8290B"><p>SCCB</p> </li>
+<li id="GUID-7ABB6B44-F37E-5DCC-84D4-FD0ED6A1993D"><p>CCI. </p> </li>
+</ul> <p>These buses are commonly used to transmit commands, control-signals
+and non time-critical data though other, time-critical, uses are possible.
+The IIC API is used by developers creating client applications, typically
+device drivers. </p> </section>
+<section id="GUID-E67D9AC2-DD3D-48FD-9E48-B79BC73FFE6A-GENID-1-2-1-10-1-5-1-6-1-1-6-1-3-1-3-3"><title>Concepts</title>             <p><b>IIC</b></p><p>IIC provides an abstraction of serial
+inter-IC buses. These buses allow for the exchange of commands and
+simple non time-critical data between devices (nodes) in a bus configuration.
+IIC is not designed for high-bandwidth data transfer. IIC is not a
+bus, but a set of functions and concepts so that device drivers can
+be written that are independent of the chip-specific implementation
+of each bus type. The Platform Independent Layer (PIL) specifies and
+implements the functions that are available to device drivers and
+the SHAI implementation layer implements any parts of the IIC functions
+that are hardware dependent.</p><p><b>Bus</b></p><p>A bus, in this
+case a serial bus, is effectively one or more wires along which data
+or clock signals can be sent. More than one device/node can be attached
+to a bus. This means that the data on the bus must identify which
+node should receive that data. One node will be designated as the
+master node which is responsible for initiating and terminating the
+data transfer on the bus. See below for more on nodes, master and
+slave nodes, configuring the bus etc.</p><p><b>Clients</b></p><p>Clients
+are applications/device drivers that use IIC to send commands and
+basic data over a serial bus. Clients are typically device drivers
+for devices such as digitizers, a built-in camera or the real time
+clock.</p><p><b>Nodes</b></p><p>Each device on the serial bus is a
+node. A particular node can send or receive commands and data, or
+can both send and receive commands and data. On each bus, one of the
+nodes is going to be the phone/handset device which is the one our
+device driver will be using to send commands onto the bus and to receive
+commands from the bus.</p><p><b>Master</b> - a serial bus node that
+is always responsible for initiating and terminating the exchange
+of commands/data and for synchronizing the data transfer (clocking).
+A master node acts on behalf of clients of this bus. For example,
+if a client wants to send commands down a serial bus to a device,
+the device driver will request that the master initiate the command
+transfer. One node on each bus must perform the role of Master.</p><p><b>Slave</b> - each slave node sends or receives commands under
+the control of the master node. A number of slave nodes can be present
+on a single bus. Only one slave node can be addressed by a master
+at one time. A slave must be addressed by a master before it is allowed
+to transmit on the bus. A slave is usually associated with one or
+more functions. Slave nodes sometimes drive the bus but only in response
+to instructions from the master. </p><p>The role of master may be
+exchanged between nodes. For example, in I2C, one or more nodes can
+perform the role of a master, but only one can be the active master
+at any one time. In IIC. this is supported by a ‘<b>MasterSlave</b>’ type, which can alternate the two roles.</p> <fig id="GUID-E7B96ED2-9814-5B75-8051-48337121F985-GENID-1-2-1-10-1-5-1-6-1-1-6-1-3-1-3-3-13">
+<title>             An example of a serial bus (I2C)  SCL=Serial CLock,
+SDA=Serial DAta      </title>
+<image href="GUID-B0FA9741-CB42-560F-A13E-78FAA57F7871_d0e93088_href.png" placement="inline"/>
+</fig><b>Transactions and transfers</b><p>A <b>Transfer</b> is defined
+as single exchange involving data flowing in one direction From the
+master to a slave, or slave to master.</p><p>A <b>Transaction</b> comprises
+a list of transfers, in both directions.</p><p>A basic transaction
+is half duplex (transfers in both directions, but only one at a time). </p><p>Full duplex (simultaneous transfers in both directions) are enabled
+for buses that support them, such as SPI.</p><p>A transaction is a
+synchronous operation and takes control of the bus until the list
+of transfers in that transaction is complete. However the client can
+start the transaction with a synchronous call (waits for it to complete)
+or with an asynchronous call (client thread continues while the transaction
+is processed. At the end of the transaction a callback function is
+called to inform the client that the transaction is complete.)</p>        </section>
+<section id="GUID-98FE3AD9-47EB-4525-9B21-8B477C3F5E60"><title>Transaction
+detail</title><p>A master node initiates a transaction by addressing
+a slave node, this establishes the two ends of the transaction. The
+transaction continues with data being exchanged in either direction.
+The transaction is explicitly terminated by the Master.</p><p>Transactions
+may be executed either synchronously, or asynchronously. </p><p>Asynchronous
+execution requires the client to provide a callback. The client must
+wait for the callback to be executed before accessing the transaction’s
+objects (buffers, transfers and the transaction itself). </p><p>For
+synchronous execution, the client thread is blocked until the transaction
+processing is complete. This means that the client may access the
+transaction’s objects as soon as the client thread resumes.</p><p><b>Transaction Preamble </b></p><p>The transaction preamble is an
+optional client-supplied function that is called just before a transaction
+takes place.</p><p>For example, the transaction preamble may perform
+a hardware operation required on the slave device in order for it
+to handle the transaction. This could be selecting a function on a
+multi-function device, or selecting a set of internal registers.</p><p>The client-supplied transaction preamble function shall not: </p><ul>
+<li><p>Spin.</p></li>
+<li><p>Block or wait on a fast mutex.</p></li>
+<li><p>Use any kernel or base port service that does any of the above.
+For example, alloc/free memory, signal a DMutex, complete a request,
+access user side memory.</p></li>
+</ul></section>
+<section id="GUID-D93E1A25-278B-4F8B-BA6B-8C5BE8FBC8B9"><title>Extended/multiple
+transactions</title><p>An extended/multiple transaction (“multitransaction”)
+is formed from a chain of transactions, and appears to the client
+to be a single high-level transaction. An extended transaction should
+be used when the amount of data that is to be transferred (how many
+transfers) is not known in advance.</p><p>The next transfer in the
+chain is selected by the Extended Transaction callback. The transaction
+may be dynamically composed so that additional transfers are added
+to the transaction while transfers closer to the start of the transaction
+are being processed.</p><p>For example, an extended transaction could
+consist of a write transaction followed by a number of read transactions.
+The reason for making this a single extended transaction is that it
+prevents other clients performing a read transaction after the initial
+write transaction and so stealing the data that the client is expecting.
+Another example is where the multiple transaction consists of a read
+operation followed by several write operations. If another client
+can write data after the read, then the slave buffer may not have
+room for the subsequent write operations.</p></section>
+<section id="GUID-EC6854E7-CD55-4C0D-8F58-A4A4509ED0F2"><title>Channels</title><p>An applications’ ASIC may support a number of bus modules of different
+interface standards. Each bus module for a given interface standard
+may support more than one physical connection. For example, a particular
+ASIC might have two I2C physical connections and one SPI physical
+connection. So to set the master node on one of the I2C connections,
+it must be possible to identify which physical bus to use, which is
+done by allocating a 'channel number' to a particular node on each
+connection. That node is the one that IIC controller or device driver
+talks to.</p><p>The SHAI implementation layer for each bus standard
+(I2C, SPI etc.) assigns unique channel number identifiers.</p><fig id="GUID-B6CF82C8-543A-4D44-B37B-1263271F3E3A">
+<title>Channels</title>
+<image href="GUID-7B0BA327-54A0-4908-B8E3-0C82112EB957_d0e93167_href.png" placement="inline"/>
+</fig><title>IIC Controller</title><p>The IIC controller keeps track
+of the channels. When a client wants to send a command to a particular
+piece of hardware/function (a node), it asks the controller and passes
+the channel ID. The controller checks that the operation is allowed
+and forwards the request to the channel. Or rejects the command if
+it is not allowed. For example, if a slave operation is requested
+on a master channel.</p><p>For application processors that possess
+IIC channels which may be used in a shared manner, the controller
+provides functionality to negotiate access between simultaneous requests
+from a number of clients device drivers. </p><fig id="GUID-A2283D71-6EF6-4D8B-92FC-E01F686BEAE0">
+<title>Using a controller</title>
+<image href="GUID-F67AFC0F-5245-48DE-8901-79461FB6EADE_d0e93180_href.png" placement="inline"/>
+</fig></section>
+<section id="GUID-0F4E2E98-95CE-4571-BE9E-2A5115FA9D01"><title>Controller-less
+(Standalone channel) operation</title><p>If a channel is intended
+to be dedicated to a single client, the controller is not necessary.
+In this case, the client device driver can access the channel interface
+directly. The channel is created and maintained by the client, independently
+of the IIC controller.</p><fig id="GUID-4825FFFC-C5C1-4CEF-919F-0AA1C0B87C00">
+<title>Controller-less operation</title>
+<image href="GUID-690F943E-7459-4FBA-B33C-258969D7759A_d0e93193_href.png" placement="inline"/>
+</fig></section>
+<section id="GUID-788A1BB3-4BE9-480B-8437-F63C6F7DB4C9"><title>Transfers
+and transactions - detail</title> <p><b>Transfers</b> </p> <p>A transfer
+is implemented as a buffer containing the data to be transmitted and
+information used to carry out the transmission, including </p> <ul>
+<li id="GUID-470A0457-9F31-58CA-9D69-CE53C1B12448"><p>the direction
+of transmission (read or write from the point of view of the master
+node), </p> </li>
+<li id="GUID-4BFDA50E-4984-52CA-B2BA-E83E2F88B8C7"><p>the granularity
+of the buffer (the width of the words in bits), and </p> </li>
+<li id="GUID-E280D0B2-8FB8-50BF-B49C-3C6EBE6AEF2D"><p>a pointer to
+the next buffer, used when transfers are combined into transactions
+as a linked list. </p> </li>
+</ul> <p>The buffer is implemented with an 8 bit boundary but the
+data being exchanged may be differently structured. The potential
+conflict is tackled by the configuration mechanism. </p> <p><b>Transactions</b> </p> <p>A transaction is a sequence of transfers implemented as
+a linked list. This is why transfers have pointers to transfers. Transactions
+are of two types. </p> <ul>
+<li id="GUID-3BB4BEB4-16D8-53C7-A407-E10ED7F9B71A"><p>Unidirectional
+transactions are a sequence of transfers, either all of them read
+or all of them write. </p> </li>
+<li id="GUID-6AEF8C6D-F6EA-51BB-B283-1FC5B81758A5"><p>Combined transactions
+are a sequence of transfers, some of them read and the others write. </p> </li>
+</ul> <p>Some buses support duplex transmission, which is simultaneous
+transfers of data in each direction. The transfers within a transaction
+take place sequentially, never simultaneously, so that a combined
+transaction is only ever in half duplex mode. However, it is possible
+to use the full duplex capabilities of a bus by performing two transactions
+at the same time. The simplest case of this is two unidirectional
+transactions in opposite directions. It is also possible to interleave
+two combined transactions, matching the read and write transfers of
+each transaction to create a full duplex combined transaction. The
+IIC platform service API supports this functionality but implementation
+is a matter for client writers. </p> </section>
+<section id="GUID-673F7E28-03DF-4C1D-B587-AD72635EB235"><title>Triggers
+and callbacks</title> <p>A callback is a function to be executed after
+a transaction in response to a condition called a trigger. A callback
+is supplied with the result of the information transmitted. Callbacks
+are of two kinds, master and slave. </p> <p>When the client is master,
+a master callback runs on completion of an asynchronous transaction
+request (synchronous master transaction requests do not have callbacks).
+Its purpose is to notify the client of completion since the client
+will have been performing other tasks during the transaction. </p> <p>A second kind of master callback is a function called just before
+a master transaction. The Symbian platform name for a callback of
+this kind is 'preamble'. </p> <p>Multitransactions may also be associated
+with master callbacks and preambles. </p> <p>Slave callbacks are issued
+during a transaction. Since slave channels are mainly reactive, they
+need to be told what to do on receipt of each individual transfer,
+and this is the purpose of a slave callback. A slave callback object
+contains more information than a master callback because a slave channel
+requires more information in order to proceed with a transfer. The
+information packaged with a slave callback includes: </p> <ul>
+<li id="GUID-FF1A42B7-F94D-5482-81B1-C256E2627FDC"><p>the Id of the
+channel and a pointer to the channel object (which contains the actual
+function to be called), </p> </li>
+<li id="GUID-3B57A5D5-4CF7-5572-B74D-E9730B7BDF9E"><p>a pointer to
+the parameters to be passed to the callback function, </p> </li>
+<li id="GUID-F671AA96-84DC-559D-9DC6-3A87EFE34B04"><p>the trigger, </p> </li>
+<li id="GUID-208B21BA-A1C0-5634-B58C-F4905A950CA0"><p>the number of
+words to be transmitted, and </p> </li>
+<li id="GUID-CF11B5F7-5A8F-5C33-A39C-5BA6FEFD9DF1"><p>the number of
+words to be received. </p> </li>
+</ul> </section>
+<section id="GUID-21F8D5E4-5648-4B23-A4A5-EA1B2933912D"><title>Use
+of the bus API</title> <p>Client applications use the platform service
+API to communicate with an IIC bus. The bus API consists of a class
+representing a bus and contains two sets of functions, the master
+side API used when the client is talking to a master channel, and
+the slave side API used when the client is talking to a slave channel.
+A MasterSlave channel provides both sets of functions but returns
+an error if a master function is used while the channel is in slave
+mode, and similarly returns an error if a slave function is used when
+the channel is in master mode.</p> <p>A client application of a master
+channel may use the functions of a number of devices on the same bus.
+A client may also talk to multiple buses over multiple channels. A
+master channel can also be shared between multiple clients. </p> <p>The master side API provides functionality to: </p> <ul>
+<li id="GUID-6B62796A-4B54-50E6-A104-CB51369C1126"><p>queue transactions
+synchronously, </p> </li>
+<li id="GUID-5D0D76BB-49EE-5176-B998-A2DCD8253043"><p>queue transactions
+asynchronously, and </p> </li>
+<li id="GUID-AE1F7A2B-04AD-521E-98E2-0E7CFD21024D"><p>cancel asynchronous
+transactions. </p> </li>
+</ul> <p>Slave nodes operate at the level of the transfer, not the
+transaction, and must be told what channel and buffer to use. They
+act in response to slave callbacks. </p> <p>The slave side API provides
+functionality to: </p> <ul>
+<li id="GUID-AEE022D0-05C9-57D4-887B-B0B0EDD13694"><p>capture a channel, </p> </li>
+<li id="GUID-BD58A640-F61C-5CBA-8743-876A1FF0B4DA"><p>release a channel, </p> </li>
+<li id="GUID-E1F4CE98-E6CF-5AFF-A287-DEAF87BFFBDD"><p>register a receive
+buffer, </p> </li>
+<li id="GUID-5B1A90FE-FAB0-5BFA-BAB8-C124D4478BA7"><p>register a transmit
+buffer, and </p> </li>
+<li id="GUID-A44525D9-0FB3-5EFF-B233-D6EC3C78CD69"><p>specify a trigger
+which starts the next transfer. </p> </li>
+</ul> <p>A channel may also be a MasterSlave channel. A MasterSlave
+channel enters either master mode or slave mode when certain entry
+conditions are fulfilled and continues in that mode until certain
+exit conditions are fulfilled. A MasterSlave channel can never operate
+in both modes simultaneously. </p> <p>A MasterSlave channel enters
+master mode as soon as a transaction is queued. It continues in master
+mode until all transactions are completed and then exits master mode.
+While in master mode it accepts no slave API calls. </p> <p>A MasterSlave
+channel enters slave mode when a client captures the channel. It continues
+in slave mode until the channel is released and then exits slave mode.
+While in slave mode it accepts no master API calls. </p> <p>The master
+and slave side APIs both also supply a static extension used by developers
+to provide additional functionality. </p> </section>
+<section id="GUID-9DF689AD-5FA8-4EA0-8F1C-007EA2F5FEF2"><title>Configuration
+of bus, transaction and device</title> <p>The proprietary variants
+of IIC technology and the different devices which they support require
+configuration at the level of the bus and the node. Bus configuration
+is static and node configuration dynamic. </p> <p>The static configuration
+of the bus is specified at design time and executed at build time.
+It involves designating nodes as master or slave and assigning addresses
+to nodes. The IIC performance service API encapsulates the bus configuration
+as a single structured integer called the <codeph>bus ID</codeph> whose
+value is set using bit masks representing individual configuration
+parameters. </p> <p>The dynamic configuration of the nodes is performed
+by the clients. Each client configures its channel at the start of
+a transaction, setting parameters relating to the physical node and
+to the transaction: speed, endianness, word length and so on. </p> </section>
+<section id="GUID-B7C1E9D9-6C27-42E3-A769-EBE38A00C110"><title>Timers</title><p>There are two timers that must be implemented in the SHAI implementation
+layer:<ul>
+<li><p>Client Timeout</p></li>
+<li><p>Master Timeout</p></li>
+</ul></p><p><b>Client timeout</b> - specifies how long to wait for
+the client to respond to bus events, such as data received, before
+telling the SHAI implementation layer to cancel the transaction.</p><p><b>Master timeout</b> - specifies how long to wait for the master
+to perform the next transfer in the transaction. If this timer runs
+out, then terminate the transaction by calling the PIL <codeph>NotifyClient()</codeph> which will inform both the client and the SHAI implementation layer
+that the transaction is aborted.</p></section>
+</conbody><related-links>
+<link href="GUID-9986DCC6-EE73-59FB-BDAC-9B09DC64FBCE.dita"><linktext>Client
+of Master Channel Tutorial</linktext></link>
+<link href="GUID-F461CBB3-F8D1-5961-AD51-5741143A1CB1.dita"><linktext>Client
+of Slave Channel Tutorial</linktext></link>
+<link href="GUID-99FC067C-0AED-5373-AF63-8DB7FF5C1F7E.dita"><linktext>SPI
+Technology Guide</linktext></link>
+</related-links></concept>

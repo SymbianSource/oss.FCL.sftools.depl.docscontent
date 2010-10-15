@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F54BB3B5-D069-4524-A215-6F2CCA372666" xml:lang="en"><title>Nanokernel
+Timer</title><shortdesc>This document describes nanokernel timers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-2788AEE3-FF4A-49CD-9093-00D28EEA49A6"><title>Creation</title> <p> <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita"><apiname>NTimer</apiname></xref> is
+a basic relative timer provided by the nanokernel. It can generate either
+a single interrupt or periodic interrupts. A timeout handler is called when
+the timer expires, either from the timer ISR or from the nanokernel timer
+thread. These timer objects can manipulated from any context. The timers are
+driven from a periodic system tick interrupt, usually a 1ms period. The use
+of <codeph>NTimer</codeph> is as follows: </p></section>
+<section id="GUID-AA99FC77-5D00-41C5-A000-A2692DB32B10"><title>Start</title> <p>The
+nanokernel timer can be used in either single mode or in periodic mode. Typically,
+the timer is started with <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita#GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2/GUID-0491D2BD-CF23-33A0-8531-28DD41AABE44"><apiname>NTimer::OneShot()</apiname></xref> for a timeout
+period and then is made periodic by calling <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita#GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2/GUID-F544F71E-3BB8-3570-A8DE-44009BBFFD3D"><apiname>NTimer::Again()</apiname></xref>.
+The timeout value specified for the timer is in nanokernel ticks. The time
+out callback function can be chosen to be called in either an ISR context
+or a DFC context (running in the kernel's nanokernel timer thread, called <codeph>DfcThread1</codeph>). </p> <codeblock id="GUID-680FD449-139A-57D2-AEC1-527E44ABC3AC" xml:space="preserve">TInt NTimer::OneShot(TInt aTime, TBool aDfc);
+// If aDfc is TRUE then, the timeout function is called in a DFC context; 
+// if aDfc is FALSE, the timeout function is called in a ISR context.
+
+// Starts timer in zero-drift mode, to avoid delays in re-queuing
+// the timer
+TInt NTimer::Again(TInt aTime); 
+
+// NTimer::OneShot() starts a nanokernel timer in one-shot mode with 
+// ISR callback. It queues the timer to expire in the specified number 
+// of nanokernel ticks. The actual wait time will be at least that 
+// much and may be up to one tick more. The expiry handler will be 
+// called in ISR context.
+//
+iRxPollTimer.OneShot(KRxTimeout);</codeblock></section>
+<section id="GUID-96D4B91A-580A-4D0C-BFA5-2FFDDA8DF12A"><title>Callback function </title> <p>The
+timeout callback function is called when a timer started with <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita#GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2/GUID-0491D2BD-CF23-33A0-8531-28DD41AABE44"><apiname>NTimer::OneShot()</apiname></xref> or <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita#GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2/GUID-F544F71E-3BB8-3570-A8DE-44009BBFFD3D"><apiname>NTimer::Again()</apiname></xref> expires.
+A driver should implement the function to process the timeout event as appropriate
+for the situation. </p> <codeblock id="GUID-68C267FE-87B0-5B68-AB6B-69BEBB77B1D9" xml:space="preserve">/**
+ Timer callback function. Called when the NTimer expires
+ typedef void(* NTimerFn)(TAny*); is the nanokernel timer callback
+ function. This is used for Rx timeout.
+
+ @params    aPtr
+         pointer refernce passed during timer initialization
+ */
+void DExUartPhysicalChannelH4::RxPollTimerCallback(TAny* aPtr)
+    {
+    ... // design specific
+    }</codeblock></section>
+<section id="GUID-3D2ED5C0-35AD-4695-8945-256B5866BF61"><title>Cancellation</title> <p>A
+timer can be cancelled using <xref href="GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2.dita#GUID-D8CF05A3-5C9B-3662-92DA-3290C6EE7FD2/GUID-F03A72CF-AD7F-363E-A351-8DA50416D949"><apiname>NTimer::Cancel()</apiname></xref>. It removes
+the timer object from the nanokernel timer queue. If the timer has already
+expired, or is inactive, then it does nothing. </p> <p>If a timer was queued
+and a DFC callback was requested, then the expiry handler might run even after <codeph>Cancel()</codeph> has
+been called. This occurs when the <codeph>DfcThread1</codeph> is preempted
+just before calling the expiry handler for this timer, and the preempting
+thread/ISR/IDFC calls <codeph>Cancel()</codeph> on the timer. </p></section>
+</conbody></concept>

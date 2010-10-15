@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-85C18DAF-DB76-51C6-B38D-A802E314F4D1" xml:lang="en"><title>Performance
+Guarantee Tutorial </title><shortdesc>Describes how to maintain performance guarantees when writing a
+software package on a data paged platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-067EBD71-74FF-5C3C-BBFE-792895383980"><p>Data paging can
+affect performance guarantees. When writing software for a data paged platform,
+you need to perform an impact assessment on the components of your application.
+To do so, you perform the following analyses and implement the appropriate
+mitigation for the impacts you discover: </p> <ul>
+<li id="GUID-902266C8-BC97-5C0A-9C61-13F252CE3DC8"><p>Static analysis, </p> </li>
+<li id="GUID-70E2A254-1799-5A1E-A440-6E7F30EC3337"><p>Use case analysis, and </p> </li>
+<li id="GUID-B5A5134E-CD51-59BA-9F05-0DFA2E200660"><p>IPC analysis. </p> </li>
+</ul> </context>
+<steps-unordered id="GUID-5AECEB9A-F5AC-5D72-A216-F31C8E024453">
+<step id="GUID-B5C885F6-8703-5E43-8979-72A2D11007AB"><cmd>Perform a static
+analysis of the impact of data paging on your code. </cmd>
+<substeps id="GUID-31FA74DF-5D4D-5DE5-96D4-A1978187E40D">
+<substep id="GUID-C9722F09-D534-5CC3-AC25-238C0C101DC7"><cmd/>
+<info>List all the executables in your package, indicating their size and
+pageability. </info>
+</substep>
+<substep id="GUID-6193E0A0-AFB1-5641-973F-0D27F721983F"><cmd/>
+<info>For each item in the list identify its static dependencies, indicating
+their size and pageability. </info>
+</substep>
+<substep id="GUID-509636D1-3B7C-546D-8EC4-A7AE515B904E"><cmd/>
+<stepxmp>For each item in the list identify its dynamic dependencies, indicating
+their size and pageability. </stepxmp>
+<info>For instance, note whether the component is a plug-in to a framework
+or is itself a framework. </info>
+</substep>
+</substeps>
+<stepresult>The purpose of collecting this information is to identify which
+executables are most likely to be impacted by data paging. </stepresult>
+</step>
+<step id="GUID-469BB5C7-9BC7-5E3B-9717-B5558D2F6859"><cmd>Perform a use case
+analysis of the impact of data paging on your code. It is good practice to
+distinguish between use cases involving real time and performance critical
+performance guarantees. You do not need to cover use cases which do not involve
+guarantees of this kind. </cmd>
+<substeps id="GUID-CC4B31C6-85B3-53FA-AEB1-4713B0F7E51C">
+<substep id="GUID-4251C5AC-9F23-5850-A9C3-E086B00E45D9"><cmd>List all the
+use cases for the component which involve real time performance guarantees. </cmd>
+<info>Real time use cases are those having very strict response time guarantees
+and also those involving an acceptable user perception of behaviour. </info>
+<info><ul>
+<li id="GUID-F24C5888-773A-5F17-911F-1424D5381616"><p>Video playback, </p> </li>
+<li id="GUID-2C9B272C-265A-5A82-B9A0-A0CB5D2CC165"><p>VoIP phone calls, and </p> </li>
+<li id="GUID-20D52A34-F21E-565E-9698-8E0A169B7E3F"><p>File download over USB. </p> </li>
+</ul> </info>
+<stepresult>Examples of use cases involving acceptable user perception are: </stepresult>
+</substep>
+<substep id="GUID-702A77F3-ACE4-5047-825E-267747AF4E70"><cmd>List all the
+use cases for the component which involve performance critical guarantees.
+This means the bench-marked use cases by which the performance of the operating
+system is measure. </cmd>
+<stepxmp>Examples of use cases having a strict response time are: </stepxmp>
+<info><ul>
+<li id="GUID-C2CAE80F-F20F-5464-9A5D-77858D26572C"><p>Standard boot time, </p> </li>
+<li id="GUID-379EF955-B1D2-5A4F-A9CA-295BCDA6D84C"><p>Application start-up
+time, and </p> </li>
+<li id="GUID-5111E2E5-9411-5BD6-BC60-B1E64A3DBE57"><p>Camera image capture
+time. </p> </li>
+</ul> </info>
+</substep>
+<substep id="GUID-C6089DA1-C2A8-5D57-8F1C-B5D94D01CD31"><cmd>Identify compound
+cases involving both real time and performance critical guarantees. </cmd>
+<info>An example of a compound case is receiving a text message while playing
+MP3 audio. </info>
+</substep>
+</substeps>
+</step>
+<step id="GUID-13DE4D82-D318-5C1B-A9A0-9C8D60C7A6B7"><cmd>Perform an IPC analysis
+of the impact of data paging on your code. </cmd>
+<substeps id="GUID-C53DD02E-D670-5608-9293-663495544410">
+<substep id="GUID-14395B5D-B0C1-5380-B6D4-A9A5D5FA5A16"><cmd>Identify all
+performance critical or real time servers which the component interacts with. </cmd>
+</substep>
+<substep id="GUID-B4429AD3-5B5F-5E10-A220-724BA9693D29"><cmd>List each case
+where these servers read paged data from a client's address space. In this
+case, paged data includes: </cmd>
+<info><ul>
+<li id="GUID-02F9AD09-BFEB-59D3-98C6-471A2D842F32"><p>Paged heaps and stacks, </p> </li>
+<li id="GUID-BEA351B7-27C8-54F4-A2A9-F0314153D1F8"><p>RAM-loaded code, and </p> </li>
+<li id="GUID-AE1A2E25-C84A-5CCB-AC03-40017B1E5EEF"><p>Read only XIP data structures
+including </p> <ul>
+<li id="GUID-A61629A2-6782-52E6-A64B-41825F454B1B"><p>bitmaps, </p> </li>
+<li id="GUID-B5657762-F2E1-5521-AB33-E95547BA154B"><p>constant descriptors, </p> </li>
+<li id="GUID-0A667519-6532-52C4-BCCD-022A44F701D6"><p>constant data arrays
+in code, </p> </li>
+<li id="GUID-E8C94651-CAA0-5EFE-8E87-6B7A7B7A8785"><p>data files accessed
+through a pointer, and </p> </li>
+<li id="GUID-CD319825-B44F-5EF3-A9CC-2B3391F2D9A8"><p>exported DLL data. </p> </li>
+</ul> </li>
+</ul> </info>
+</substep>
+<substep id="GUID-CB118001-AC5E-5C39-81C1-EB9DEFA2F16E"><cmd>Identify all
+cases of custom architectures where one thread reads from another thread's
+address space. </cmd>
+</substep>
+</substeps>
+</step>
+<step id="GUID-009892B8-88B2-5ACA-BB98-B88ECF49A983"><cmd>Take steps to mitigate
+the impacts of data paging which you have identified, as appropriate to each
+case. </cmd>
+
+<substeps id="GUID-63086536-F2DB-5F4A-926F-C0328FD8D854">
+<substep id="GUID-F2821854-2A7D-5FB4-8D75-63841CDD26F7"><cmd>Protect the real
+time and performance critical code paths. These paths will have been identified
+in the static analysis of the component. There are two ways of protecting
+them. </cmd>
+<info><ul>
+<li id="GUID-5CA87396-D31D-5AC2-B524-0405129AEC23"><p>For all use cases, ensure
+that the minimum paging cache size is large enough to accommodate both the
+protected code path and any other paged data required at the same time. </p> <p>This
+method of protection may not always be practical, because compound use cases
+may involve unpredictable amounts of data which exceed the size of the paging
+cache. </p> </li>
+<li id="GUID-A702633C-A6DB-5DB2-9FA0-20F8FF4A285E"><p>Make the protected code
+path unpaged. Mark the code itself as unpaged, and either mark whole regions
+of memory as unpaged or pin memory to ensure that it is unpaged. </p> </li>
+</ul> </info>
+</substep>
+<substep id="GUID-9486786D-191D-597F-9BCE-09CB3A74A165"><cmd>Redesign the
+component architecture to isolate areas where data paging impacts on performance.
+Examples of this are: </cmd>
+<info><ul>
+<li id="GUID-76E2623B-9B76-5424-9C40-3BC027C449A2"><p>Separating the data
+plane and the control plane, and </p> </li>
+<li id="GUID-26906CC5-1D1B-5EED-A9F8-CBBE6F441369"><p>Splitting a monolithic
+library into paged and unpaged parts. </p> </li>
+</ul> </info>
+</substep>
+<substep id="GUID-438E7745-76B3-533D-891E-93B8EA53F342"><cmd>Use code paging
+or XIP ROM paging to mitigate the impact of paging. </cmd>
+
+<info>For instance, a monolithic library with static dependences may only
+need to be partially loaded, and some dependencies may not need to be loaded
+at all. </info>
+</substep>
+<substep id="GUID-DD1D6948-8F9A-57D6-9156-C9C2E377D2FD"><cmd/>
+<info>Mitigate the impact of data paging on IPC using the techniques set out
+in the document <xref href="GUID-E7C55048-5B7A-5BF2-B7F4-4D731659B88C.dita">Device
+Driver Writing Technology Tutorial</xref>  </info>
+</substep>
+</substeps>
+</step>
+</steps-unordered>
+</taskbody></task>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-5E358AB4-03A7-5859-ABF2-A8B64B74AF56" xml:lang="en"><title>Vector Floating Point Architecture (VFP)</title><shortdesc>Describes the implementation of the ARM Vector Floating
+Point Architecture (VFPv2) on Symbian platform. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>ARM provide a hardware floating point coprocessor that provides
+floating point computation that is fully compliant with IEEE Std 754-1985.We
+refer to the coprocessor as the <i>VFP unit</i>. </p>
+<p>Symbian platform supports the use of VFPv2 on platforms where the
+required hardware is present in both <i>RunFast</i> mode and in <i>IEEE-without-exceptions</i> mode. See ARM's Vector Floating-point
+Coprocessor Technical reference Manual for more details on the coprocessor,
+its architecture, and its execution modes. </p>
+<p>You should read Floating point support in Symbian^3 Tools Guide
+&gt; Building. The guide contains information about applications
+and user-side code, which is also applicable to code running on the
+kernel side. However there are a number of restrictions that must
+be observed: </p>
+<ul>
+<li id="GUID-2205026D-0E6F-54AE-B74F-5478D6047B70"><p>You <i>cannot</i> use VFP instructions in any interrupt service routine. </p> </li>
+<li id="GUID-C8D896E1-CF36-52CD-A984-61D7A8189268"><p>You <i>cannot</i> use VFP instructions when the kernel is locked, for example, in
+an IDFC or after calling <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref>  </p> </li>
+<li id="GUID-A7466A83-A8F2-58CE-AB8B-E05607BB6D95"><p>You <i>cannot</i> use VFP instructions in any section of code which runs with a fast
+mutex held. </p> </li>
+</ul>
+<p>Using VFP instructions in these situations can lead to data being
+corrupted, or the kernel panicking. If you rely on the compiler to
+generate VFP instructions, rather than using inline assembler, it
+is extremely important that you do not use any floating point values
+in these situations. The compiler may generate VFP instructions for
+the most trivial floating point operations and even for simple assignments. </p>
+</conbody></concept>

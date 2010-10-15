@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-877EEB52-40C8-4880-87A0-9736A625F85F" xml:lang="en"><title>TDmaChannel Derived Class Implementation</title><shortdesc>Describes how to write a class describing a DMA channel.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref> class is part of the PSL implementation.
+It is an abstract class with pure virtual functions which you must
+derive in order to implement it. The implementation of a DMA channel
+involves hardware-specific decisions such as the choice of DMA mode</p>
+<p>The purpose of DMA is to transfer data such as streaming audio
+produced by a client application. A typical transfer involves passing
+the data from user side to kernel side via a shared chunk and then
+a transfer from one memory location to another by DMA over a buffer.
+If the amount of data to be transferred exceeds the maximum transfer
+size supported by the controller or involves non-contiguous physical
+memory, the data is fragmented and transmitted in a sequence of transfers
+in one of three modes. </p>
+<ul>
+<li><p>In single buffer mode the hardware controller provides a single
+set of transfer registers used alternately to perform an active transfer
+and to set up a pending one: however this mode incurs overhead in
+the form of significant periods of time when the driver is idle during
+the pending phase. </p></li>
+<li><p>In double buffer mode the hardware controller provides two
+sets of transfer registers, one set for the active transfer and one
+for the pending transfer.. </p></li>
+<li><p>In scatter-gather mode, a single procedure call sequentially
+writes data from multiple buffers to a single data  stream or from
+a data stream to multiple buffers.</p></li>
+</ul>
+<p> The PIL supplies three derived classes corresponding to the DMA
+modes:</p>
+<ul>
+<li><p><xref href="GUID-A8B4AD1B-770C-363E-A0DE-C78A9786CBDC.dita"><apiname>TDmaSbChannel</apiname></xref></p> for a single-buffer channel,</li>
+<li><p><xref href="GUID-FD76AF08-6250-3054-8A06-16343E385B23.dita"><apiname>TDmaDbChannel </apiname></xref></p> for a double-buffer channel,
+and</li>
+<li><p><xref href="GUID-2D4CFBB1-8D64-3CF5-B6F0-B24D16D5BAD4.dita"><apiname>TDmaSgChannel</apiname></xref></p> for a scatter-gather channel.</li>
+</ul>
+<p>These three classes are defined in <filepath>dma_v1.h</filepath>. </p>
+<p> You may simply use one of these classes or derive further classes
+from them and implement those. For example, the template scatter-gather
+implementation defines a <xref href="GUID-45CDD48A-6BB4-3409-AC03-E2E0D2B73592.dita"><apiname>TTemplateSgChannel</apiname></xref> class
+derived from <xref href="GUID-2D4CFBB1-8D64-3CF5-B6F0-B24D16D5BAD4.dita"><apiname>TDmaSgChannel</apiname></xref> for storing data when
+appending new descriptors to a running channel: </p>
+<codeblock xml:space="preserve">class TTemplateSgChannel : public TDmaSgChannel
+    {
+public:
+    TDmaDesc* iTmpDes;
+    TPhysAddr iTmpDesPhysAddr;
+    };
+</codeblock>
+<p>In general, design decisions are made at the level of implementation
+in hardware and are subsequently reflected in the structure of the
+derived classes.</p>
+<p>There are two ways of extending the DMA Framework:</p>
+<ul>
+<li><p>to provide platform-specific functionality on a per-channel
+basis, and</p></li>
+<li><p>to provide platform-specific functionality on a channel independent
+basis</p></li>
+</ul>
+<p>In the first case, <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-2CF7498E-F5D2-3C4A-8E98-47504F9FC404"><apiname>TDmaChannel::Extension()</apiname></xref> calls <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-D6D011E9-9D75-3881-87D8-1986FFBBA106"><apiname>TDmac::Extension()</apiname></xref> and the PSL provides an implementation
+of the virtual function <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita#GUID-25398075-927B-36E4-B953-16785EC4086C/GUID-D6D011E9-9D75-3881-87D8-1986FFBBA106"><apiname>TDmac::Extension()</apiname></xref>. The
+default implementation just returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. In the second case, <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita#GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37/GUID-75562653-1F27-39D3-96D8-55A94BA9B68B"><apiname>TDmaChannel::StaticExtension()</apiname></xref> calls <xref href="GUID-176B8E0D-0422-341B-A134-7C85432E1303.dita#GUID-176B8E0D-0422-341B-A134-7C85432E1303/GUID-C733B302-4269-3391-8ADE-617CFF198B56"><apiname>DmaChannelMgr::StaticExtension()</apiname></xref> and the
+PSL provides an implementation of the static function <xref href="GUID-176B8E0D-0422-341B-A134-7C85432E1303.dita#GUID-176B8E0D-0422-341B-A134-7C85432E1303/GUID-C733B302-4269-3391-8ADE-617CFF198B56"><apiname>DmaChannelMgr::StaticExtension()</apiname></xref>. The template PSL implementation just returns <xref href="GUID-F89DA3F0-2A48-3F9B-8F08-29350E92D0E4.dita"><apiname>KErrNotSupported</apiname></xref>. </p>
+</conbody><related-links>
+<link href="GUID-C649DB97-F138-4C90-B177-16590F2E3F19-GENID-1-2-1-9-1-6-1-8-1-7-1-3-1.dita"><linktext>DMA
+Channels</linktext></link>
+</related-links></concept>

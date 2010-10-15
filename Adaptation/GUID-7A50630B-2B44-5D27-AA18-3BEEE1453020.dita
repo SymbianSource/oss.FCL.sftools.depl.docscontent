@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-7A50630B-2B44-5D27-AA18-3BEEE1453020" xml:lang="en"><title> The
+Paging Algorithm Technology Guide</title><shortdesc>Describes the paging algorithm used in demand paging.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-0F07152A-5469-463B-8BEE-71170A920B19"><title>Purpose</title> <p>Kernel
+side developers will sometimes need to know the algorithm used to move data
+in and out of paged memory. </p> <p><b>Intended
+Audience:</b> </p> <p>This document is intended to be read by kernel side
+developers. </p> </section>
+<section id="GUID-55C2239D-C351-4081-96F8-CAF1538B4BE3"><title>The algorithm</title> <p><b>Terminology</b> </p> <p>Paged memory (virtual addresses and their contents)
+is called either: </p> <ul>
+<li id="GUID-8533664E-057B-57EF-8A24-4BA7D3B4EC75"><p>'live', meaning present
+in the cache of physical RAM, or </p> </li>
+<li id="GUID-057D65C6-27D2-5BDD-B5CD-081808CCF44D"><p>'dead', meaning stored
+elsewhere in the backing store. </p> </li>
+</ul> <p>Physical RAM not being used to hold paged memory is called the free
+pool. </p> <p>Items of paged memory can be reassigned from 'live' to 'dead'
+and vice versa. 'Live' items are classed as either 'old' or 'young' for this
+purpose. </p> <p><b>Paging
+out memory</b> </p> <p>When more RAM is needed and the pool of free memory
+is empty then RAM is freed up. This means changing an item of paged memory
+from live to dead. The process is called paging out and it involves these
+tasks. </p> <ol id="GUID-20C35CC3-0845-51A8-B3C0-0F542E0570DF">
+<li id="GUID-42AC538A-A676-5A7D-9DE3-FDE880E4A508"><p>The oldest virtual page
+is removed from the cache and physically stored elsewhere </p> </li>
+<li id="GUID-1FBD9975-97D5-50CA-8A2F-864B688C9AE4"><p>The MMU marks the virtual
+page as inaccessible. </p> </li>
+<li id="GUID-F8CDC9C1-C779-5D25-A16C-8BFC4B82B605"><p>The associated page
+of RAM cache is returned to the free pool. </p> </li>
+</ol> <p><b>Paging
+in memory</b> </p> <p>When a program attempts to access dead paged memory,
+the MMU generates a page fault and the executing thread is diverted to the
+Symbian platform exception handler. This performs the following
+tasks. </p> <ol id="GUID-3C52A214-F7FC-55CF-9346-16A4D7E8E37A">
+<li id="GUID-B10392F3-D0CA-5C31-8A88-59E151661821"><p>Obtain a page of RAM
+from the free pool. If the free pool is empty, free up some memory by paging
+out the oldest live page. </p> </li>
+<li id="GUID-EA4E0F16-68D2-564D-B46E-5CB4CB515855"><p>Read the contents of
+the dead paged memory from its actual location (e.g. NAND flash) and write
+them to the page of RAM. </p> </li>
+<li id="GUID-5F9C3CEE-5836-5243-B84D-BA7795D0F056"><p>Update the live list
+described in the next section. </p> </li>
+<li id="GUID-A2A188F0-87EA-5403-8281-652AC52D41C3"><p>The MMU maps the linear
+address of the dead paged memory on to the page of RAM. </p> </li>
+<li id="GUID-F7A50A62-EBAD-50DD-B8F8-DAD42E598D02"><p>Resume program execution. </p> </li>
+</ol> <p><b>The
+paging cache</b> </p> <p>The paging cache is only useful if it is used to
+hold the pages most likely to be required. The paging subsystem provides for
+this by selecting the oldest pages to be paged out making space for new ones
+to be paged in. </p> <p>All live pages are stored in a list called the 'live
+page list'. Live pages are labelled 'young' or 'old' and are stored in two
+sub-lists, one for each type: the item at the start of the young list is the
+youngest item and the one at the end of the old list is the oldest item. The
+MMU makes young pages accessible to programs and old pages inaccessible. However,
+old pages are different from dead pages because their contents are still held
+in RAM. </p> <p>The young and old lists are maintained in accordance with
+these four rules. </p> <ul>
+<li id="GUID-ACB20E61-3467-56B4-8697-6DD6C79203FA"><p>When a dead page is
+paged in (made live) it is added to the start of the young list, becoming
+the youngest item. </p> </li>
+<li id="GUID-6B56324C-3A75-57C4-90E3-527994DAADFF"><p>When a live page must
+be paged out (made dead) to free up RAM, the oldest page is selected. </p> </li>
+<li id="GUID-EB5C43F4-1AC9-541F-8235-4DED9714B6F3"><p>If an old page is accessed
+by a program a page fault results because old pages are marked inaccessible.
+The paging system handles the fault by turning the page into a young page
+('rejuvenating' it). To compensate, the oldest young page is then turned into
+an old page ('aging' it). </p> </li>
+<li id="GUID-366367C8-BBF3-59ED-9122-38112C6EA6FE"><p>Efficient operation
+requires a stable ratio of young to old pages. If the number of young pages
+exceeds a specified ratio of old pages, the oldest young page is turned into
+the youngest old page ('aging' it). </p> </li>
+</ul> </section>
+</conbody></concept>

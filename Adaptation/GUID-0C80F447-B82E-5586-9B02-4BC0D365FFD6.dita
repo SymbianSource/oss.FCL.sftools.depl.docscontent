@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept xml:lang="en" id="GUID-0C80F447-B82E-5586-9B02-4BC0D365FFD6"><title>Write Data to USB using Shared Chunks</title><shortdesc>This tutorial describes how to write shared chunk data to a USB connection. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody><p> </p> <section><title>Write data</title> <p>To write data from the device to the host (<codeph>In</codeph>), read some data (e.g. from a media card on the device) to a shared chunk and make a write request to the driver. Use <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita"><apiname>RDevUsbcScClient::WriteData()</apiname></xref> to send data placed inside a shared chunk to the USB hardware. </p> <codeblock id="GUID-CBF0FC3A-4C22-50FD-A87E-F0F9C0EBAC6A" xml:space="preserve">TUsbcScChunkHeader chunkHeader(gChunk);
+TUsbcScHdrEndpointRecord* epInfo;
+TRequestStatus status;
+
+TUsbcScBufferRecord* buff = chunkHeader.GetBuffer(0, 1, epInfo);
+TInt inBuffNum = epInfo-&gt;iBufferNo;
+TUint bufferOffset = buff-&gt;Offset();
+TUint length = buff-&gt;Size();
+
+gPort.WriteData(inBuffNum, bufferOffset, length, 1, status);</codeblock> <p>The function <codeph>WriteData()</codeph> does not take an endpoint as a parameter. To send data to a particular endpoint the data must be put in the correct buffer. Find the buffer number in the chunk header with the endpoint number and the current alternate setting. See <xref href="GUID-5F614B75-056D-5798-AE06-8DA6E9ED6834.dita#GUID-5F614B75-056D-5798-AE06-8DA6E9ED6834/GUID-9D773343-8597-5A85-9511-32E176D06E8F">Setting the interface</xref> to see how alternate settings are created. </p> <p>When sending buffers using this function, if a second buffer is ready to send before the first has finished transmitting then the second buffer can be sent to the LDD. The LDD will start sending the data in the second buffer when the first has finished. This reduces the delay between finishing one and transmitting the next. To do this the <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita"><apiname>TRequestStatus</apiname></xref> objects must be kept track of as only one of these can be used with each request. </p> <p> <b>Note</b>: an offset is provided that allows a buffer to be split into parts. This allows you to fill one half while sending the other. </p> <p>When the request has completed, if there is no more data to be sent then close the channel and unload the driver. </p> </section> <section><p>When you have finished reading and writing <xref href="GUID-BE73CFE6-D48D-5B92-AF49-E2D967ADF0EC.dita">Close and Unload the Driver</xref>. </p> </section> </conbody></concept>

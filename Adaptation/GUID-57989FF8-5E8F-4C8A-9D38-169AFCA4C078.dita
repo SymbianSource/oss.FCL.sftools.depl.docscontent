@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-57989FF8-5E8F-4C8A-9D38-169AFCA4C078" xml:lang="en"><title>Baseport Template Implementation Guide</title><shortdesc>Describes the use of the Baseport Template in porting Symbian
+platform.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-1"><title>General
+procedure</title>             <p>The Baseport Template is a minimal
+baseport for the Symbian platform that implements the basic functionality
+of a baseport without supplying any hardware specific code. It provides
+a skeleton of a working baseport, which base porters can modify in
+accordance with the instructions in the comments. Porting involves
+abstraction from hardware and must be performed in a set sequence
+(for example, the abstraction in the drivers depends on previous abstraction
+in HAL which depends on previous abstraction in ASIC and so on). Many
+of the header files are not in the Baseport Template files but are
+held elsewhere in the code base, for example,<filepath> ..\e32\include\kernel\arm\</filepath></p>         </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-2"><title>File
+structure</title>             <p>The files which make up the Baseport
+Template are divided between two directories, ASSP and Variant containing
+two classes of the same names. This division represents a fundamental
+feature of the kernel architecture which you are recommended to retain
+in your implementation of the port. The baseport involves implementing
+functions to run on the target hardware, but it is useful to distinguish
+between functionality specific to the CPU (ARM etc) and functionality
+specific to peripherals with their own processors. ASSP functions
+must be implemented in accordance with the device hardware, while
+Variant functions correspond to off chip peripherals. The distinction
+is not absolutely mandatory (it is possible just to provide a Variant
+layer) but strongly recommended and assumed in many other areas of
+the porting process.</p><p>A port with an ASSP/Variant architecture
+is implemented with two C++ classes and two <filepath>.mpp</filepath> files.</p><ul>
+<li><p><filepath>...\template_assp\assp.cpp</filepath></p></li>
+<li><p><filepath>...\template_assp\katemplate.mmp</filepath></p></li>
+<li><p><filepath>...\template_variant\specific\variant.cpp</filepath></p></li>
+<li><p><filepath>...\template_variant\vtemplate.mmp</filepath></p></li>
+</ul><p>For more information see the Base Porting Guide.</p>     
+   </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-3"><title>Bootstrap</title>             <p>The bootstrap is the code that runs after a hardware
+reset, to initialize the basic system services that enable the kernel
+to run. Parts of it must be written in assembler (either GNU or ARM)
+and are specific to the device hardware, while others are written
+in C++ and are automatically translated into assembler. Bootstrap
+is implemented as the <filepath>bootstrap/template.s</filepath> file.</p><p>This is supplied as an example only: implementation is entirely
+dependent on the target hardware.</p><p>For more information see the <xref href="GUID-0C84FD76-87B2-4AD1-B23A-2C5C8668BC4C.dita">Base Porting Guide</xref>.</p>         </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-4"><title>Interrupt
+dispatcher</title>             <p>The Symbian platform is a real time
+interrupt driven operating system. To port it you need to determine
+the number and function of the interrupts in your port and implement
+the interrupt dispatcher to handle them. Interrupt service routines
+(ISRs) are held in an array of class <xref href="GUID-2C9B6510-D045-3FA1-AD65-B544E30D34C7.dita"><apiname>SInterruptHandler</apiname></xref> as a member of the <xref href="GUID-5E593C59-BA22-3B70-AAFB-BFE19E22538A.dita"><apiname>TemplateInterrupt</apiname></xref> class defined
+in <filepath>template_assp_priv.h</filepath>. ISRs are associated
+with individual interrupt sources defined in the ASSP layer by functions
+of the Interrupt class such as <xref href="GUID-8DAB6465-BCDE-35FE-8C31-861C13A34526.dita"><apiname>Bind()</apiname></xref> and <xref href="GUID-EAED145E-E4BE-3A0F-BC25-78E1FC13FB55.dita"><apiname>Unbind()</apiname></xref>.</p><ul>
+<li><p><filepath>...\template_assp\template_assp_priv.h</filepath></p></li>
+<li><p><filepath>...\template_assp\interrupts.cpp</filepath></p></li>
+</ul> <p>For more information see the <xref href="GUID-0C84FD76-87B2-4AD1-B23A-2C5C8668BC4C.dita">Base Porting Guide</xref>.</p>        </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-5">         
+   <title>ASIC</title>             <p>The <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><apiname>Asic</apiname></xref> class
+contains initialization functions which must be called early in the
+boot process. <xref href="GUID-E73C682E-5824-3C9C-9F98-D99D57473584.dita"><apiname>ASSP</apiname></xref> is derived from <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita"><apiname>Asic</apiname></xref> and <xref href="GUID-E769B916-E743-3955-B897-07B6DA1C7D1E.dita"><apiname>Variant</apiname></xref> from the ASSP derivation.</p><ul>
+<li><p><filepath>...\template_assp\template_assp.h</filepath></p></li>
+<li><p><filepath>...\template_assp\template_assp.cpp</filepath></p></li>
+</ul> <p>For more information see the <xref href="GUID-0C84FD76-87B2-4AD1-B23A-2C5C8668BC4C.dita">Base Porting Guide</xref>.</p>        </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-6">         
+   <title>HAL</title>             <p>The <xref href="GUID-BD00E7FC-C234-3111-87A5-10F79EB0F2B8.dita"><apiname>HAL</apiname></xref> class
+abstracts items of hardware specific functionality. You must implement
+functions to get and set hardware specific attributes in accordance
+with the hardware used on the target device. The attributes are defined
+in <filepath>config.hcf</filepath> and <filepath>values.hda</filepath> configuration files.</p><ul>
+<li><p><filepath>...\template_variant\hal\config.hcf</filepath></p></li>
+<li><p><filepath>...\template_variant\hal\values.hda</filepath></p></li>
+</ul><p>The attributes are modified by get and set functions called
+HAL handlers defined in the relevant hardware drivers.</p><p>For more
+information see the <xref href="GUID-0C84FD76-87B2-4AD1-B23A-2C5C8668BC4C.dita">Base Porting Guide</xref>.</p>         </section>
+<section id="GUID-36D13F9C-CD44-4153-A195-CCFB4EBFAD90-GENID-1-2-1-10-1-5-1-4-1-1-6-1-3-1-3-7">         
+   <title>Drivers</title>             <p>The rest of the work involves
+porting drivers. A typical implementation would include these drivers:</p><ul>
+<li><p>DMA Framework <ul>
+<li><p><filepath>...\template_assp\dmapsl.cpp</filepath></p></li>
+<li><p><filepath>...\template_assp\dma.mpp</filepath></p></li>
+</ul></p></li>
+<li>Digitizer Driver <p><ul>
+<li><p><filepath>...\template_variant\specific\xyin.cpp</filepath></p></li>
+<li><p><filepath>...\template_variant\exxytemplate.mmp</filepath></p></li>
+</ul></p></li>
+<li>Keyboard Driver <p><ul>
+<li><p><filepath>...\template_variant\exkey_inttemplate.mmp</filepath></p></li>
+<li><p><filepath>...\template_variant\specific\keyboard_interrupt.cpp</filepath></p></li>
+</ul></p></li>
+<li>LCD Extension <p><ul>
+<li><p><filepath>...\template_variant\specific\lcd.cpp</filepath></p></li>
+<li><p><filepath>...\template_variant\exlcdtemplate.mmp</filepath></p></li>
+</ul></p></li>
+<li>Serial Port Driver <p><ul>
+<li><p><filepath>...\template_variant\specific\uart.cpp</filepath></p></li>
+<li><p><filepath>...\template_variant\datxtemplate.mmp</filepath></p></li>
+</ul></p></li>
+<li>Sound Driver <p><ul>
+<li><p><filepath>...\template\template_variant\specific\soundsc_rx.cpp</filepath> </p></li>
+<li><p><filepath>...\template\template_variant\specific\soundsc_tx.cpp</filepath> </p></li>
+<li><p><filepath>...\template\template_variant\soundsctemplate.mmp</filepath> </p></li>
+</ul></p></li>
+<li>USB Client Driver Technology<p><ul>
+<li><p><filepath>...\template_assp\pa_usbc.cpp</filepath></p></li>
+<li><p><filepath>...\template_assp\usbcc.mmp</filepath></p></li>
+</ul></p></li>
+</ul>         </section>
+</conbody></concept>

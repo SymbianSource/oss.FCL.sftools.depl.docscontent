@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C8217A7B-D741-5452-B95B-57B8978AD152" xml:lang="en"><title>Validation</title><shortdesc>Symbian platform provides test code that you can run to
+validate a USB client port. This topic describes the USB client test
+code.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-9769035E-68E8-59E2-85EA-3F6129AD27D3"><title>Requirements</title> <p>For testing the port, you will need: </p> <ul>
+<li id="GUID-0FFD84ED-C745-551E-BDB7-DD145609928E"><p>A Symbian platform
+text shell ROM image for the device that also contains the USB drivers
+(the LDD and the PDD), and the unit test applications <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> and <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-78E25906-2FF3-572E-B24D-2F064B9DBD89">T_USBAPI</xref>. On a slow CPU you may need to use release (UREL)
+versions of the driver binaries to avoid exceeding the time-out limits
+of the USB protocol. </p> </li>
+<li id="GUID-8E195CED-52E6-53A2-9313-4CF4C0951AB5"><p>A computer running
+either MS Windows 98 or above to run the Symbian host-side
+test program USBRFLCT, or MS Windows 2000 to run, in addition, the <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USB Command Verifier (USBCV)</xref> R1.2.1 compliance test program.
+On MS Windows XP you will also be able to run the USBCV R1.3 compliance
+test program. </p> </li>
+<li id="GUID-798B9CED-B0AB-505A-9098-40441F8B79C2"><p>A USB driver
+disk (or some other location accessible to the PC) containing the <filepath>.inf</filepath> file that matches the device to be tested, and the
+driver binary file that will be installed for the device. Note that
+for <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-AC6E3928-C027-56E5-985E-6B7699216FDE">USBRFLCT</xref>, both items are included in the binary program distribution. </p> </li>
+</ul> <p>In addition, a USB analyser, like the ones made by <i>LeCroy</i> formerly CATC, is invaluable for this kind of work. Without this
+equipment it may be impossible to be sure that the port has been fully
+successful. </p> </section>
+<section id="GUID-D77DF810-212A-5C12-B039-4FC785BA01B9"><title>Test
+steps</title> <p>These are the recommended steps for testing the port: </p> <ul>
+<li id="GUID-53C8E7F5-F98F-571B-98D2-FCF2F8E75039"><p>Run <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-78E25906-2FF3-572E-B24D-2F064B9DBD89">T_USBAPI</xref> on the unconnected USB device and get it to pass. </p> </li>
+<li id="GUID-F2B15A4A-AB54-50E8-A5A0-5F4D5B67258D"><p>Use a USB cable
+to connect the device under test to a PC and start <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> on the device (use T_USB menu options '0','1','1' and
+'1'). See if the device successfully delivers all the information
+(descriptors) that the host asks for. If so, a dialogue box pops up
+on the PC, saying “New hardware found” and offering certain options.
+Point the OS to the location of the <filepath>.inf</filepath> files
+and the driver files (the USB driver disk) and have it pick and install
+the correct driver. Afterwards you should see the new USB device in
+the Windows Device Manager under the category <i>Symbian platform
+controlled USB devices</i> as <i>USBRFLCT - Device</i>. If things
+don’t work as expected at this early stage, the USB analyser will
+prove invaluable. </p> </li>
+<li id="GUID-A4E3EB99-B189-54C3-A4FD-BF7F8F65E2DA"><p>Try and run <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-AC6E3928-C027-56E5-985E-6B7699216FDE">USBRFLCT</xref> and <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-AC6E3928-C027-56E5-985E-6B7699216FDE">T_USB</xref> together. First start T_USB on the device, choose the
+four numbered program options (but this time the first menu option
+must not be '0'), and then start USBRFLCT on the PC. The program pair
+should run indefinitely, in any mode. If the program halts after a
+while then this almost certainly indicates either a hardware problem
+associated with the USB device controller or an incorrect handling
+of the controller in the PSL. If the halt occurs after a long time,
+then this could point to a resource problem, such as a memory leak.
+This test will verify that at least one bulk IN endpoint and one bulk
+OUT endpoint are working correctly, and that data can be transferred
+over the USB link. </p> </li>
+<li id="GUID-B88EBB38-3ACE-5F51-802D-360EA919DE5A"><p>Run the USB
+Implementers Forum's <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USBCV</xref> compliance test suite and go through the “Chapter 9
+Tests”. You will first need to start <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> on the device end, as <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USBCV</xref> needs a successfully enumerated device as a target (choose
+'0' as the first T_USB option). These tests should all pass. It is
+important to run <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USBCV</xref> to verify that endpoint-0 is behaving correctly, and
+that the device is compliant with the USB Specification 2.0. </p> </li>
+</ul> </section>
+<section id="GUID-A5CA6D74-1204-5C9C-9396-D51A8E58A952"><title>The
+USBIO driver</title> <p>The host (PC) side test program: <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> uses the services of a USB client driver, <filepath>USBIO.SYS</filepath>. This driver is loaded by the OS as part of
+the enumeration once the USB device on test is connected to the PC. </p> <p>The generic USB device driver USBIO is a product developed and
+marketed by the German company <i>Thesycon</i> [USBIO Software Development
+Kit for Windows; see <xref href="http://www.thesycon.de/usbio/eng/usbio.htm" scope="external">http://www.thesycon.de/usbio/eng/usbio.htm</xref>]. </p> <p>The driver
+provides Win32 applications with direct access to USB devices which
+are otherwise only accessible from kernel-mode. It can be used with
+any kind of USB device, enabling application developers to control
+devices without having to develop a kernel-mode WDM driver. Symbian
+owns a licence to the driver and its development package, and is entitled
+to ship renamed copies of the driver binary to licensees and partners
+as part of its own development kits, usually adopting the name of
+the application that uses it. </p> </section>
+<section id="GUID-78E25906-2FF3-572E-B24D-2F064B9DBD89"><title>T_USBAPI</title> <p>This is a device-side only, stand-alone test program. It is used
+to verify the proper working of some basic USB API functionality.
+For T_USBAPI to run, the device doesn’t need to be USB-connected to
+a PC although if it is then some additional tests are performed. Tests
+run by T_USBAPI include: </p> <ul>
+<li id="GUID-ED9F5656-C992-54D4-B625-66B427966AF1"><p>loading the
+USB LDD and opening a channel </p> </li>
+<li id="GUID-314942D9-4A66-52D1-AD07-DE193D639647"><p>searching for
+suitable endpoints and setting up an interface </p> </li>
+<li id="GUID-33DF3016-49D1-5591-A103-5931237FF760"><p>searching for
+suitable endpoints and creating an 'alternate setting' for that interface
+(if supported). </p> </li>
+<li id="GUID-A76EDCE6-3629-5516-8920-B62962EC6FD4"><p>querying and
+allocating endpoint resources (DMA and double buffering) </p> </li>
+<li id="GUID-30E05336-A92E-5614-B365-90D4BCF3AF64"><p>powering up
+the UDC and connecting it to the bus. </p> </li>
+<li id="GUID-A75AEAEA-7328-517C-807B-59ECD051FB1B"><p>manipulating
+(modifying) USB descriptors (Device, Device_Qualifier, Configuration,
+Other_Speed_Configuration, Interface, Endpoint, String) </p> </li>
+<li id="GUID-9D7AAEA0-5E85-56D0-8A11-52C2089A2C60"><p>testing the
+USB OTG API extensions </p> </li>
+<li id="GUID-3601CC5C-752E-5E29-ADA5-3590976F5B43"><p>requesting and
+releasing <i>Device Control</i>  </p> </li>
+<li id="GUID-D6BB7C90-9B9F-5111-83F6-5FC3E15FDBF3"><p>some static
+state notification tests (alternate device status, endpoint status). </p> </li>
+<li id="GUID-46858A91-D4DB-5A62-B791-66615745BDC9"><p>setting and
+clearing endpoint Halt condition (where supported in unconfigured
+state) </p> </li>
+<li id="GUID-F8A0D0C3-CEF9-5226-9F04-2DB232F66CD7"><p>closing the
+channel and freeing the LDD </p> </li>
+</ul> <p>Most of these tests verify the functioning of the platform-independent
+code (i.e. platform-independent layer + LDD). However, some of this
+code relies on platform-specific layer functionality, such as the
+stall state and the maximum packet size of endpoints. Therefore, a
+working, or a partially working platform-specific layer is required
+for T_USBAPI to pass. </p> <p>When called normally, T_USBAPI runs
+once and then exits. It can also run endlessly in a loop, provided
+it is not failing, by adding the parameter <i>soak</i> to the command
+line. Once the program is running in endless mode, it can be stopped
+at any time by pressing the <userinput>Esc</userinput> key, in which
+case the program finishes the current set of tests and then exits.
+This loop mode can be useful for the detection of memory leaks in
+the USB stack, although the main functionality exercised lies in the
+platform-independent layer and the LDD, not in the platform-specific
+layer. </p> <p>T_USBAPI is a standalone program which can be safely
+run on a UDEB image. Choose to display error messages and warnings
+specific to the USB components using the appropriate kernel debug
+flags (<codeph>KPANIC</codeph>, <codeph>KUSBPSL</codeph> and <codeph>KUSB</codeph>). The following example shows the E32 shell commands
+to set <codeph>KPANIC</codeph>, <codeph>KUSBPSL</codeph> and <codeph>KUSB</codeph> in that order: </p> <p><userinput>C:\&gt;trace 80000000</userinput> </p> <p><userinput>C:\&gt;trace 3 1</userinput> </p> <p>"trace 3 1"
+means "set (bit 1|bit 0) at index 1" (<codeph>KUSBPSL=33</codeph>, <codeph>KUSB=32</codeph>) </p> </section>
+<section id="GUID-AC6E3928-C027-56E5-985E-6B7699216FDE"><title>USBRFLCT
+and T_USB</title> <p>These are the host and device side parts, respectively,
+of a reflector-like USB test program. They are normally used together,
+but T_USB can also be used to create a simple USB device to allow
+USBCV to execute. </p> <p> <note>Since this program suite is subject to continual development    
+      and improvement, in order for them to work properly together,
+both parts must           always come from the same Symbian platform
+delivery. </note>  </p> <p>To ensure proper internetworking, <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> and <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> exchange their version numbers after startup, and either
+program will quit if the other does not provide a suitable minimum
+version number. </p> <p id="GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF"><b>USBRFLCT</b> </p> <p>This is the host-side part of a reflector-like USB test program.
+This is normally used together with <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref>, the device-side part. </p> <p>The directory <filepath>...\e32test\win32\usbrflct\</filepath> contains its source code. </p> <p>The directory <filepath>...\e32test\win32\usbrflct_distribution\</filepath> contains a binary distribution of the program, including the <filepath>USBRFLCT.SYS</filepath> driver and a <filepath>USBRFLCT.INF</filepath> file for the installation of the driver. </p> <p>The syntax for
+invoking this is: </p> <codeblock id="GUID-823D06EF-4C96-53E3-8740-F8D996AA2372" xml:space="preserve">usbrflct [options]</codeblock> <p>where <codeph>options</codeph> can be <i>one</i> of the following: </p> <table id="GUID-D5A56CC6-6B60-52C6-8387-85935E1B5747">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>/[r|t] </p> </entry>
+<entry><p>receive|transmit only; default is to loop with statistics
+printed every 1024th iteration </p> </entry>
+</row>
+<row>
+<entry><p>/l </p> </entry>
+<entry><p>loop mode with statistics printed for every iteration </p> </entry>
+</row>
+<row>
+<entry><p>/v </p> </entry>
+<entry><p>verbose driver &amp; program output </p> </entry>
+</row>
+<row>
+<entry><p>/[h|?] </p> </entry>
+<entry><p>displays this help text </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>Three modes of operation are available: </p> <ul>
+<li id="GUID-3AA40354-D26E-5DA0-A69F-B3766D84AEC1"><p>Loop mode. </p> <p>Data chunks are read from the USB device and then immediately
+written back to it. Successive data chunks are read, each being one
+byte larger than the one before, starting with size 0 until a specified
+maximum size has been reached. This maximum size value is specified
+on the device using <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref>. After the maximum size has been reached, the size of
+the data chunk is reset back to its starting value. </p> <p>A preamble
+packet is sent by the device before each data chunk, containing the
+size of the chunk that is to follow. This kind of protocol is necessary,
+because the host side driver has to specify the exact number of bytes
+that it needs to read from the device. </p> <p>Every 1024th loop,
+the program displays statistics about the test run. For example, the
+total number of bytes transferred, and the current average data throughput
+in bytes/sec. </p> </li>
+<li id="GUID-4F50A5A8-E52C-54ED-BE12-4F751A4B5223"><p>Receive-only
+mode. </p> <p>In this mode, a single preamble packet containing the
+size of the data chunks that are to follow is sent from the device.
+The host-side program subsequently, and continuously, reads data chunks
+of that size from the device. This mode can be used to determine the
+raw transfer performance of the USB connection in the device upstream
+direction. </p> </li>
+<li id="GUID-757B0CD8-CB5E-5BF1-86B1-8626F73604E3"><p>Transmit-only
+mode. </p> <p>In this mode, no preamble packet is sent. Instead, maximum
+(constant) sized data chunks are sent. This mode can be used to determine
+the raw transfer performance of the USB connection in the device downstream
+direction. </p> </li>
+<li id="GUID-13B049DB-1955-5D3E-8404-C375ABEE2F06"><p>Verbose mode. </p> <p>In this mode, the driver and program output are both displayed.
+Use this to track down problems that occur when trying to get <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> and <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> to work together. This may help in the following circumstances: </p> <ul>
+<li id="GUID-11167D82-09B9-5D60-B1F6-AB14B633D56D"><p>the first time
+you test a port of the platform specific layer </p> </li>
+<li id="GUID-67F387AE-42B2-5EA6-8A76-B212D82EE2B9"><p>after installation
+changes on the PC </p> </li>
+</ul> <p>The error messages are particularly helpful, a list of error
+codes together with explanations for the USBRFLCT.SYS driver can be
+found in the USBIO Reference Manual. These codes are also available
+on <i>Thesycon</i>'s website at <xref href="http://www.thesycon.de/usbio/usbioman.pdf" scope="external">http://www.thesycon.de/usbio/usbioman.pdf</xref>. Do not use this
+mode during loop or throughput testing to avoid program slowdown which
+could affect these tests. </p> </li>
+</ul> <p id="GUID-62006D61-5222-5C83-86EC-54CECD4FED18"><b>T_USB</b> </p> <p>This is the device-side part of a reflector-like USB test program.
+This is normally used together with <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref>, the host-side part. </p> <p>The source for this
+program can be found in: </p> <ul>
+<li id="GUID-468F6A61-75FE-509A-BCEE-B979F8D5E5C8"><p> <filepath>...\e32test\device\t_usb.h</filepath>  </p> </li>
+<li id="GUID-84E8F05C-51C9-5CB1-94AB-0FB63AA9C15B"><p> <filepath>...\e32test\device\t_usb.cpp</filepath>  </p> </li>
+<li id="GUID-8A286F35-65EE-5FAC-B4B4-A014E0698308"><p> <filepath>...\e32test\device\t_usbco2.cpp</filepath>  </p> </li>
+</ul> <p>After starting the program, you are prompted to choose a
+maximum size for a single transfer. </p> <p> <b>Note: </b> The maximum
+transfer size is not the same as the maximum packet size. </p> <p>The prompt appears as follows: </p> <p><userinput>++++Choose max
+transfer size++++</userinput> </p> <p><userinput>'0' - Set up USB
+device for USBCV</userinput> </p> <p><userinput>'1' - 32 bytes</userinput> </p> <p><userinput>'2' - 1024 bytes</userinput> </p> <p><userinput>'3' - 64 kbytes</userinput> </p> <p><userinput>'4' - 1 Mbyte</userinput> </p> <p>Once you have chosen the maximum transfer size you are prompted
+to choose a bandwidth priority for the interface that will be created
+and used for the tests. All options except '0' are used when <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> is run together with <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref>. The program carries out dynamic version number checking
+of the two programs to ensure compatibility . Option '0' sets up a
+static USB device that can be used to perform other tests, including
+compliance testing with <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USBCV</xref>. This option also circumvents dynamic version checking.
+Most of the other menu options have no meaning in this mode. </p> <p>Choose a bandwidth priority from the following menu for the interface
+specifically created for the tests. All tests will be carried out
+over this interface. </p> <p><userinput>++++ Choose Bandwidth Priority
+++++</userinput> </p> <p><userinput>'1' - Economical buffering - default</userinput> </p> <p><userinput>'2' - More memory than default buffering - Plus1</userinput> </p> <p><userinput>'3' - More memory than Plus1 buffering - Plus2</userinput> </p> <p><userinput>'4' - Maximum memory for buffering</userinput> </p> <p>Choose endpoint options from the following two configuration
+menus: </p> <p><userinput>++++ Choose Endpoint I/O Transfer Mode ++++</userinput> </p> <p><userinput>'1' - Interrupt Mode</userinput> </p> <p><userinput>'2' - DMA Mode (recommended)</userinput> </p> <p> </p> <p><userinput>++++ Choose Endpoint FIFO Mode ++++</userinput> </p> <p><userinput>'1' - Normal Buffering Mode</userinput> </p> <p><userinput>'2' -
+Double Buffering Mode (recommended)</userinput> </p> <p>A message
+prompts the user to start the host side test program USBRFLCT. </p>  <p>Once host enumeration
+and <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> configuration completes, the program's main menu
+is displayed as follows: </p> <p><userinput>++++ Select Program Option
+++++</userinput> </p> <p><userinput>'L'oop test</userinput> </p> <p><userinput> Loop test with data 'C'ompare</userinput> </p> <p><userinput>'R'eceive-only test (we receive, host transmits)</userinput> </p> <p><userinput>'T'ransmit-only test</userinput> </p> <p><userinput> Receive and 'P'ut (write) to File</userinput> </p> <p><userinput> Transmit and 'G'et (read) from File</userinput> </p> <p><userinput> Signal Remote - 'W'akeup to the host</userinput> </p> <p><userinput>'S'top current transfer</userinput> </p> <p><userinput> Re'E'numerate
+device</userinput> </p> <p><userinput>'Q'uit</userinput> </p> <p>Choose
+one of the six main test modes. The selected mode should correspond
+with the mode in which the host-side program is running. For example,
+device-side <codeph>Receive</codeph> matches host-side <codeph>Transmit</codeph>. </p> <p>The Loop test with <codeph>Compare</codeph> is just like
+the normal <codeph>Loop</codeph>, except that the received data is
+compared with the data that was previously sent, allowing any transmission
+errors to be detected. The purpose of the non-comparing mode is performance
+(throughput) assessment of the USB link, in this mode the slow down
+of the application introduced by the byte-by-byte checking of the
+compare operation is not desirable. Note: The non-comparing mode does
+do some checking, specifically it compares the received transfer number
+(4 bytes at the start of each buffer) against the expected value. </p> <p>The standard 'Receive-only' test mode <userinput>R</userinput> immediately discards the data received, similarly the standard 'Transmit-only'
+mode <userinput>T</userinput> creates random data on the fly to send
+to the device. These tests are useful for checking the maximum throughput
+of the link, however they do not reflect normal usage. In a real world
+scenario, transmitted data would be read from a file and received
+data would be written to a file. </p> <p>There are two further tests
+which include file I/O. These are: </p> <ul>
+<li id="GUID-079843BA-A985-5E00-AD1C-44E965EADF17"><p>'Receive' mode <userinput>P</userinput>, where data received from the link is written to a
+newly created file. </p> </li>
+</ul> <ul>
+<li id="GUID-895EBD5E-1008-56C7-8AC2-68F534338893"><p>'Transmit' mode <userinput>G</userinput>, where data is read from a newly created file and sent
+across the link. </p> </li>
+</ul> <p>In both cases you must first enter a source or destination
+from the list of available drives. </p> <p> <userinput>S</userinput> stops an ongoing transfer at any time </p> <p> <userinput>W</userinput> issues a Remote Wake-up signal to the host; this is needed, for
+example, when running <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-E8A9B4BD-E60F-5A08-A588-527347239118">USBCV</xref>. </p> <p> <userinput>E</userinput> re-enumerates the
+USB device by first disconnecting it from, and then reconnecting it
+to the bus. </p> <p> <userinput>ESC</userinput> or <userinput>Q</userinput> quits the program after tearing down the device configuration and
+freeing all used resources. </p> </section>
+<section id="GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E"><title>USBIOAPP</title> <p> <i>Thesycon</i> provide this Win32 GUI application. Like <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> it works on top of the <filepath>USBRFLCT.SYS</filepath> driver (otherwise known as <filepath>USBIOAPP.EXE</filepath>). The
+source code for this program is part of the USBIO development kit.
+You can find the compiled executable <filepath>USBIOAPP.EXE</filepath> in the same directory as <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> and the host side drivers: <filepath>...\e32test\win32\usbflct_distribution\</filepath>. </p> <p>Use <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E">USBIOAPP</xref> to exercise and test the low-level functionality
+of an attached USB device. In this case, the Symbian platform device
+running the USB device stack which includes the port of the platform-specific
+layer. </p> <p>The following steps describe an example test: </p> <ul>
+<li id="GUID-AAC49CFA-A077-52B6-8811-F18145B78787"><p>Connect the
+Symbian platform USB device to a PC on which the <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-3F7462D9-EF86-5CC9-AEC5-EB755049B7CF">USBRFLCT</xref> driver has been installed. </p> </li>
+<li id="GUID-FEEDB45F-36D9-5AB6-9F3D-C36DB85AAC5A"><p>Start <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-62006D61-5222-5C83-86EC-54CECD4FED18">T_USB</xref> on the device to create a USB device (use option '0'
+for the transfer size). </p> </li>
+<li id="GUID-CD6A4F22-1B47-5E50-A684-124616A6B0C7"><p>Launch <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E">USBIOAPP</xref> on the PC. </p> </li>
+<li id="GUID-3DC6299D-FBE4-542B-A9CE-2C6D05BCD9B5"><p>Press the <userinput>Scan for USBIO devices</userinput> button. The device should be detected
+by <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E">USBIOAPP</xref>. </p> </li>
+<li id="GUID-CAC741CF-76EF-5418-94F6-923BF1F1E2A0"><p>Test and exercise
+the USB device using the different options provided by the <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E">USBIOAPP</xref> program. </p> </li>
+</ul> <p>Further details can be found in the USBIO manual, which contains
+a chapter on the <xref href="GUID-C8217A7B-D741-5452-B95B-57B8978AD152.dita#GUID-C8217A7B-D741-5452-B95B-57B8978AD152/GUID-8F2961A1-03B6-5642-82A7-3D2504436D0E">USBIOAPP</xref>. See <xref href="http://www.thesycon.de/usbio/usbioman.pdf" scope="external">http://www.thesycon.de/usbio/usbioman.pdf</xref> </p> </section>
+<section id="GUID-E8A9B4BD-E60F-5A08-A588-527347239118"><title>USB
+Command Verifier (USBCV)</title> <p>This test program is written and
+maintained by the USB Implementers Forum, Inc, (also referred to as
+the “USB Forum” or “USB IF”). It can be used to check compatibility
+of the USB device with the USB specification (currently version 2.0).
+It contains a collection of different test suites, but the only tests
+that are of interest regarding the platform-specific layer port are
+the “Chapter 9 Tests”. Even though most of the "Chapter 9" request
+processing is done by the platform-independent layer, the tests can
+help to uncover potential problems with endpoint-0 controlling platform-specific
+layer code. The tests will also show whether or not the platform-specific
+layer and the platform-independent layer work together without problems. </p> <p>This program runs on Windows 2000 and Windows XP (English Version)
+only. At the time of writing, the version of the package is R1.2.1,
+and can be obtained from <xref href="http://www.usb.org/developers/tools/USBCV121.msi" scope="external">http://www.usb.org/developers/tools/USBCV121.msi</xref>. </p> </section>
+<section id="GUID-DA56677C-28D2-5CC2-BBA6-9CCF02C64FBF"><title>USBMSAPP
+(USB Mass Storage Application)</title> <p>This is not a dedicated
+test program, but it can be used to check that the USB driver stack
+is operating correctly. Since it is not a test program USBMSAPP is
+not normally included in ROMs with any of the <filepath>...\e32tests\f32tests\alltests
+rom.bat</filepath> options. The source can be found <filepath>...\e32ustils\usbmsapp\</filepath>. If you want to include it, use the command line macro below. </p> <p> <b>Note: </b> Add this macro to <filepath>\e32\rombuild</filepath>: </p> <p><userinput>rom --variant=h4hrp --inst=armv5 --build=urel
+--type=alltests --symbol --define=ROMOPT_USBMSAPP --name=H4HRPARMV5.IMG</userinput> </p> <p>Start the program from the command prompt with a drive letter
+as a parameter: </p> <p><userinput>C:\&gt; usbmsapp d:</userinput> </p> <p>This mounts the specified drive with the Mass Storage file system
+('MSFS'). Check that you can see it as a Read/Write disk drive on
+the USB host computer. The drive name on the host computer will be
+the first free drive letter available. </p> <p> <b>Note: </b> You
+can only mount drives marked as 'removable' as USB Mass Storage devices.
+The C: drive cannot be marked as 'removable'. Internal drives made
+available for USB Mass Storage must be marked as 'removable' for reasons
+of platform security. </p> </section>
+</conbody></concept>

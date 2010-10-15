@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-B4C05C46-F2C9-57FA-AD85-EFE6479C2FF1" xml:lang="en"><title>Design</title><shortdesc>When you start a port, you must make a decision if the driver must
+provide record, playback, or both playback and record.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>If the PDD is to support audio transfer in a single direction, either record
+or playback, then a conventional PDD implementation is required. The PDD opens
+only a single driver channel and the PDD factory creates either a record or
+playback PDD object. </p>
+<p>If the PDD is to support audio transfer in both directions then it must
+be implemented to open two units, one playback unit and one record unit. For
+each unit the PDD factory must create the appropriate PDD object. </p>
+<p>One complication in this configuration is the need to co-ordinate access
+to the single audio hardware device from the two separate PDD objects. This
+configuration needs coordination when accessing the hardware device from two
+separate PDD objects, detecting and preventing situations where the handling
+of a PDD function for the channel in one direction conflicts with the channel
+setup in the other direction, specifically: </p>
+<ul>
+<li id="GUID-076CE21B-E350-5D87-A486-8AFC120E8DE9"><p>preventing the setup
+of conflicting audio configurations between the record and playback channels. </p> </li>
+<li id="GUID-27C1DD90-DE14-51CD-A723-86C7696D4C4F"><p>preventing the channel
+in one direction from powering down the audio hardware device while it is
+being used for data transfer by the other channel. </p> </li>
+</ul>
+<p>The solution is to move the code that controls those aspects of audio hardware
+setup which are shared between the two driver channels into the PDD factory
+object, as this object is shared. </p>
+<p>The porting process focuses on implementing a PDD that supports both record
+and playback as this is the most common situation. The template port Sound
+Driver is setup for this configuration. A PDD that supports audio transfer
+in a single direction only omits the implementation for the direction not
+supported. </p>
+</conbody></concept>

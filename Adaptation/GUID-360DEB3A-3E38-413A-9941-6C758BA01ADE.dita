@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-360DEB3A-3E38-413A-9941-6C758BA01ADE" xml:lang="en"><title>DSDIOSession
+Class Tutorial</title><shortdesc>Describes the DSDIOSession API class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-286AF512-0B54-41BA-8F7A-6E67692046B2"><title>Description</title><p>This
+class is used for setting up a session to form specific SDIO specific command
+sequences. </p><p>The stages involved in initializing a session are as follows:</p><ol>
+<li id="GUID-C2FCE2E7-6F0C-4BF3-B191-A8F41EC7A8B3"><p>The session is first
+created with the required parameter values</p></li>
+<li id="GUID-24645335-A11F-4CA2-8767-82B0C23B8D96"><p>The session is placed
+on the stack.</p></li>
+<li id="GUID-DFCF8772-61B0-41C5-9EAC-27FB9F03C32D"><p>On completion of initialization,
+a callback is called.</p></li>
+</ol><p>It is intended that the <xref href="GUID-CC5352E2-DB21-393F-A7A4-108AA3684460.dita"><apiname>DSDIORegInterface</apiname></xref> class
+should be used for the majority of SDIO operations. This class should only
+be used in more complex scenarios, for example where the asynchronous nature
+of the stack could be an advantage. The same thing can also be achieved with
+the <xref href="GUID-CC5352E2-DB21-393F-A7A4-108AA3684460.dita"><apiname>DSDIORegInterface</apiname></xref> documented <xref href="GUID-2607CCFA-3D24-4716-A447-74304F861C44.dita">here</xref> .</p><p>Some
+functions have an auto-increment parameter. If the hardware function requires
+you to use the register as a pointer to an address, auto-increment automatically
+increments the register to point to the next address after each call. If the
+hardware function requires you to use the register as a FIFO, auto-increment
+should be disabled.</p><table id="GUID-CEA18E7B-CD1A-4527-911F-E26F5C44E3F3">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p>Header file</p></entry>
+<entry><p><filepath>sdio.h</filepath></p></entry>
+</row>
+<row>
+<entry><p>Source code file</p></entry>
+<entry><p><filepath>sdiosession.cpp</filepath></p></entry>
+</row>
+<row>
+<entry><p>Required libraries</p></entry>
+<entry><p>EPBUSSDIO</p></entry>
+</row>
+<row>
+<entry><p>Class declaration</p></entry>
+<entry><p><codeph>class DSDIOSession : public DSessionBase</codeph></p></entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-F102DD54-CAD1-4024-A2C6-45D214005760"><title>SetupCIMIoWrite()</title><p>The
+function declaration for the <xref href="GUID-A680A35C-7B13-3663-9502-A3ACD4362722.dita"><apiname>SetupCIMIoWrite()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C void SetupCIMIoWrite(TUint32 aAddr, TUint8 aWriteVal, TUint8* aReadDataP);</codeblock><p><b>Description</b></p><p>Set the session to transfer a single byte of
+data to the card, and optionally read the register after the write operation.</p><p><b>Parameters</b></p><table id="GUID-2F932886-E7EF-4A46-92A9-583F5A536381">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TUint32 aAddr</codeph></p></entry>
+<entry><p>Address of the destination register.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8 aWriteVal</codeph></p></entry>
+<entry><p>The byte to be written</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8* aReadDataP</codeph></p></entry>
+<entry><p>Pointer to the start of the byte which is to be read into.</p><p>If
+this parameter is NULL, then a read-after-write operation is not performed.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p><b>Return value</b></p><p>None</p></section>
+<section id="GUID-98F2E1F4-51FF-4A4B-851F-05064A6A5423"><title>SetupCIMIoRead()</title><p>The
+function declaration for the <xref href="GUID-B8663276-D651-30F7-961B-446D9266A9AD.dita"><apiname>SetupCIMIoRead()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C void SetupCIMIoRead(TUint32 aAddr, TUint8* aReadDataP);</codeblock><p><b>Description</b></p><p>Set the session to perform a read of a single
+byte of data from the card.</p><p><b>Parameters</b></p><table id="GUID-E4CCA254-4053-4775-A966-A51EE7548F8B">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TUint32 aAddr</codeph></p></entry>
+<entry><p>Address of the source register.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8* aReadDataP</codeph></p></entry>
+<entry><p>Pointer to the byte which is to be read into.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p><b>Return value</b></p><p>None</p></section>
+<section id="GUID-55F85DDD-E0A3-4718-8A79-9F1FF5CA2BBD"><title>SetupCIMIoWriteMultiple()</title><p>The
+function declaration for the <xref href="GUID-61195EA4-BA52-3B44-ACAD-56ACDCA0F5B3.dita"><apiname>SetupCIMIoWriteMultiple()</apiname></xref> method
+is:</p><codeblock xml:space="preserve">IMPORT_C void SetupCIMIoWriteMultiple(TUint32 aAddr, TUint32 aLen, TUint8* aDataP, TBool aInc);</codeblock><p><b>Description</b></p><p>Sets the session to perform a multi-byte (or multi-block) transfer
+of data to the card.</p><p><b>Parameters</b></p><table id="GUID-0888B150-DE56-459B-B469-8BE8E7DCB48D">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TUint32 aAddr</codeph></p></entry>
+<entry><p>Address of the destination register.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint32 aLen</codeph></p></entry>
+<entry><p>The number of bytes to be transferred.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8* aDataP</codeph></p></entry>
+<entry><p>Pointer to the start of the source buffer.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TBool aInc</codeph></p></entry>
+<entry><p>Specifies whether the auto-increment feature is enabled or not.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p><b>Return value</b></p><p>None</p></section>
+<section id="GUID-99F6C933-B8F1-4C88-A7D9-8AB21ACF85C3"><title>SetupCIMIoReadMultiple()</title><p>The
+function declaration for the <xref href="GUID-1F08ED19-FEB5-3822-9473-C36F6D3B0BAF.dita"><apiname>SetupCIMIoReadMultiple()</apiname></xref> method
+is:</p><codeblock xml:space="preserve">IMPORT_C void SetupCIMIoReadMultiple(TUint32 aAddr, TUint32 aLen, TUint8* aDataP, TBool aInc);</codeblock><p><b>Description</b></p><p>Sets the session to perform a multi-byte (or multi-block) transfer of
+data from the card.</p><p><b>Parameters</b></p><table id="GUID-641E988E-7B86-4536-B243-2D673C3BC9EF">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TUint32 aAddr</codeph></p></entry>
+<entry><p>Address of the source register.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint32 aLen</codeph></p></entry>
+<entry><p>The number of bytes to be transferred.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8* aDataP</codeph></p></entry>
+<entry><p>Pointer to the start of the destination buffer.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TBool aInc</codeph></p></entry>
+<entry><p>Specifies whether the auto-increment feature is enabled or not.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p><b>Return value</b></p><p>None</p></section>
+<section id="GUID-7769CF10-2C24-47B0-877B-6193C1F51F23"><title>SetupCIMIoModify()</title><p>The
+function declaration for the <xref href="GUID-3985761B-AE9D-3408-94DC-33689B77E209.dita"><apiname>SetupCIMIoModify()</apiname></xref> method
+is:</p><codeblock xml:space="preserve">IMPORT_C void SetupCIMIoModify(TUint32 aAddr, TUint8 aSet, TUint8 aClr, TUint8* aReadDataP);</codeblock><p><b>Description</b></p><p>Sets the session to perform a safe read-modify-write operation on a single
+byte of data on the card.</p><p><b>Parameters</b></p><table id="GUID-23EBA64A-F3B6-454C-BC46-F474CC14B990">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TUint32 aAddr</codeph></p></entry>
+<entry><p>Address of the destination register.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8 aSet</codeph></p></entry>
+<entry><p>A bitmask of the values to be set: pass 1 where the bit is to be
+set, otherwise pass 0.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8 aClr</codeph></p></entry>
+<entry><p>A bitmask of the values to be cleared: pass 1 where the bit is to
+be cleared, otherwise pass 0.</p></entry>
+</row>
+<row>
+<entry><p><codeph>TUint8* aReadDataP</codeph></p></entry>
+<entry><p>If this value is not NULL, then the result of the modification is
+returned in this parameter.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p><b>Return value</b></p><p>None</p></section>
+</conbody></concept>

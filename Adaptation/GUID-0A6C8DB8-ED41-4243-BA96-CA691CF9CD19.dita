@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-0A6C8DB8-ED41-4243-BA96-CA691CF9CD19" xml:lang="en"><title>Data
+Buffers</title><shortdesc>This document describes how device drivers allocate and access
+memory buffers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-21C5B685-F546-45B5-A829-00B2DBCBF8E4">      
+      <p>Most device drivers need to use memory buffers for I/O operations.
+Drivers typically own memory buffers, allocate them, and access them through
+pointers. The thread should be in a critical section when it allocates or
+de-allocates memory. </p> <codeblock id="GUID-B222000C-8344-5239-9546-4E831A3C0A6E" xml:space="preserve">// Tx and Rx Buffers
+TUInt8* iTxBuffer;    
+TUInt8* iRxBuffer;</codeblock> <codeblock id="GUID-A921D206-7243-5F0A-ADA3-0330D93A137F" xml:space="preserve">// Logical Channel second stage constructor
+TInt DExDriverLogicalChannel::DoCreate(TInt /*aUnit*/, const TDesC8* 
+/*anInfo*/, const TVersion&amp; aVer)
+    {
+    ...
+    // Initialize the Tx Buffer
+    iTxBuffer = (TUInt8*) Kern::Alloc(KTxBufferSize);
+    if (!iTxBuffer)
+        return KErrNoMemory;
+    ...
+    }</codeblock> <p>Memory buffers must be freed when they are not required.
+If this is not done, a memory leak occurs. </p> <codeblock id="GUID-688A360C-1B7A-5F3A-BB83-98EB8A4658F3" xml:space="preserve">// Free Tx Buffer
+Kern::Free(iTxBuffer)</codeblock>     </section>
+</conbody></concept>

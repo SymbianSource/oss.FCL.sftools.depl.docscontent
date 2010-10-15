@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2648B61C-6EBD-4668-AACD-EA4B2C435BB2" xml:lang="en"><title>Message
+Handling</title><shortdesc>This document describes message queues and message handling.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-AE9A6778-85AE-4D1D-BF61-EE06339549D9"><title>Message queues</title> <p>The
+request handling kernel side DFC is managed by a message queue object of the <xref href="GUID-F10B7D2F-D546-3997-A020-37A0D894F1CD.dita"><apiname>TMessageQueue</apiname></xref> type.
+The message queue consists of a DFC and a doubly linked list of received messages.
+The messages are represented by <xref href="GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551.dita"><apiname>TThreadMessage</apiname></xref> objects
+and are owned by each user thread. Requests are queued as message objects
+on the message queue. </p> <p>The driver framework requires that the driver
+sets a DFC queue to use with the message queue. This is done by calling <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-EB160A2E-39A9-3739-ABDE-C91E2A28D26D"><apiname>DLogicalChannel::SetDfcQ()</apiname></xref>.
+The message queue must also be enabled to receive incoming messages by calling <xref href="GUID-382DD935-E9D7-3E00-88B2-B28A89CAD4FB.dita#GUID-382DD935-E9D7-3E00-88B2-B28A89CAD4FB/GUID-EF06556E-9EC6-3D1C-AEE9-0CDDF6B42A24"><apiname>TMessageQue::Receive()</apiname></xref>. </p> <codeblock id="GUID-A995A927-113D-5CB6-B813-DF88DC02D0C1" xml:space="preserve">// Logical Channel Second stage constructor
+TInt DExDriverLogicalChannel::DoCreate(TInt /*aUnit*/, const TDesC8*
+        /*anInfo*/, const TVersion&amp; aVer)
+    {
+    ...
+    // Set up the DFC queue for this driver. Here, the DFC 
+    // queue is created by the PDD dedicated for this driver.
+    SetDfcQ(Pdd()-&gt;DfcQ());
+
+    // Start receiving the incoming requests on the message queue
+    iMsgQ.Receive();
+    ...
+    }</codeblock> <p>The Kernel provides a standard DFC queue, which runs
+on a dedicated kernel thread called <codeph>DFCThread0</codeph>, for general
+use by drivers. However, it is recommended that the driver creates its own
+DFC thread to process its requests. The following example shows how a PDD
+can implement the <codeph>DfcQ()</codeph> function to return a newly created
+DFC thread: </p> <codeblock id="GUID-4753E5B1-8B8F-5589-8547-C94B48B7D66A" xml:space="preserve">// DfcQ - Creates a DFC queue dedicated for the tutorial driver
+TDynamicDfcQue* DExUartPhysicalChannelH4::DfcQ()
+    {
+    // Create a DFC queue dedicated to the driver with a specified 
+    // priority
+    TInt r = Kern::DynamicDfcQCreate(pDfcQ,KExUartDfcPriority,
+    KExUartDfcName);
+    if (r!=KErrNone)
+        {
+        // DfcQ failed, return NULL
+        return NULL;
+        }
+    return iDfcQueue;
+    }</codeblock> <p>The DFC thread that is created for the driver must be
+destroyed after use. To do this, the driver can create an Exit or Kill DFC
+request and queue it to the thread to be destroyed in the logical channel
+destructor. This exit DFC function cancels any other requests pending using <xref href="GUID-A14562A5-3E91-3113-AB3C-71DBEA9D58EB.dita#GUID-A14562A5-3E91-3113-AB3C-71DBEA9D58EB/GUID-9851B90B-8D05-3C86-B083-44C4564AC140"><apiname>TDfc::Cancel()</apiname></xref> and
+calls <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-808B3622-BDC4-376D-96E9-16281BA28AF8"><apiname>Kern::Exit()</apiname></xref> to terminate the thread. </p> <p>The <xref href="GUID-D9111A26-FAA3-3D8E-AB41-5B1263FABB6A.dita"><apiname>TDynamicDfcQue</apiname></xref> has
+a destroy method that can be run on the channel destructor. The destroy method
+destroys the DFC queue, kills the DFC thread and deletes the <xref href="GUID-D9111A26-FAA3-3D8E-AB41-5B1263FABB6A.dita"><apiname>TDynamicDfcQue</apiname></xref> object
+itself. This avoids the possibilities of memory leaks in the DFC. </p></section>
+<section id="GUID-2463763E-1838-4D7D-80F2-D77420B49D09"><title>Message handling</title> <p>All
+synchronous and asynchronous requests are passed to the <xref href="GUID-621F4531-996F-33BB-8081-4B2067CC262A.dita"><apiname>HandleMsg()</apiname></xref> function
+by the framework, with the message as an argument. A driver should implement
+the function to identify the message type and handle the messages accordingly. </p> <p>The
+client thread is blocked until the message is completed, as the request uses
+the thread's message object. If the client thread was left free, it would
+corrupt the message if another request was issued. </p> <p>When the driver
+has completed handling the message, it notifies the framework by calling <xref href="GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551.dita#GUID-D43CB8FA-C212-3B56-AD16-9F1D69DA7551/GUID-20CFC972-7C07-36D8-BAC8-BB63AA4612B6"><apiname>TThreadMessage::Complete()</apiname></xref>.
+The client thread is then unblocked, and can either block on the thread semaphore
+or issue further requests before blocking. </p> <p>For synchronous requests,
+the message is not completed until the request itself is complete, and the
+driver calls the <codeph>TThreadMessage::Complete()</codeph> function after
+the actual completion of the request. However, for asynchronous requests,
+the message is completed after the driver has accepted the request, but not
+necessarily after the actual completion of the request, which can happen later.
+This means that the driver calls <codeph>TThreadMessage::Complete()</codeph> as
+soon as it has received the message and initiated the required processing
+to complete the request. </p> <codeblock id="GUID-C178DFFA-2321-5396-AED6-5244BBF98388" xml:space="preserve">void DExDriverLogicalChannel::HandleMsg(TMessageBase* aMsg)
+    {            
+    TThreadMessage&amp; m = *(TThreadMessage*)aMsg;        
+    // obtain the function id value to determine the request nature
+    TInt id = m.iValue;        
+    ...
+    if (id&gt;=0)    // Synchronous messages
+        {
+        // call synchronous message handler function, DoControl()    
+        TInt r = DoControl(id,m.Ptr0(),m.Ptr1());
+        m.Complete(r,ETrue);
+        return;
+        }    
+    }</codeblock></section>
+</conbody></concept>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-ADB848FD-317A-521C-9684-BBCF20358207" xml:lang="en"><title>Architecture</title><shortdesc>Describes the USB client architecture.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Symbian platform provides access to USB client hardware through its USB
+client driver. </p>
+<p>The following diagram shows the USB client architecture. Devices can provide
+more than one USB function. To better show the typical use, the diagram shows
+the components in use with a phone that is configured as a combined
+WHCM and OBEX peripheral. </p>
+<fig id="GUID-8627CEA3-B570-5DA0-AE30-32C9AE08F041">
+<image href="GUID-365283F1-54B4-519A-81EC-9B5018896DDE_d0e35432_href.png" placement="inline"/>
+</fig>
+<p>There are three main elements: </p>
+<ul>
+<li id="GUID-95956004-F78F-53E5-A2F3-693B48D344E8"><p>The user side interface
+to the USB client driver. </p> </li>
+<li id="GUID-6461280C-469F-5726-AE69-9A88ADCC95AB"><p>The USB client driver
+LDD that provides the driver's logical channel. This is hardware independent. </p> </li>
+<li id="GUID-FD47D854-620E-5E2A-9A59-79B4901477D2"><p>The PDD, or client controller,
+that manages access to the USB client hardware. </p> </li>
+</ul>
+<section id="GUID-57BF46A0-0FE2-4074-87DF-A0C55AA29F1F"><title>User API</title> <p>The user side interface to the USB client
+driver is provided by <xref href="GUID-B1E32178-3B7C-3B00-A0AF-62ECE40E8598.dita"><apiname>RDevUsbcClient</apiname></xref>. The user side interface
+is implemented as a set of inline functions and means that there is no separate
+user side library component. This is typically the case for device drivers. </p> </section>
+<section id="GUID-2C341305-95E0-53C4-B4D5-1BB03CCB8C52"><title>USB client
+driver (LDD)</title> <p>The USB client driver provides an interface to the
+USB client device. The USB client driver is also referred to as a <i>channel</i> to
+the USB client device; it may also be referred to as the USB logical device
+driver. </p> <p>Each user component that requires a connection to the USB
+client device opens a channel using the user side <xref href="GUID-B1E32178-3B7C-3B00-A0AF-62ECE40E8598.dita"><apiname>RDevUsbcClient</apiname></xref> class. </p> <p>A
+channel supports only one USB interface. A channel (i.e. the USB LDD) can
+be loaded as many times as needed; the decision is based on the number of
+interfaces required. This can be done either in the same process or in a different
+process depending on the relationship between the interfaces. </p> <p>If there
+is more than one channel open on the USB client device, then they can all
+share Control Endpoint 0 (Ep0). Each channel can make a request on this endpoint.
+The other endpoints cannot be shared between channels; instead each endpoint
+is used exclusively by one, and only one, channel. </p> <p>Each channel can
+claim up to a maximum of <i>five</i> endpoints in addition to Ep0. Each endpoint
+claimed on a channel is locally numbered from one and five. This number need
+not correspond to the actual endpoint number of the hardware interface; this
+number is called the logical endpoint number, and all transfer requests use
+the logical number for the endpoint. A driver can, however, discover the physical
+endpoint address of a logical endpoint by requesting the endpoint descriptor. </p> <p>A
+channel can have asynchronous requests outstanding on one or more of its endpoints
+simultaneously; this includes Ep0. As Ep0 can be shared between channels,
+then the underlying USB Controller must manage multiple requests on this endpoint </p> </section>
+<section id="GUID-660CC1A9-26B5-5869-ADC9-53196AF5F387"><title>USB client
+controller (PDD)</title> <p>The USB client controller manages access to the
+USB client hardware on behalf of all USB client drivers. It has a two layer
+implementation: </p> <ul>
+<li id="GUID-A90C62D9-60B0-5542-9D93-683A7C02EDB2"><p>a licensee product independent
+layer that provides an API for the USB client driver. This is often referred
+to as the Platform Independent Layer, and forms the 'upper' part of the USB
+physical device driver (PDD). </p> </li>
+<li id="GUID-4637A61F-A1D7-522A-B824-4603AF129442"><p>a layer that interfaces
+with the hardware. This is often referred to as the Platform Specific Layer,
+and forms the 'lower' part of the USB physical device driver (PDD). <i>It
+is this part that needs porting effort</i>. </p> </li>
+</ul> <p>The Platform Independent Layer contains, as far as possible, the
+functionality that is defined in the USB specification. This includes the
+‘Chapter 9’ device state handling and request processing. The Platform Specific
+Layer contains only that functionality which cannot be abstracted and made
+generic, because different USB Device Controller designs are programmed differently
+and operate differently. </p> <p>The complete USB client controller (PDD)
+is an instance of a <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita"><apiname>DUsbClientController</apiname></xref> derived class
+and is implemented as a kernel extension named <filepath>usbcc.dll</filepath>. </p> <p>The
+functionality of the Platform Independent Layer is provided by the base class <xref href="GUID-82FA9C04-0B7E-3FAD-9AAD-3A68E1E6A941.dita"><apiname>DUsbClientController</apiname></xref>.
+This class also defines a large number of pure virtual functions that are
+intended to provide the functionality that is not part of the USB specification,
+but is specific to the USB Device Controller. Such functions typically implement
+direct USB Device Controller hardware manipulation, register access, endpoint
+FIFO loading/unloading etc. The platform specific layer provides the implementation
+for these pure virtual functions by defining and implementing a device specific
+class derived from <codeph>DUsbClientController</codeph>. </p> </section>
+</conbody></concept>

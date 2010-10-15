@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C74770A5-ADD4-4AB1-946F-77105E2B8C10-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1" xml:lang="en"><title>DMA Request Operations</title><shortdesc>Describes the operations which a device driver performs
+on a DMA request.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>After doing the required DMA initialisation, a driver can start
+a DMA operation. To do this, the driver fragments the request and
+then queues the request. </p>
+<section id="GUID-24567A76-814B-4E1C-81CA-61D9142B442B-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-2"><title>Fragment</title> <p>A DMA request must be split into different fragments that are
+small enough to be transferred by the DMAC in a single transaction.
+The size of each fragment is smaller than or equal to the maximum
+transfer size supported by the DMAC. To fragment a DMA request, a
+source and destination address, and the size of data to be transferred,
+must be provided. If the source and/or destination is in memory, each
+fragment points to memory which is physically contiguous. </p> <p>The kind of transfer to perform is specified using a set of flags
+and hardware-specific information. The flags can be: </p> <table id="GUID-52098463-21DE-5D42-8F35-9B6D67CE93BC-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-2-4">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>KDmaMemSrc</codeph>  </p> </entry>
+<entry><p>Source is the address of a memory buffer </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KDmaMmeDest</codeph>  </p> </entry>
+<entry><p>Destination is the address of a memory buffer </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KDmaIncSrc</codeph>  </p> </entry>
+<entry><p>Source address must be post-incremented during transfer </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KDmaIncDest</codeph>  </p> </entry>
+<entry><p>Destination address must be post-incremented during transfer </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KDmaPhysAddrSrc</codeph>  </p> </entry>
+<entry><p>Source address is a physical address (as opposed to a linear
+one) </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>KDmaPhysAddrDest</codeph>  </p> </entry>
+<entry><p>Destination address is a physical address (as opposed to
+a linear one) </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The following shows an example of fragmenting a DMA request: </p> <codeblock id="GUID-E2DE10F1-7E22-5EA6-A05C-1A76B98D1F91-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-2-6" xml:space="preserve">/**
+ Start the DMA transfer. This function fragments the DMA request and 
+ queues it for processing and actually triggers the DMA transfer.
+ 
+ @param    aSource
+        Source address for DMA transfer
+         
+    @param    aCount
+         Size of data to be transferred            
+             
+ @return    KErrNone on success, else standard error code on failure
+ */    
+TInt DExDriverUartTxDma::Start(const TUint8* aSource, TInt aCount)
+    {
+    ...
+    // Fragment the DMA request. DDmaRequest::Fragment() creates 
+    // the DMA descriptor with source, destination address, size 
+    // and attributes.
+    // 
+    // Flags KDmaMemSrc|KDmaIncSrc or KDmaMemDest|KDmaIncDest 
+    // should be set if the source/destination is a memory buffer, 
+    // or cleared if the source/destination is a peripheral. If the address 
+    // specified is physical address instead of linear, 
+    // then specify KDmaPhysAddrSrc or KDmaPhysAddrDest accordingly.
+    //
+    TInt retval = iTxDmaRequest-&gt;Fragment((TUint32)buf,
+            (TUint32)(iUartComm-&gt;iPortAddr + KHoUART_THR), aCount,
+            KDmaMemSrc |KDmaIncSrc, // source is a buffer
+            0 ); // no HW Flags    
+    if(retval != KErrNone)
+        {
+        return retval;
+        }
+    ...
+    }</codeblock> </section>
+<section id="GUID-72984A7F-C2C4-48E5-8656-638D472A2ACD-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-3"><title>Queue</title> <p>DMA transfer is initiated by queuing the DMA request. A device
+driver queues the request by calling <xref href="GUID-780F4D53-5546-3B69-B328-0226C70EBDE2.dita#GUID-780F4D53-5546-3B69-B328-0226C70EBDE2/GUID-0A83F782-DB62-39ED-8D32-DBD5949C8D3F"><apiname>DDmaRequest::Queue()</apiname></xref> after fragmenting the DMA request. This is an asynchronous call
+and the transfer of DMA will actually start once the request is scheduled. </p> <codeblock id="GUID-FD225A28-4AFA-5CE0-A341-2261C97E7D1A-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-3-3" xml:space="preserve">/**
+ Start the DMA transfer. This function fragments the DMA request and 
+ queues it for processing and actually triggers the DMA transfer.
+ @param    aSource Source address for DMA transfer
+ @param    aCount Size of data to be transferred            
+ @return    KErrNone on success, else standard error code on failure
+ */
+TInt DExDriverUartTxDma::Start(const TUint8* aSource, TInt aCount)
+    {
+    ...
+
+    // Queue the DMA request. DDmaRequest::Queue() queues the 
+    // request on the DFCQ. DMA operation starts at this point.
+    //
+    iTxDmaRequest-&gt;Queue();
+
+    ...
+    }</codeblock> <p>If the request channel is idle when a request
+is queued, the request is transferred immediately. Otherwise, it is
+queued and transferred later. The client is responsible for ensuring
+cache consistency before and/or after the transfer if necessary. </p></section>
+<section id="GUID-FA035D89-F593-49C5-84EC-BC5019C63F0B-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-4"><title>Completion
+notification</title><p>This is done by the DMA service callback function.
+The completion notification is as follows:</p> <p>Once the DMA request
+is handled by the DMAC, the DMA service callback function is called
+by the DMA driver. This runs in a DFC context, that is scheduled from
+a DMA interrupt service routine. </p> <p>The DMA service callback
+function pointer must be provided while creating the DMA request: </p> <codeblock id="GUID-0A15F944-F066-52E2-BFB6-D008DF690BA6-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-4-5" xml:space="preserve">iTxDmaRequest = new DDmaRequest(*iTxDmaChannel, TxDmaService, this);</codeblock> <p>The DMA callback function is called for both success and failure
+of the request, so it needs to check the request result. On success,
+the function should either initiate another DMA request, or stop DMA
+and close the request. On failure, the function should stop DMA. </p> <codeblock id="GUID-BD28E559-FA5B-564E-BC00-3BD98C61F201-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-6-1-3-4-7" xml:space="preserve">/**
+ DMA service callback function for transmit. This static function is 
+ called on the completion of DMA transfer request. This function 
+ pointer is provided while creating the DMA request, i.e. in     
+ DDmaRequest(). After the request is queued, the System DMA controller 
+ completes the request and calls this service function. Here, we do 
+ the processing that needs to be done post the DMA request  
+ completion.
+ 
+ This function shall be called both when the DMA request succeeds or fails, 
+    so both must be handled appropriately.
+ 
+ @param    aResult    
+     DMA result, can be DDmaRequest::EOk in case of success, else error
+             
+ @param    aArg pointer passed at time of registration, typically &lt;this&gt; 
+        pointer
+ 
+ @return    none 
+ */
+static void TxDmaService(DDmaRequest::TResult aResult, TAny* aArg)
+    {
+    // Check the result of DMA service function call. It can be 
+    // either of the DDmaRequest::TResult enumerated values.
+    //
+    if ( aResult != DDmaRequest::EOk)
+        {
+        // DMA request failed, so stop the DMA. 
+        Stop ();
+
+        // Notify request completion with an error result
+        ...
+        }
+    else
+        {
+        // DMA request was successful. 
+     // The program can start another DMA request, or stop 
+        // the DMA, if no more DMA requests are needed.
+        // Notify request operation complete with success.
+        ...
+        }
+    }</codeblock></section>
+</conbody><related-links>
+<link href="GUID-6AC01B10-92C1-4E56-813B-6853DFCF3386-GENID-1-2-1-9-1-6-1-8-1-7-1-5-1.dita"><linktext>DMA
+Requests</linktext></link>
+</related-links></concept>

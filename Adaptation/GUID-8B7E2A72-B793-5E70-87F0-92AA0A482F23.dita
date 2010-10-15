@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8B7E2A72-B793-5E70-87F0-92AA0A482F23" xml:lang="en"><title>Interrupt::Bind()
+and Interrupt::Unbind() </title><shortdesc>Describes two types of configuration used in the implementation
+of bind and unbind functions.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The functions <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> provide
+device drivers with a way of binding ISRs to interrupt sources, and unbinding
+ISRs from interrupt sources. The implementation of these functions follows
+a standard pattern that can be re-used in most cases. </p>
+<p>The implementation can be different if there is a single Variant DLL, or
+if there is also an ASSP extension. </p>
+<section id="GUID-D6F47DE3-7320-4C3A-A7BB-96B57DFF40DA"><title>Variant DLL only configuration</title> <p>The following example
+implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> assumes that all ISRs
+in the ISR table have been bound, by default, to the <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9D98586F-AD1D-5C50-9AD8-F81D72135382">spurious interrupts</xref> handler function as done in <xref href="GUID-423537D5-2C8A-5C26-8D7B-60446E95F681.dita">initialising
+the table</xref>. To bind an interrupt source, the spurious interrupts handler
+is replaced with the provided ISR. The implementation prevents an ISR from
+being bound to an interrupt source that is already bound, by assuming that
+an unbound interrupt source is bound to the spurious interrupts handler. </p> <p>The
+implementation shows the basic idea but may need to be extended, especially
+where <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9026A4AC-57AF-545D-887C-AF43E0B37EDC">chained
+interrupts</xref> and/or <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-ED6F2F47-7A16-5AE6-8E5B-B2475F6EDEAA">multiple
+interrupt sources and pseudo interrupt sources</xref> are involved. </p> <codeblock id="GUID-EF5B6524-6070-5563-919B-881039629E2B" xml:space="preserve">EXPORT_C TInt Interrupt::Bind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+       TInt r = KErrNone;
+    If(TUint(aId)&gt;=TUint(KInterruptSourceCount))
+        {
+        r = KErrArgument; // Illegal interrupt number
+        }
+       else 
+        {
+           SInterruptHandler&amp; h = IsrHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr != &amp;SpuriousHandler)
+            {
+            r = KErrInUse; // Already bound to an ISR
+            }
+           else
+            {
+            h.iPtr = aPtr; // The ISR parameter
+            h.iIsr = aIsr; // Pointer to the ISR
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+    }
+</codeblock> <p> <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> is the logical opposite
+of <codeph>Bind()</codeph>, replacing the ISR with the spurious handler function.
+The following code is the matching example implementation. </p> <codeblock id="GUID-B3240465-BF03-5977-B73C-9FF61B209F5C" xml:space="preserve">EXPORT_C TInt Interrupt::Unbind(TInt aId)
+    {
+       TInt r = KErrNone;
+       if (TUint(aId) &gt;= TUint(KInterruptSourceCount))
+        {
+        r = KErrArgument;    // Illegal interrupt number
+        }
+       else
+        {
+        SInterruptHandler&amp; h = IsrHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr == &amp;SpuriousHandler)
+            {
+            r = KErrGeneral; // Already unbound
+            }
+        else
+            {
+            h.iPtr =(TAny*)aId;
+            h.iIsr = SpuriousHandler;  // Replace with spurious handler
+            // NOTE: at this point it may be wise to
+            // force the hardware interrupt source to disabled.
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+       }
+</codeblock> <p>Note that functions in the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class
+can be called from anywhere in kernel-side code, including ISRs, DFCs and
+IDFCs, and kernel threads. You need to ensure that if you are manipulating
+the ISR table, or any other structure that is shared, you need to <i>disable</i> interrupts
+to prevent corruption of the data. Interrupts are disabled and re-enabled
+using <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-8C251C65-FDE7-3161-8D2B-61401FB6487F"><apiname>NKern::DisableAllInterrupts()</apiname></xref> and <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-2D328082-3A9F-3467-81CF-B1C68866E163"><apiname>NKern::RestoreInterrupts()</apiname></xref>. </p> </section>
+<section id="GUID-883CCAD1-8339-4D95-A05C-AC2AFA2786F7"><title>ASSP Extension and Variant DLL configuration</title> <p>When
+a common ASSP extension is used, the Variant DLL may have to implement extra
+interrupt binding and dispatch functions for the device-specific interrupts. </p> <p>The
+following code is an example of an implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> in
+the ASSP layer, where negative Interrupt IDs represent device specific interrupts. </p> <codeblock id="GUID-B1FF5AEC-30D2-5A4F-8677-5757906C629B" xml:space="preserve">EXPORT_C TInt Interrupt::Bind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+    TInt r = KErrNone;
+    if(aId &lt; 0 )
+        {
+        return MyAsic-&gt;VariantBind( aId, aIsr, aPtr ); // Device specific ID, call variant
+        }
+    else if (aId &gt;= KInterruptSourceCount)
+            {
+            r = KErrArgument; // Illegal interrupt number
+            }
+        else
+            {
+            SInterruptHandler&amp; h = IsrHandlers[aId];
+            TInt irq = NKern::DisableAllInterrupts();
+            if (h.iIsr != SpuriousHandler)
+                {
+                r = KErrInUse; // Already bound to an ISR
+                }
+            else
+                {
+                h.iPtr = aPtr;
+                h.iIsr = anIsr;
+                }
+            NKern::RestoreInterrupts(irq);
+            }
+    return r;
+    }</codeblock> <p>The default device specific implementation of the <codeph>VariantBind()</codeph> function
+might be as follows: </p> <codeblock id="GUID-99850E43-605F-5FA0-95B3-3E472CA6FD56" xml:space="preserve">TInt TMyAsic::VariantBind( TInt aId, TIsr aIsr, TAny* aPtr )
+    // Default implementation when device specific layer does not override
+    // and this is therefore an illegal aId.
+    {
+    return KErrArgument;
+    }
+</codeblock> <p>The device specific implementation of <codeph>VariantBind()</codeph> would
+follow the same general pattern as for the <codeph>Interrupt::Bind()</codeph> function
+in the ASSP layer. The main difference is that the code refers to the device
+specific ISR table, <codeph>VariantHandlers[]</codeph>, defined within the
+device specific layer, and the interrupt ID is converted to a positive number
+so that it can be used as an index into this table: </p> <codeblock id="GUID-547FA8BB-F5BB-56A4-AC8F-7FCA07C7BD9A" xml:space="preserve">SInterruptHandler VariantHandlers[KNumVariantInts];</codeblock> <codeblock id="GUID-7D86B6BA-6FED-52F7-9DB8-4EF21A734CE1" xml:space="preserve">EXPORT_C TInt TMyVariant::VariantBind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+    TInt r = KErrNone;
+    aId = (-aId)-1;    // convert to positive number &gt;=0
+    If (aId &gt;= KInterruptSourceCount || aId &lt; 0)
+        {
+        r = KErrArgument; // Illegal interrupt number
+        }
+    else
+        {
+        SInterruptHandler&amp; h = VariantHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr != VariantSpuriousHandler)
+            {
+            r = KErrInUse; // Already bound to an ISR
+            }
+        else
+            {
+            h.iPtr = aPtr;
+            h.iIsr = anIsr;
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+    }</codeblock> <p>Now you need a way of dispatching the interrupts and
+since this is really a chained interrupt, the dispatch function can be packaged
+as an ISR and bound to the core interrupt source it chains from. See <xref href="GUID-8B8CAEED-A89D-53B3-A311-51CF45B334B1.dita">IRQ and FIQ Dispatchers</xref> in
+general and <xref href="GUID-8B8CAEED-A89D-53B3-A311-51CF45B334B1.dita#GUID-8B8CAEED-A89D-53B3-A311-51CF45B334B1/GUID-3F0D4E4E-8D9C-51FD-A701-65C29D54AB94">Dealing
+with chained interrupts</xref> in particular. </p> </section>
+</conbody><related-links>
+<link href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-A87DE0F9-2095-5CA6-BE88-3A2EAABB0D33">
+<linktext>Interrupts in the                 split ASSP/Variant Configuration</linktext>
+</link>
+</related-links></concept>

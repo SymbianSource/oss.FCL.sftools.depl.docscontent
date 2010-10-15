@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-90B5FDD9-7D59-5035-BF53-2B177655DCD6" xml:lang="en"><title>Migration
+Tutorial: Demand Paging and Internal MMC Cards</title><shortdesc>Explains how to change the MMC media driver for when demand paging
+is used.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Demand paging is a change made from Symbian platform v9.3 to how the Kernel
+uses RAM and storage media. This topic </p>
+<p>For general information on migrating media drivers, see <xref href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita">Migration
+Tutorial: Demand Paging and Media Drivers</xref>. </p>
+<section id="GUID-D99E59FE-2515-49F5-9C55-580D1F2AD6A8"><title>PSL changes</title> <p>ROM and code paging can be enabled
+for a Multi Media Card (MMC) provided the card is non-removable. Removing
+a card would result in a kernel fault whenever the next page-in request is
+issued. </p> <p>As the MMC media driver is entirely generic, a way of returning
+the paging related information contained in <i>variantmedia.def</i> to the
+generic part of the MMC stack is required. This is achieved by modifying the
+Platform Specific Layer (PSL) of the MMC stack to implement the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-7DAC0CF1-4AFE-3F68-8488-632535783A80"><apiname>DMMCStack::MDemandPagingInfo</apiname></xref> interface
+method: </p> <codeblock id="GUID-7B1FA673-641B-54C7-BC6B-DCDBE25297B8" xml:space="preserve">class DMMCStack : public Dbase
+    {
+public:
+    // etc…
+    };
+
+/** 
+Demand paging support 
+@see KInterfaceDemandPagingInfo
+*/
+
+class TDemandPagingInfo
+    {
+public:
+    const TInt* iPagingDriveList;
+    TInt  iDriveCount;
+    TUint iPagingType;
+    TInt  iReadShift;
+    TUint iNumPages;
+    TBool iWriteProtected;
+    TUint iSpare[3];
+    };
+
+class MDemandPagingInfo
+    {
+public:
+    virtual TInt DemandPagingInfo(TDemandPagingInfo&amp; aInfo) = 0;
+    // etc…
+    };</codeblock> <p>This example is taken from the H4 HRP <i>VariantMedia.def</i> changes: </p> <codeblock id="GUID-DD8297C4-6033-5AB1-838C-F0DFE1C7C749" xml:space="preserve">// Variant parameters for the MMC Controller (EPBUSMMC.DLL)
+#define MMC_DRIVECOUNT 1
+#define MMC_DRIVELIST 1
+#define MMC_NUMMEDIA 1
+#define MMC_DRIVENAME "MultiMediaCard0" 
+
+#define MMC_PAGING_TYPE    DPagingDevice::ERom | DPagingDevice::ECode
+#define MMC_PAGEDRIVELIST    1            // code paging from User Data
+#define    MMC_PAGEDRIVECOUNT     1
+#define MMC_NUM_PAGES        8</codeblock> <p>This example is from H4 MMC
+stack class definition: </p> <codeblock id="GUID-FC2E902E-E98C-5E0E-9337-D3D5BB14FBB6" xml:space="preserve">class DDemandPagingInfo : public DMMCStack::MDemandPagingInfo
+    {
+public:
+    virtual TInt DemandPagingInfo(DMMCStack::TDemandPagingInfo&amp; aInfo);
+    };
+
+
+class DOmapMMCStack : public DCardStack
+    {
+public:
+    virtual void GetInterface(TInterfaceId aInterfaceId, MInterface*&amp; aInterfacePtr);
+    // etc…
+private:
+    DDemandPagingInfo* iDemandPagingInfo;
+    // etc…
+    };</codeblock> <p>This example is from H4 MMC stack class implementation: </p> <codeblock id="GUID-824160DE-295D-5BA2-B2BE-A5590301B9EA" xml:space="preserve">TInt DOmapMMCStack::Init()
+    {
+    if((iDemandPagingInfo = new DDemandPagingInfo()) == NULL)
+        return KErrNoMemory;
+    // etc…
+    }
+
+void DOmapMMCStack::GetInterface(TInterfaceId aInterfaceId, MInterface*&amp; aInterfacePtr)
+    {
+    if (aInterfaceId == KInterfaceDemandPagingInfo)
+        aInterfacePtr = (DMMCStack::MInterface*) iDemandPagingInfo;    
+    // etc…
+    }
+
+TInt DDemandPagingInfo::DemandPagingInfo(DMMCStack::TDemandPagingInfo&amp; aDemandPagingInfo)    
+    {
+    static const TInt pagingDriveNumbers[MMC_PAGEDRIVECOUNT] = {MMC_PAGEDRIVELIST};
+
+    aDemandPagingInfo.iPagingDriveList = pagingDriveNumbers;
+    aDemandPagingInfo.iDriveCount = MMC_PAGEDRIVECOUNT;
+    aDemandPagingInfo.iPagingType = MMC_PAGING_TYPE;
+    aDemandPagingInfo.iReadShift = 9;
+    aDemandPagingInfo.iNumPages = MMC_NUM_PAGES;
+    return KErrNone;
+    }</codeblock> </section>
+<section id="GUID-6389CCE7-339D-4F41-B875-4636C5993C6C"><title>Preparing an internal MMC card for ROM paging - MMCLoader</title> <p>To
+support ROM paging from an internal card, the MMCLoader utility is used to
+write the ROM image to the card. MMCLoader can be found in <filepath>e32utils/mmcloader</filepath>. </p> <p>The
+paged image is written as a normal file under the FAT file system. For paging
+to work however, the images file’s clusters must all be contiguous so, before
+doing anything else, MMCLoader formats the card. It then writes the paged
+part of the ROM to a file and checks that the file’s clusters are contiguous,
+which is normally the case as the card has just been formatted. A pointer
+to the image file is stored in the boot sector. When the board is rebooted
+the MMC/SD media driver reads the boot sector and uses this pointer to determine
+where the image file starts so that it can begin to satisfy paging requests. </p> <p>MMCLoader
+takes the filename of the original ROM image file as an input. It then splits
+the given file into unpaged and paged files. The following code fragment shows
+the syntax: </p> <codeblock id="GUID-0CFE9814-4FEA-5FF1-9027-82E207596C68" xml:space="preserve">Syntax: mmcloader &lt;RomSrcFileName&gt; &lt;UnPagedRomDstFileName&gt; &lt;PagedRomDstFileName&gt;
+Eg:     mmcloader z:\\core.img d:\\sys$rom.bin d:\\sys$rom.pag</codeblock> </section>
+</conbody></concept>

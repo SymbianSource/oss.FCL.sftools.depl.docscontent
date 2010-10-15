@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8B8CAEED-A89D-53B3-A311-51CF45B334B1" xml:lang="en"><title>IRQ
+and FIQ Dispatchers</title><shortdesc>The ASSP must supply two dispatcher functions, one for IRQ interrupts,
+and one for FIQ interrupts.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> The following example code is a simple dispatcher for IRQ interrupts.
+It assumes a simplistic interrupt controller that provides 32 interrupt sources,
+and has a 32-bit pending-interrupt register where a 'one' bit indicates a
+pending interrupt and all ones are cleared when the register is read. </p>
+<codeblock id="GUID-1603305D-1509-5E80-89C1-B3998B557216" xml:space="preserve">void IrqDispatch()
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+    // for the purposes of this example we assume that reading
+    // this register also clears the pending flags
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        // while there is at least one pending IRQ
+        if( pendingIrqs &amp; 1 )
+            {
+            // the next interrupt is pending - dispatch it
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock>
+<p>The code assumes that the interrupt source represented by the low order
+bit in the pending-interrupt register is represented by interrupt ID number
+0 etc. </p>
+<p>When implementing the dispatcher it is usual to write it in C++ initially,
+but once you have it working you would probably want to rewrite it in assembler
+to gain maximum efficiency for what is a time-critical section of code. </p>
+<section id="GUID-3F0D4E4E-8D9C-51FD-A701-65C29D54AB94"><title>Dealing with
+chained interrupts</title> <p>There are two considerations when dealing with <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9026A4AC-57AF-545D-887C-AF43E0B37EDC">chained
+interrupts</xref>: </p> <ol id="GUID-DB84BE88-14E8-5124-9D43-4FC523311B65">
+<li id="GUID-DA20FB18-6949-5CDC-B44B-65A43283558A"><p>how to identify interrupts
+on the lower priority chained controllers </p> </li>
+<li id="GUID-17C8A3C8-CCC5-574F-B7E2-C72CC2685569"><p>how to handle the dispatch
+of a chained interrupt. </p> </li>
+</ol> <p>The first point is a question of allocating locations in your <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-77E83634-BBF6-5190-9434-9FB700547CD0">ISR
+table</xref> for the secondary controllers so that the <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-8E58F4C9-0290-55E0-A4FD-B6C2361BE205">interrupt ID</xref> identifies which hardware controller the interrupt is
+on. For example, if each interrupt controller handles 32 interrupt sources,
+you could make the first 32 IDs refer to the highest-level controller, the
+next 32 refer to one of the second-level controllers etc. </p> <p>There is
+no need to change the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> functions,
+although you may need to consider extending the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> functions
+to enable and disable the chain interrupt in a higher-level interrupt controller,
+if necessary. </p> <p>There are at least two ways of dispatching a chained
+interrupt: </p> <p><b>Dispatching a chained interrupt (1)</b> </p> <p>One
+way of dispatching a chained interrupt is simply to make it a special case
+in the main interrupt dispatcher. For example: </p> <codeblock id="GUID-189585CD-03BF-5E1F-ACD0-4AE2578D061B" xml:space="preserve">void IrqDispatch()
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            if( index == EMainIntChainIrq )
+                {
+                // second-level controller is signalling
+                SecondLevelIrqDispatch();
+                }
+            else
+                {
+                // call ISR
+                (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+                }
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock> <p>This approach works for a simple case, for example, where
+there is only a main and secondary interrupt controller. It is does not scale
+well because the special cases in the dispatcher become an overhead on the
+dispatch of normal, unchained interrupts as the number and depth of the chaining
+increases. </p> <p><b>Dispatching a chained interrupt (2)</b> </p> <p>A better
+way of handling chained interrupts is to bind an ISR to the interrupt source
+in the main interrupt controller and use it to dispatch the chained interrupt.
+This is far more scalable because you can bind any number of ISRs without
+having to add special cases to any of the interrupt dispatchers. </p> <p>The
+dispatcher code could then be re-implemented as: </p> <codeblock id="GUID-3B8BE593-C391-5D1F-BE94-5386306F773B" xml:space="preserve">void IrqDispatch()
+    // MAIN IRQ DISPATCHER, FIRST-LEVEL INTERRUPT
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock> <codeblock id="GUID-D38C0DE2-3171-59AB-AEE2-7CC5E26C4E17" xml:space="preserve">void SecondLevelIrqDispatch( TAny* /* aParam */ )
+    {
+    TUint32 pendingIrqs = TheAssp::SecondLevelIrqPendingRegister();
+ 
+    TInt index = EStartOfSecondLevelIntId;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock> <codeblock id="GUID-87385945-E0DB-5396-A8EB-8B8F2B2EA80F" xml:space="preserve">void InitialiseSecondLevelDispatch()
+    // Bind and enable the second-level dispatcher
+    {
+    Interrupt::Bind(EMainIntChainIrq,SecondLevelIrqDispatch,NULL);
+    Interrupt::Enable( EMainIntChainIrq );
+    }
+</codeblock> <fig id="GUID-4109B9AA-BAE7-5454-9556-DC6D40AC75B9">
+<title>Interrupt sources</title>
+<image href="GUID-970EC5A9-8ED3-53C5-93A3-2EC1A7B6F25F_d0e13980_href.png" placement="inline"/>
+</fig> <ul>
+<li id="GUID-7257146C-52C7-5C2F-B6F6-B32B558A0620"><p>The second level dispatcher, <codeph>SecondLevelIrqDispatch()</codeph>,
+is itself an ISR, and takes a <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> * parameter, but is
+not needed in this specific example. It reads the interrupt pending register
+of the second-level interrupt controller. Note, however, that the <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> *
+parameter may be useful when the second level dispatcher is in the variant
+as opposed to the ASSP. In that case you have separate interrupt IDs for variant
+level interrupts and separate ISR tables. The <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> * parameter
+can point to the appropriate ISR table. Alternatively the <xref href="GUID-6D079976-9119-31FA-8E21-C3B815F94648.dita"><apiname>TAny</apiname></xref> *
+can point to a data block containing IO addresses - especially useful if you
+have many I/O devices mapped as hardware chunks. See the code in <filepath>...\assabet\specific\variant.cpp</filepath>. </p> </li>
+<li id="GUID-7ACA87E5-136F-56C2-855C-2F0C7486C13F"><p>The index count starts
+at offset <codeph>EStartOfSecondLevelIntId</codeph> into the ISR table, where
+the second-level interrupt ISRs are located. In this example, this symbol
+would equate to 32. </p> </li>
+<li id="GUID-0CDF7519-D979-5F49-ABBB-C3DC55426065"><p> <codeph>EMainIntChainIrq</codeph> is
+the interrupt ID of the chained interrupt source to the main interrupt controller. </p> </li>
+</ul> </section>
+<section id="GUID-BE4C910E-5FC7-4F83-AFF9-1070464FDA59"><title>Dealing with multiple interrupt sources</title> <p>The case
+where multiple peripherals are connected to the same interrupt source can
+be handled through the technique of pseudo interrupt sources. This involves
+assigning pseudo-interrupt IDs in the ISR table to correspond to each of the
+peripherals that is attached to the interrupt line, i.e. ISRs are bound to
+these pseudo-interrupt sources. </p> <p>Dealing with pseudo interrupt sources
+is, in essence, a special case of <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9026A4AC-57AF-545D-887C-AF43E0B37EDC">Chained
+interrupts</xref>. </p> <p>The dispatcher can do one of two things: </p> <ul>
+<li id="GUID-152A4626-FE77-5EED-9648-6ED1B08C04E8"><p>examine the peripheral
+hardware to determine which of the interrupts are pending, and then call the
+appropriate ISR </p> </li>
+<li id="GUID-320CC5CC-A60D-5681-92AD-922DE1F97D95"><p>call all the ISRs and
+leave them to determine whether their peripheral is actually signalling an
+interrupt. </p> </li>
+</ul> <p>As usual, it is entirely up to you to choose the ID numbers for these
+pseudo-interrupts. </p> <p>There should be no need to alter the implementations
+of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> or <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> but
+you will need some special handling in <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> to
+enable the true interrupt source, and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> to
+disable this interrupt source. </p> <p>Dispatching the interrupt can be done
+in either of the two ways described in dealing with <xref href="GUID-76A30EC4-4B99-5471-9E80-F853C91485BC.dita#GUID-76A30EC4-4B99-5471-9E80-F853C91485BC/GUID-9026A4AC-57AF-545D-887C-AF43E0B37EDC">chained interrupts</xref>. Making use of a special case in the main interrupt
+dispatcher is acceptable for simple cases, but for more complicated cases
+with large numbers of pseudo-interrupts or a combination of chained and pseudo-interrupts,
+it is better to use an ISR dispatcher bound to the true interrupt source. </p> </section>
+</conbody></concept>

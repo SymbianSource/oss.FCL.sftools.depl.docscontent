@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-98210124-0B65-4679-BB3A-E94B9999365C" xml:lang="en"><title>IIC Client Interface Guide</title><shortdesc>This document explains how to use the IIC client interface
+API.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-1C12EB58-E364-4536-A6FB-FFAC4B4AF81E"><title>Introduction</title><p>This guide describes how to use the IIC client interface API.</p></section>
+<section id="GUID-5C79175E-3193-48B8-8000-7AA20BECD440"><title>Channels</title><p>In this document, a channel is a multi-wire bus with a two or
+more devices connected to it. At least one of the devices can act
+as the master.</p></section>
+<section id="GUID-9CD79528-826C-4433-87C2-4158B4112660"><title>Modes
+of operation</title><p>There are three possible modes that a device
+can be in as regards to the IIC client interface API (regardless of
+the underlying two-wire bus that is being used ):</p><table id="GUID-9CBF7001-A4E1-4A93-B900-444AB06B97A4">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top"><p><b>Mode</b></p></entry>
+<entry valign="top"><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>Master</p></entry>
+<entry><p>The device is responsible for initializing and terminating
+the data transfer.</p></entry>
+</row>
+<row>
+<entry><p>Slave</p></entry>
+<entry><p>The device carries out the transfer initialized by a another
+device acting as a master.</p></entry>
+</row>
+<row>
+<entry><p>MasterSlave</p></entry>
+<entry><p>The device can perform both master and slave roles.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+<section id="GUID-F04D5138-0B76-425B-AB7F-EAF9B49AE385"><title>Transactions</title><p>A single exchange of data in one direction is known as a transfer.</p><p>A list of transfers is known as a transaction.</p><p>Transactions
+can be performed in half-duplex, or , full-duplex (if the underlying
+bus supports it).</p></section>
+<section id="GUID-4B44C99C-5C16-45DD-BDCE-A275ADFF2EE6"><title>Transaction
+preamble</title><p>In certain instances, some pre-processing might
+be required by the devices before a transaction can occur.</p><p>This
+can be done by the transaction preamble functionality, which executes
+immediately before the transaction is performed. This takes the form
+of a function.</p><p><note> the following restrictions apply to this
+function:</note></p><ul>
+<li><p>No spin locks are to be used.</p></li>
+<li><p>There are no block or waiting on a fast mutex operations.</p></li>
+<li><p>There are no calls to code that either uses spin locks, waits
+or blocks a fast mutex.</p></li>
+</ul><p>This is for a device that is in master mode.</p></section>
+<section id="GUID-254408BF-3797-4E82-B05D-EA8B99CB1EC8"><title>Extended
+transactions</title><p>This is where a number of separate transactions
+are linked together. It is used, for example, in situations where
+it is not known in advance how big  the transaction will be. </p><p>This is for a device that is in master mode.</p></section>
+<section id="GUID-9F62C005-AD6E-4AB3-8481-1834E5C8FB5F"><title>Controller
+and controller-less operation</title><p>Added to the above functionality,
+the IIC platform service API has two modes of operation:</p><ul>
+<li><p>With-controller and</p></li>
+<li><p>Controller-less</p></li>
+</ul><p>Controller operation is used in a situation where multiple
+device drivers can communicate with multiple channels. In controller-less
+operation, the link between a device driver and a channel is fixed.</p><p>In controller-less operation, the mode of the channel is set at
+build time, buy using the following macros in the relevant mmp files:</p><table id="GUID-01CC4575-6FCD-446B-AB39-0A97D7E698D2">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry align="left" valign="top"><p><b>Macro</b></p></entry>
+<entry align="left" valign="top"><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p>MASTER_MODE</p></entry>
+<entry><p>Specifies that the device is to act as a master.</p></entry>
+</row>
+<row>
+<entry><p>SLAVE_MODE</p></entry>
+<entry><p>Specifies that the device is to act as a slave.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><fig id="GUID-B72C9F84-4D55-4973-9D97-BD764F4CBBEA">
+<title>IIC with-controller operation</title>
+<image href="GUID-F67AFC0F-5245-48DE-8901-79461FB6EADE_d0e94068_href.png" placement="inline"/>
+</fig><fig id="GUID-E0227554-01E6-47CE-AA42-B45832D6F36C">
+<title>IIC controller-less operation</title>
+<image href="GUID-3CB74FE6-272E-4176-BC51-E36103CADB09_d0e94075_href.png" placement="inline"/>
+</fig></section>
+<section id="GUID-B7D17B8B-78AA-46AE-870B-C848CA2F8B08"><title>Interface
+classes</title><p>The class that is used for the client interface
+depends on whether the IIC controller is to be used or not.</p><p>If the IIC Controller is to be used, then the client interface API
+class is:</p><table id="GUID-DD881644-9306-4900-A66C-5737D487DABE">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top"><p><b>Name</b></p></entry>
+<entry valign="top"><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p><xref href="GUID-69949E47-8FDF-3651-BEEF-43726EBEB5FF.dita"><apiname>IicBus</apiname></xref></p></entry>
+<entry><p>Client interface API for the IIC component.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>If the IIC controller is not to be used, then the client
+interface API classes are:</p><table id="GUID-2A6EAA19-F725-447C-8041-F60B5EFA32C5">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<thead>
+<row>
+<entry valign="top"><p><b>Name</b></p></entry>
+<entry valign="top"><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p><xref href="GUID-FA3881ED-B736-34EB-8F1F-026BE1602B1B.dita"><apiname>DIicBusChannelMaster</apiname></xref></p></entry>
+<entry><p>Client interface API for the master channel operation.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-22FF70C1-A805-3EBB-B142-15FD16D00837.dita"><apiname>DIicBusChannelSlave</apiname></xref></p></entry>
+<entry><p>Client interface API for the slave channel operation.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-26DBC836-03F1-31C4-BBFF-1F406E2BAEDB.dita"><apiname>DIicBusChannelMasterSlave</apiname></xref></p></entry>
+<entry><p>Client interface API for the master slave channel operation.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+</conbody></concept>

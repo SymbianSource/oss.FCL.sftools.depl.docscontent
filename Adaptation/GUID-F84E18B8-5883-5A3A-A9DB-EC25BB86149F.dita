@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F84E18B8-5883-5A3A-A9DB-EC25BB86149F" xml:lang="en"><title>Timers</title><shortdesc>The kernel implements timing functions using a 1 millisecond
+tick timer.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p> The phone hardware must therefore provide a high-speed timer that
+can provide regular 1 ms interrupts. The ASSP/Variant part of the
+base port must use this timer hardware to call the kernel every millisecond. </p>
+<p>The base port provides the timer service in an interrupt-service
+routine called a tick handler. The functions used for this are as
+follows: </p>
+<ul>
+<li id="GUID-6CFD0FFF-9D8D-5FBC-867C-88933476D896"><p>The tick handler
+must be started by the Variant's implementation of the <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita#GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D/GUID-FE55E398-7F08-384F-9E74-2CC2E45002B6"><apiname>Asic::Init3()</apiname></xref> function. </p> </li>
+<li id="GUID-9F148C98-2FA8-529D-A0E8-DB5A4705E063"><p>The tick handler
+calls the kernel's <xref href="GUID-C4EB9F55-9A40-3B4D-B90A-FD39A5E68AE1.dita#GUID-C4EB9F55-9A40-3B4D-B90A-FD39A5E68AE1/GUID-BC7CAC2D-97F2-3B82-AF80-7F8535315052"><apiname>NTImer::TickQ()</apiname></xref> function. </p> </li>
+<li id="GUID-DC16C15E-221B-5945-9F5A-349FAD35921D"><p>The Variant
+reports the exact number of microseconds between ticks in its implementation
+of <xref href="GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D.dita#GUID-A83A7C3C-7DC0-3B9C-842F-70FCC751365D/GUID-6EAD3751-9F37-3C1B-9910-678A286D80E9"><apiname>Asic::MsTickPeriod()</apiname></xref>. </p> </li>
+</ul>
+<p>The ASSP/Variant must decide how to implement a repeating tick
+interrupt for the hardware available. Typically this involves using
+either a free running timer with a match register, which is reset
+on each match, or a self-reloading countdown timer, to generate a
+periodic interrupt. </p>
+<p>A base port can implement other timers that are required by peripherals
+that have sub-millisecond timing requirements. This is optional, and
+depends on the available hardware. </p>
+</conbody><related-links>
+<link href="GUID-E0DCBDCF-C056-53E5-A375-778327F848E4.dita#GUID-E0DCBDCF-C056-53E5-A375-778327F848E4/GUID-F5275882-BBD0-561F-B617-683AA2004BB9">
+<linktext>Asic::Init3()                 implementation</linktext></link>
+<link href="http://developer.symbian.org/wiki/index.php/Symbian_OS_Internals/5._Kernel_Services" scope="external"><linktext>Symbian OS Internals - Chapter 5.5 Timers</linktext>
+</link>
+</related-links></concept>

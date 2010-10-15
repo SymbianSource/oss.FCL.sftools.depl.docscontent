@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F9558573-7C79-57C5-809A-9257BF84758A" xml:lang="en"><title>Architecture</title><shortdesc>This topic describes the architecture of keyboard drivers
+and related components.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This topic describes the architecture of keyboard drivers and related
+components on Symbian platform. </p>
+<p>There are five components involved in this process: </p>
+<ul>
+<li id="GUID-0C41EB6F-3AD4-5B89-863E-EA7E108C73C9"><p> <i> The keyboard
+hardware</i>. </p> </li>
+<li id="GUID-F965ADEC-3367-509F-A1B2-C5A5613410F6"><p> <i> A keyboard
+device driver</i>. </p> <p>The keyboard driver is implemented as a
+standard kernel extension, and is loaded by the kernel at boot time.
+A keyboard driver must be implemented in the base port, and has no
+platform independent parts. </p> </li>
+<li id="GUID-CBF257DE-AB08-5B96-AC15-E9981EA3484D"><p> <i>A keyboard
+mapping DLL</i>. </p> <p>A keyboard mapping DLL provides a set of
+lookup tables that map codes for the hardware keys to standard logical
+keycodes that user-side applications can process. </p> <p>The DLL
+is platform specific. It must be implemented in the base port, and
+has no platform independent parts. It is usually called <filepath>ekdata.dll</filepath>. </p> </li>
+<li id="GUID-52F97FEE-9B5B-5046-BF0C-EF1E4E2EB2BC"><p> <i>The Window
+Server</i>. </p> <p>The Window Server is a system server that manages
+access to the screen and input devices for user-side programs. </p> </li>
+<li id="GUID-216989CD-45CE-5F59-831B-03B49BE4E73D"><p> <i>The keyboard
+translator</i>. </p> <p>The keyboard translator DLL translates scancodes
+into keycodes using the data in the platform specific keyboard mapping
+DLL. </p> <p>It is part of Symbian platform generic code and is built
+as part of the Text Window Server component. </p> </li>
+</ul>
+<p>The following diagram shows how these components fit together and
+gives an overview of the data flow. </p>
+<fig id="GUID-D05ABF3B-3A1D-5F02-B268-FC1A992EE4DB">
+<title>Overview of data flow</title>
+<image href="GUID-9CC514E9-85C2-5F4B-9F3B-F9FA1F4CB20A_d0e14358_href.png" placement="inline"/>
+</fig>
+<p>Depending on the keyboard hardware, key presses in the form of
+key-down and key-up events are registered by the keyboard driver,
+either as a result of hardware interrupts, or as a result of polling
+the hardware. The driver assigns a standard scancode value to the
+key. This is one of the values defined by the <xref href="GUID-4D92CE24-E651-3584-BDE0-F26046B4175B.dita"><apiname>TStdScanCode</apiname></xref> enum. The value is a representation of the hardware key. </p>
+<p>The driver creates <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita"><apiname>TRawEvent</apiname></xref> objects, of type <xref href="GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD.dita#GUID-668CEA36-3933-3BBE-A980-CAB62617B4FD/GUID-ED6DCE25-227F-3353-8BE8-1C8F735198A8"><apiname>TRawEvent::EKeyUp</apiname></xref> and <xref href="GUID-9398BE98-2C09-333C-97D3-EFAD86400F8F.dita"><apiname>TRawEvent:EKeyDown</apiname></xref>, and includes the standard scancode value and modifiers as part
+of the object. These objects are added to the kernel's event queue,
+using the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-81C82FED-0E26-351A-901E-806843C808FE"><apiname>Kern::AddEvent()</apiname></xref> function. </p>
+<p>The Window Server captures these events and passes the scancode
+value to <filepath>ektran.dll</filepath>, which has the responsibility
+for translating this value into a keycode value. A keycode value is
+a logical representation of the key; it is this logical representation
+that has meaning for the generic Symbian platform. The logical keycode
+is one of the values defined by the <xref href="GUID-B67B6ED5-6C8F-3B36-934C-B47A109A515F.dita"><apiname>TKeyCode</apiname></xref> enum.
+Also, <filepath>ektran.dll</filepath> tells the Window Server whether
+a capture key has been pressed - this is explained in <xref href="GUID-110DB7EF-5E85-5BC4-9BBB-9A37B2D0C3A6.dita">Dynamic Behaviour</xref>. </p>
+<p> <filepath>ekdata.dll</filepath> encapsulates a set of tables that
+are used to map hardware scancodes to logical keycode values. This
+is platform specific code, and is used by the generic <filepath>ektran.dll</filepath> when doing the translation. </p>
+</conbody></concept>

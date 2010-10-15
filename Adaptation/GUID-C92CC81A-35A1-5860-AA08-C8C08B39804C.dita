@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C92CC81A-35A1-5860-AA08-C8C08B39804C" xml:lang="en"><title>Boot
+Table MMU Permission and Cache Attribute Definitions</title><shortdesc>Lists MMU attributes that the bootstrap implementation must provide.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The definitions are summarised in the following table. Each entry type
+is identified by its <codeph>TBootTableEntry</codeph> enumerator value that
+defines its position within the table. This group of entries always follows
+the function entries. </p>
+<table id="GUID-6145893A-57CA-5E96-A61B-18AF2DF44EC3">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Enumerator symbol</b>  </p> </entry>
+<entry><p> <b>Summary description</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_Rom</codeph>  </p> </entry>
+<entry><p>Defines permissions for XIP ROM areas, including RAM used as ROM. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_Kernel</codeph>  </p> </entry>
+<entry><p>Defines permissions for kernel data, initial kernel stack and initial
+kernel heap. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_SuperCPU</codeph>  </p> </entry>
+<entry><p>Defines permissions for super page and CPU page. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_PageTable</codeph>  </p> </entry>
+<entry><p>Defines permissions for page directory and page tables. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_Vector</codeph>  </p> </entry>
+<entry><p>Defines permissions for ARM exception vector mapping. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>BTP_Hw</codeph>  </p> </entry>
+<entry><p>Defines permissions for I/O mappings. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_MiniCache</codeph>  </p> </entry>
+<entry><p>Defines permissions for mini cache flush area, if required. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>BTP_MainCache</codeph>  </p> </entry>
+<entry><p>Defines permissions for main cache flush area, if required. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_PtInfo</codeph>  </p> </entry>
+<entry><p>Defines permissions for page table info and, for the multiple memory
+model, ASID info. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_User</codeph>  </p> </entry>
+<entry><p>Defines permissions for user memory area in direct memory model. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_Temp</codeph>  </p> </entry>
+<entry><p>Defines permissions for temporary identity mapping of code while
+enabling MMU. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> BTP_Uncached</codeph>  </p> </entry>
+<entry><p>Defines permissions for dummy uncached area mapping on moving or
+multiple model and for identity RAM mapping on direct memory model. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+<p>Each entry is defined using the <xref href="GUID-25941CD2-D124-55DD-8716-ACC93E3F1D6C.dita#GUID-25941CD2-D124-55DD-8716-ACC93E3F1D6C/GUID-B5EC22B5-B995-5D54-8F33-1B6FCE11BB3F">BTP_ENTRY</xref> macro. See this macro for a detailed description of the syntax and meanings. </p>
+<p>Take the template port, in <filepath>os/kernelhwsrv/bsptemplate/asspandvariant/template_variant/bootstrap/template.s</filepath> as
+an example. The first two entries, at position <codeph>BTP_Rom</codeph> and
+position <codeph>BTP_Kernel</codeph> in the boot table, follow the last function
+entry at position <xref href="GUID-B3F6FC45-3BF0-5F92-8325-44C705BA47AE.dita#GUID-B3F6FC45-3BF0-5F92-8325-44C705BA47AE/GUID-37E8A845-6326-52F1-9607-5488B1E009A8">BTF_EnableMMU</xref> within
+the table. This gives the following code: </p>
+<codeblock id="GUID-CB1D0496-61E0-5C48-BDA4-D3D64FEFE967" xml:space="preserve">BootTable
+        DCD    DoWriteC                    ; output a debug character
+        ...
+    
+IF    CFG_MMUPresent
+
+        BTP_ENTRY    CLIENT_DOMAIN, PERM_RORO, CACHE_WTRA,    0    ; ROM
+        BTP_ENTRY    CLIENT_DOMAIN, PERM_RWNO, CACHE_WBRA,    0    ; kernel data/stack/heap
+        ...
+</codeblock>
+</conbody></concept>

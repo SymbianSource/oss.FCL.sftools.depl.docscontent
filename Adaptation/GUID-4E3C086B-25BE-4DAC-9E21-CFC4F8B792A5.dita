@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4E3C086B-25BE-4DAC-9E21-CFC4F8B792A5" xml:lang="en"><title>DMA Technology Guide</title><shortdesc>Describes the Direct Memory Access framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-E987EF55-27CE-4EC2-B250-2C3D7C36CAF9"><title>Purpose</title><p>The DMA framework provides a generic simple interface for the
+clients to access DMA resources in a device. The primary clients are
+device drivers that will use the DMA framework to set up DMA transfers.
+A device can have more than one DMA controller (DMAC). </p></section>
+<section id="GUID-7607CC80-0FA0-4FC2-897A-C4AB6B6C74FC"><title>Architectural
+concepts</title><p>The key concepts related to DMA framework are:</p><fig id="GUID-ECCF1F57-DBD0-4653-A631-F8972E24DECF">
+<title>DMA Framework</title>
+<image href="GUID-10FE825A-4383-4A10-A507-58577BB230FB_d0e89974_href.png" placement="inline"/>
+</fig><dl>
+<dlentry>
+<dt>DMA Client</dt>
+<dd><p>A device driver or a kernel object that needs to use the resources
+of the DMA framework. On the Symbian platform, the Physical Device
+Drivers are the primary clients of the DMA framework. </p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Platform Service API</dt>
+<dd><p>The generic interface to provide DMA services to the clients.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Import Library</dt>
+<dd><p>The DMA clients link against the <filepath>dma.lib</filepath> file.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Platform-Independent Layer (PIL)</dt>
+<dd><p>The platform-independent layer contains the generic framework
+independent from the hardware.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Platform-Specific Layer (PSL)</dt>
+<dd><p>The platform-specific layer is specific to the baseport and
+the hardware used.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Controller (DMAC)</dt>
+<dd><p>The DMAC is the DMA hardware implementation. The number of
+DMAC in the implementation of the DMA Framework depends on the hardware.
+The DMAC is a peripheral to the CPU and is programmed to control data
+transfers without using the CPU. </p></dd>
+</dlentry>
+</dl></section>
+<section id="GUID-CAC0FE8F-A338-4B0E-92ED-7A1D1FD52C24"><title>DMA
+functionality</title><p>The key concepts related to functionality
+provided by the DMA framework are:</p><dl>
+<dlentry>
+<dt>Scatter/Gather Mode</dt>
+<dd><p>Some DMA controllers transfer data using scatter/gather mode.
+In this mode, the operating system creates a DMA descriptor with source
+and destination memory addresses and the configuration. The source
+and destination data can be a list of scattered memory blocks. The
+DMA controller uses this configuration to perform the data transfer.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Descriptors</dt>
+<dd><p>The data structure used by the DMA framework to store the configuration
+of the data transfer. These will store details such as source address,
+destination address, number of bytes and pointer to the next descriptor,
+when the DMA is used to transfer disjoint blocks of data. This structure
+is defined in the platform specific layer. The descriptors are always
+used to store the configuration even if the DMA controller does not
+support scatter/gather mode. When the scatter/gather mode is not supported
+by the DMAC, the descriptors used to store the configuration are called
+as pseudo-descriptors.</p></dd>
+</dlentry>
+<dlentry>
+<dt>Descriptor Headers</dt>
+<dd><p>The descriptor headers are used to store additional information
+about the descriptors. The descriptors are accessed using the descriptor
+headers which contain the pointer to the descriptor.</p></dd>
+</dlentry>
+<dlentry>
+<dt>Transfer Request</dt>
+<dd><p>The device drivers configure and initialize a data transfer
+using the class <xref href="GUID-780F4D53-5546-3B69-B328-0226C70EBDE2.dita"><apiname>DDmaRequest</apiname></xref>. The data can be transferred
+between:<ul>
+<li><p>memory to memory</p></li>
+<li><p>memory to peripheral</p></li>
+<li><p>peripheral to memory</p></li>
+</ul>The transfer request stores the callback function of the clients.
+The callback function is used to notify the success or failure of
+a data transfer.</p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Channel</dt>
+<dd><p>The object which represents a single hardware, logical or a
+virtual channel. In the DMA platform service API, each DMA channel
+is referred to by a 32-bit value called a cookie. Each DMA transfer
+is in the form of a description header and its associated DMA descriptor.
+The queue of transfer requests (both being transferred and pending)
+consists of a linked list of the DMA headers. </p></dd>
+</dlentry>
+<dlentry>
+<dt>DMA Channel Allocator</dt>
+<dd><p>The channel manager controls the opening and closing of DMA
+channels. The channel manager functions are defined in the platform
+independent layer and implemented in the platform specific layer. </p></dd>
+</dlentry>
+</dl></section>
+<section id="GUID-F64155FC-5245-447F-88E7-C642EDEB2CEE"><title>Typical
+Uses</title><p>The typical use cases of a DMA framework are:</p><ul>
+<li><p>programmable data transfer between hardware peripherals and
+memory buffers</p></li>
+<li><p>programmable data transfer of block of data between different
+regions of memory</p></li>
+</ul></section>
+</conbody><related-links>
+<link href="http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0424b/index.html.dita">
+<linktext>ARM DMA Controller Reference Manual</linktext></link>
+</related-links></concept>

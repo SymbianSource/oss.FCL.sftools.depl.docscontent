@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3046453A-AB3A-5491-87A0-00F3514D4768" xml:lang="en"><title>Vector
+Floating Point Implementation Tutorial</title><shortdesc>This topic describes how to configure a base port to use the floating
+point coprocessor. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>ARM provide a hardware floating point coprocessor that provides floating
+point computation that is fully compliant with IEEE Std 754-1985. </p>
+<p>To support a coprocessor, you need to: </p>
+<ul>
+<li id="GUID-8C123E7F-C1DA-576A-8BFE-4B663E8A4EDE"><p>Configure the Kernel
+to use VFP through a macro setting in the Variant. </p> </li>
+<li id="GUID-74071911-77B1-5DD0-A035-7F5D51BEE573"><p>Configure the ROM to
+include a Kernel extension to support IEEE-without-exceptions mode. </p> </li>
+<li id="GUID-7740A4E2-3289-5DB3-B18B-0CAA4716611F"><p>Configure the ROM to
+include VFP support libraries. </p> </li>
+<li id="GUID-F58E5909-2C0E-5D84-A737-98BC3B5CC927"><p>Port the User Library
+to implement its <xref href="GUID-1DB7AE7A-A505-3530-AC2B-EBAEFCD3F36A.dita"><apiname>Math</apiname></xref> class functions to use VFP-enabled
+functions. This is described in the <xref href="GUID-7A3CEE5F-16FF-5204-97CC-31C932ACA732.dita">Math
+Class Port Tutorial</xref>. </p> </li>
+</ul>
+<section id="GUID-BDE8DDF7-ED9E-4459-9CF8-066E25E949D5"><title>Variant configuration</title> <p>Define the macro <codeph>__CPU_HAS_VFP</codeph> in
+the base port’s <filepath>variant.mmh</filepath>. This macro forces the inclusion
+of VFP support when the kernel is re-compiled. As an example, see the Integrator
+CM1136 base port, and specifically: <filepath>...\integrator\core\cm1136\variant.mmh</filepath>.
+When the kernel is re-compiled, VFP support is included. </p> </section>
+<section id="GUID-24F6699B-11F7-45B1-97E9-5508D7EFD3AF"><title>HAL configuration</title> <p>Add the HAL attribute for VFP
+to your base port's <filepath>config.hcf</filepath> file, by adding the following
+line to this file: </p> <codeblock id="GUID-01DE6AF2-08EC-5F21-BEC4-1A810224E813" xml:space="preserve">EHardwareFloatingPoint = GetHardwareFloatingPoint</codeblock> <p>As an example, see the Integrator CM1136 base port, and specifically: <filepath>...\integrator\core\cm920\hal\config.hcf</filepath>  </p> <p>See
+also <xref href="GUID-52583CC7-483E-54B5-8094-F0F61BD46B7F.dita">Creating the Config
+&amp; Values files</xref> in the HAL <xref href="GUID-05DAF5EF-6F2E-562D-9DB1-0985AD4A1E48.dita">Port
+Implementation Tutorial</xref> for more information. </p> </section>
+<section id="GUID-81817100-C0D5-5EC3-B941-C3CA43079C72"><title>IEEE-without-exceptions
+mode</title> <p>Symbian platform supports two execution modes : </p> <table id="GUID-4CA333F4-DA86-59E6-8E70-AF5CD6E9B26B">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>RunFast</codeph>  </p> </entry>
+<entry><p>In this mode, denormalised numbers, i.e. those outside the range
+of normal floating point values, are treated as zero, and a default <codeph>NaN</codeph> (<i>Not
+a Number</i>) value is used for all <codeph>NaN</codeph> situations regardless
+of the inputs. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>IEEE-without-exceptions </codeph>  </p> </entry>
+<entry><p>In this mode, denormalised numbers are treated as their actual values,
+and the IEEE754-mandated values for <codeph>NaN</codeph> s are used. </p> <p>The
+floating point model mandated by the Java specification is identical to this
+mode, and means that this mode is sufficient to implement a VFP-accelerated
+JVM. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>NOTE: There may be some applications that depend on the correct
+handling of calculations involving, or resulting in, very small numbers; for
+such applications, <codeph>RunFast</codeph> mode may not be appropriate. </p> <p id="GUID-7D2BECB4-3180-5802-809D-6C9041890AF4"><b>RunFast mode</b> </p> <p>For <codeph>RunFast</codeph> execution
+mode, nothing else needs to be implemented, and no extra components need to
+be added to the ROM. </p> <p id="GUID-F8F27E94-79DE-53DF-88E4-071EBFEBB7AB"><b>IEEE-without-exceptions
+mode</b> </p> <p>For <codeph>IEEE-without-exceptions</codeph> mode, you need
+to include the kernel extension <filepath>evfp.dll</filepath> in the ROM image
+by adding the following line into the <filepath>.iby</filepath> or <filepath>.oby</filepath> file
+for your port: </p> <codeblock id="GUID-BA13AEF5-0980-5227-8983-257BEB78B4CB" xml:space="preserve">extension[VARID]=KERNEL_DIR\DEBUG_DIR\evfp.dll \sys\bin\evfp.dll</codeblock> <p>As an example, see the Integrator CM1136 base port, and specifically: <filepath>...\integrator\core\cm1136\rom\base_integrator1136.iby</filepath>  </p> <p>Note: </p> <ul>
+<li id="GUID-207C3F80-5B2A-5211-81F9-DD5DEBFC311F"><p>This is the default
+execution mode. </p> </li>
+<li id="GUID-8859B4F6-22B5-5912-B55A-F991118F10B9"><p>It is possible to switch
+between this execution mode and the <codeph>RunFast</codeph> execution mode. </p> </li>
+<li id="GUID-EC07181F-4191-56BB-B988-1C2EE36923DC"><p> <filepath>evfp.dll</filepath> is
+built using ARM's VFP support code and can only be built using the RVCT tool
+chain. </p> </li>
+</ul> </section>
+<section id="GUID-554CAA85-5448-55D1-9255-4EE00D4EAB90"><title>VFP-enabled
+floating port support libraries</title> <p>Symbian platform provides both
+the VFP version and the non-VFP version of the floating point support functions.
+You choose the VFP version when you build your ROM image by specifying the <codeph>VFPHELPERS</codeph> macro
+to <xref href="GUID-E4447BEF-33D2-5099-BCC1-C72FBB3B0463.dita">BUILDROM</xref>.
+This causes the ROM building tool chain to replace the following three DLLs: </p> <ul>
+<li id="GUID-57B3445D-F513-5F13-9C39-815D3E9C84BC"><p> <filepath>drtaeabi.dll</filepath>  </p> </li>
+<li id="GUID-F18160B6-00E6-5885-AAC1-4E903340B48C"><p> <filepath>dfpaeabi.dll</filepath>  </p> </li>
+<li id="GUID-E5EE051E-560F-585F-89FF-1B05CB3A0EAA"><p> <filepath>dfprvct2_2.dll</filepath>  </p> </li>
+</ul> <p>There are two ways to specify the <codeph>VFPHELPERS</codeph> macro: </p> <ol id="GUID-1B567E7A-8768-57AC-86AE-EEA6ED07E418">
+<li id="GUID-B61B4DF5-A9F7-52D4-BD44-49CF568F7327"><p>by adding the following
+line into the <filepath>header.iby</filepath> file for your port: </p> <codeblock id="GUID-9DD8C685-6CDC-524E-8BE8-B6709B8294BD" xml:space="preserve">#define VFPHELPERS</codeblock> <p>You
+use this technique to permanently include the VFP versions in your ROM image. </p> </li>
+<li id="GUID-DCC7728F-FE42-5776-8DAD-DED6F5436959"><p>by passing <codeph>VFPHELPERS</codeph> as
+a pre-processor argument using the <codeph>-D</codeph> option when invoking <xref href="GUID-E4447BEF-33D2-5099-BCC1-C72FBB3B0463.dita">BUILDROM</xref>, i.e. : </p> <p><userinput>BUILDROM
+-DVFPHELPERS ...</userinput> </p> <p>You use this technique if you only want
+to include the VFP versions for a specific ROM image, for example, when testing. </p> </li>
+</ol> <p>If you use the first technique, you can still provide non-VFP versions
+for a specific ROM image by passing <codeph>NOVFPHELPERS</codeph> as a pre-rpocessor
+argument using the <codeph>-D</codeph> option when invoking <xref href="GUID-E4447BEF-33D2-5099-BCC1-C72FBB3B0463.dita">BUILDROM</xref>,
+i.e. : </p> <codeblock id="GUID-90ACA126-BFED-53C1-9BE0-BBDDD202BBF0" xml:space="preserve">BUILDROM -DNOVFPHELPERS ...
+</codeblock> <p>In effect, you are overriding the definition in the <filepath>header.iby</filepath> file. </p> <p>For
+example, see the Integrator CM1136 base port, and specifically: <filepath>...\integrator\core\cm1136\rom\header.iby</filepath>  </p> </section>
+</conbody><related-links>
+<link href="GUID-7A3CEE5F-16FF-5204-97CC-31C932ACA732.dita"><linktext>Math Class
+Port Tutorial</linktext></link>
+<link href="GUID-2D977A02-5928-5441-8AE7-42A722F2A4B8.dita#GUID-2D977A02-5928-5441-8AE7-42A722F2A4B8/GUID-4DA41221-40B9-5BC7-B2C6-7C6EB4522508">
+<linktext>User-Side Hardware Abstraction</linktext></link>
+<link href="GUID-CBC1E46A-E254-5A01-86AE-F5EB6135E3E3.dita"><linktext>Vector Floating
+Point (VFP)</linktext></link>
+</related-links></concept>

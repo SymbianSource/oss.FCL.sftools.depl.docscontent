@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51" xml:lang="en"><title>Environment
+Slots</title><shortdesc>Up to 16 separate pieces of information can be passed to a process
+on creation using Environment Slots. These include handles and binary data.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Handles and binary data can be passed to a process at process creation
+time using environment slots. This topic describes this concept, and explains
+how to use the process APIs for environment slots. </p>
+<ul>
+<li id="GUID-1D2A9BFD-FAE6-55F0-9A54-58BA4165B1F0"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-FCF8DC31-9D90-53C8-BE30-76D6CD0243BC">Overview</xref>  </p> </li>
+<li id="GUID-E2F77CE5-E856-582C-BF4F-0EF13E6A40D1"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-D84521B5-4C3B-538C-946A-88EAA3713A8D">The APIs</xref>  </p> </li>
+<li id="GUID-8C3631E9-D240-5C72-A6E0-EF255A3C8D17"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-7F6B118C-0911-5979-8420-475985DB884B">Passing a file handle and a subsession</xref>  </p> </li>
+<li id="GUID-3DDB166F-E949-5B0A-B4B9-FC6EE580ECCE"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-19964DED-E6AD-59B4-BEDB-2A40864FBD29">Passing a general handle, derived from RHandleBase</xref>  </p> </li>
+<li id="GUID-D6A9288F-5B22-56B8-8F8E-738F7B38BD1E"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-AAB81C64-A515-50E5-BF80-1D625AF1251C">Passing descriptor data</xref>  </p> </li>
+<li id="GUID-502C284C-3B56-5B6E-AEB5-F1E9DB513CA6"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-D2F661C6-21EB-50A6-A475-2A4A775A9F4D">Passing an integer</xref>  </p> </li>
+<li id="GUID-E5B29175-9647-5F88-961C-47CD20DF2238"><p> <xref href="GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51.dita#GUID-AD2BD987-E097-5E1F-A914-B91CFB706D51/GUID-02AD23DF-7D54-5178-AA5B-050333CD2609">Error handling issues</xref>  </p> </li>
+</ul>
+<section id="GUID-FCF8DC31-9D90-53C8-BE30-76D6CD0243BC"><title>Overview</title> <p>Handles
+and binary data, in the form of descriptors or integer values, can be passed
+to a process at process creation time, using what are called environment slots. </p> <p>Up
+to 16 separate pieces of information can be passed to a process on creation.
+For this purpose, a process has 16 environment slots that can contain the
+information passed to it by the launching process. </p> <p>Slot 0 is reserved
+and is never available for general purpose information passing. </p> <p>The
+parent (launching) process can only pass information to the child (created)
+process after the child process has been created. However, it should be done
+before the child process is resumed; it is an error to try and set environment
+data in a child process that has been resumed. </p> <p>A child process can
+only extract the information from its environment slots once. Extracting information
+from a slot causes that information to be deleted from the slot. </p> <p>It
+is a matter of convention between the parent and child process as to the meaning
+to be applied to a slot, and the type of data that it is to contain. </p> </section>
+<section id="GUID-D84521B5-4C3B-538C-946A-88EAA3713A8D"><title>The APIs</title> <p>To
+pass, a handle, a client server subsession, or binary data to a child process,
+the parent process calls <codeph>RProcess::SetParameter()</codeph>, where
+the <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita"><apiname>RProcess</apiname></xref> object represents the newly created child
+process. There are five overloaded variants of <codeph>SetParameter()</codeph> used
+for passing: </p> <table id="GUID-5BEA9FCB-68E8-56DD-BA60-71372984AA38">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>handle: </p> </entry>
+<entry><codeblock id="GUID-EA9128DD-3694-5A2B-AB86-78BA81B43F5A" xml:space="preserve">TInt RProcess::SetParameter(TInt aSlot, RHandleBase aHandle);</codeblock> </entry>
+</row>
+<row>
+<entry><p>client server subsession: </p> </entry>
+<entry><codeblock id="GUID-D7FFAA04-44E4-5C4C-8B3B-4628AB965B58" xml:space="preserve">TInt RProcess::SetParameter(TInt aSlot, const RSubSessionBase&amp; aSession);</codeblock> </entry>
+</row>
+<row>
+<entry><p>8-bit descriptor: </p> </entry>
+<entry><codeblock id="GUID-32499AC5-3C9F-5927-A797-24A0367E22A7" xml:space="preserve">TInt RProcess::SetParameter(TInt aSlot, const TDesC8&amp; aDes);</codeblock> </entry>
+</row>
+<row>
+<entry><p>16-bit descriptor: </p> </entry>
+<entry><codeblock id="GUID-1997FC14-79C7-5DEC-9647-9FA14CB8EE84" xml:space="preserve">TInt RProcess::SetParameter(TInt aSlot, const TDesC16&amp; aDes);</codeblock> </entry>
+</row>
+<row>
+<entry><p>integer: </p> </entry>
+<entry><codeblock id="GUID-0F865FC0-C2D7-55A5-B90A-17F88958F6D9" xml:space="preserve">TInt RProcess::SetParameter(TInt aSlot, TInt aData);</codeblock> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>To extract, a handle, or a client server subsession, a child process
+can use the <codeph>Open()</codeph> function called on the relevant <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> derived
+type: </p> <codeblock id="GUID-244AB92B-34FD-5B45-B0AA-1679D3DD9761" xml:space="preserve">TInt RSemaphore ::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+TInt RBusLogicalChannel::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+TInt RMsgQueueBase::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+TInt RMutex::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+TInt RChunk::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+TInt RSessionBase::Open(TInt aArgumentIndex, TOwnerType aType=EOwnerProcess);
+    </codeblock> <p>To extract descriptor data, or integer data, a child process
+can use the <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita"><apiname>User</apiname></xref> class functions: </p> <codeblock id="GUID-CC129A19-0FF6-58C6-B11C-564D816BF845" xml:space="preserve">static TInt User::ParameterLength(TInt aSlot);
+static TInt User::GetTIntParameter(TInt aSlot, TInt&amp; aData);
+static TInt User::GetDesParameter(TInt aSlot, TDes8&amp; aDes);
+static TInt User::GetDesParameter(TInt aSlot, TDes16&amp; aDes);
+    </codeblock> <fig id="GUID-D9CD78E1-6813-5F68-9883-F1F6DC04C92A">
+<title>Environment slots</title>
+<image href="GUID-ABE7BC1A-C51B-5ADD-8568-87A81423B648_d0e77808_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-7F6B118C-0911-5979-8420-475985DB884B"><title> Passing a
+file handle and a subsession</title> <p>File server session handles and file
+handles can both be passed to a child process. </p> <p>The child process adopts
+the file handle, and must not be closed by the parent. To use a file handle,
+the session handle must also be passed. </p> <p>For <i>security reasons</i>,
+when sharing a file handle, the parent process should create a separate file
+server session for the specific purpose of sharing the file handle. If the
+parent process has other files open with this file server session, the child
+process can gain access to those files by iterating through all the possible
+values for the file handle and attempting to <codeph>Adopt()</codeph> each
+one. For the same reason, the child process should only use this session for
+sharing the file; it should not access other files through this session. </p> <p>The
+following two code fragments show code in the parent process and corresponding
+code in the child process. </p> <codeblock id="GUID-202421E4-5ADA-50A8-AE75-32F1071C64B0" xml:space="preserve">//Code in the parent (launching) process
+
+    RProcess p;
+    p.Create(KProcName, KNullDesC);    //create “child” process
+    
+    RFile file;
+    RFs session;
+    session.Connect();                //connect to file server
+    session.ShareProtected();
+    file.Create(iSession, KFileName, EFileStreamText|EFileWrite|EFileShareAny);
+    file.Write(0, KTestData);
+    
+    p.SetParameter(5, session);        //session handle passed in slot 5
+    p.SetParameter(6, file);        //file handle passed in slot 6
+    Session.Close();
+    p.Resume();
+  </codeblock> <p> <codeph>KProcName</codeph> is the full path name of the
+executable associated with the child process, and <codeph>KFilename</codeph> is
+the file name. </p> <codeblock id="GUID-AE2354AA-D95A-5291-BFC4-1EDF470D65AE" xml:space="preserve">//Code in the child (launched) process
+
+    RFs session;
+    session.Open(5);            //obtain session handle from slot 5
+    
+    RFile file;
+    TInt handle;
+    ret = User::GetTIntParameter(8, handle);//get file handle from slot 8
+    file.Adopt(session, handle);            //adopt the handle
+    TBuf8&lt;100&gt; rbuf;                         //use the file
+    ret = file.Read(0, rbuf);
+    file.Close();
+    session.Close();
+  </codeblock> </section>
+<section id="GUID-19964DED-E6AD-59B4-BEDB-2A40864FBD29"><title> Passing a
+general handle, derived from RHandleBase</title> <p>General handles derived
+from <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> can be passed to a child process. </p> <p>The
+handle is duplicated when it is stored in the child process’s environment.
+The parent can close the handle immediately after calling <codeph>SetParameter()</codeph>,
+or continue to use the handle and close it later. </p> <p>The following two
+code fragments show code in the parent process and corresponding code in the
+child process. </p> <codeblock id="GUID-591C111A-05B8-5247-84C1-411650AA1FB0" xml:space="preserve">//Code in the parent (launching) process,
+//passing handles to a mutex and a semaphore.
+
+    RMutex mutex;
+    RSemaphore sem; 
+    
+    RProcess p;
+    p.Create(KProcName, KNullDesC);
+    mutex.CreateGlobal(KMutexName);    //create the mutex
+    sem.CreateGlobal(KSemName,0);    //create the semaphore
+    p.SetParameter(3, mutex);    //put mutex handle into child process env' slot 3
+    p.SetParameter(4, sem);        //put semaphore handle into child process env' slot 4
+    mutex.Close();
+    Sem.Close();
+    p.Resume();            //resume the child process
+    </codeblock> <codeblock id="GUID-78E31AB6-4900-5AE8-9755-8ACDD8265235" xml:space="preserve">//Code in the child (launched) process retrieving the handles.
+    
+    RMutex mutex;
+    mutex.Open(3, EOwnerThread);    //get mutex handle
+    RSemaphore sem;
+    sem.Open(4, EOwnerThread);        //get semaphore handle
+    
+    //use the semaphore and mutex
+    mutex.Close();
+    sem.Close();
+    </codeblock> </section>
+<section id="GUID-AAB81C64-A515-50E5-BF80-1D625AF1251C"><title> Passing descriptor
+data</title> <p>Both 8-bit and 16-bit descriptor data can be passed from a
+parent to a child process. </p> <p>Internally, an <xref href="GUID-5BEA9976-B969-3949-B855-E657FFF38EE2.dita"><apiname>HBuf</apiname></xref> descriptor
+is created containing the passed descriptor data, and a pointer to this descriptor
+is passed in the relevant slot. </p> <p>The child process retrieves the descriptor
+data by calling <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-54C7406E-C498-3BE7-BB2C-1C5BA902A4D7"><apiname>User::GetDesParameter()</apiname></xref>. It can get the
+length of the data by calling <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-ABD3F4AE-C226-3AF1-AD25-7A45B186385C"><apiname>User::ParameterLength()</apiname></xref>. </p> <p>The
+following two code fragments show code in the parent process and corresponding
+code in the child process. </p> <codeblock id="GUID-57FFCAC9-CA4E-50B7-843A-0523243F5B1E" xml:space="preserve">//Code in the parent (launching) process, passing 8 and sixteen bit data
+
+    RProcess p;
+    p.Create(KProcName, KNullDesC);
+    p.SetParameter(2, KSixteenBitDes);
+    p.SetParameter(3, KEightBitDes);
+    p.Resume();
+    </codeblock> <p>where <codeph>KSixteenBitDes</codeph> is a 16-descriptor,
+and <codeph>KEightBitDes</codeph> is an 8-bit descriptor. </p> <codeblock id="GUID-8B442CA2-0A6A-546C-805B-99C306891B40" xml:space="preserve">//Code in the child (launched) process retrieving 8 and sixteen bit data
+    
+    TInt len;
+    TInt ret;
+
+    TBuf16&lt;40&gt; buf;
+    len = User::ParameterLength(2);        //parameter length is the size in bytes
+    ret = User::GetDesParameter(2, buf);
+    
+    //buf.Length() should have the value of len/2;
+
+
+    TBuf8&lt;40&gt; buf8;
+    len = User::ParameterLength(3);
+    ret = User::GetDesParameter(3, buf8);
+    //buf.Length() should be the same as len
+    </codeblock> <p>Note that the descriptors, <codeph>buf</codeph>, and <codeph>buf8</codeph> used
+in the child process must have sufficiently large maximum lengths to accomodate
+the data. </p> </section>
+<section id="GUID-D2F661C6-21EB-50A6-A475-2A4A775A9F4D"><title>Passing an
+integer</title> <p>An integer can be passed from a parent to a child process. </p> <p>The
+following two code fragments show code in the parent process and corresponding
+code in the child process. </p> <codeblock id="GUID-AA845210-E551-50B3-9E1F-CD6F8C37D13B" xml:space="preserve">//Code in the parent (launching) process
+
+    RProcess p;
+    TInt ret;
+ 
+    ret = p.Create(KProcName, KNullDesC);
+    p.SetParameter(12, 1234);  // Using slot 12
+    p.Resume();
+    </codeblock> <codeblock id="GUID-D5E4CFA8-15DA-543F-9616-7F075FBBCDC1" xml:space="preserve">//Code in the child (launched) process, retrieving the integer.
+
+    TInt val;
+    TInt ret;
+
+    ret = User::GetTIntParameter(12, val);
+
+    </codeblock> </section>
+<section id="GUID-02AD23DF-7D54-5178-AA5B-050333CD2609"><title>Error handling
+issues</title> <p>The parent process is panicked when calling <codeph>SetParameter()</codeph> with
+a handle if: </p> <ul>
+<li id="GUID-1BDFA3C0-0E69-5B0C-A27F-D2DEFC0B2C0F"><p>the parent process is
+not the creator of the child process </p> </li>
+<li id="GUID-1DF3C097-73AC-54B8-9654-435C6F163E95"><p>the slot number is out
+of range, i.e. is not in the range 0 to 15 </p> </li>
+<li id="GUID-B02324A1-D241-5103-A2EC-297474EF65E1"><p>the slot is in use </p> </li>
+<li id="GUID-6014D837-107F-536C-8947-74C5967D2264"><p>the handle is local. </p> </li>
+</ul> <p>The parent process is panicked when calling <codeph>SetParameter()</codeph> with
+a descriptor or integer if: </p> <ul>
+<li id="GUID-2FAF76CC-2569-5E2E-ADBA-AFA124F11C84"><p>the parent process is
+not the creator of the child process </p> </li>
+<li id="GUID-C23722B2-4EEB-5050-B82E-F58F450F088F"><p>the slot number is out
+of range, i.e. is not in the range 0 to 15 </p> </li>
+<li id="GUID-9ADA7D18-B084-509C-8F4A-66E885F61D0A"><p>the slot is in use </p> </li>
+<li id="GUID-32B64BAC-F13E-5029-93ED-642994E35886"><p>the length of the data
+is negative. </p> </li>
+</ul> <p>The child process is panicked if the slot number is out of range. </p> <p>The
+API functions that extract data from the process environment return <xref href="GUID-0BEA3647-7888-3612-A2D3-7E27AC405E29.dita"><apiname>KErrArgument</apiname></xref> if
+a slot contains the incorrect data type, or the length is incorrect. They
+return <xref href="GUID-5E653C17-372C-32E1-A1B2-9E69A9991C40.dita"><apiname>KErrNotFound</apiname></xref> if a slot is empty. </p> </section>
+</conbody></concept>

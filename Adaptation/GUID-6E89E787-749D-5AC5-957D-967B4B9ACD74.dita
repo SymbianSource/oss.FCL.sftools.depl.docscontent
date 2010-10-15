@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-6E89E787-749D-5AC5-957D-967B4B9ACD74" xml:lang="en"><title>Using
+the BIL Interface</title><shortdesc>This tutorial describes how to use the Buffer Interface Layer (BIL)
+to read and write shared chunks form the client driver. </shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<context id="GUID-40DA18C7-1949-5495-BC1B-03ED9C437B7C"><p> </p> <p>The BIL
+is a thin layer over the LDD APIs that removes the need for the class driver
+to handle buffers directly. The BIL is consistent between different class
+drivers and reduces the buffer related understanding needed to use the USBSc
+LDD. </p> <p>Using the BIL is optional to the class driver, but very highly
+recommended. </p><p> Before completing these steps you must have followed
+the procedure from
+ the beginning of the tutorial set through to
+<xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita#GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA/GUID-C2FF3692-93FE-3F9B-ADBC-A0875B5290D4"><apiname>RDevUsbcScClient::FinalizeInterface()</apiname></xref></p> </context>
+<steps id="GUID-E17FCECC-D0A2-57C9-9248-0A71E8A0B61D">
+<step id="GUID-C4CEF921-C970-5C0D-AC32-F18A0A482278"><cmd> Open each endpoint
+object.  </cmd>
+
+<info>Use the function <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita#GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA/GUID-98D986E5-6529-375A-84F4-769F20CFD161"><apiname>RDevUsbcScClient::OpenEndpoint()</apiname></xref> for
+each endpoint object. </info>
+<stepxmp><codeblock id="GUID-B1EFEBB5-3FF2-5124-A821-07223946110A" xml:space="preserve">TEndpointBuffer iEpBuf;
+const TUint KWriteEp = 1;
+
+gPort.OpenEndpoint(iEpBuf, KWriteEp);</codeblock> </stepxmp>
+<info> <codeph>OpenEndpoint()</codeph> fills the provided endpoint buffer
+(<codeph>iEpBuf</codeph>) for use with the given endpoint number (<codeph>KWriteEp</codeph>).
+This endpoint will be opened on the current alternate interface setting. </info>
+</step>
+<step id="GUID-1A4579B9-8643-5F42-8048-BCEBADD56406"><cmd/>
+<info> Reading with an OUT endpoint.  </info>
+<info>To read with an endpoint call <xref href="GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373.dita#GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373/GUID-80654761-26F2-3C1A-BD75-86C24A41FB14"><apiname>TEndpointBuffer::GetBuffer()</apiname></xref> to
+request data from the BIL. </info>
+<stepxmp><codeblock id="GUID-985944AC-D3DC-53C1-A0AE-417A51E2F951" xml:space="preserve">r = iEpBuf.GetBuffer(scReadData, readSize, readZlp, aStatus);</codeblock> </stepxmp>
+<info>The first parameter passed to <codeph>GetBuffer()</codeph> can be either
+a pointer to the transfer buffer or the offset of the transfer data within
+the shared chunk. </info>
+<info>This function allows the BIL to expire any previously retrieved transfer
+on this endpoint so that it can be used again for new transfers. If the transfer
+or the LDD are not ready then <codeph>aStatus</codeph> is set to pending.
+If no transfer is available then the variable passed in the first parameter
+is set to NULL or 0 depending on the API. Call this function again on completion,
+to wait for data again. </info>
+<info>The function <codeph>GetBuffer()</codeph> returns: </info>
+
+<substeps id="GUID-3DABE2BC-8A54-503A-B7A2-D6867B0BE306">
+<substep id="GUID-6C7D86C5-60DE-5677-B1F3-2EBE8802CA8F"><cmd/>
+<info> <codeph>KErrCompletion</codeph> if data could be retrieved without
+a pending request, </info>
+</substep>
+<substep id="GUID-ACD12551-A216-5615-B24F-0CEAB33D92B2"><cmd/>
+<info> <codeph>KErrNone</codeph> if an asynchronous request was queued. This
+function should be called again on completion, </info>
+</substep>
+<substep id="GUID-1545994A-F7D2-5904-9B13-BEDA58A9AF06"><cmd/>
+<info> <codeph>KErrEof</codeph> if the end of the data in the endpoint has
+been reached, </info>
+</substep>
+<substep id="GUID-B3CA8F5E-8816-535B-94D1-512305870882"><cmd/>
+<info> <codeph>KErrNotSupported</codeph> if the endpoint is an IN endpoint. </info>
+</substep>
+</substeps>
+<info>If the host has changed to an alternate setting and you wish to continue
+reading and writing data then you must <codeph>Close()</codeph> all endpoints
+and go to step five Process the next alternate set of endpoints. Otherwise,
+if you have finished then go to step four Close each endpoint object. </info>
+</step>
+<step id="GUID-D1347544-106F-5883-9789-0001DF12ED15"><cmd/>
+<info> Writing with an IN endpoint.  </info>
+<info>After filling a shared chunk buffer with some data call <xref href="GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373.dita#GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373/GUID-013E135D-AF87-3FFD-8B35-42D7B3FDECD8"><apiname>TEndpointBuffer::WriteBuffer()</apiname></xref> to
+write the data to endpoint hardware. </info>
+<info> <codeph>WriteBuffer()</codeph> transmits the provided buffer on the
+given endpoint asynchronously. More than one request may be outstanding at
+any time. This reduces the time between buffer transfers. </info>
+<stepxmp><codeblock id="GUID-4F511487-D318-5DFA-BDF5-20CA98BE04BC" xml:space="preserve">r = iEpBuf.WriteBuffer(buffer, length, ETrue, aStatus);</codeblock> </stepxmp>
+<info>The first parameter passed to <codeph>WriteBuffer()</codeph> can be
+either a pointer to the transfer buffer or the offset of the transfer data
+within the shared chunk. </info>
+<info>If the host has changed to an alternate setting and you wish to continue
+reading and writing data then you must <codeph>Close()</codeph> all endpoints
+and go to step five Process the next alternate set of endpoints. Otherwise,
+if you have finished then go to step four Close each endpoint object. </info>
+</step>
+<step id="GUID-6C39309D-0822-59D0-8A47-2E7146991FC6"><cmd/>
+<info> Close each endpoint object.  </info>
+<info>Each endpoint object opened with <codeph>OpenEndpoint()</codeph> must
+be closed with <xref href="GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373.dita#GUID-46F7D0B5-8F71-3D63-AC40-D940240B0373/GUID-CD3F8021-67E2-3AA4-9DA9-7C854A134A54"><apiname>TEndpointBuffer::Close()</apiname></xref>. </info>
+<stepxmp><codeblock id="GUID-CA3F1F92-B224-5246-A91E-67004EDCD754" xml:space="preserve">iEpBuf.Close();</codeblock> </stepxmp>
+<info>If the host has changed to an alternate setting and you wish to continue
+reading and writing data then you must <codeph>Close()</codeph> all endpoints
+and go to step five Process the next alternate set of endpoints. Otherwise,
+if you have finished data transfer then <xref href="GUID-BE73CFE6-D48D-5B92-AF49-E2D967ADF0EC.dita">Close
+and Unload the Driver</xref>. </info>
+<info>If you wish to continue reading and writing data but on an alternate
+setting then call <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita#GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA/GUID-A4726204-4DE4-31FC-9CB3-54A3BC5155C2"><apiname>RDevUsbcScClient::StartNextOutAlternateSetting()</apiname></xref>.
+Otherwise if you have finished then Close and Unload the Driver. </info>
+</step>
+<step id="GUID-1F1A169A-EC61-50D3-BCEA-5CEC8A13C8BE"><cmd/>
+<info> Process the next alternate set of endpoints.  </info>
+<info>Use the function <xref href="GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA.dita#GUID-4D1AE286-41EE-3361-948A-3E8634D81DBA/GUID-A4726204-4DE4-31FC-9CB3-54A3BC5155C2"><apiname>RDevUsbcScClient::StartNextOutAlternateSetting()</apiname></xref> to
+switch to the next set of endpoints. The alternate interfaces were initialised
+with <codeph>SetInterface()</codeph>. See <xref href="GUID-5F614B75-056D-5798-AE06-8DA6E9ED6834.dita">Set
+the Interface Descriptors</xref>. </info>
+<stepxmp><codeblock id="GUID-81FA57A5-F55A-5437-A9B6-8406D12AF1A2" xml:space="preserve">TInt r = StartNextOutAlternateSetting(ETrue);</codeblock> </stepxmp>
+<info>Pass ETrue to the function to purge the buffers of any data unread for
+the previous setting. </info>
+<info> Note: All open endpoints (except EP0) must be closed before this is
+called. </info>
+</step>
+</steps>
+<postreq><p>When you have finished reading and writing <xref href="GUID-BE73CFE6-D48D-5B92-AF49-E2D967ADF0EC.dita">Close
+and Unload the Driver</xref>. </p> </postreq>
+</taskbody></task>

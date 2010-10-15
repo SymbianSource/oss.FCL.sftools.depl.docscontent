@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C24A5B52-0B40-53B2-BF85-6ECC35BDCBA5" xml:lang="en"><title>IIC Implementation Guide</title><shortdesc>Describes how to implement the IIC platform service.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>This document describes the overview of how to implement the IIC
+platform service APIs and directs you to more specific documentation. </p>
+<section id="GUID-16DD5496-C5F7-43C3-9C90-119E32AD50FE"><title>Purpose</title> <p>The IIC platform service APIs provides a means of accessing devices
+that are connected onto a multi-wire bus within the phone. These platform
+service APIs rely on hardware-specific implementation in the SHAI
+implementation layer of the IIC implementation. This hardware-specific
+implementation is primarily creating concrete hardware-specific implementations
+of functions defined in the Platform Independent Layer (PIL),.</p> <p><b>Intended Audience:</b> </p> <p>This document is intended for
+hardware device implementers who want to write adaptation software
+to use their specific serial bus hardware with IIC. </p> </section>
+<section id="GUID-A0142A52-534D-4C0D-8145-85C0A84DDBB5"><title>Background</title><p>There are two main forms of IIC operation: </p><ul>
+<li><p>Master operation</p></li>
+<li><p>Slave mode </p></li>
+</ul><p>A master node on a bus controls transactions and is responsible
+for sending commands along the bus to select the slave node which
+is to send or receive the commands and data. A slave node receives
+instructions from a master node and sends or receives commands and
+data. The OS device drivers may act as a slave or a master node, or
+in some bus technologies, the role of master and slave can be exchanged.</p><p>IIC has channels, which represent a connection between two nodes
+on the bus. The channel has a queue for commands and will process
+each command in turn. </p><p>A device driver can either use the IIC
+Controller to access channels, or if there is a dedicated node that
+is going to be used by a particular device driver, then the device
+driver can talk directly to that node through IIC without using the
+IIC Controller.</p> </section>
+<section id="GUID-5CF49F33-E7B8-4FE6-AB97-A6B5EB38F9FF"><title>The
+IIC platform service API</title> <p>The <codeph>IicBus</codeph> class
+provides the platform service API for device drivers that want to
+use the IIC Controller. For Controller-less operation, the platform
+service API is formed by the <codeph>DIicBusChannelMaster</codeph>, <codeph>DIicBusChannelSlave</codeph> and <codeph>DIicBusChannelMasterSlave</codeph> classes.</p> <p>A summary of methods in the <codeph>IicBus</codeph> class are : </p> <table id="GUID-C77D090D-F2CA-500A-9E75-EDF80CB60CA5">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Method</b>  </p> </entry>
+<entry><p> <b>Purpose</b>  </p> </entry>
+</row>
+<row>
+<entry><p>QueueTransaction(TInt aBusId, TIicBusTransaction* aTransaction) </p> </entry>
+<entry><p>Queues a transaction for synchronous completion. </p> </entry>
+</row>
+<row>
+<entry><p>QueueTransaction(TInt aBusId, TIicBusTransaction* aTransaction,
+TIicBusCallback* aCallback) </p> </entry>
+<entry><p>Queues a transaction for asynchronous completion. </p> </entry>
+</row>
+<row>
+<entry><p>CancelTransaction(TInt aBusId, TIicBusTransaction* aTransaction) </p> </entry>
+<entry><p>Cancels a previously queued transaction (if the transaction
+was queued asynchronously). </p> </entry>
+</row>
+<row>
+<entry><p>CaptureChannel(TInt aBusId, TDes8* aConfigHdr, TIicBusSlaveCallback*
+aCallback, TInt&amp; aChannelId, TBool aAsynch=EFalse) </p> </entry>
+<entry><p>Capture a slave channel. </p> <p>The aAsynch parameter indicates
+if this is to be done synchronously or asynchronously. The default
+is synchronous. </p> </entry>
+</row>
+<row>
+<entry><p>ReleaseChannel(TInt aChannelId) </p> </entry>
+<entry><p>Release a previously captured Slave channel. </p> </entry>
+</row>
+<row>
+<entry><p>RegisterRxBuffer(TInt aChannelId, TPtr8 aRxBuffer, TInt8
+aBufGranularity, TInt8 aNumWords, TInt8 aOffset) </p> </entry>
+<entry><p>Register a receive buffer with this slave channel. </p> </entry>
+</row>
+<row>
+<entry><p>RegisterTxBuffer(TInt aChannelId, TPtr8 aTxBuffer, TInt8
+aBufGranularity, TInt8 aNumWords, TInt8 aOffset) </p> </entry>
+<entry><p>Register a transmit buffer with this slave channel. </p> </entry>
+</row>
+<row>
+<entry><p>SetNotificationTrigger(TInt aChannelId, TInt aTrigger) </p> </entry>
+<entry><p>For a transmit operation, this sets the notification trigger,
+sets the receive path and starts a transmit operation (if the node
+is being addressed). For a receive operation, this sets the notification
+trigger. </p> </entry>
+</row>
+<row>
+<entry><p>StaticExtension(TUint aId, TUint aFunction, TAny* aParam1,
+TAny* aParam2) </p> </entry>
+<entry><p>Interface to provide extended functionality. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>The platform service APIs for controller-less operation
+are almost exactly the same, but with the addition of channel constructors
+and destructors.<note> Please refer to <filepath>iic.h</filepath>, <filepath>iic_channel.cpp</filepath>and <filepath>iic_channel.h</filepath> for
+more details on these APIs. </note> </p> </section>
+<section id="GUID-7A8667A0-6061-446C-AE93-6BD3E0DB4952"><title>Implementation
+details</title><p>You must next read:<ul>
+<li><p><xref href="GUID-052F58B7-117B-5EDD-A3D5-CB0DE6A4E239.dita">IIC
+SHAI Implementation Layer: Generic Considerations</xref></p></li>
+<li><p><xref href="GUID-0C8318B1-71D7-5384-97EB-85CBBC3E6B84.dita">IIC
+SHAI Implementation Layer: Master Channel</xref></p></li>
+<li><p><xref href="GUID-C9644081-004E-5DA0-8133-A32EEA91EF5E.dita">IIC
+SHAI Implementation Layer: Slave Channel</xref></p></li>
+</ul></p><p/></section>
+</conbody><related-links>
+<link href="GUID-C661BFA4-6C39-476A-8DE0-08E18AA0F548.dita"><linktext>IIC
+Overview</linktext></link>
+<link href="GUID-CB0FC4F4-6DAB-4ADD-B044-0E8B9365B4D5.dita"><linktext>IIC
+Concepts Overview</linktext></link>
+</related-links></concept>

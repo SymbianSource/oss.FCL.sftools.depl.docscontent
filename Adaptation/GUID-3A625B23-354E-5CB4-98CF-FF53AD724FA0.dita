@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-3A625B23-354E-5CB4-98CF-FF53AD724FA0" xml:lang="en"><title>Dealing with Demand Paging</title><shortdesc>When demand paging is used, the contents of memory are
+available to a program when they are required (“on demand”). When
+the contents are no longer required, the RAM can be used for other
+content.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Demand paging is a change to how the kernel can use RAM from Symbian
+platform v9.3. This topic describes the possible results for base
+port. </p>
+<p>When demand paging is used, the contents of memory are available
+to a program when they are required - that is, 'on demand'. When the
+contents are no longer required, the RAM can be used for other content.
+In this way, the total RAM required to store content is less than
+if it were all permanently available. </p>
+<p>The Device Driver Guide provides <xref href="GUID-469EC7BB-8697-57FE-A487-016882A0BEA8.dita#GUID-469EC7BB-8697-57FE-A487-016882A0BEA8/GUID-E382AA71-8BB5-5567-8578-51598D3131FD">Suggested techniques for mitigating the effects of demand paging</xref> for writers of device drivers. These recommendations can result
+in a more ‘multithreaded’ base-port. This may have the following impact
+that needs to be considered: </p>
+<ul>
+<li id="GUID-DB6CC462-FB46-5D3B-8BAA-5B21FA06AF9D"><p>A base-port
+component may provide services to device drivers, exposing to them
+a shared resource; either hardware or software: </p> <ul>
+<li id="GUID-6B9E9433-EA19-54AE-B7A5-6E2C3341723B"><p>hardware - may
+be a hardware controller whose non-instantaneous operation, once initiated,
+cannot be disturbed until it completes </p> </li>
+<li id="GUID-92AD6E2B-34CC-59B4-8D52-FD739C3DD841"><p>software - may
+be a list of requests for services. </p> </li>
+</ul> </li>
+<li id="GUID-45F7D284-C216-5684-8C7B-2958C809B1BC"><p>A hardware component
+has a control interface that can be used by a number of drivers. Operations
+on the control interface although near instantaneous, are not atomic
+and cannot be interrupted. </p> </li>
+</ul>
+<p>In the case of the base-port component, when the state of a resource
+needs to be protected from the effects of pre-emption for a non-negligible
+period of time, the recommended approach is to use mutual exclusion,
+protecting the resource with a mutex: unless there is any chance that
+the same driver may trigger the same operation before the previous
+one completed. For example, when operations are non-blocking and happen
+in a context different from the initiator’s, a <xref href="GUID-D5B555DA-3D17-3ED2-A931-CB35BD93A953.dita"><apiname>NFastMutex</apiname></xref> should suffice. </p>
+<p>An example of the hardware component situation is a set-clear control
+interface, where a pair of registers (one containing the bits to be
+set, the other the bits to be cleared) have to be written to produce
+the desired change. If the operation is pre-empted after bits are
+set but before they are cleared for a desired final output, and a
+new set-clear operation is initiated, the final state of the interface
+may be undetermined. Pre-emption protection in this case is achieved
+by simply locking the Kernel using <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-7CBBF72B-4519-38DD-92CA-38AF636AFD8A"><apiname>NKern::Lock()</apiname></xref> before the operation starts and unlocking it with <xref href="GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02.dita#GUID-3A3C08F3-3D33-3D9E-80E7-7855C7B21E02/GUID-A1A42137-906C-30F1-AF61-4F786FC372DE"><apiname>NKern::Unlock()</apiname></xref> after it completes. If the interface is to be used from an interrupt
+context disabling all interrupts is sufficient to protect against
+thread concurrency. </p>
+</conbody><related-links>
+<link href="GUID-90B5FDD9-7D59-5035-BF53-2B177655DCD6.dita"><linktext>Migration
+                Tutorial: Demand Paging and Internal MMC Cards</linktext>
+</link>
+<link href="GUID-EB2566BD-8F65-5A81-B215-E8B05CFE21C3.dita"><linktext>Migration
+Tutorial: Demand                 Paging and Media Drivers</linktext>
+</link>
+</related-links></concept>

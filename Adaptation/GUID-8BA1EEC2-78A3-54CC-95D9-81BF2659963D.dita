@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D" xml:lang="en"><title>Base
+Starter Technology</title><shortdesc>This topic describes the purpose of the Base Starter, and which
+parts of it can be customised by phone developers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The purpose of the Base Starter is to: </p>
+<ul>
+<li id="GUID-D6418767-A7E8-5C3F-A12D-57B038D6DDEA"><p>Define a handset's local
+drives </p> </li>
+<li id="GUID-2611D5AC-D6FD-5957-A359-11D5A7200B2F"><p>Define what file systems
+(<filepath>.FSY</filepath>) and file extensions (<filepath>.FXT</filepath>)
+are to be mounted on those drives </p> </li>
+<li id="GUID-96772B04-8CC5-5248-A015-48809163B6EA"><p>Associate drive letters
+with drives </p> </li>
+<li id="GUID-36BFBCDC-0A12-53E0-8DF6-97606089A996"><p>Modify drive start-up
+behaviour </p> </li>
+<li id="GUID-C8914C2A-4FEA-5367-9C8C-5BD1B8926416"><p>Enable <xref href="GUID-89BCF9A5-ABBD-5523-BA76-FDB00B806A30.dita">fair
+scheduling and file caching</xref> on a drive by drive basis. </p> </li>
+</ul>
+<p>Handset manufacturers need to customise the Base Starter as part of the
+process of porting Symbian platform to a new device. <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-BF793E4E-8303-5C94-A297-52C5AD781B6B">Mapping local drives</xref> is the most important part of this process, but <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-89ED1556-60A5-5030-8946-7156656B7771">customisation
+using TFSStartup</xref> is also possible. </p>
+<p>Note that there are some <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-AC49186C-F69B-5D5B-8515-3CF8CD91EAF4">activities
+that the Base Starter does not do</xref>  </p>
+<section id="GUID-BF793E4E-8303-5C94-A297-52C5AD781B6B"><title>Mapping local
+drives</title> <p>There are two ways to do this: </p> <ul>
+<li id="GUID-F9A1D807-DFF0-563E-B792-0C7AE29F16CA"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-2B95B775-1BD1-5256-86D3-CD3FA12447B9">Create local drive mapping files</xref>  </p> </li>
+<li id="GUID-23B391A9-70B1-54F6-A891-422B5C6274DE"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-A195BD51-80C7-5D87-ABA2-8878CC509B84">Use automatic local drive mapping</xref>. </p> </li>
+</ul> <p id="GUID-2B95B775-1BD1-5256-86D3-CD3FA12447B9"><b>Create local drive mapping
+files</b> </p> <p>A local drive mapping file is an ASCII text file that explicitly
+defines the drive letter, file system, and file extension to be associated
+with a drive. The file contains a set of records, one for each drive, that
+specifies this information. Records are also referred to as drive mappings. </p> <p>The
+file is created as part of your hardware variant's source tree, but is copied
+into a standard location in your ROM filing system when you build the ROM. </p> <p>A
+drive mapping file has a formal structure; the main rules are: </p> <ul>
+<li id="GUID-2F5C4942-D39B-5F80-8E31-CAB8E7411554"><p>the file can contain
+a maximum of 16 different drive mappings </p> </li>
+<li id="GUID-BA8CB9C2-F3D7-5A06-9385-6FE7B3472B6C"><p>each drive mapping is
+represented by a separate record; each record occupies one line; each line
+is separated by the new line character <codeph>\n</codeph>  </p> </li>
+<li id="GUID-D1A6514F-3A2C-5B2E-818B-9933CA98BC1F"><p>information is represented
+by items separated by at least one blank character </p> </li>
+<li id="GUID-A6F6AD8B-361F-5DAC-8151-467164281CBD"><p>comments can occupy
+a whole line or can be added onto the end of a record (i.e. at the end of
+line). They are marked by a <codeph>#</codeph> character that must precede
+the start of the comment text. </p> </li>
+</ul> <p>A record, or drive mapping, has the following items, each separated
+by at least one blank character. Each item must appear in the order described: </p> <codeblock id="GUID-EC69C9D7-C7C3-5687-AB75-2157ABF012D5" xml:space="preserve">&lt;drive_letter&gt; &lt;drive_number&gt; &lt;file_system_filename&gt; &lt;file_system&gt; &lt;file_extension_filename&gt; &lt;flags&gt;</codeblock> <table id="GUID-D09A4483-1819-56A5-96C5-167D59C79E45">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph> &lt;drive_letter&gt;</codeph>  </p> </entry>
+<entry><p>A single character between <codeph>A</codeph> and <codeph>Z</codeph> followed
+by a colon. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> &lt;drive_number&gt;</codeph>  </p> </entry>
+<entry><p>The local drive number associated with the drive letter . </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>&lt;file_system_filename&gt;</codeph>  </p> </entry>
+<entry><p>The filename of the file system that is to be mounted on the drive.
+This should be the filename without the <filepath>.FSY</filepath> extension.
+If it is necessary to omit a file system file name for any reason, then this
+item should contain the null character: <codeph>0</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> &lt;file_system&gt;</codeph>  </p> </entry>
+<entry><p>The name of the file system as implemented by <codeph>&lt;file_system_filename&gt;</codeph>. </p> <p>If
+the file system name is the same as the file name, as represented by the <codeph>&lt;file_system_filename&gt;</codeph> item,
+then supply the null character <codeph>0</codeph>. [Internally, the file system
+name is sometimes referred to as the object name.] </p> <p>Symbian platform
+supplies the following file systems: </p> <ul>
+<li id="GUID-BB05125F-DEAA-5881-8B5D-27CF2735598E"><p> <codeph> FAT</codeph>  </p> </li>
+<li id="GUID-F9CAA425-F382-5131-A2CE-A8813EC2844C"><p> <codeph> ROFS</codeph> -
+read/only file system </p> </li>
+<li id="GUID-1C9ED727-60A6-5835-B10B-BC5DF0C11763"><p> <codeph>LFFS</codeph> -
+logging flash file system </p> </li>
+<li id="GUID-B175831B-3633-5B56-AD5A-76218DFA6032"><p> <codeph> COMP</codeph> -
+composite file system (but see the description of the <codeph>FS_COMPOSITE</codeph> flag
+below) </p> </li>
+</ul> <p>Handset manufacturers may supply other file systems. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> &lt;file_extension_filename&gt;</codeph>  </p> </entry>
+<entry><p>The filename of the file extension that is to be mounted on the
+drive. This should be the filename without the <filepath>.FXT</filepath> extension.
+If it is necessary to omit a file extension file name for any reason, then
+this item should contain the null character: <codeph>0</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>&lt;flags&gt;</codeph>  </p> </entry>
+<entry><p>A set of <i>mount</i> flags that modify the start-up behaviour of
+the local drive. More than one flag can be specified, each separated by a
+comma, with no intervening blank characters. If no flags apply, then the null
+character: <codeph>0</codeph> must be coded. </p> <p><table id="GUID-E1FCA3ED-EF56-5C3E-9596-CBBD7DF53AE1">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>FS_FORMAT_ALWAYS</codeph>  </p> </entry>
+<entry><p>Formats the drive as soon as it has been mounted. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FS_FORMAT_COLD</codeph>  </p> </entry>
+<entry><p>Formats the drive as soon as it has been mounted if the device is
+performing a cold boot. This is generally required for internal RAM drives. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_FORMAT_CORRUPT </codeph>  </p> </entry>
+<entry><p>Formats the drive, if it is found to be corrupt when mounted. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_DISMNT_CORRUPT</codeph>  </p> </entry>
+<entry><p>Dismounts the drive, if it is found to be corrupt when mounted.
+The local drive mapping remains unaltered and the associated file system file
+is not unloaded. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_SWAP_CORRUPT-&lt;drv&gt;</codeph>  </p> </entry>
+<entry><p>Dismounts the drive, if it is found to be corrupt when mounted,
+and swaps the mappings for this drive with the alternative drive <codeph>&lt;drv&gt;</codeph>,
+and remounts both. </p> <p>The alternative drive <codeph>&lt;drv&gt;</codeph> must
+be specified, and must follow a '<codeph>-</codeph>' character, which follows
+the <codeph>FS_SWAP_CORRUPT</codeph> symbol. </p> <p>For example, to swap
+with drive <filepath>Y:</filepath>, specify: </p> <codeblock id="GUID-9CC3B772-73D6-5F12-959A-54090AEE7EB1" xml:space="preserve">FS_SWAP_CORRUPT-Y</codeblock> <p>This
+option is commonly used when handling corrupt flash user-data drives on <filepath>C:</filepath>.
+The corrupt drive is mapped to another drive letter – allowing data to be
+extracted from it. The <filepath>C:</filepath> drive is replaced by a RAM
+disk – providing a temporary work disk for the OS, while the main one is restored.
+Note that a mapping file must not specify more than one drive for swapping,
+i.e. there can only be one occurrence of <codeph>FS_SWAP_CORRUPT</codeph> flag
+per mapping file. </p> <p>Both drives involved in the swap must be internal
+drives. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FS_SYNC_DRIVE</codeph>  </p> </entry>
+<entry><p>Mounts this drive as a synchronous drive. This means that requests
+are handled in the main file server thread rather than in a dedicated drive
+thread. This option is normally only specified for internal RAM drives. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_SCANDRIVE</codeph>  </p> </entry>
+<entry><p>Runs <filepath>Scandrive</filepath>, once mounted, but only if the
+rugged file system is enabled. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FS_COMPOSITE</codeph>  </p> </entry>
+<entry><p>Marks the drive as contributing to the composite file system. The
+composite file system allows multiple local drives to be overlaid with each
+other, and with the core OS ROM image, and to make them appear as one drive. </p> <p>Files
+in one drive can add to, replace, or hide (i.e. logically remove) files in
+another drive </p> <p>There are number of rules: </p> <ul>
+<li id="GUID-73C84D80-12E4-5EB2-9661-6F802696F4E8"><p>the drive letter must
+always be Z: </p> </li>
+<li id="GUID-B8BA7BF4-5451-5B14-80F7-44E37DB08B23"><p>if the file system is
+omitted, i.e. both <codeph>&lt;file_system_filename&gt;</codeph> and <codeph>&lt;file_system&gt;</codeph> are
+set to '0', then the the ROFS file system is assumed, and this can be the <i>only</i> drive
+marked with <codeph>FS_COMPOSITE</codeph> in a mapping file. </p> </li>
+<li id="GUID-E64061B1-C789-57D4-BDD2-32548AC9A97B"><p>if the file system is
+explicitly specified, i.e. <codeph>&lt;file_system_filename&gt;</codeph> and <codeph>&lt;file_system&gt;</codeph> are
+set, then more than one drive can be marked with <codeph>FS_COMPOSITE</codeph>.
+However, adding a drive that uses a file system other than ROFS is <i>strongly
+discouraged</i> for performance reasons. </p> </li>
+<li id="GUID-2B4F9A89-9907-5417-91B3-94E02F212E42"><p>the order of the records
+is important, as this defines the search order when Symbian platform is working
+out which files will contribute to the final ROM. The core OS ROM file system
+(containing the kernel, kernel extensions, media drivers, the file server,
+file systems and the Base Starter executable) is searched first, followed
+by the last drive in the mapping file marked with <codeph>FS_COMPOSITE</codeph>,
+followed by the next last drive marked with <codeph>FS_COMPOSITE</codeph> etc. </p> </li>
+</ul> <p>Note: the use of <codeph>COMP</codeph> as a <codeph>&lt;file_system&gt;</codeph> seems
+to contradict the use of this flag. <codeph>COMP</codeph> was used to specify
+a composite file system that allowed a <i>single</i> drive to be combined
+with the ROM file system. For compatibility purposes, and to ensure consistency
+of syntax, you can still specify <codeph>COMP</codeph> with <codeph>FS_COMPOSITE</codeph> on
+a drive mapping, but you cannot have any other drive mappings marked as <codeph>FS_COMPOSITE</codeph>.
+If you specify <codeph>COMP</codeph>, then the underlying file system associated
+with that drive is assumed to be <codeph>ROFS</codeph>. </p> <p>See <xref href="GUID-E55EE9B5-AC5B-5C67-A23C-DDB3F40D174A.dita">Mounting multiple ROM images
+as a single ROM drive</xref> for more detail. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_NO_MOUNT</codeph>  </p> </entry>
+<entry><p>Loads the file specified file system and the specified file extension,
+and maps the drive as specified, but does not mount the drive. This is often
+used in conjunction with <codeph>FS_SWAP_CORRUPT</codeph>. It allows the configuration
+for the alternative drive involved in a swap to be specified – but for the
+drive not to be mounted and accessible in normal operation. If the drive is
+involved in a swap with another, then the <codeph>FS_NO_MOUNT</codeph> state
+is ignored and the drive is mounted normally. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>FS_ALLOW_REM_ACC</codeph>  </p> </entry>
+<entry><p>This is reserved for future use. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_NOT_RUGGED</codeph>  </p> </entry>
+<entry><p>Marks the mount as not rugged. Mounting the drive without the rugged
+file system means that <codeph>FS_SCANDRIVE</codeph> is not supported. If <codeph>FS_SCANDRIVE</codeph> is
+also defined, it is ignored. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph> FS_SYSTEM_DRIVE</codeph>  </p> </entry>
+<entry><p>Assigns this drive as the system drive. Applications store user
+data on the system drive, and call <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>RFs::GetSystemDriveChar()</apiname></xref> to
+discover the drive letter. </p> <p>A mapping file can only specify one drive
+as the system drive. </p> <p>See <xref href="GUID-629AB2C9-BEDD-5166-8B09-F8DFF7527C03.dita">the
+system drive</xref>. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p id="GUID-A195BD51-80C7-5D87-ABA2-8878CC509B84"><b>Use automatic local drive
+mapping</b> </p> <p>If no drive mapping file exists or is unavailable, the
+Base Starter decides which file system to mount on each local drive by interrogating
+the capabilities of those drives. This is known as auto-detection. </p> <p>Internally,
+the Base Starter holds a table containing entries for every known supported
+local drive configuration. This table is known as the auto-configuration table.
+The information supplied by each entry in the table resembles that supplied
+by a <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-2B95B775-1BD1-5256-86D3-CD3FA12447B9">local
+drive mapping file</xref>, and contains the following information: </p> <ul>
+<li id="GUID-0713E2D9-B47F-552D-B4BB-D2B587534F86"><p>The filename of the
+file system for this configuration (the <filepath>.FSY</filepath>). The filename
+corresponds to the <codeph>&lt;file_system_filename&gt;</codeph> item in a drive
+mapping file entry. </p> </li>
+<li id="GUID-A27734C1-04DC-5741-8C9F-E28DAAC12E9B"><p>The object name of the
+file system for this configuration. The object name corresponds to the <codeph> &lt;file_system&gt;</codeph> item
+in a drive mapping file entry. </p> </li>
+<li id="GUID-1B40A8A4-C883-5385-8255-023DAA42FD24"><p>The filename of the
+file server extension for this configuration, if applicable. The filename
+corresponds to the <codeph>                   &lt;file_system&gt;</codeph> item
+in a drive mapping file entry. </p> </li>
+<li id="GUID-D50A002B-A6F5-5CE0-95A8-5327F5D43F2E"><p>The set of mount flags;
+these correspond to the <codeph>&lt;flags&gt;</codeph> items in a drive mapping
+file entry. There is one exception - <codeph>FS_SWAP_CORRUPT</codeph> is not
+supported, because it is impossible to auto-detect which drive is to be swapped. </p> </li>
+<li id="GUID-1F79E6A1-FEC3-57A7-8C50-DDC7296610C5"><p>A file system identification
+function that is used to decide whether the designated file system is really
+suitable for this drive. Each function is an internal part of the generic
+Base Starter code. </p> </li>
+</ul> <p>The Base Starter uses the following default mapping of drive letters
+to drive numbers: </p> <table id="GUID-861EC91F-CB71-5E7F-A58F-F14A890C2EC1">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b> Local drive number</b>  </p> </entry>
+<entry><p> <b> Drive letter</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>0</codeph>  </p> </entry>
+<entry><p>C</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>1</codeph>  </p> </entry>
+<entry><p>D</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>2</codeph>  </p> </entry>
+<entry><p>E</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>3</codeph>  </p> </entry>
+<entry><p>F</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>4</codeph>  </p> </entry>
+<entry><p>G</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>5</codeph>  </p> </entry>
+<entry><p>H</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>6</codeph>  </p> </entry>
+<entry><p>I</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>7</codeph>  </p> </entry>
+<entry><p>J</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>8</codeph>  </p> </entry>
+<entry><p>K</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>9</codeph>  </p> </entry>
+<entry><p>L</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>10</codeph>  </p> </entry>
+<entry><p>M</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>11</codeph>  </p> </entry>
+<entry><p>N</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>12</codeph>  </p> </entry>
+<entry><p>O</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>13</codeph>  </p> </entry>
+<entry><p>P</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>14</codeph>  </p> </entry>
+<entry><p>Q</p> </entry>
+</row>
+<row>
+<entry><p> <codeph>15</codeph>  </p> </entry>
+<entry><p>R</p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-89ED1556-60A5-5030-8946-7156656B7771"><title>Customisation
+using TFSStartup</title> <p>Most of the functionality provided by the Base
+Starter is provided by the class <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup</apiname></xref>.
+This contains a number of virtual functions with default Symbian implementations.
+A handset manufacturer can create a customised version of the Base Starter,
+which overrides these functions. </p> <ul>
+<li id="GUID-49B2FC6B-E0BF-548C-9537-FE02B420EE7A"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-9B842CF3-D1A2-5BC7-8979-42EC7CD9A523">Disabling drive auto-detection</xref>  </p> </li>
+<li id="GUID-90090D6E-2788-590C-8595-4E4423E51F5B"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-4AB5A9C6-6D33-58E9-A372-033C1595DB9E">Customising for multiple hardware states</xref>  </p> </li>
+<li id="GUID-1D7344CC-0876-5973-8E57-E2619E4D8B32"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-7098B073-430F-5CA6-91C6-BCF267B33BF3">Overriding the default drive mapping</xref>  </p> </li>
+<li id="GUID-9399A990-84B2-553B-900A-DBBD7EC8C04F"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-904D8CCE-9E16-5A60-B141-9C838B1B8B44">Customising mount flags</xref>  </p> </li>
+<li id="GUID-ED7B2E26-4147-553C-9DCF-06143EEEF2ED"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-905BFBD9-AD40-5E11-AFED-F791389F1450">Customising the drive initialisation sequence</xref>  </p> </li>
+<li id="GUID-4C6122EB-9898-5874-AB65-900F739DC611"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-B93875C5-1B35-5993-89C4-B2CA5F502450">Customising Loadlocale</xref>  </p> </li>
+<li id="GUID-95C61E12-EE0B-57B8-B5FA-EB476471D93C"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-0B60FAF0-5D2F-5A0F-984C-DFB35BC09ED2">Customising the restart mode</xref>  </p> </li>
+<li id="GUID-1A1EDBF0-92B4-5369-9077-210842CA13C6"><p> <xref href="GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D.dita#GUID-8BA1EEC2-78A3-54CC-95D9-81BF2659963D/GUID-4E9AFD2A-57DE-528A-8F41-C79EBE44B2A0">Customising other behaviour</xref>  </p> </li>
+</ul> <p id="GUID-9B842CF3-D1A2-5BC7-8979-42EC7CD9A523"><b>Disabling drive auto-detection</b> </p> <p>The
+most common customisation is to use the supplied version of the Base Starter
+and to create one or more local drive mapping files . In this case, savings
+in code space can be made by removing the code that deals with auto-detection.
+This is achieved by adding the following line to the <filepath>MMP</filepath> file
+describing the Base Starter, and then rebuilding it. </p> <codeblock id="GUID-4D382A63-638C-5AF2-9535-88C7E3AB0869" xml:space="preserve">MACRO AUTODETECT_DISABLE</codeblock> <p id="GUID-4AB5A9C6-6D33-58E9-A372-033C1595DB9E"><b>Customising for multiple
+hardware states</b> </p> <p>If the state of your hardware varies, and it requires
+different mapping files for different states, then it is still possible to
+use the local drive mapping scheme. Examples of hardware state variations
+might be differences in the state of a switch or jumper setting, or the presence
+or absence of a hardware feature. In this situation, the ROM can be built
+with more than one mapping file. A custom version of the Base Starter provides
+its own version of the virtual function <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::LocalDriveMappingFileName()</apiname></xref>;
+this checks the appropriate settings, and returns the name of the appropriate
+local drive mapping file. The returned name is the full path name. </p> <p id="GUID-7098B073-430F-5CA6-91C6-BCF267B33BF3"><b>Overriding the default drive
+mapping</b> </p> <p>To override the default mapping of drive letters to drive
+numbers on a drive by drive basis, a custom version of the Base Starter provides
+its own version of the virtual function <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::DefaultLocalDrive()</apiname></xref>. </p> <p>To
+override the auto-configuration table used by the automatic local drive mapping
+scheme, for example to add support for a new <filepath>.FSY</filepath>, a
+custom version of the Base Starter provides its own version of the virtual
+function <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::GetNextStandardFSInfoEntry()</apiname></xref>. </p> <p id="GUID-904D8CCE-9E16-5A60-B141-9C838B1B8B44"><b>Customising mount flags</b> </p> <p>Whether
+you use the automatic local drive mapping scheme or an explicit local drive
+mapping file, you can provide support for additional mount flags. A custom
+version of the Base Starter provides its own version of the virtual functions: </p> <ul>
+<li id="GUID-8F1D6582-946C-5D25-AEE7-95563233BDDF"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::ParseCustomMountFlags()</apiname></xref>  </p> </li>
+<li id="GUID-C65F29D7-8BFD-5B84-B184-57C734F3D5EF"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::HandleCustomMountFlags()</apiname></xref>  </p> </li>
+</ul> <p id="GUID-905BFBD9-AD40-5E11-AFED-F791389F1450"><b>Customising the drive initialisation
+sequence</b> </p> <p>To override the entire local drive initialisation sequence
+provided by the generic version of the Base Starter, a custom version of the
+Base Starter provides its own version of the virtual function <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartUp::LocalDriveInit()</apiname></xref>. </p> <p id="GUID-B93875C5-1B35-5993-89C4-B2CA5F502450"><b>Customising Loadlocale</b> </p> <p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>User::UTCOffset()</apiname></xref> is called within the <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>LoadLocale()</apiname></xref> function. Customise <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::LoadLocale()</apiname></xref> so
+that the offset behaviour is correct for your time zone. </p> <p>Setting the <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>User::UTCOffset()</apiname></xref> is required within EStart
+to provide backward compatibility and because it provides the system time
+to components before the timezone/locale services are initialised. </p> <p>See <xref href="GUID-15E048BA-E158-508D-9DB4-C9DF9A546090.dita">setting the universal time
+offset</xref>. </p>  <p id="GUID-0B60FAF0-5D2F-5A0F-984C-DFB35BC09ED2"><b>Customising the restart
+mode</b> </p> <p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::GetStartupMode()</apiname></xref> and <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::GetStartupModeFromFile()</apiname></xref> must be
+implemented to get the restart mode at start-up. </p> <p>Symbian platform
+does not define any meaning to restart mode values. It is for the use of the
+device manufacturer. </p> <p>The restart mode is defined by the HAL attribute <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>EPersistStartupM</apiname></xref>. This is a <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TAttribute</apiname></xref> enum
+value defined in class <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>HALData</apiname></xref> in <filepath>..\hal\inc\hal_data.h</filepath>. </p> <p>To
+use this attribute, define it in your variant’s <filepath>config.hcf</filepath> file
+and set an initial value in your variant’s <filepath>values.hda</filepath> file.
+The template port defines the attribute as settable using the following definition
+in the <filepath>config.hcf</filepath> file. </p> <codeblock id="GUID-DCB65835-DB05-5092-B4D0-5ABA551773F8" xml:space="preserve">EPersistStartupModeKernel : set = ProcessPersistStartupMode</codeblock> <p>The value can be changed using <codeph>HAL::Set()</codeph>. <codeph>ProcessPersistStartupMode</codeph> is
+the name of a function internal to Symbian platform. If you choose to make
+the attribute settable, you must use this definition. </p> <p>Calls to <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>HAL::Get()</apiname></xref> are routed to the function <codeph>Template::VariantHal()</codeph> in
+your variant's <filepath>variant.cpp</filepath> file, and handled by the <codeph>EVariantHalGetPersistedStartupMode</codeph> case. </p> <p>Calls
+to <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>HAL::Set()</apiname></xref> are routed to the function <codeph>Template::VariantHal()</codeph> in
+your variant's <filepath>variant.cpp</filepath> file, and handled by the <codeph>EVariantHalPersistStartupMode</codeph> case. </p> <p>You
+need to do the following: </p> <ul>
+<li id="GUID-1B0499AB-4320-598D-B4FD-89B610C8CC2D"><p>If you choose to make
+the custom startup mode settable (in Symbian platform terminology, the attribute
+is said to be derived), you need to implement <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::GetStartupMode()</apiname></xref>.
+Derived attributes are saved when the system is closed down. The function <codeph>GetStartupMode()</codeph> is
+called before the file server starts. </p> </li>
+<li id="GUID-EB91080D-1321-52B1-9EEA-718B02413928"><p>If you choose to make
+the custom startup mode non-settable (in Symbian platform terminology, the
+attribute is said to be non-derived), you need to implement <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::GetStartupModeFromFile()</apiname></xref>.
+Non-derived attributes are read from file, and this function is called after
+the file server has started. </p> </li>
+<li id="GUID-8C418384-C30C-59E2-9E2A-542701C4D0DF"><p>You need to provide
+an implementation for your <codeph>Template::VariantHal()</codeph> function
+in your <filepath>variant.cpp</filepath> file. </p> </li>
+</ul> <p>The example below is the OMAP H4 variant implementation of <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>GetStartupModeFromFile()</apiname></xref> and <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>GetStartupMode()</apiname></xref> found
+in <filepath>...\dev1\omap_hrp\h4estart\estartmain.cpp</filepath>. </p> <codeblock id="GUID-8BD6A664-7A7E-580E-AD33-46C7B6AB4FB5" xml:space="preserve">TInt TH4FSStartup::GetStartupModeFromFile()
+    {
+    if (iStartupMode != EStartupModeUndefined)
+        {
+        TInt r = ReadAndReset();
+        return r;
+        }
+    return KErrNone;
+    }
+
+TInt TH4FSStartup::GetStartupMode()
+    {
+    TInt r = ReadAndReset();
+    return r;
+    }
+
+TInt TH4FSStartup::ReadAndReset()
+    {
+    TInt value;
+    TInt r = HAL::Get(HALData::EPersistStartupModeKernel, value);
+    if (r == KErrNone)
+        {
+        iStartupMode = value;
+        }
+    r = HAL::Set(HALData::EPersistStartupModeKernel, EStartupModeUndefined);
+    return r;
+    }</codeblock> <p>See <xref href="GUID-2D977A02-5928-5441-8AE7-42A722F2A4B8.dita#GUID-2D977A02-5928-5441-8AE7-42A722F2A4B8/GUID-4DA41221-40B9-5BC7-B2C6-7C6EB4522508">User-Side
+Hardware Abstraction</xref>. </p> <p id="GUID-4E9AFD2A-57DE-528A-8F41-C79EBE44B2A0"><b>Customising other behaviour</b> </p> <p>You
+can change other default behaviour. For example, to add additional functionality
+related to File Server initialisation, or the initialisation of other base
+related components, then the following virtual functions can also be customised.
+Follow the links to the individual functions for more detail: </p> <ul>
+<li id="GUID-DF81E0C5-3404-50BA-B91D-D57CA5B0C08C"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::Init()</apiname></xref>  </p> </li>
+<li id="GUID-3D245F97-00D2-561E-A752-2ACC2EFBEC92"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::Run()</apiname></xref>  </p> </li>
+<li id="GUID-F700923A-3E2C-5BE0-8EBB-911C7A8C1D56"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::InitialiseHAL()</apiname></xref>  </p> </li>
+<li id="GUID-D60B9ADD-EB13-5FB1-A632-488383D89289"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::StartSystem()</apiname></xref>  </p> </li>
+<li id="GUID-93DD7CF9-77BA-56E2-8BB6-617EC6CF3865"><p> <xref href="GUID-7A6C0343-7B98-3429-9162-4C0357594230.dita"><apiname>TFSStartup::Close()</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-AC49186C-F69B-5D5B-8515-3CF8CD91EAF4"><title>Activities
+that the Base Starter does not do</title> <p>The Base Starter is responsible
+for mapping local drives to drive letters and for loading the appropriate
+file systems on local drives. It does <i>not</i> install media drivers, and
+is not responsible for deciding which local drive a media driver will register
+with. This is done by the individual media drivers and peripheral controllers
+when they are initialised. </p> <p>See <xref href="GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52.dita#GUID-A70A01D2-467E-5BA8-A01D-6182558F3F52/GUID-4A8DEEAB-32C4-5431-8226-5623E2BD9098">Registering
+the media driver</xref> for information about how to register a media driver. </p> <p>See
+also <xref href="GUID-5C223AD5-4676-58B4-B3A5-066F6B69AA4D.dita#GUID-5C223AD5-4676-58B4-B3A5-066F6B69AA4D/GUID-868866C8-E90C-5291-8732-BB4E86D6B43E">Local
+Media Subsystem</xref>. </p> </section>
+</conbody></concept>

@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2E54DA7D-1094-41C6-AFB0-9999471991F8" xml:lang="en"><title>Interrupt Implementation Guide</title><shortdesc>Describes how to implement the Interrupt class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-514E76B0-009C-48D4-935C-FBE48FDD3631-GENID-1-2-1-10-1-5-1-7-1-1-9-1-4-1-3-1"><title>Introduction</title>             <p>Interrupt handling is implemented by writing platform
+specific versions of the structures and functions of the Interrupt
+class. The details of the implementation depend on hardware and the
+architecture of the device. This document describes a simple implementation
+of the structures and functions and then discusses more elaborate
+strategies required with the use of device specific interrupts , chained
+interrupts and multiple interrupt sources. It also covers implementation
+on unicore platforms only. The SMP version of the  kernel now implements
+support for the ARM Generic Interrupt Controller and relies on its
+use.</p><ul>
+<li><p>Chained interrupts are interrupts which are output by one controller
+and input to another. They need to be distinguished in the ISR table
+and require extensions to the handler functions.</p></li>
+<li><p>Multiple interrupt sources to the same ISR require the use
+of pseudo-interrupts.</p></li>
+<li><p>When a Symbian port is split into an ASSP and variant (common
+and device specific) layer, the variant may include additional interrupt
+sources. Their API is defined by the port. Device specific interrupts
+are sometimes used to handle interrupts from peripherals: another
+technique is to route peripheral interrupts to a GPIO pin. Peripheral
+interrupts cannot be specified as part of the ASSP layer.</p></li>
+</ul><p>The Template Baseport provides a skeleton implementation for
+developers to modify at <filepath>kernelhwsrv/bsptemplate/asspandvariant/template_assp/interrupts.cpp</filepath>.</p>         </section>
+<section id="GUID-35383FC7-4099-4048-B4B8-F84D10259036"><title>The
+ISR table</title><p>The ISR table is a data structure which pairs
+each ISR with the interrupt source to which it will be bound. It must
+have enough space for each interrupt source on the device. It is implemented
+as an array of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-B864263D-7682-3938-9180-030C3D123174"><apiname>Interrupt::SInterruptHander</apiname></xref> of size <xref href="GUID-2A04B9AF-92F3-3A5C-93AD-3DD52E20A6D3.dita"><apiname>KINterruptSourceCount</apiname></xref> in which the interrupt Id is used
+as an index to the table. This example code assumes a size of 32.</p><codeblock xml:space="preserve">...
+const TInt KInterruptSourceCount = 32;
+SInterruptHandler IsrHandlers[KInterruptSourceCount];
+...</codeblock></section>
+<section id="GUID-393C43D1-6A48-473F-AE6F-E3E6F474762B"><title>DisableAndClearAll()</title><p>Interrupts must be disabled and cleared with a call to <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-3486EC50-55C5-366B-8BE2-E1180F52AB05"><apiname>Interrupt::DisableAndClearAll()</apiname></xref> before the call to <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-41FEFEA2-27C8-33F3-8781-89C092AE41B6"><apiname>Interrupt::Init1()</apiname></xref> at the start of initialization. Implementation
+of this function is entirely hardware dependent.</p></section>
+<section id="GUID-7CD1BE2F-CDDC-46DC-95CE-4ADF909F0494"><title>Init1()</title><p>The kernel is initialized in phases, interrupts being involved
+in the first phase and sometimes the third. The Init1() function should
+be implemented to</p><ul>
+<li><p>Initialize the ISR table, binding all ISRs to the spurious
+interrupts handler.</p></li>
+<li><p>Register the dispatcher functions.</p></li>
+<li><p>Bind ISRs which handle chained or pseudo interrupts.</p></li>
+</ul><p>Interrupts must be disabled during first phase initialization.</p><p>This example code illustrates initialization of the ISR table.</p><codeblock xml:space="preserve">...
+const TInt KInterruptSourceCount = 32;
+SInterruptHandler IsrHandlers[KInterruptSourceCount];
+...
+
+for( TInt i = 0; i &lt; KInterruptSourceCount; ++i )
+    {
+    IsrHandlers[i].iIsr = SpuriousHandler;
+    IsrHandlers[i].iPtr = (TAny*)i;
+    }</codeblock><p>This example code illustrates an implementation
+of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-41FEFEA2-27C8-33F3-8781-89C092AE41B6"><apiname>Interrupt::Init1()</apiname></xref> after the point at which
+the ISR table has been initialized.</p><codeblock xml:space="preserve">void TemplateInterrupt::Init1()
+    {
+     //
+     // need to hook the ARM IRQ and FIQ handlers as early as possible
+     // and disable and clear all interrupt sources
+     //
+     ... 
+     DisableAndClearAll();
+     Arm::SetIrqHandler((TLinAddr)TemplateInterrupt::IrqDispatch);
+     Arm::SetFiqHandler((TLinAddr)TemplateInterrupt::FiqDispatch);
+    }
+</codeblock></section>
+<section id="GUID-3FCBCFFC-C3E6-4439-86A4-4845B21CF3CF"><title>Init3()</title><p>Third phase initialization involves initializing various interrupt
+handlers and sources which can only be initialized when the kernel
+is fully functional. This is done with a call to <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-D77022E6-FA45-3C00-95A3-B62792359997"><apiname>Interrupt::Init3()</apiname></xref>.</p><p>It is important to remember that interrupts are enabled during
+third phase initialization.</p></section>
+<section id="GUID-C4CD4CA8-175B-4995-8DC3-7D7F7D62E3FB"><title>Spurious()</title><p>Interrupts not bound to a real ISR must be bound to a 'spurious'
+handler function <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-701CE497-EF6D-3557-8558-5C9354C1039B"><apiname>Interrupt::Spurious()</apiname></xref> which returns
+an error with the number of the interrupt.</p></section>
+<section id="GUID-D5367FEE-AC77-4317-B0CA-A8F0690AACD1"><title>Bind()</title><p>The <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> function binds ISRs to
+interrupt sources.</p><p>The argument <codeph>aId</codeph> is the
+Id of an interrupt source and is used to index an entry in the ISR
+table. Set the <codeph>iPtr</codeph> and <codeph>iIsr</codeph> members
+of that entry (ISR parameter and ISR pointer) to the passed in values <codeph>aPtr</codeph> and <codeph>aIsr</codeph>.</p><p>The implementation
+should perform some preliminary checks.</p><ul>
+<li><p>The interrupt Id must be checked for validity</p></li>
+<li><p>The ISR must not already be bound to a real interrupt. It should
+have been bound to the spurious interrupt handler at initialization.</p></li>
+</ul><p>All interrupts must be disabled during binding.</p><p>This
+example code provides a basic implementation.</p><codeblock xml:space="preserve">EXPORT_C TInt Interrupt::Bind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+       TInt r = KErrNone;
+    If(TUint(aId)&gt;=TUint(KInterruptSourceCount))
+        {
+        r = KErrArgument; // Illegal interrupt number
+        }
+       else 
+        {
+           SInterruptHandler&amp; h = IsrHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr != &amp;SpuriousHandler)
+            {
+            r = KErrInUse; // Already bound to an ISR
+            }
+           else
+            {
+            h.iPtr = aPtr; // The ISR parameter
+            h.iIsr = aIsr; // Pointer to the ISR
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+    }
+</codeblock><p>The implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> can be more complicated in the case of chained interrupts, multiple
+interrupt sources, pseudo interrupt sources and device interrupts:
+see the discussion of those topics.</p></section>
+<section id="GUID-BEB323CF-9DDC-4486-AD32-682B78AF2072"><title>Unbind()</title><p>The <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> function unbinds ISRs
+from interrupt sources.</p><p>The argument <codeph>aId</codeph> is
+the Id of an interrupt source and is used to index an entry in the
+ISR table. Reset the entry in the ISR table to reference the spurious
+handler function.</p><p>The implementation should perform some preliminary
+checks.</p><ul>
+<li><p>The interrupt Id must be checked for validity</p></li>
+<li><p>The ISR must not already be unbound (that is, bound to the
+spurious interrupt handler).</p></li>
+</ul><p>All interrupts must be disabled during unbinding.</p><p>This
+example code provides a basic implementation.</p><codeblock xml:space="preserve">EXPORT_C TInt Interrupt::Unbind(TInt aId)
+    {
+       TInt r = KErrNone;
+       if (TUint(aId) &gt;= TUint(KInterruptSourceCount))
+        {
+        r = KErrArgument;    // Illegal interrupt number
+        }
+       else
+        {
+        SInterruptHandler&amp; h = IsrHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr == &amp;SpuriousHandler)
+            {
+            r = KErrGeneral; // Already unbound
+            }
+        else
+            {
+            h.iPtr =(TAny*)aId;
+            h.iIsr = SpuriousHandler;  // Replace with spurious handler
+            // NOTE: at this point it may be wise to
+            // force the hardware interrupt source to disabled.
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+       }
+</codeblock><p>The implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> can be more complicated in the case of chained interrupts, multiple
+interrupt sources, pseudo interrupt sources and device interrupts:
+see the discussion of those topics below.</p></section>
+<section id="GUID-F8859FAE-9FA3-494E-A294-0ACF7158BD40"><title>Enable()</title><p>Device drivers call the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> function to enable the interrupt source identified by the argument <codeph>anId</codeph> in the interrupt controller hardware. </p><p>The implementation
+is entirely hardware dependent.</p><p>This example involves a check
+for chained interrupts, which are discussed in their own section below.</p><codeblock xml:space="preserve">EXPORT_C TInt Interrupt::Enable(TInt anId)
+    {
+     TInt r=KErrNone;
+     // if ID indicates a chained interrupt, call variant...
+     if (anId&lt;0 &amp;&amp; ((((TUint)anId)&gt;&gt;16)&amp;0x7fff)&lt;(TUint)KNumTemplateInts)
+         r=TemplateAssp::Variant-&gt;InterruptEnable(anId);
+     else if ((TUint)anId&gt;=(TUint)KNumTemplateInts)
+         r=KErrArgument;
+     else if (TemplateInterrupt::Handlers[anId].iIsr==TemplateInterrupt::Spurious)
+         r=KErrNotReady;
+     else
+         {
+         //
+         // TO DO: (mandatory)
+         //
+         // Enable the corresponding Hardware Interrupt source
+         //
+         }
+     return r;
+    }
+</codeblock></section>
+<section id="GUID-A508AA5E-E81A-4FC0-97DD-41543FF458E6"><title>Disable()</title><p>Device drivers call the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> function to disable the interrupt source identified by the argument <codeph>anId</codeph>  in the interrupt controller hardware. The implementation
+is entirely hardware dependent.</p></section>
+<section id="GUID-53F6AAE1-3AE7-49E6-845D-135E43449F9F"><title>Clear()</title><p>Device drivers call the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-DB641A23-82B2-373E-A514-E11118CB6E69"><apiname>Interrupt::Clear()</apiname></xref> function
+to acknowledge that they have serviced the interrupt and cleared the
+pending flag in the interrupt controller hardware. The implementation
+is entirely hardware dependent.</p><p><xref href="GUID-5BCEAABF-D060-3F29-A8AE-0C14A8DFC1D2.dita"><apiname>Clear()</apiname></xref> is
+a useful function in cases where an interrupt must be cleared explicitly
+rather than as a side effect of I/O register access: for instance
+in PC card and MMC controller code.</p></section>
+<section id="GUID-3EB891CD-91C7-4B66-B41F-6F19CAF717CF"><title>SetPriority()</title><p>The <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-FA4CFED7-D694-399C-8F84-FA9FE3C3A171"><apiname>Interrupt::SetPriority()</apiname></xref> function associates
+a priority value (passed as a<codeph> TInt</codeph>) with an  interrupt
+Id. The meaning of the priority value is entirely hardware dependent.</p><p>Priority is a property of interrupts on some hardware, an example
+being OMAP. Where the hardware is of this type, <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-FA4CFED7-D694-399C-8F84-FA9FE3C3A171"><apiname>Interrupt::SetPriority()</apiname></xref> can be used to modify priorities in hardware. A simple use is to
+determine whether an interrupt generates an IRQ or an FIQ. If priority
+adjustment is not supported or not specified, the function should
+simply return <codeph>KErrNotSupported</codeph>.</p><p>The implementation
+is entirely hardware dependent.</p></section>
+<section id="GUID-ABE454D5-E219-48D0-A38C-7A63FBB0C088"><title>IrqDispatch()
+and FiqDispatch()</title><p>The functions <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-9CD4CECF-9DF9-3E94-BF17-45F387228A76"><apiname>Interrupt::IrqDispatch()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-B12F9319-11D6-3E43-AE66-6654DF15D1E3"><apiname>Interrupt::FiqDispatch()</apiname></xref> dispatch an interrupt
+by calling the associated ISR. Interrupts are either IRQ or FIQ interrupts
+and separate dispatch functions must be provided for each type. What
+follows refers to IRQs but applies equally to FIQs as the distinction only operates at the level of hardware and the two
+dispatch functions look the same.</p><p>In the simplest implementation,
+the interrupt Id is used as an index into the ISR table. The <codeph>iIsr</codeph> member of the entry is called as a function with the <codeph>iPtr</codeph> member as its argument. The interrupt Id is taken from
+a list of pending IRQs as in this example code.</p><codeblock xml:space="preserve">void IrqDispatch()
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+    // for the purposes of this example we assume that reading
+    // this register also clears the pending flags
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        // while there is at least one pending IRQ
+        if( pendingIrqs &amp; 1 )
+            {
+            // the next interrupt is pending - dispatch it
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock><p>This code is a simplified example which assumes that</p><ul>
+<li><p>The interrupt controller provides 32 interrupt sources and
+has a 32 bit pending interrupt register where a 1 indicates a pending
+interrupt and all ones are cleared when the register is read.</p></li>
+<li><p>The interrupt source represented by the low order bit in the
+pending interrupt register is represented by interrupt Id 0 and so
+on.</p></li>
+</ul><p>Implementation will be more complex where chained interrupts
+and multiple interrupt sources are involved, as discussed below.</p><p>Dispatch functions are time critical. You will probably write
+an initial implementation in C++ to get them working and then rewrite
+in assembler for maximum efficiency.</p><codeblock xml:space="preserve"/></section>
+<section id="GUID-457E3092-8FE3-4CB4-8910-11E03DD8C82D"><title>Chained
+interrupts</title><p>A platform often has multiple interrupt controllers
+of higher and lower priority (higher and lower level controllers),
+organized so that the output of a lower level controller is one of
+the inputs to a higher level controller. Interrupt sources organized
+in this way are called chained interrupts.</p><p>In a system with
+chained interrupts, the ISR table must be structured so that interrupts
+from higher and lower level controllers can be distinguished by their
+Ids.</p><p>The <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> functions are the same whether interrupts are chained or not.</p><p>In a system with chained interrupts it can be desirable to write
+the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> functions so as to disable not the interrupt itself but a the higher
+level interrupt on the controller to which it is the input.</p><p>The <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-9CD4CECF-9DF9-3E94-BF17-45F387228A76"><apiname>Interrupt::IrqDispatch()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-B12F9319-11D6-3E43-AE66-6654DF15D1E3"><apiname>Interrupt::FiqDispatch()</apiname></xref> functions need to be extended in a system with chained interrupts.
+There are two techniques for doing this, both of which involve a separate
+second level dispatch function, but which differ in the way it is
+called. </p><ul>
+<li><p>In one technique, the main interrupt dispatcher calls the second
+level dispatcher if the relevant condition is satisfied. </p></li>
+<li><p>In the other technique, the second level dispatcher is bound
+directly to an interrupt source as its ISR. </p></li>
+</ul><p>The first technique works well in cases where there is only
+a main and a secondary interrupt controller. It does not scale well
+in cases which make use of multiple controllers chained to substantial
+depth.</p><p>You need to allocate locations in your ISR table for
+the secondary controllers so that the interrupt Id identifies which
+hardware controller the input is on. For example, if each interrupt
+controller handles 32 interrupt sources, you could allocate the first
+32 Ids to the highest level controller, the next 32 to a second level
+controller and so on.</p><p>This example code illustrates a main dispatcher
+which calls a second level dispatcher.</p><codeblock xml:space="preserve">void IrqDispatch()
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            if( index == EMainIntChainIrq )
+                {
+                // second-level controller is signalling
+                SecondLevelIrqDispatch();
+                }
+            else
+                {
+                // call ISR
+                (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+                }
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+</codeblock><p>This example code illustrates a second level dispatcher
+bound directly to an interrupt source.</p><codeblock xml:space="preserve">void IrqDispatch()
+    // MAIN IRQ DISPATCHER, FIRST-LEVEL INTERRUPT
+    {
+    TUint32 pendingIrqs = TheAssp::IrqPendingRegister();
+
+    TInt index = 0;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+void SecondLevelIrqDispatch( TAny* /* aParam */ )
+    {
+    TUint32 pendingIrqs = TheAssp::SecondLevelIrqPendingRegister();
+ 
+    TInt index = EStartOfSecondLevelIntId;
+    while( pendingIrqs )
+        {
+        if( pendingIrqs &amp; 1 )
+            {
+            (IsrHandlers[index].iIsr)(IsrHandlers[index].iPtr);
+            }
+        ++index;
+        pendingIrqs &gt;&gt;= 1;
+        }
+    }
+void InitialiseSecondLevelDispatch()
+    // Bind and enable the second-level dispatcher
+    {
+    Interrupt::Bind(EMainIntChainIrq,SecondLevelIrqDispatch,NULL);
+    Interrupt::Enable( EMainIntChainIrq );
+    }
+</codeblock><p>This example assumes an ISR table in which the second
+level interrupt ISRs begin at location 32 (<codeph>EStartOfSecondLevelIntId</codeph>). <codeph>EMainIntChainIrq</codeph> is the interrupt Id of the chained
+interrupt source to the main interrupt controller. The second level
+dispatcher is itself an ISR with an argument <codeph>TAny</codeph>* which is not needed in this example (possible uses are to distinguish
+between core and device specific ISR tables or to point to I/O addresses).</p></section>
+<section id="GUID-8953F8D5-8EA7-46B2-9030-A2932F06032F"><title>Multiple
+interrupt sources</title><p>In cases where multiple  peripherals are
+connected to the same interrupt source, multiple sources may generate
+the same interrupt which will then require a different ISR depending
+on the specific source. However, EKA2 does not allow binding of multiple
+ISRs to the same interrupt. There are two strategies for solving this
+problem, both of which involve assigning the multiple ISRs not to
+the real interrupt but to pseudo-interrupt Ids. In one strategy the
+dispatcher examines the hardware to determine where the interrupt
+originated and calls the appropriate ISR. In the other strategy, the
+ISRs are written so that they examine their peripheral hardware and
+only run if it is actually signalling an interrupt: in this strategy
+the dispatcher calls all the ISRs bound to the real interrupt but
+only one of them runs.</p><p>There is no requirement to extend the
+implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-CCC9A397-608C-3EAF-830F-A59800C2E8E5"><apiname>Interrupt::Unbind()</apiname></xref> where multiple interrupt sources are
+involved.</p><p>Multiple interrupt sources require you to extend the
+implementation of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-BB169E6E-D8F9-3762-899D-6DBA4B29CF87"><apiname>Interrupt::Enable()</apiname></xref> and <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> to enable and disable the true interrupt
+source.</p><p>The dispatch functions should be extended in the same
+way as with chained interrupts, using one of the two techniques described
+for that case.</p><p>The ISR table should be structured so that the
+interrupt Id identifies the hardware controller the interrupt is on.
+For instance the first 32 Ids might refer to the highest level controller,
+the next 32 to a second level controller and so on.</p></section>
+<section id="GUID-26850469-13E9-4A50-B6B0-946E317085AD"><title>Device
+specific interrupts</title><p>Interrupts generated by peripherals
+are sometimes routed to a GPIO pin and sometimes included in a variant
+layer. Where they are part of the variant layer, they must be listed
+in a separate ISR table which is part of the device implementation.
+However, we want device drivers to be able to use the Interrupt class
+functions on interrupts of either type. The solution is to write separate
+device specific functions derived from those of the core class. Core
+class functions are then written in such a way as to identify device
+specific interrupts and pass them on to the derived functions.</p><p>A recommended way of labelling interrupts as being device specific
+is to assign negative numbers as their Ids. The core functions can
+then identify negative Ids as belonging to device specific interrupts
+and pass them to the device specific derived functions. The device
+specific functions can convert them to positive numbers which serve
+as indexes to the device specific ISR table.</p><p>This example code
+illustrates device specific interrupt handling.</p><codeblock xml:space="preserve">EXPORT_C TInt Interrupt::Bind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+    TInt r = KErrNone;
+    if(aId &lt; 0 )
+        {
+        return MyAsic-&gt;VariantBind( aId, aIsr, aPtr ); // Device specific ID, call variant
+        }
+    else if (aId &gt;= KInterruptSourceCount)
+            {
+            r = KErrArgument; // Illegal interrupt number
+            }
+        else
+            {
+            SInterruptHandler&amp; h = IsrHandlers[aId];
+            TInt irq = NKern::DisableAllInterrupts();
+            if (h.iIsr != SpuriousHandler)
+                {
+                r = KErrInUse; // Already bound to an ISR
+                }
+            else
+                {
+                h.iPtr = aPtr;
+                h.iIsr = anIsr;
+                }
+            NKern::RestoreInterrupts(irq);
+            }
+    return r;
+    }
+
+SInterruptHandler VariantHandlers[KNumVariantInts];
+EXPORT_C TInt TMyVariant::VariantBind(TInt aId, TIsr aIsr, TAny* aPtr)
+    {
+    TInt r = KErrNone;
+    aId = (-aId)-1;    // convert to positive number &gt;=0
+    If (aId &gt;= KInterruptSourceCount || aId &lt; 0)
+        {
+        r = KErrArgument; // Illegal interrupt number
+        }
+    else
+        {
+        SInterruptHandler&amp; h = VariantHandlers[aId];
+        TInt irq = NKern::DisableAllInterrupts();
+        if (h.iIsr != VariantSpuriousHandler)
+            {
+            r = KErrInUse; // Already bound to an ISR
+            }
+        else
+            {
+            h.iPtr = aPtr;
+            h.iIsr = anIsr;
+            }
+        NKern::RestoreInterrupts(irq);
+        }
+    return r;
+    }</codeblock><p>The example provides a version of <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> which calls a variant layer function<codeph> VariantBind()</codeph> to process device specific interrupts (here assigned negative Ids)
+to ISRs held in the variant specific table <codeph>VariantHandlers</codeph>.</p></section>
+</conbody><related-links>
+<link href="GUID-654A788A-526A-4C3F-838C-05B09F0D5445.dita"><linktext>Interrupt
+Technology Guide</linktext></link>
+<link href="GUID-D0F5D40A-28D2-4A2E-9B40-180537E60F56.dita"><linktext>Interrupt
+Client Interface Guide</linktext></link>
+</related-links></concept>

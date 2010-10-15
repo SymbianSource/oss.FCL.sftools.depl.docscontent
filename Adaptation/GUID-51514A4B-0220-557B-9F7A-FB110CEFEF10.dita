@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10" xml:lang="en"><title>Shared
+Chunks</title><shortdesc>A shared chunk is a mechanism that kernel-side code uses to share
+memory buffers safely with user-side code. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>A shared chunk is a mechanism that kernel-side code can use to share memory
+buffers safely with user-side code. This topic describes this concept, and
+explains how to use the shared chunk APIs. </p>
+<ul>
+<li id="GUID-2D439828-C4DB-5D0F-83EF-46EDD9D2C2CF"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-F09BAE7B-805F-5CF1-8C9A-AD23C50026AD">What are shared chunks?</xref>  </p> </li>
+<li id="GUID-EE669369-2315-5EB3-A4EF-CF1778DF4432"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-FBFA1B23-C6CA-5E9A-A461-E4822EB9E76F">Creating a shared chunk</xref>  </p> </li>
+<li id="GUID-0BE8F408-05E8-5F1A-987A-E35CD8D92703"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D55514EA-D218-52F2-807B-78D58E99D810">Opening a handle to the shared chunk for user-side access</xref>  </p> </li>
+<li id="GUID-5A0B2A6A-169F-5158-B554-A346C34C16D7"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-F63A506B-1573-5F6A-B0C7-CEE5BF1FAD72">Discarding a handle</xref>  </p> </li>
+<li id="GUID-9ED0C21B-5B51-5E38-B77F-96E879E9A053"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-86446948-6012-59B9-8411-BF0E98DC7D3A">Closing and destroying a shared chunk</xref>  </p> </li>
+<li id="GUID-9E297A46-9C63-59C2-A515-1AB8F3BD09BA"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-6D3AAC95-E52B-5E78-B57E-0433ECF14C3A">Committing memory</xref>  </p> </li>
+<li id="GUID-BF5A0349-1DD7-5266-9F86-1DC3F73CC2CC"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-E9630D2D-794B-5AB1-8980-0927E040C0C5">Passing data from user-side code to another device driver</xref>  </p> </li>
+<li id="GUID-EA0A1F4A-DB1D-55F8-8EB1-C3E139AA9B47"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-4C374CF0-0680-5A27-94E7-BB0FD75413AF">Passing data between user-side code</xref>  </p> </li>
+<li id="GUID-A0448628-461A-52F9-A2D4-DE3863005966"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-A8FF0519-9FDC-53D5-8BD6-A3AEA6BFDD46">Direct peripheral access to shared chunks</xref>  </p> </li>
+<li id="GUID-C6A46B05-12C8-5459-ABD7-0BD173E36580"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D8E298EA-A4CD-5501-B5F1-B8F0EE93CE84"> Example code</xref>  </p> <ul>
+<li id="GUID-B17ECEF5-920C-516C-80D1-15AFD3FAA282"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D284D6D0-400D-53D2-9A43-05CEE28DFDC4">Example: Creating a shared chunk</xref>  </p> </li>
+<li id="GUID-75FB5604-6468-502B-A005-38D81DE03588"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-6501F90A-5330-5BC9-A991-A3BECCCA6CDD">Example: Opening a handle to the shared chunk for user-side access</xref>  </p> </li>
+<li id="GUID-FF092178-84C4-5996-85C2-6B9E111EFFD6"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-062C405B-B10F-54A8-8F61-418CAE6019D8">Example: Using a DFC to notify destruction of chunk</xref>  </p> </li>
+<li id="GUID-02D42EFC-B20B-5E34-B555-657DC5DFB748"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-97BF15A2-E74A-51DE-B003-16E1DFF8964E">Example: Committing memory</xref>  </p> </li>
+</ul> </li>
+</ul>
+<p>You may find it useful to refer to the general sections : <xref href="GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89.dita">Device
+Driver Concepts</xref> and <xref href="GUID-4A402DAD-99D3-595E-87FD-AAB5A970D6CC.dita">Device
+Driver Framework</xref>. </p>
+<section id="GUID-F09BAE7B-805F-5CF1-8C9A-AD23C50026AD"><title>What are shared
+chunks?</title> <p>A shared chunk is a mechanism that kernel-side code uses
+to share memory buffers safely with user-side code. References to kernel-side
+code always mean device driver code. </p> <p>The main points to note about
+shared chunks are: </p> <ul>
+<li id="GUID-9B4BC2DE-59AD-50F9-AF37-4966D741741A"><p>They can be created
+and destroyed only by device drivers. It is typical behaviour for user-side
+code, which in this context we refer to as the <i>client</i> of the device
+driver, to pass a request to the device driver for a handle to a shared chunk.
+This causes the device driver to open a handle to the chunk and return the
+handle <i>value</i> to the client. Successful handle creation also causes
+the chunk's memory to be mapped into the address space of the process to which
+the client's thread belongs. Note, however, that the driver dictates <i>when</i> the
+chunk needs to be created, and <i>when</i> memory needs to be committed. </p> </li>
+<li id="GUID-B5D39B0E-150A-56E8-A396-EDDC36D3061B"><p>Like all kernel-side
+objects, a shared chunk is reference counted. This means that it remains in
+existence for as long as the reference count is greater than zero. Once all
+opened references to the shared chunk have been <i>closed</i>, regardless
+of whether the references are user-side or kernel-side, it is destroyed. </p> </li>
+<li id="GUID-348564CB-647F-5658-9DDC-5E0B022B7644"><p>User-side code that
+has gained access to a shared chunk from one device driver can pass this to
+a second device driver. The second device driver must <i>open</i> the chunk
+before it can be used. </p> </li>
+<li id="GUID-8496E32C-48C7-5778-B886-0F63C6EF7ED6"><p>More than one user-side
+application can access the data in a shared chunk. A handle to a shared chunk
+can be passed from one process to another using standard handle passing mechanisms.
+In practice, handles are almost always passed in a client-server context via
+inter process communication (IPC). </p> </li>
+<li id="GUID-8F0AAFD5-661A-5569-AABF-C88287DF836B"><p>Processes that share
+the data inside a chunk should communicate the location of that data as an
+offset from the start of the chunk, and <i>not</i> as an absolute address.
+The shared chunk may appear at different addresses in the address spaces of
+different user processes. </p> </li>
+</ul> </section>
+<section id="GUID-FBFA1B23-C6CA-5E9A-A461-E4822EB9E76F"><title>Creating a
+shared chunk</title> <p>A shared chunk can be created only by code running
+on the kernel-side. This means that it is the device driver's responsibility
+to create a chunk that is to be shared by user-side code. There is <i>no user-side
+API</i> that allows user-side code to create shared chunks. </p> <p>The device
+driver creates a shared chunk using the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref> function.
+It passes to this function a <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita"><apiname>TChunkCreateInfo</apiname></xref> object containing
+the required attributes for that chunk. The most important attribute is the <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-B00A3693-50B6-3A84-89E0-B06D9ABE82ED"><apiname>TChunkCreateInfo::ESharedKernelMultiple</apiname></xref> attribute
+that states that a shared chunk is to be created. </p> <p>Chunks are reference
+counted kernel objects. When the chunk is created, the reference count is
+set to one. </p> <p>See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D284D6D0-400D-53D2-9A43-05CEE28DFDC4">Example:
+Creating a shared chunk</xref>. </p> </section>
+<section id="GUID-D55514EA-D218-52F2-807B-78D58E99D810"><title>Opening a handle
+to the shared chunk for user-side access</title> <p>Before user-side code
+can access the memory in a shared chunk, the device driver must create a handle
+to the chunk and then pass the value back to the user-side. It does this by
+calling the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-BA56B205-60D8-326E-8340-3F78CCEA3DD1"><apiname>Kern::MakeHandleAndOpen()</apiname></xref> function, passing
+the information: </p> <ul>
+<li id="GUID-178CFDE6-BBB0-5A37-A680-13F4E0463248"><p>a pointer to the user-side
+code's thread (or NULL if referring to the current thread) </p> </li>
+<li id="GUID-7A39F8FA-B7E8-5E27-BA07-D1CA6179B8BF"><p>a pointer to the shared
+chunk </p> </li>
+</ul> <p>Typically, the device driver does this in response to a request from
+the user-side. <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-BA56B205-60D8-326E-8340-3F78CCEA3DD1"><apiname>Kern::MakeHandleAndOpen()</apiname></xref> also maps the
+chunk's memory into the address space of the user-side code's thread. </p> <p>If
+the creation of the handle is successful, the device driver returns the handle <i>value</i> back
+to the user-side. The user-side code then assigns the value to an <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> object
+using one of <codeph>RChunk</codeph>'s base class functions: </p> <ul>
+<li id="GUID-091419E2-3BA4-5821-8138-A1047A6070BF"><p> <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-C7E88CD7-A32B-3585-9D8B-3A0726947690"><apiname>RHandleBase::SetHandle()</apiname></xref>  </p> </li>
+<li id="GUID-7974DC49-8CDA-5660-9C8D-709D1FDCA478"><p> <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-9AEAD2B5-4531-3157-839C-CBAECBFCF069"><apiname>RHandleBase::SetReturnedHandle()</apiname></xref>  </p> </li>
+</ul> <p>The user-side code uses <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-9AEAD2B5-4531-3157-839C-CBAECBFCF069"><apiname>RHandleBase::SetReturnedHandle()</apiname></xref> if
+the device driver returns either a positive handle value or a negative error
+code. A negative error code means that handle creation has failed. </p> <p>Opening
+a handle to a shared chunk increases the reference count by one. </p> <p>See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-6501F90A-5330-5BC9-A991-A3BECCCA6CDD">Example:
+Opening a handle to the shared chunk for user-side access</xref>. </p> </section>
+<section id="GUID-F63A506B-1573-5F6A-B0C7-CEE5BF1FAD72"><title>Closing a handle</title> <p>After
+it has been opened, a device driver may need to perform further operations
+before the handle can be returned to the user-side. If these operations fail,
+the device driver code may want to unwind the processing it has done, including
+discarding the handle it has just created. It does this using the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-71A20F01-5E5F-3B27-92BA-3B3BF7D578C9"><apiname>Kern::CloseHandle()</apiname></xref>. </p> <p>This
+reverses the operation performed by <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-BA56B205-60D8-326E-8340-3F78CCEA3DD1"><apiname>Kern::MakeHandleAndOpen()</apiname></xref>. </p> </section>
+<section id="GUID-86446948-6012-59B9-8411-BF0E98DC7D3A"><title>Closing and
+destroying a shared chunk</title> <p>There is no explicit method for deleting
+or destroying shared chunks. Instead, because chunks are reference counted
+kernel objects, a device driver can use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-480F655A-5B93-3E8A-8964-3A04682C3CCF"><apiname>Kern::ChunkClose()</apiname></xref>.
+This function decrements a chunk's access count, and, if the count reaches
+zero, the chunk is scheduled for destruction. </p> <p>The chunk is not be
+destroyed immediately. Instead it is done asynchronously. If the device driver
+needs to know when the chunk has been destroyed, it must specify a DFC (Deferred
+Function Call) at the time the chunk is created. The device driver specifies
+the DFC through the <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-58271733-146A-3ECB-91AC-C38BD2ADC9A0"><apiname>TChunkCreateInfo::iDestroyedDfc</apiname></xref> member.
+The DFC is queued to run only when the chunk has finally been destroyed. At
+this point it is guaranteed that the memory mapped by the chunk can no longer
+be accessed by any code. This is useful in cases where chunks are used to
+map I/O devices or other special memory, and the program managing these needs
+to know when they are free to be reused. </p> <p> <b> Note:</b> For each call
+to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref> and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DAEE47C8-40ED-3F95-9EE9-29033FC5A8D3"><apiname>Kern::OpenSharedChunk()</apiname></xref> there
+should be <i>exactly one</i> call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-480F655A-5B93-3E8A-8964-3A04682C3CCF"><apiname>Kern::ChunkClose()</apiname></xref>.
+Calling <codeph>Close()</codeph> too few times can cause memory leaks. Calling <codeph>Close()</codeph> too
+many times can cause the chunk to be destroyed while a program is still trying
+to access the memory, which causes an application panic for user code and
+a system crash for kernel code. </p> </section>
+<section id="GUID-6D3AAC95-E52B-5E78-B57E-0433ECF14C3A"><title>Committing
+memory</title> <p>After a shared chunk has been created it owns a region of
+contiguous virtual addresses. This region is empty, which means that it is
+not mapped to any physical RAM or memory mapped I/O devices. </p> <p>Before
+the chunk can be used, the virtual memory must be mapped to real physical
+memory. This is known as <i>committing</i> memory. </p> <p><b>Committing RAM
+from the system free memory pool</b> </p> <p>You can commit RAM taken from
+the system free memory pool using the following ways: </p> <ul>
+<li id="GUID-7E755F49-D5E6-538C-9CE1-947310DD94A7"><p>by committing an arbitrary
+set of pages. Use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-9FCD7C2A-5192-3B99-8ACF-2802C1A3FAA1"><apiname>Kern::ChunkCommit()</apiname></xref>. </p> </li>
+<li id="GUID-738B8FF3-5848-54F9-B872-179317BE9B4B"><p>by committing a set
+of pages with physically contiguous addresses. Use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-E1B88A30-6572-3E0B-B6BB-ED4359D7A5FD"><apiname>Kern::ChunkCommitContiguous()</apiname></xref>. </p> </li>
+</ul> <p><b>Committing specified physical addresses</b> </p> <p>You can commit
+specific physical addresses, but only if you set the data member <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-106850A0-5498-387F-AF70-F9D04EB6318D"><apiname>TChunkCreateInfo::iOwnsMemory</apiname></xref> to <xref href="GUID-A759CA2D-8327-348F-9337-4886E619D920.dita"><apiname>EFalse</apiname></xref> when
+you create the shared chunk - see <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-FBFA1B23-C6CA-5E9A-A461-E4822EB9E76F">Creating
+a shared chunk</xref>. </p> <p>You can use the following ways to do this: </p> <ul>
+<li id="GUID-2DCE4AB8-A5CF-536C-8FC1-414755AAC894"><p>by committing a region
+of contiguous addresses. Use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F3A3D9F5-5885-38B2-9711-1DF99C36F62D"><apiname>Kern::ChunkCommitPhysical()</apiname></xref> with
+the signature: </p> <codeblock id="GUID-E159781F-7B60-5A2B-A8EE-3BB6B9CEADBB" xml:space="preserve">TInt Kern::ChunkCommitPhysical(DChunk*, TInt, TInt, TUint32)</codeblock> </li>
+<li id="GUID-5CC4AB75-BF24-5C86-B87B-CA4CDFF6ED5E"><p>by committing an arbitrary
+set of physical pages. Use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F3A3D9F5-5885-38B2-9711-1DF99C36F62D"><apiname>Kern::ChunkCommitPhysical()</apiname></xref> with
+the signature: </p> <codeblock id="GUID-321BD1CC-95D4-5539-9C24-187944AA9D90" xml:space="preserve">TInt Kern::ChunkCommitPhysical(DChunk*, TInt, TInt, const TUint32*)</codeblock> </li>
+</ul> <p>Note: the same physical memory can be committed to two different <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> s
+or shared chunks at the same time, where each <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> has
+a different owner, as long as your turn OFF the caches. </p> </section>
+<section id="GUID-E9630D2D-794B-5AB1-8980-0927E040C0C5"><title>Passing data
+from user-side code to another device driver</title> <p>User-side code that
+has access to a shared chunk from one device driver may want to use this when
+it communicates with another device driver. To enable this, the second device
+driver needs to gain access to the chunk and the addresses used by the memory
+it represents. </p> <p>The second driver must open a handle on the shared
+chunk before any of its code can safely access the memory represented by that
+chunk. Once it has done this, the reference counted nature of chunks means
+that the chunk, and the memory it represents, remains accessible until the
+chunk is closed. </p> <p>The general pattern is: </p> <ul>
+<li id="GUID-03CA36B3-E327-5632-BAC4-80386B6EADC5"><p>the first device driver
+creates the shared chunk. </p> <p>See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-FBFA1B23-C6CA-5E9A-A461-E4822EB9E76F">Creating
+a shared chunk</xref>. </p> </li>
+<li id="GUID-510CA2F2-B9D5-5342-8739-566EBC0BAAC9"><p>the user-side gets the
+handle <i>value</i> from the first device driver and calls <codeph>SetHandle()</codeph> or <codeph>SetReturnedHandle()</codeph> on
+an <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> object [the functions are members of <codeph>RChunk</codeph>'s
+base class <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> (see <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-C7E88CD7-A32B-3585-9D8B-3A0726947690"><apiname>RHandleBase::SetHandle()</apiname></xref> and <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-9AEAD2B5-4531-3157-839C-CBAECBFCF069"><apiname>RHandleBase::SetReturnedHandle()</apiname></xref>]. </p> <p>See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D55514EA-D218-52F2-807B-78D58E99D810">Opening
+a handle to the shared chunk for user-side access</xref>. </p> </li>
+<li id="GUID-3FFCE699-19F1-5A35-BEE6-96FB706EC16F"><p>the user-side passes
+the handle <i>value</i> to the second device driver. This value is obtained
+by calling <codeph>Handle()</codeph> on the <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> object.
+[the function is a member of <codeph>RChunk</codeph>'s base class <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref> (see <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita#GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB/GUID-5B4C908D-AA34-3F1A-8170-77C4C1F829F0"><apiname>RHandleBase::Handle()</apiname></xref>]. </p> </li>
+<li id="GUID-8337612F-E476-52BC-8A4F-39099DD0F351"><p>the second device driver
+calls the variant of <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DAEE47C8-40ED-3F95-9EE9-29033FC5A8D3"><apiname>Kern::OpenSharedChunk()</apiname></xref> with the signature: </p> <codeblock id="GUID-9B2095EE-14E9-5E05-8CD4-67DCB62E3583" xml:space="preserve">DChunk* Kern::OpenSharedChunk(DThread*,TInt,TBool)</codeblock> <p>to
+open a handle to the shared chunk. </p> <p> <b> Note:</b> there are situations
+where the second device driver cannot use this variant of <codeph>Kern::OpenSharedChunk()</codeph> because: </p> <ul>
+<li id="GUID-FDAE7AC0-17AF-5EF8-BEE1-9B58A97B4283"><p>The user-side application
+may have obtained data by using a library API that uses shared chunks internally,
+but which only presents a descriptor based API to the user application. For
+example, an image conversion library may perform JPEG decoding using a DSP,
+which puts its output into a shared chunk, but that library supplies the user
+application with only a descriptor for the decoded data, not a chunk handle. </p> </li>
+<li id="GUID-45844589-86D5-5FB8-AEA7-D5586DA45E87"><p>The communication channel
+between the user-side application and the device driver supports descriptor
+based APIs only, and does not have an API specifically for shared chunks.
+The API items presented by the File Server are an example of this situation. </p> </li>
+</ul> <p>The second device driver will only have the address and size of the
+data (usually a descriptor). If the driver needs to optimise the case where
+it knows that this data resides in a shared chunk, it can use the variant
+of <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DAEE47C8-40ED-3F95-9EE9-29033FC5A8D3"><apiname>Kern::OpenSharedChunk()</apiname></xref> with the signature: </p> <codeblock id="GUID-8CCA35C1-ABBE-5C9D-ABB9-0233E074A14F" xml:space="preserve">DChunk* Kern::OpenSharedChunk(DThread*,const TAny*,TBool,TInt&amp;)</codeblock> <p>to
+speculatively open the chunk. </p> </li>
+</ul> <p><b>Getting the virtual address of data in a shared chunk </b> </p> <p>Before
+device driver code can access a shared chunk that is has opened, it must get
+the address of the data within it. Typically, user-side code will pass offset
+and size values to the driver. The driver converts this information into an
+address, using the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-626CCD99-63D8-322A-A807-9DB96523C82D"><apiname>Kern::ChunkAddress()</apiname></xref>. </p> <p><b>Getting
+the physical address of data in a shared chunk </b> </p> <p>Device driver
+code can get the physical address of a region within a shared chunk from the
+offset into the chunk and a size value. This is useful for DMA or any other
+task that needs a physical address. Use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-79F110C1-2764-34B5-857B-6C0012D2049D"><apiname>Kern::ChunkPhysicalAddress()</apiname></xref> to
+do this. </p> <p><b>Getting chunk attributes and checking for uncommitted
+memory </b> </p> <p>As a shared chunk may contain uncommitted regions of memory
+(gaps), it is important that these gaps are detected. Any attempt to access
+a bad address causes an exception. You can use the function <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-79F110C1-2764-34B5-857B-6C0012D2049D"><apiname>Kern::ChunkPhysicalAddress()</apiname></xref> to
+check for uncommitted regions of memory. </p> </section>
+<section id="GUID-4C374CF0-0680-5A27-94E7-BB0FD75413AF"><title>Passing data
+between user-side code</title> <p>User-side code can access data in a shared
+chunk once it has opened a handle on that chunk. Handles can be passed between
+user processes using the various handle passing functions. This most common
+scenario is via client-server Inter Process Communication (IPC). </p> <p><b>Passing
+a handle from client to server </b> </p> <p>The client passes the handle to
+the shared chunk as one of the four arguments in a <xref href="GUID-4AD02F14-1142-372F-9D11-224595932034.dita"><apiname>TIpcArgs</apiname></xref> object.
+The server opens this using the <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita#GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07/GUID-BE5915FF-4C43-30D8-A6E3-45C33973CD9D"><apiname>RChunk::Open()</apiname></xref> variant
+with the signature: </p> <codeblock id="GUID-0AFB6DCA-A689-55CD-8B51-18E001822855" xml:space="preserve">RChunk::Open(RMessagePtr2 aMessage,TInt aParam,TBool isReadOnly, TOwnerType aType)
+</codeblock> <p><b>Passing a handle from server to client </b> </p> <p>The
+server completes the client message using the chunk handle: </p> <codeblock id="GUID-8CBBC765-9623-508D-8761-A123A4697C7C" xml:space="preserve">RMessagePtr2::Complete(RHandleBase aHandle)</codeblock> <p>The
+client then assigns the returned handle value to an <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> by
+calling: </p> <codeblock id="GUID-EC9CE7E0-20B2-5315-9770-0860A3C429DA" xml:space="preserve">RChunk::SetReturnedHandle(TInt aHandleOrError)</codeblock> <p> <b> Note:</b>  </p> <ul>
+<li id="GUID-B32E3982-9AC8-531E-9109-3CA77F75D4F4"><p>Processes that share
+data within shared chunks must specify the address of that data as an <i>offset</i> from
+the start of the chunk, and not as an absolute address. This is because the
+chunk may appear at different addresses in the address spaces of different
+user processes. </p> </li>
+<li id="GUID-BD87DA45-3279-522C-BF23-552A40DFB8FD"><p>Once a chunk is no longer
+needed for data sharing, user applications should close the handle they have
+on it. If they do not, the memory mapped by the chunk can never be freed. </p> </li>
+</ul> <p>See <xref href="GUID-6047DB3F-DC92-51DF-9EEB-00E79E890B54.dita">Using
+Client/Server</xref>. </p> </section>
+<section id="GUID-A8FF0519-9FDC-53D5-8BD6-A3AEA6BFDD46"><title>Direct peripheral
+access to shared chunks</title> <p>When DMA or any other hardware device accesses
+the physical memory represented by a shared chunk, the contents of CPU memory
+cache(s) must be synchronised with that memory. Use these functions for this
+purpose: </p> <ul>
+<li id="GUID-F1BB9CD1-2D18-5B85-B2DC-C3189C2A82CB"><p> <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-5F08DEAA-1237-32DE-AE41-CE7B18230972"><apiname>Cache::SyncMemoryBeforeDmaWrite()</apiname></xref>  </p> </li>
+<li id="GUID-89FE8A8C-BD27-5A9C-A429-7600CDF2CD76"><p> <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita#GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F/GUID-3FF3C567-C1BD-3D4E-97E1-B036456A374E"><apiname>Cache::SyncMemoryBeforeDmaRead()</apiname></xref>  </p> </li>
+</ul> <p> <b> Note:</b> both these functions take a <xref href="GUID-F58A1C0D-1B36-37EA-8012-1C74B2D12CAD.dita"><apiname>TUint32</apiname></xref> type
+parameter, identified in the function signatures as <codeph>TUint32 aMapAttr</codeph>.
+This is the same <codeph>TUint32</codeph> value set on return from calls to
+either <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-79F110C1-2764-34B5-857B-6C0012D2049D"><apiname>Kern::ChunkPhysicalAddress()</apiname></xref> or <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref>. </p> </section>
+<section id="GUID-D8E298EA-A4CD-5501-B5F1-B8F0EE93CE84"><title>Example code</title> <p>This
+section contains code snippets that show shared chunks in use. Most of the
+code is intended to be part of a device driver. A few snippets show user-side
+code and the interaction with device driver code. </p> <ul>
+<li id="GUID-F2F06E9B-4832-5E05-B392-EC0B89CC2813"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D284D6D0-400D-53D2-9A43-05CEE28DFDC4">Example: Creating a shared chunk</xref>  </p> </li>
+<li id="GUID-9807283B-B66D-59BE-A6E3-6A9E0A62021D"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-6501F90A-5330-5BC9-A991-A3BECCCA6CDD">Example: Opening a handle to the shared chunk for user-side access</xref>  </p> </li>
+<li id="GUID-3C59E7E6-FA0C-5487-BEC8-FCA4BBE2524F"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-062C405B-B10F-54A8-8F61-418CAE6019D8">Example: using a DFC to notify destruction of chunk</xref>  </p> </li>
+<li id="GUID-9FF13AA3-5847-5574-8B0F-81123EB446BE"><p> <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-97BF15A2-E74A-51DE-B003-16E1DFF8964E">Example: committing memory</xref>  </p> </li>
+</ul> <p id="GUID-D284D6D0-400D-53D2-9A43-05CEE28DFDC4"><b>Example: Creating
+a shared chunk</b> </p> <p>This code snippet shows how a device driver creates
+a shared chunk. The class <codeph>DMyDevice</codeph> has been given responsibility
+for creating the chunk: </p> <codeblock id="GUID-FD2DE166-0516-529A-BD0E-8A872968A67A" xml:space="preserve">/**
+The device or other object making use of shared chunks
+*/
+class DMyDevice
+    {
+    ...
+    TInt CreateChunk();
+    void CloseChunk();
+private:
+    void ChunkDestroyed();
+private:
+    TBool iMemoryInUse;
+    DChunk* iChunk
+    TUint32 iChunkMapAttr;
+    TLinAddr iChunkKernelAddr;
+    ...
+    }</codeblock> <codeblock id="GUID-40DB5E59-11DC-5FC5-B36A-6766132C9A65" xml:space="preserve">/*
+Address and size of our device's memory
+*/
+const TPhysAddr KMyDeviceAddress = 0xc1000000;  // Physical address
+const TInt KMyDeviceMemorySize = 0x10000;
+
+/**
+Create a chunk which maps our device's memory
+*/
+TInt DMyDevice::CreateChunk()
+    {
+    // Check if our device's memory is already in use
+    if(iMemoryInUse)
+        {
+        // Wait for short while (200ms) in case chunk is being deleted
+        NKern::Sleep(NKern::TimerTicks(200));
+        // Check again
+        if(iMemoryInUse)
+            {
+            // Another part of the system is probably still using our memory, so...
+            return KErrInUse;
+            }
+        }
+
+    // Enter critical section so we can't die and leak the objects we are creating
+    // I.e. the TChunkCleanup and DChunk (Shared Chunk)
+    NKern::ThreadEnterCS();
+
+    // Create chunk cleanup object
+    TChunkCleanup* cleanup = new iChunkCleanup(this);
+    if(!cleanup)
+        {
+        NKern::ThreadLeaveCS();
+        return KErrNoMemory;
+        }
+
+    // Create the chunk
+    TChunkCreateInfo info;
+    info.iType         = TChunkCreateInfo::ESharedKernelMultiple;
+    info.iMaxSize      = KMyDeviceMemorySize;
+    info.iMapAttr      = EMapAttrFullyBlocking; // No caching
+    info.iOwnsMemory   = EFalse; // We'll be using our own devices memory
+    info.iDestroyedDfc = cleanup;
+    DChunk* chunk;
+    TInt r = Kern::ChunkCreate(info, chunk, iChunkKernelAddr, iChunkMapAttr);
+    if(r!=KErrNone)
+        {
+        delete cleanup;
+        NKern::ThreadLeaveCS();
+        return r;
+        }
+
+    // Map our device's memory into the chunk (at offset 0)
+
+    r = Kern::ChunkCommitPhysical(chunk,0,KMyDeviceMemorySize,KMyDeviceAddress);
+    if(r!=KErrNone)
+        {
+        // Commit failed so tidy-up...
+
+        // We, can't delete 'cleanup' because it is now owned by the chunk and will
+        // get run when the chunk is destroyed. Instead, we have to Cancel it, which
+        // prevents it from doing anything when it does run.
+        cleanup-&gt;Cancel()
+        // Close chunk, which will then get deleted at some point
+        Kern::ChunkClose(chunk);
+        }
+    else
+        {
+        // Commit succeeded so flag memory in use and store chunk pointer
+        iMemoryInUse = ETrue;
+        iChunk = chunk;
+        }
+
+    // Can leave critical section now that we have saved pointers to created objects
+    NKern::ThreadLeaveCS();
+
+    return r;
+    }
+
+/**
+Close the chunk which maps our device's memory
+*/
+TInt DMyDevice::CloseChunk()
+    {
+    // Enter critical section so we can't die whilst owning the chunk pointer
+    NKern::ThreadEnterCS();
+
+    // Atomically get pointer to our chunk and NULL the iChunk member
+    DChunk* chunk = (DChunk*)NKern::SafeSwap(NULL,(TAny*&amp;)iChunk);
+
+    // Close chunk
+    if(chunk)
+       Kern::CloseChunk(chunk);
+
+    // Can leave critical section now
+    NKern::ThreadLeaveCS();
+    }
+</codeblock> <p><b>Implementation notes </b> </p> <ul>
+<li id="GUID-A587088F-889D-58F7-973D-AD6C471B43E2"><p>a <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita"><apiname>TChunkCreateInfo</apiname></xref> object
+is created, populated and passed to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref>.
+This is information that Symbian platform needs to create the chunk. To create
+a <i>shared</i> chunk, <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-4384AF76-CECE-3B86-BE92-375C1DEA36DA"><apiname>TChunkCreateInfo::iType</apiname></xref> must be
+set to <xref href="GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4.dita#GUID-51F7DBCF-BFB6-31F9-8882-5D263A1AD4B4/GUID-B00A3693-50B6-3A84-89E0-B06D9ABE82ED"><apiname>TChunkCreateInfo::ESharedKernelMultiple</apiname></xref>. </p> </li>
+<li id="GUID-F2EB6952-CAFA-5CB0-BB86-3C77C46C9EEA"><p>If the device architecture
+allowed the device driver function <codeph>DMyDevice::CreateChunk()</codeph> to
+be called in a re-entrant manner, you would need to protect this code using
+a mutex. Such a situation might arise when a logical channel is shared between
+two threads, or two logical channels are created on the same device. There
+may also be other cases where a mutex is needed. </p> <p>See also: </p> <ul>
+<li id="GUID-B5A971C3-B630-5944-851C-86D4285D3C90"><p> <xref href="GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5.dita#GUID-EAA6A9FB-A470-550C-B7B4-FF68A733A2D5/GUID-F5B59A23-48E0-5596-B589-10DD2549F124">The Symbian platform mutex</xref>  </p> </li>
+<li id="GUID-0618C6AD-DB19-50A6-979B-D2D7C7CA0413"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FEBBDA4F-412E-3AE5-9098-8E2F6BF3E969"><apiname>Kern::MutexCreate()</apiname></xref>  </p> </li>
+<li id="GUID-7FA55315-7403-5CAD-9E84-73A7F8D3DF3A"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-1F0C28A8-9E9A-3AA3-A441-BA8406B3A06A"><apiname>Kern::MutexWait()</apiname></xref>  </p> </li>
+<li id="GUID-3DC20F30-767F-5D3F-8013-2976AB6B2991"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-B8080F86-1342-31EA-9A28-205354CA0CB9"><apiname>Kern::MutexSignal()</apiname></xref>  </p> </li>
+</ul> </li>
+<li id="GUID-A68113CF-C792-59A7-94C3-D2214E065CF6"><p>The line: </p> <codeblock id="GUID-519F054D-429E-5B64-B8FA-34F48E85E1B9" xml:space="preserve">info.iDestroyedDfc = cleanup;</codeblock> <p>in
+the function <codeph>DMyDevice::CreateChunk()</codeph> and code following
+the comment </p> <codeblock id="GUID-C1FCC780-1BD1-5E29-9089-B59434804335" xml:space="preserve">// Create chunk cleanup object</codeblock> <p>sets
+the DFC that runs when the shared chunk is finally closed. See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-062C405B-B10F-54A8-8F61-418CAE6019D8">Example: using a DFC to notify destruction of chunk</xref> for the DFC code
+itself. </p> </li>
+</ul> <p id="GUID-6501F90A-5330-5BC9-A991-A3BECCCA6CDD"><b>Example: Opening
+a handle to the shared chunk for user-side access</b> </p> <p>These code snippets
+show user-side code making a request to a device driver to open handles on
+two shared chunks. </p> <p>The code snippets assume that the chunks have already
+been created. </p> <p><b>User-side</b> </p> <p>The user-side interface to
+a device driver is always a class derived from <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita"><apiname>RBusLogicalChannel</apiname></xref>,
+and is provided by the device driver. Here, this is the <codeph>RMyDevice</codeph> class.
+In real code, the class would offer much more functionality, but only the
+relevant function members and data members are shown: </p> <codeblock id="GUID-CB639C9A-900F-5344-B50F-7DC190D714EB" xml:space="preserve">/**
+Client (user-side) interface to the device driver.
+*/
+class RMyDevice : public RBusLogicalChannel
+    {
+    ...
+public:
+    TInt OpenIoChunks(RChunk&amp; aInputChunk,RChunk&amp; aOutputChunk);
+    ... 
+private:
+    /** Structure to hold information about the i/o buffers */
+    class TIoChunkInfo
+        {
+    public:
+        TInt iInputChunkHandle;
+        TInt iOutputChunkHandle;
+        };
+    // Kernel-side channel class is a friend...
+    friend class DMyDeviceChannel; 
+    ...
+    };
+</codeblock> <p>You call the function <codeph>OpenIoChunks()</codeph> to: </p> <ul>
+<li id="GUID-46625099-EA5D-519C-A9F3-BC6AD97AB41A"><p>issue a request to the
+driver to create handles to two chunks </p> </li>
+<li id="GUID-BAA515D0-FA3A-5D6B-807C-5B562E8B9387"><p>get handles to those
+shared chunks so that they can be accessed by user-side code. </p> </li>
+</ul> <codeblock id="GUID-42B88530-E7A7-5F5D-A9D4-2026E3E4F3E4" xml:space="preserve">TInt RMyDevice::OpenIoChunks(RChunk&amp; aInputChunk,RChunk&amp; aOutputChunk)
+    {
+    // Send request to driver to create chunk handles.
+    TIoChunkInfo info;
+    TInt r=DoControl(EOpenIoChunks,(TAny*)&amp;info);
+    // Set the handles for the chunks
+    aInputChunk.SetHandle(info.iInputChunkHandle);
+    aOutputChunk.SetHandle(info.iOutputChunkHandle);
+
+    return r;
+    }
+</codeblock> <p><b>Implementation notes </b> </p> <ul>
+<li id="GUID-3758237B-4806-5852-835C-1288F368BBEE"><p>The request is passed
+to the driver as a synchronous call; it calls the base class function <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-D774DE92-6431-374A-A1F6-1C7045BD4FE5"><apiname>RBusLogicalChannel::DoControl()</apiname></xref>.
+This means that the call does not return until the driver has created (or
+failed to create) the handles to the shared chunks. The call is synchronous
+because the creation of the handles does not depend on the hardware controlled
+by the driver, so there should be minimal delay in its execution. </p> </li>
+<li id="GUID-F8E261B0-D768-5157-B6FA-6B51B6829E47"><p>The driver returns the
+handle <i>numbers</i> in the <codeph>TIoChunkInfo</codeph> object; specifically
+in its <codeph>iInputChunkHandle</codeph> and <codeph>iOutputChunkHandle</codeph> data
+members. </p> <p>To access the shared chunks, user-side code needs handles
+to them. Handles to chunks are <xref href="GUID-326A2F4D-0E99-31C0-A35D-E8BF45913F07.dita"><apiname>RChunk</apiname></xref> objects. </p> <p>The
+final step is to set the returned handle <i>numbers</i> into the <codeph>RChunk</codeph> objects
+by calling <codeph>SetHandle()</codeph>. This function is provided by <codeph>RChunk</codeph>'s
+base class <xref href="GUID-727D2B62-09A9-3CBC-AB6F-591E52EC68EB.dita"><apiname>RHandleBase</apiname></xref>. </p> <p>See <xref href="GUID-2EAAE194-FAE1-5545-A678-72973E9B72A7.dita">handles</xref> for
+background information. </p> </li>
+<li id="GUID-57FFB715-A05B-5E0D-8354-094018C5AEE5"><p>In this example the
+return value from <xref href="GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066.dita#GUID-6FBFA078-8253-3E24-B1F8-5F75E86C3066/GUID-D774DE92-6431-374A-A1F6-1C7045BD4FE5"><apiname>RBusLogicalChannel::DoControl()</apiname></xref> is not
+checked. In practice you need to do so. </p> </li>
+</ul> <fig id="GUID-2D81B150-2273-5474-9E33-2C7CE236FAD8">
+<title>Shared chunks implementation</title>
+<image href="GUID-52B8098A-7695-5EA6-B58F-D730A445C583_d0e77443_href.png" placement="inline"/>
+</fig> <p><b> Device driver (kernel) side </b> </p> <p>This is example code
+snippet shows the device driver side handling of the request made by the user-side
+to open handles on two shared chunks. </p> <p>The request is handled by the <codeph>OpenIoChunks()</codeph> function
+in the device driver's logical channel. The logical channel is represented
+by a class derived from <xref href="GUID-E7550422-5121-3393-A85E-BB797969CD2A.dita"><apiname>DLogicalChannelBase</apiname></xref>. In this example,
+this is the <codeph>DMyDeviceChannel</codeph> class. </p> <p>Details of how
+a user-side call to <codeph>RMyDevice::OpenIoChunks()</codeph> results in
+a call to the driver's <codeph>DMyDeviceChannel::OpenIoChunks()</codeph> function
+are not shown. <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita#GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1/GUID-AB757BD9-80A4-53DE-82D8-D9BE8A252C9F">Passing
+requests from user-side to kernel-side</xref> in <xref href="GUID-0956CE5E-C02B-5EEE-890A-5E8E84A8D9A1.dita">The
+Logical Channel</xref> explains the principles. </p> <codeblock id="GUID-B55DA6B8-A38F-5ED6-A415-DBB027D30870" xml:space="preserve">/**
+  Kernel-side Logical Channel for 'MyDevice'
+*/
+class DMyDeviceChannel : public DLogicalChannelBase
+    {
+    ...
+private:
+    TInt OpenIoChunks(RMyDevice::TIoChunkInfo* aIoChunkInfoForClient);
+private:
+    DChunk* iInputChunk;
+    TInt iInputChunkSize;
+    DChunk* iOutputChunk;
+    TInt iOutputChunkSize;
+    ...
+    };
+</codeblock> <p>The following code snippet is the implementation of <codeph>DMyDeviceChannel::OpenIoChunks()</codeph>. </p> <codeblock id="GUID-E344116F-8C10-5226-9547-5F0ABD16D831" xml:space="preserve">/**
+  Called by logical channel to service a client request for i/o chunk handles
+*/
+TInt DMyDeviceChannel::OpenIoChunks(RMyDevice::TIoChunkInfo* aIoChunkInfo)
+    {
+    // Local info structure we will fill in
+    RMyDevice::TIoChunkInfo info;
+
+    // Need to be in critical section whilst creating handles
+    NKern::ThreadEnterCS();
+
+    // Make handle to iInputChunk for current thread
+    TInt r = Kern::MakeHandleAndOpen(NULL, iInputChunk); 
+    // r = +ve value for a handle, -ve value is error code
+    if(r&gt;=0) 
+        {
+        // Store InputChunk handle
+        info.iInputChunkHandle = r;
+
+        // Make handle to iOutputChunk for current thread
+        r = Kern::MakeHandleAndOpen(NULL, iOutputChunk); 
+        // r = +ve value for a handle, -ve value is error code
+        if(r&gt;=0) 
+            {
+            // Store OutputChunk handle
+            info.iOutputChunkHandle = r;
+            // Signal we succeeded...
+            r = KErrNone;
+            }
+        else
+            {
+            // Error, so cleanup the handle we created for iInputChunk
+            Kern::CloseHandle(NULL,info.iInputChunkHandle);
+            }
+        }
+
+    // Leave critical section before writing info to client because throwing an
+    // exception whilst in a critical section is fatal to the system.
+    NKern::ThreadLeaveCS();
+
+    // If error, zero contents of info structure.
+    // (Zero is usually a safe value to return on error for most data types,
+    // and for object handles this is same as KNullHandle)
+    if(r!=KErrNone)
+        memclr(&amp;info,sizeof(info));
+
+    // Write info to client memory
+    kumemput32(aIoChunkInfo,&amp;info,sizeof(info));
+
+    return r;
+    }
+</codeblock> <p><b>Implementation notes </b> </p> <ul>
+<li id="GUID-396C4C6F-C6ED-5796-8B68-13A2E25FF365"><p>The function calls <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-BA56B205-60D8-326E-8340-3F78CCEA3DD1"><apiname>Kern::MakeHandleAndOpen()</apiname></xref> twice,
+once for each shared chunk. A NULL value is passed as the first parameter
+in both calls to this function instead of an explicit <codeph>DThread</codeph> object.
+This creates the handles for the current thread. Although this code is running
+in kernel mode, the context remains the user thread. </p> </li>
+<li id="GUID-B0D3721A-A5A8-5A17-A402-C84A087DC921"><p>The first handle created
+is closed if the second handle cannot be created: </p> <codeblock id="GUID-8B73E41A-8BEF-503A-8A22-13F2258BC380" xml:space="preserve">if(r&gt;=0) 
+            {
+            ...
+            }
+        else
+            {
+            // Error, so cleanup the handle we created for iInputChunk
+            Kern::CloseHandle(NULL,info.iInputChunkHandle);
+            }</codeblock> </li>
+<li id="GUID-396AE759-ACC8-5F7E-AF36-37A7A2BDB855"><p>The handle values are
+written back into the <codeph>TIoChunkInfo</codeph> structure using the <xref href="GUID-D141C3C4-F2F6-37DF-BDF6-63DDE9052FA0.dita"><apiname>kumemput32()</apiname></xref> function.
+See the EKA2 references in <xref href="GUID-F46B87B7-97A9-530B-BAC4-EF1DB9C91E39.dita#GUID-F46B87B7-97A9-530B-BAC4-EF1DB9C91E39/GUID-4A7BCB91-C58B-597F-85B6-74463BE9BC04">Accessing
+User Memory</xref> in <xref href="GUID-F46B87B7-97A9-530B-BAC4-EF1DB9C91E39.dita">Migration
+Tutorial: EKA1 Device Driver to Kernel Architecture 2</xref>. </p> </li>
+</ul> <p id="GUID-062C405B-B10F-54A8-8F61-418CAE6019D8"><b>Example: Using
+a DFC to notify destruction of a chunk</b> </p> <p>This set of code snippets
+shows how to set up a DFC that notifies a device driver when a shared chunk
+has finally been destroyed. </p> <codeblock id="GUID-F75EE51B-EC55-57C1-B2C6-D68D44B34069" xml:space="preserve">/**
+Example class suitable for use as a 'Chunk Destroyed DFC' when
+creating Shared Chunks with Kern::ChunkCreate()
+*/
+class TChunkCleanup : private TDfc
+    {
+public:
+    TChunkCleanup(DMyDevice* aDevice);
+    void Cancel();
+private:
+    static void ChunkDestroyed(TChunkCleanup* aSelf);
+private:
+    DMyDevice* iDevice;
+    };
+
+/**
+Contruct a Shared Chunk cleanup object which will signal the specified device
+when a chunk is destroyed.
+*/
+TChunkCleanup::TChunkCleanup(DMyDevice* aDevice)
+    : TDfc((TDfcFn)TChunkCleanup::ChunkDestroyed,this,Kern::SvMsgQue(),0)
+    , iDevice(aDevice)
+    {}
+
+/**
+Cancel the action of the cleanup object.
+*/
+void TChunkCleanup::Cancel()
+    {
+    // Clear iDevice which means that when the DFC gets queued on chunk destruction
+    // our ChunkDestroyed method will do nothing other than cleanup itself.
+    iDevice = NULL;
+    }
+
+/**
+Callback function called when the DFC runs, i.e. when a chunk is destroyed.
+*/
+void TChunkCleanup::ChunkDestroyed(TChunkCleanup* aSelf)
+    {
+    DMyDevice* device = aSelf-&gt;iDevice;
+    // If we haven't been Cancelled...
+    if(device)
+        {
+        // Perform any cleanup action required. In this example we call a method
+        // on 'MyDevice' which encapsulates this.
+        device-&gt;ChunkDestroyed();
+        }
+
+    // We've finished so now delete ourself
+    delete aSelf;
+    }
+</codeblock> <p><b>Implementation notes </b> </p> <ul>
+<li id="GUID-3387037D-9BBC-5A07-A180-FC2DAB6F6503"><p>The DFC is an item of
+information that is passed to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-F8D1FB29-7238-3438-951A-6F853C7CF817"><apiname>Kern::ChunkCreate()</apiname></xref> when
+the shared chunk is created. See <xref href="GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10.dita#GUID-51514A4B-0220-557B-9F7A-FB110CEFEF10/GUID-D284D6D0-400D-53D2-9A43-05CEE28DFDC4">Example:
+Creating a shared chunk</xref> to see how the two sets of code connect. </p> </li>
+<li id="GUID-CB5AE321-CF79-543D-9CA2-DDF1B0B115EC"><p>Ensure that the code
+implementing this DFC is still loaded when the DFC runs. As you cannot know
+when a chunk will be destroyed, the code should reside in a kernel extension. </p> </li>
+</ul> <p id="GUID-97BF15A2-E74A-51DE-B003-16E1DFF8964E"><b>Example: committing
+memory</b> </p> <p>This code snippet shows how memory is committed. It is
+based on the implementation of the class <codeph>DBuffers</codeph>, which
+represents a group of buffers hosted by a single chunk. </p> <codeblock id="GUID-9768851E-648B-501D-9AA5-1922EB428EEC" xml:space="preserve">/**
+  Class representing a group of buffers in the same chunk
+*/
+class DBuffers
+    {
+public:
+    DBuffers();
+    ~DBuffers();
+    TInt Create(TInt aBufferSize,TInt aNumBuffers);
+public:
+    DChunk* iChunk;             /**&lt; The chunk containing the buffers. */
+    TLinAddr iChunkKernelAddr;  /**&lt; Address of chunk start in kernel process */
+    TUint32 iChunkMapAttr;      /**&lt; MMU mapping attributes used for chunk */
+    TInt iBufferSize;           /**&lt; Size of each buffer in bytes */
+    TInt iOffsetToFirstBuffer;  /**&lt; Offset within chunk of the first buffer */
+    TInt iOffsetBetweenBuffers; /**&lt; Offset in bytes between consecutive buffers */
+    };</codeblock> <codeblock id="GUID-CBC59647-DEA3-52AC-B7BD-BF15F29BB0E7" xml:space="preserve">/** Constructor */
+DBuffers::DBuffers()
+    : iChunk(NULL)
+    {}
+
+/** Destructor */
+DBuffers::~DBuffers()
+    {
+    if(iChunk) Kern::ChunkClose(iChunk);
+    }
+
+/**
+  Create the chunk and commit memory for all the buffers.
+  @param aBuffserSize Size in bytes of each buffer
+  @param aNumBuffers Number of buffers to create
+*/
+TInt DBuffers::Create(TInt aBufferSize,TInt aNumBuffers)
+    {
+    // Round buffer size up to MMU page size
+    aBufferSize = Kern::RoundToPageSize(aBufferSize);
+    iBufferSize = aBufferSize;
+
+    // Size of one MMU page
+    TInt pageSize = Kern::RoundToPageSize(1);
+
+    // We will space our buffers with one empty MMU page between each.
+    // This helps detect buffer overflows...
+
+    // First buffer starts one MMU page into chunk
+    iOffsetToFirstBuffer = pageSize; 
+
+    // Each buffer will be spaced apart by this much
+    iOffsetBetweenBuffers = aBufferSize+pageSize;
+
+    // Calculate chunk size
+    TUint64 chunkSize = TUint64(iOffsetBetweenBuffers)*aNumBuffers+pageSize;
+
+    // Check size is sensible
+    if(chunkSize&gt;(TUint64)KMaxTInt)
+        return KErrNoMemory;  // Need more than 2GB of memory!
+
+    // Enter critical section whilst creating objects
+    NKern::ThreadEnterCS();
+
+    // Create the chunk
+    TChunkCreateInfo info;
+    info.iType         = TChunkCreateInfo::ESharedKernelMultiple;
+    info.iMaxSize      = (TInt)chunkSize;
+    info.iMapAttr      = EMapAttrCachedMax; // Full caching
+    info.iOwnsMemory   = ETrue; // Use memory from system's free pool
+    info.iDestroyedDfc = NULL;
+    TInt r = Kern::ChunkCreate(info, iChunk, iChunkKernelAddr, iChunkMapAttr);
+    if(r==KErrNone)
+        {
+        // Commit memory for each buffer...
+
+        TInt offset = iOffsetToFirstBuffer; // Offset within chunk for first buffer
+
+        // Repeat for each buffer required...
+        while(aNumBuffers--)
+            {
+            // Commit memory at 'offset' within chunk
+            r = Kern::ChunkCommit(iChunk,offset,aBufferSize);
+            if(r!=KErrNone)
+                break;
+
+            // Move 'offset' on to next buffer
+            offset += iOffsetBetweenBuffers;
+            }
+
+        if(r!=KErrNone)
+            {
+            // On error, throw away the chunk we have created
+            Kern::ChunkClose(iChunk);
+            iChunk = NULL; // To indicate that 'this' doesn't have any valid buffers
+            }
+        }
+
+    // Finished
+    NKern::ThreadLeaveCS();
+    return r;
+    }
+</codeblock> </section>
+</conbody></concept>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-D5ED62EB-744D-42EB-B8CF-D5623BDA5B38" xml:lang="en"><title>DMA Client Interface Guide</title><shortdesc>Explains how to use the interface between the DMA platform
+service and the Symbian platform.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The DMA client interface specifies the connection between the Symbian
+platform and the DMA platform service. This document describes how
+to open and close a DMA channel along with how to use the DMA client
+interface to perform a DMA transfer.</p>
+<section id="GUID-C917EAE6-BB3F-436A-BBF4-612FCCB837DB"><title>Interface
+classes</title><p>The classes that process a DMA transfer are:</p><table id="GUID-32AF43CB-8D2F-427A-984F-B577280905F0">
+<tgroup cols="2"><colspec colname="col1" colwidth="0.43*"/><colspec colname="col2" colwidth="1.57*"/>
+<thead>
+<row>
+<entry align="center" valign="top"><p><b>Name</b></p></entry>
+<entry align="center" valign="top"><p><b>Description</b></p></entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry><p><xref href="GUID-780F4D53-5546-3B69-B328-0226C70EBDE2.dita"><apiname>DDmaRequest</apiname></xref></p></entry>
+<entry><p>This class is used to handle transfer requests. It carries
+out the configuration and initialization of the DMA transfer, along
+with tracking the state of the transfer to the client. Communication
+with the rest of the Symbian platform is carried out with the aid
+of a callback function.</p></entry>
+</row>
+<row>
+<entry><p><xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref></p></entry>
+<entry><p>This class is used to open and close DMA channels.</p></entry>
+</row>
+</tbody>
+</tgroup>
+</table><p>The steps involved in performing a DMA transfer are described
+below.</p></section>
+<section id="GUID-96B6E82F-85C1-4AB0-96EF-F2E7AA705973"><title>Using
+the DMA client interface</title><p>The sequence diagram of a DMA transfer
+is:</p><fig id="GUID-6A4644F2-62A7-4821-9C13-DFF13793CAE0">
+<title>The sequence diagram of a DMA transfer</title>
+<image href="GUID-DDD883A2-6784-4851-8E36-227EC564452A_d0e90311_href.png" placement="inline"/>
+</fig><p><b>Initialization</b></p><p>Before any DMA operations can
+be carried out, the data structure that holds the configuration of
+the DMA channel must be initialized. An example of this is shown below:</p><codeblock xml:space="preserve"> TDmaChannel::SCreateInfo info;
+ 
+ info.iCookie = iDMAChannelNumber;
+ info.iDesCount = 3;
+ info.iDfcPriority = 3;
+ info.iDfcQ = iDfcQue;</codeblock><p>The <codeph>iCookie</codeph> parameter
+is used to provide a unique ID for the channel. Its value is application
+specific.</p><p>The <codeph>iDesCount</codeph> element is used to
+specify how many descriptors this channel can use.</p><p>The <codeph>iDfcPriority</codeph> element is used to specify the priority of
+the DMA callback relative to all the other callbacks on its DFC queue.</p><p>The <codeph>iDfcQ</codeph> element is used to specify which DFC
+queue is to be used by this DMA channel.</p><p><b>Open a DMA channel</b></p><p>Next the DMA channel is opened and configured. An example
+of this is show below: </p><codeblock xml:space="preserve">r = TDmaChannel::Open(info, iDMAChannel);
+
+if (r)
+{
+      // [...] handle the error
+      return r;
+}</codeblock><p>The first parameter for the open method holds the
+channel configuration details. The second parameter is the DMA channel
+handle. In this example, if an error occurs during the open operation,
+then the error code is returned to the rest of the system and the
+transfer is aborted.</p><p>The first parameter contains the DMA channel
+configuration information. The second parameter points to the instance
+of the DMA channel class that is to be used. This class must be declared
+before this method call can be made.</p><p><b>Create a request object</b></p><p>The next task is to create a request object, specifying the
+channel it will be queued on and the callback when it completes. An
+example of this is shown below:</p><codeblock xml:space="preserve">new (iDMARequest) DDmaRequest(*iDMAChannel, DmaCallback, this);</codeblock><p>The above line creates a new instance of the DDmaRequest class
+which will be queued on the DMA channel specified in the first parameter.
+The callback function (<codeph>DmaCallback</codeph>) that will process
+the result of an operation is specified in the second parameter and
+is optional. The third parameter specifies the argument passed to
+the callback function.</p><p><b>Transfer</b></p><p>Once the DMA channel
+has been setup, the DMA transfer can be carried out. Executing a DMA
+transfer consists of two parts:</p><ol>
+<li id="GUID-FEBFEA0C-A6A3-4920-B62B-5F011F1FA571"><p>Specifying the
+details of the DMA transfer.</p></li>
+<li id="GUID-AD469BD7-94F4-4F79-91E0-2CB6CD988F97"><p>Placing the
+transfer onto the DMA transfer queue.</p></li>
+</ol><p>Once a successful transfer has been completed, the specified
+DMA callback function is executed.</p><p>An example of the use of
+the fragment method call is:</p><codeblock xml:space="preserve"> retval = iDMARequest-&gt;Fragment(EDmaSDMMC, aDest, aCount, KDmaMemDest | KDmaIncDest, 0);
+ 
+ if (retval) 
+{
+     // [...] handle the error
+     return retval;
+}</codeblock><p>In this code snippet, the details of the DMA transfer
+are specified. If an error is returned by the fragment method, then
+the error code is passed on to the rest of the system and the transfer does
+not take place. The first parameter specifies the data source. The
+second specified the destination of the data. The third specifies
+the number of bytes that are to be sent. The fourth parameter consists
+of flags. The final parameter specifies any DMA PSL specific settings
+(there are none in the example).</p><p>A code snippet that shows the
+DMA transfer request being placed onto the DMA queue is:</p><codeblock xml:space="preserve"> iDMARequest-&gt;Queue();</codeblock><p><b>Close a DMA channel</b></p><p>Finally, once the DMA functionality is no longer required, the
+DMA channel is closed. A code snippet that shows this is:</p><codeblock xml:space="preserve">iDMAChannel-&gt;Close();</codeblock><p>Where <codeph>iDMAChannel</codeph> is the instance of the DMA channel that was being used.</p></section>
+</conbody></concept>

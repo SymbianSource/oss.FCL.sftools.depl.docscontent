@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C38DA704-8868-479B-AF81-375E0A2F5BCC" xml:lang="en"><title>Name</title><shortdesc>This document describes how names are assigned to device drivers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-905BD0EF-85EB-4568-B810-0D0D40B3CFDA">             <p>Each
+Symbian platform device driver has a name. When the driver is
+loaded by the user, LDDs and PDDs register themselves using a name. LDDs and
+PDDs have different names, which are used to identify the logical device and
+physical device objects. </p> <p>The following shows how the example device
+drivers set their names: </p> <codeblock id="GUID-83FA2EE4-2193-5D76-A5F8-BA26DCFEBE06" xml:space="preserve">_LIT(KDriverPddName," d_expio.pdd");
+
+// Called while loading PDD
+TInt DExH4PhysicalDevice::Install()
+    {
+    return SetName(&amp;KDriverPddName);
+    }</codeblock> <codeblock id="GUID-B0A503EE-F823-51F4-B7BD-A9852E1B0864" xml:space="preserve">_LIT(KDriverName, " d_expio");
+
+// Called while loading LDD
+TInt DExDriverLogicalDevice::Install()
+    {    
+    return SetName(&amp;KDriverName);
+    }</codeblock> <p>The framework uses driver names to identify the PDDs
+that can be used with a given LDD. This can happen in two ways: </p> <ul>
+<li id="GUID-0801CDDD-D1FB-531A-9361-97707C35C2D1"><p>The framework uses the
+name of the PDD factory object passed by the user while creating the logical
+channel. This requires a PDD with that name to be already loaded, and its
+factory object created. The framework searches for a PDD factory object with
+the specified name. </p> </li>
+<li id="GUID-A6049F4E-7DC1-5ED9-B40B-1985FF837469"><p>If the user does not
+pass the PDD name explicitly, then the framework searches all PDD factory
+objects that have a name in the form of x.y, where x is the name of the LDD
+factory object. </p> </li>
+</ul>     </section>
+</conbody></concept>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-817E0561-6165-5BB1-97F9-AD53CFCDAA56" xml:lang="en"><title>Impact
+of Data Paging on Kernel-side Code Guide</title><shortdesc>Describes the kernel-side issues that must be considered when writing
+device drivers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-C02ED166-914C-4397-9701-3DFA12BB035F"><title>Purpose</title> <p>This document explains the impact of data
+paging on kernel side code. </p> <p><b>Intended
+Audience:</b> </p> <p>This document is intended for device driver writers. </p> </section>
+<section id="GUID-8B038641-159E-4029-AEA7-952B9F598616"><title>Access to user memory</title> <p>New restrictions on access
+to user memory. </p> </section>
+<section id="GUID-EDAC178D-6B98-4BC2-B9F5-0EB0846702F5"><title>Access to current thread's address space</title> <p>Certain
+exported and internal APIs access the address space of the current thread
+and are subject to restrictions on their use enforced by assertions in the
+code. The restrictions are these: </p> <ul>
+<li id="GUID-BDB0D784-562F-5AE6-A291-A738682C2A53"><p>The APIs may only be
+called from thread context. </p> </li>
+<li id="GUID-37A31C92-C9C7-539F-86B5-066A09D2F53B"><p>They may not be called
+while any mutexes are held. There are two particularly important cases when
+mutexes are often held: </p> <ul>
+<li id="GUID-D8F89EF4-854C-5096-9E52-FA7989C423D3"><p>When publish and subscribe
+is writing large binary properties to user space, and </p> <ul>
+<li id="GUID-9E7C39C8-D1DF-53B4-9596-5E7E6CB1C906"><p>When the multiple memory
+model writes code segments' export directories to user space. </p> </li>
+</ul> </li>
+</ul> </li>
+<li id="GUID-E900614E-D99F-5401-B570-A792300D0E6A"><p>The APIs may not be
+called when the system lock is held. There are two particularly important
+cases when the system lock is often held: </p> <ul>
+<li id="GUID-41D35D8E-1ABC-54A4-9985-F551ACAD4F28"><p>When publish and subscribe
+is writing large binary properties to user space, and </p> </li>
+<li id="GUID-06705F28-00F9-5BBE-A3EF-FC79E4849908"><p>When the multiple memory
+model uses <xref href="GUID-38D1534C-AA01-33AF-9937-CDD818A85F97.dita#GUID-38D1534C-AA01-33AF-9937-CDD818A85F97/GUID-99ECF4EB-8BCD-3968-BDED-E37E41753BEF"><apiname>DThread::FastWrite</apiname></xref> to write to user space. </p> </li>
+</ul> </li>
+</ul> <p>The APIs concerned are these: </p> <ul>
+<li id="GUID-1C237BE6-900B-5F88-B081-140030E42894"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-C154A151-0DF7-345D-9A10-E9B1CF3400D9"><apiname>Kern::KUDesInfo</apiname></xref>  </p> </li>
+<li id="GUID-EC004C04-A5D0-5A52-90BA-56A0DE140A8A"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-B79007D0-FF1F-30E7-986D-7CEBC5E45102"><apiname>Kern::KUDesGet</apiname></xref>  </p> </li>
+<li id="GUID-D5D3D6C4-BB4B-55B1-99B9-000F716C2964"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-CDEA7B22-9520-3DB1-AA04-1289C2287936"><apiname>Kern::KUDesPut</apiname></xref>  </p> </li>
+<li id="GUID-1C330912-EAAC-5020-94F8-89AD09387E42"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-94F2DF65-87A5-32C6-9695-9557E5832ACF"><apiname>Kern::KUDesSetLength</apiname></xref>  </p> </li>
+<li id="GUID-C59D5CDD-06B4-5931-BE86-E3F5727B456D"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FAFAA120-AA28-32FD-9202-1534C3148026"><apiname>Kern::InfoCopy</apiname></xref>  </p> </li>
+<li id="GUID-A93205E5-2BBF-568A-84C1-FA95BA8A5EBC"><p> <xref href="GUID-F5136CAF-B66F-388D-A610-D0153CAF7E23.dita"><apiname>umemget()</apiname></xref>, <xref href="GUID-B56A34CD-E5B5-3E3E-A2EE-3BC9D248B210.dita"><apiname>kumemget()</apiname></xref>, <xref href="GUID-B55573FC-B21C-384A-8B1E-A6A4301310E9.dita"><apiname>umemget32()</apiname></xref>, <xref href="GUID-15B62FF1-5D59-3A84-9648-EB0DBFE17232.dita"><apiname>kumemget32()</apiname></xref>  </p> </li>
+<li id="GUID-C4FCA083-9C65-5F24-B65C-0C8B62A9E89E"><p> <xref href="GUID-371860F0-36BF-340D-BEF6-1763EF9874AE.dita"><apiname>umemput()</apiname></xref>, <xref href="GUID-C7AB0391-99D5-31A2-91D4-A7F195546FC3.dita"><apiname>kumemput()</apiname></xref>, <xref href="GUID-B2DF3520-01CE-3D2C-8137-746ADBCBAE80.dita"><apiname>umemput32()</apiname></xref>, <xref href="GUID-D141C3C4-F2F6-37DF-BDF6-63DDE9052FA0.dita"><apiname>kumemput32()</apiname></xref>  </p> </li>
+<li id="GUID-93854B1F-3593-56FA-992B-D9965958FC17"><p> <xref href="GUID-16048974-7407-3778-9BD3-B8417E3F795A.dita"><apiname>umemset()</apiname></xref>, <xref href="GUID-B51F91FF-E5CD-3D5F-8BB3-B18E58761B62.dita"><apiname>kumemset()</apiname></xref>  </p> </li>
+<li id="GUID-2099129C-21A4-504F-BD33-9B1F3C84ECCE"><p> <xref href="GUID-A9CDD270-DDEB-3E58-9A31-2567985958DB.dita"><apiname>SafeRead()</apiname></xref>, <xref href="GUID-FE09CB97-F853-3939-ADB1-2FBE4EDF50CE.dita"><apiname>KUSafeRead()</apiname></xref>  </p> </li>
+<li id="GUID-24C2001F-2759-566C-B7C1-7CA677123C6F"><p> <xref href="GUID-97393047-A896-3F93-90CE-9C30BF19AF10.dita"><apiname>SafeWrite()</apiname></xref>, <xref href="GUID-145B354F-1F60-3A1B-8FA3-E873C6D133A5.dita"><apiname>KUSafeWrite()</apiname></xref>  </p> </li>
+<li id="GUID-85EE234D-34BA-542B-B43F-E178DECA1CFD"><p> <xref href="GUID-7463E352-F6CE-3749-902A-0F3D9C699ADF.dita"><apiname>KUSafeInc()</apiname></xref>  </p> </li>
+<li id="GUID-26D29EEE-7FC6-556B-BCC0-27F0011B926A"><p> <xref href="GUID-7C924E07-84AD-36AC-A6D0-09C47A170FFC.dita"><apiname>KUSafeDec()</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-6487F5DB-DB07-458C-A97D-9D26BBC35E0A"><title>Access to another thread's address space</title> <p>Certain
+exported and internal APIs access the address space of another thread and
+are subject to restrictions on their use enforced by assertions in the code.
+The restrictions are these: </p> <ul>
+<li id="GUID-38E41386-9179-500D-92BB-043042E3C957"><p>The APIs may not be
+called when any mutexes are held. One particularly important case of this
+is when undertakers are completed and handles written to user space. </p> </li>
+</ul> <p>The APIs concerned are these: </p> <ul>
+<li id="GUID-76DF8E52-6330-5549-A10F-810FFC1236BC"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-904A42A8-8077-3FC6-BEF2-29619F079842"><apiname>Kern::ThreadRawRead()</apiname></xref>  </p> </li>
+<li id="GUID-DFD8AEC8-172E-582E-9AC2-742F3C538B16"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-182C88F4-326C-376E-9FBE-889E3CB9B68A"><apiname>Kern::ThreadRawWrite()</apiname></xref>  </p> </li>
+<li id="GUID-A4826184-4CDD-5339-9971-AE1894B3678E"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-C505206F-F54F-3760-BA7D-2DB52AB4E0B3"><apiname>Kern::ThreadDesRead()</apiname></xref>  </p> </li>
+<li id="GUID-73B032E1-8733-5E59-8028-812179CE2A81"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-FA321582-6D75-37A1-8DAB-D50638F76593"><apiname>Kern::ThreadDesWrite()</apiname></xref>  </p> </li>
+<li id="GUID-FD22484A-2418-5A1D-A68A-27090623085D"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-1DE210A5-B7A2-3F52-9003-439CA3DD4715"><apiname>Kern::ThreadGetDesLength()</apiname></xref>  </p> </li>
+<li id="GUID-CA931109-D50C-580A-9A0B-770355FA24C0"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A5E20DB7-9DB4-350C-B636-95E2148DCC6F"><apiname>Kern::ThreadGetDesMaxLength()</apiname></xref>  </p> </li>
+<li id="GUID-AE500BC7-A230-5EE5-BA7F-643A47DEEFB9"><p> <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-22DD7D90-B4B5-3450-82BF-C3CC3A43430A"><apiname>Kern::ThreadGetDesInfo()</apiname></xref>  </p> </li>
+<li id="GUID-D2287795-C6BA-5746-87B5-E2260A1389AB"><p> <xref href="GUID-38D1534C-AA01-33AF-9937-CDD818A85F97.dita#GUID-38D1534C-AA01-33AF-9937-CDD818A85F97/GUID-876D7459-E09E-33B7-A35D-48A96F9E78C8"><apiname>DThread::FastWrite()</apiname></xref>  </p> </li>
+</ul> </section>
+<section id="GUID-CF741107-AEC0-4CAD-9F59-BD4EC8C7BA26"><title>Client request completion</title> <p>In non-paged code it
+is usual for a thread to have an asynchronous request outstanding and to complete
+it by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-D720BB4C-5E31-3213-BB16-859AA325FE98"><apiname>Kern::RequestComplete()</apiname></xref>. This technique is
+not safe in data paged code as it involves writing a status value back into
+the thread's address space, but this memory might be paged out and violate
+the thread's performance guarantees or cause a mutex order violation. </p> <p>Instead,
+you should use the <xref href="GUID-4CB67E92-6092-316B-BBDC-B428F4242A76.dita"><apiname>TClientRequest</apiname></xref> object to write the request
+status within the context of the client thread in the following way. </p> <ol id="GUID-2379DB5B-9E06-56D4-A561-C55E77A5A570">
+<li id="GUID-A74F8DB4-154B-5CC3-980E-6A248819BB08"><p>Create a <xref href="GUID-4CB67E92-6092-316B-BBDC-B428F4242A76.dita"><apiname>TClientRequest</apiname></xref> object
+by calling <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-C526F279-6BCF-3373-A869-37DB22695809"><apiname>Kern::CreateClientRequest()</apiname></xref>. </p> </li>
+<li id="GUID-1B09ED45-55C2-5A57-8921-FD8FFE10819F"><p>Call the <xref href="GUID-E0687C90-7742-3C5C-96EF-187415584E31.dita"><apiname>SetStatus()</apiname></xref> function
+of the <xref href="GUID-4CB67E92-6092-316B-BBDC-B428F4242A76.dita"><apiname>TClientRequest</apiname></xref> object to set the client's request
+status. </p> </li>
+<li id="GUID-5A047136-5848-5F43-A88A-E0BF9625BFEE"><p>Call <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-DE0CF5BD-B166-3C5B-9E27-F95710322F21"><apiname>Kern::QueueRequestComplete()</apiname></xref> to
+signal the client thread that the request has been queued for completion. </p> </li>
+<li id="GUID-F481D0FF-6A8F-5462-97C9-DCA9EABB1E25"><p>When the client thread
+next runs, the <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> value is written back to
+it. </p> </li>
+<li id="GUID-A37194A0-599A-584E-BD38-333B0E5DFD70"><p>The <xref href="GUID-E0B34F3E-D4C4-3232-B8B1-7DB35B454646.dita"><apiname>TRequestStatus</apiname></xref> can
+now be reused, or destroyed by a call to <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A67030E5-B84C-3CFF-B0B9-68F2F0E488A6"><apiname>Kern::DestroyRequest()</apiname></xref>. </p> </li>
+</ol> </section>
+<section id="GUID-4E440670-4ED5-4BA8-81A2-3A260EDDDFD1"><title>IPC message delivery</title> <p>In non-paged code it is common
+for a client thread to send a message to a server and write it into the address
+space of the server. When data paging is enabled, this creates the same risk
+of page faults as the completion of asynchronous requests and can be mitigated
+by the same techniques as above. In addition, descriptor information (type,
+length and maximum length) is read by temporarily switching to the client's
+address space, creating additional risk of page faults. </p> <p>When data
+paging is enabled, messages to servers must be pre-parsed and their type,
+length and maximum length stored in the message structure. This involves change
+to the kernel code but does not impact on user-side code. </p> </section>
+<section id="GUID-2727EA5C-0820-4DA4-BEC8-E6E830919A63"><title>Kernel event queue</title> <p>The kernel maintains a queue
+of user-input events which is read by the window server. The introduction
+of data paging involved a change to the kernel code which responds to the
+user-side API <xref href="GUID-8BB2609C-5F76-3B47-AA9E-1453F8F2AD55.dita#GUID-8BB2609C-5F76-3B47-AA9E-1453F8F2AD55/GUID-D3526836-5EB4-3EBC-87FF-B0DD2E74CAF3"><apiname>UserSver::RequestEvent()</apiname></xref>. No change to user-side
+code is involved. </p> </section>
+</conbody><related-links>
+<link href="GUID-E21E7992-607A-5A49-B022-189ECA9E76D1.dita"><linktext>Code Paging
+Overview</linktext></link>
+<link href="GUID-BDB847A2-557A-5902-AA6D-C1AE10D8E493.dita"><linktext>Code Paging
+Guide</linktext></link>
+<link href="GUID-B35A70D2-1BC8-51DE-95BF-F315DB394582.dita"><linktext>Demand Paging
+Overview</linktext></link>
+</related-links></concept>

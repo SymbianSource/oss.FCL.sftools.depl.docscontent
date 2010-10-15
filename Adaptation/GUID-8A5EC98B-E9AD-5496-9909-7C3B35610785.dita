@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-8A5EC98B-E9AD-5496-9909-7C3B35610785" xml:lang="en"><title>Demand
+Paging Deadlock Guide</title><shortdesc>Describes deadlocks in the context of demand paging and how to
+prevent them from occurring. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F44CAA63-0225-566F-836C-F5348C0591BD"><title>Introduction</title> <p>A
+deadlock is when two or more processes have some resources, but not all of
+the resources required to execute. The resources that are required are held
+by the other processes, which in turn want the resources that are held by
+the initial processes. In this state, no process can execute. </p> <p>The
+classic sign that a deadlock has occurred is that a collection of processes
+just appear to never do anything i.e. 'just hang'. </p> <p>In the context
+of demand paging, the resource is a page of RAM that can be paged in or out.
+If one process wants data in a page of RAM that is paged-in or out by another
+process, then a potential deadlock condition can occur. </p> <p>Deadlocks
+are only likely to occur if you are altering or interacting with one of the
+components used in paging in and out, such as media drivers or the paging
+sub-system. The majority of user-side code does not need to worry about deadlocks
+from paging. </p> <p>This guide is most applicable to device side writers
+and other engineers writing kernel-side code. </p> </section>
+<section id="GUID-7C628F1C-132F-4327-8248-D018083392E0"><title>Deadlock features</title><p>        For a deadlock to occur,
+four necessary conditions must occur:  </p><p> Mutual exclusion condition
+ </p><p>  A resource cannot be used by more than one process at a time.  </p><p> Hold
+and wait condition  </p><p>One process is holding one resource, but needs
+another before it can   finish. </p><p>No preemption condition  </p><p> The
+resources can only be relinquished by the process holding it.  </p><p>Circular
+wait condition </p><p> One process is holding a resource and wants another
+resource that is  held by another process, which in turn wants access to the
+resource held by the  initial process.</p> </section>
+<section id="GUID-5758274B-83B1-400D-A0E4-993094066769"><title>Deadlock Prevention</title><p>      Since the cause of deadlocks
+(as far as demand paging is concerned) is  due to the paging in and out of
+RAM, the following points have to be        considered:  </p><ul>
+<li><p> Make sure all kernel-side components are always unpaged. </p></li>
+<li><p> Pinning; new APIs have been added that allows a process to over-ride
+  the demand paging rules as regards to how RAM pages are paged in and out
+the phone's memory. The name comes from that fact that the RAM page is fixed
+in the phone's RAM (as if a pin had been stuck into it) until a detached command
+is  executed (unpinned). This is implemented by using the new  <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-0DCAB25E-5A99-35EB-9F75-E9C275EE9E17"><apiname>DLogicalChannel::SendMsg()</apiname></xref> method. </p></li>
+<li><p>Mutex use in device drivers - if the nesting order is violated then
+deadlock can occur. To overcome this, make sure that all device driver operations
+that could cause a page fault don't use mutexes. In other words, any  access
+to paged memory while holding a mutex has the potential to cause a deadlock.</p></li>
+<li><p>Code running in DFC Thread 1 must not access user memory. This DFC
+thread is used by the implementation of the system timer functionality, hence
+paging RAM in or out of the system by this thread could cause serious performance
+problems or a deadlock.   </p></li>
+<li><p> For media drivers, make sure that when the media driver services page-in
+requests, that the thread that the driver runs in does not also make   requests
+to page-in RAM pages. Because, if this was to occur, then the media  driver
+will not be able to service the page in request and a dead lock would occur. </p></li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-ACB79CEF-CA4D-5C96-AFCD-6AD7C7C26C53.dita"><linktext>Thrashing
+Guide</linktext></link>
+</related-links></concept>

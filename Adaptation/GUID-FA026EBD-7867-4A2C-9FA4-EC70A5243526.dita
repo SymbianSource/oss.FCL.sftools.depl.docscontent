@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-FA026EBD-7867-4A2C-9FA4-EC70A5243526" xml:lang="en"><title>Transferring Data with DMA</title><shortdesc>Explains how to transfer data using DMA.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-FCC97364-77B5-4AB9-AEBD-0F63500A522D"><p>The client
+will typically have a DMA class containing pointers to:</p><ul>
+<li><p>a <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref> object, </p> </li>
+<li><p>one or more <xref href="GUID-780F4D53-5546-3B69-B328-0226C70EBDE2.dita"><apiname>DDmaRequest</apiname></xref> objects, </p></li>
+<li><p>a <xref href="GUID-E675237D-0D05-30A3-9B82-DDD3D0F41E79.dita"><apiname>TDfcQueue</apiname></xref> object, and</p></li>
+<li><p>a callback which returns when the data transfer completes (successfully
+or not).</p></li>
+</ul><p>These classes are discussed in <xref href="GUID-D5ED62EB-744D-42EB-B8CF-D5623BDA5B38.dita">DMA OS Interface</xref>.</p></prereq>
+<context id="GUID-EAC78622-0692-4FBE-81FE-553F838A77DD"><p>To allow
+a client application to receive or transmit a block of data by DMA
+you set up a transfer between a source or a destination buffer and
+a source or a destination peripheral. Data is copied between the client
+process and kernel memory by IPC form data transfer between two buffers.
+When a shared chunk or a shared data buffer is used, copying of data
+to kernel memory is required. At the level of implementation there
+is no difference between receiving and transmitting. Client drivers
+using DMA sometimes have separate receive and transmit functions defined
+from the driver point of view.</p><p>You transfer data in this sequence:</p><ul>
+<li><p>Open a DMA channel.</p></li>
+<li><p>Fragment the data if necessary.</p></li>
+<li><p>Queue the transfer.</p></li>
+<li><p>Close the channel.</p></li>
+</ul><p>Example code in this tutorial is taken from the <xref href="GUID-8CC3B265-C29E-3FDB-ACE8-ACC49B9E69D5.dita"><apiname>DMemoryCardDma</apiname></xref> class which transfers data to and from MMC cards by DMA.</p></context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-7-1-3-3">
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-7-1-3-3-1"><cmd>Initialize
+the client object by allocating a request and setting buffers.</cmd>
+<info><codeblock xml:space="preserve">     //pre-allocate space for DDmaRequest
+     iDMARequest = (DDmaRequest*)Kern::AllocZ(sizeof(DDmaRequest));       
+ 
+     // Check Buffer Length
+     if (aBuffLen)
+         {
+         // Set Buffer Start
+         iBufferStart = (TUint32)aBuffer;
+         // Set Buffer End
+         iBufferEnd   = iBufferStart + aBuffLen;
+         // Set DFC Queue
+         iDfcQue      = aDfcQue;
+ 
+         return KErrNone;
+         }
+</codeblock></info>
+<stepresult>The client object is now initialized.</stepresult>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-7-1-3-3-2"><cmd>Open the
+channel by creating an <xref href="GUID-4057074E-2543-3F01-B24A-7FF8A19F79AF.dita"><apiname>SCreateInfo</apiname></xref> object and initializing
+it as follows:</cmd>
+<substeps id="GUID-53B21565-D779-4B76-A8BA-8C9059CB15B4">
+<substep id="GUID-3620E00A-FDE2-4EA3-9FB2-9D67AD0370AC"><cmd>Set the <xref href="GUID-B05C7976-F917-3CFC-9979-86FAC864CB4E.dita"><apiname>iCookie</apiname></xref> member to a platform specific channel identifier.</cmd>
+</substep>
+<substep id="GUID-1890DE64-D53B-4003-9419-ECC778D663FB"><cmd>Set the <xref href="GUID-84246C3A-C8C9-3839-B8C1-8BF05C826338.dita"><apiname>iDesCount</apiname></xref> member to the number of descriptors the channel
+can use.</cmd>
+<info><p>The value should be set to a value based on number of simultaneous
+transfers, transfer length and type of memory used for transfer. If
+you select too high a value, no descriptors will be left for other
+clients, and if you select too low a value the transfer may fail. </p></info>
+</substep>
+<substep id="GUID-FF5BB11D-C922-47A1-ADB8-1A7321C0931F"><cmd>Set the <xref href="GUID-D9C831A3-4841-3E4F-BFEC-8D3997BEEFFF.dita"><apiname>iDfcPriority</apiname></xref> member to the DFC priority. </cmd>
+</substep>
+<substep id="GUID-F1D4A3C1-6E81-4FA4-99D0-E127FCD2C004"><cmd>Set the <xref href="GUID-EC191BDB-5C89-3359-9C45-748C96EF08C1.dita"><apiname>iDfcQueue</apiname></xref> member to the client class queue: it will be
+used to service transfer completion events.</cmd>
+</substep>
+</substeps>
+<stepxmp><codeblock xml:space="preserve">     // Open and configure the channel
+     if (!iDMAChannelOpen)
+         {
+         if (!iDfcQue)
+             return KErrGeneral;
+ 
+         TDmaChannel::SCreateInfo info;
+ 
+         info.iCookie = (TUint32)iChannelId;
+         info.iDesCount = 3;
+         info.iDfcPriority = 3;
+         info.iDfcQ = iDfcQue;
+ 
+</codeblock></stepxmp>
+<stepresult>The channel is now initialized.</stepresult>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-7-1-3-3-3"><cmd>Pass the <xref href="GUID-4057074E-2543-3F01-B24A-7FF8A19F79AF.dita"><apiname>SCreateInfo</apiname></xref> object and a channel ID to the <xref href="GUID-20D0D10F-3401-3F72-8AF6-DC35F6025DC2.dita"><apiname>Open()</apiname></xref> function of <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref> to open a DMA channel.</cmd>
+<info><p> This is not necessary if the channel is already open due
+to a previous transfer request by the same application on the same
+channel.</p></info>
+<stepxmp><codeblock xml:space="preserve">         // Open DMA Channel
+         r = TDmaChannel::Open(info, iDMAChannel);
+ 
+         if (r)
+             return r;
+ 
+         // Set DMA Channel Open
+         iDMAChannelOpen = ETrue;
+</codeblock></stepxmp>
+<info>At what point you open the channel depends on platform configuration.
+If a channel is dedicated to a particular function such as USB, it
+is typically opened by the channel constructor method and closed by
+the destructor as there is never any contention for it. In other cases,
+you must open the channel at the start of a transfer and close it
+at the end.</info>
+<stepresult>The channel is now open.</stepresult>
+</step>
+<step id="GUID-9A69E5AD-E938-4092-A8C2-CB65C37C8962-GENID-1-2-1-10-1-5-1-5-1-1-7-1-9-1-7-1-3-3-4"><cmd>Call the <xref href="GUID-27816E89-D612-30BE-BC4B-50B892223918.dita"><apiname>Fragment()</apiname></xref> function of <xref href="GUID-780F4D53-5546-3B69-B328-0226C70EBDE2.dita"><apiname>DDmaRequest</apiname></xref> to
+fragment the data.</cmd>
+<info>:If your buffers are cacheable you must flush them before a
+write transfer and both before and after a read transfer, using these
+functions of the <xref href="GUID-4425E698-EE8A-369B-92CD-09B1CBD2911F.dita"><apiname>Cache</apiname></xref> class:<ul>
+<li><p><codeph>Cache::SyncMemoryBeforeDmaWrite()</codeph> (takes source
+buffer as argument)</p></li>
+<li><p><codeph>Cache::SyncMemoryBeforeDmaRead()</codeph> (takes destination
+buffer as argument)</p></li>
+<li><p><codeph>Cache::SyncMemoryAfterDmaRead()</codeph> (takes destination
+buffer as argument)</p></li>
+</ul></info>
+<stepresult>The data is now fragmented.</stepresult>
+</step>
+<step id="GUID-99DC4339-5C3E-42AC-BE71-5FED662A6C3A"><cmd>Call the <xref href="GUID-78F37FB6-1286-39CD-80A5-24DA9F27A9AF.dita"><apiname>Queue()</apiname></xref> function of <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref> to queue
+the data on the channel.</cmd>
+<stepxmp><codeblock xml:space="preserve">     TInt retval = KErrNone;
+ 
+     if (iDMABusy)
+         {
+         if (iDMAChannel)
+             {
+             iDMAChannel-&gt;CancelAll();
+             }
+         }
+ 
+     iDMABusy = ETrue;
+ 
+     iDMAReadStarted = EFalse;
+ 
+     if (!iDMAChannelOpen)
+         {
+          retval = Open();
+         }
+ 
+     if (iDMAChannelOpen)
+         {
+         iDMADestination = aDest;
+         iDMACount       = aCount;
+ 
+         // aDest cached, ivalidate RAM
+         Cache::SyncMemoryBeforeDmaRead(aDest, aCount);
+         retval = iDMARequest ? iDMARequest-&gt;Fragment(EDmaSDMMC, aDest, aCount, KDmaMemDest | KDmaIncDest, 0 /* no HW Flags*/) : KErrGeneral;
+ 
+         if (retval)
+             {
+            return retval;
+             }
+ 
+         iDMAReadStarted = ETrue;
+         if (iDMARequest)
+             {
+             iDMARequest-&gt;Queue();
+             }
+         }
+</codeblock></stepxmp>
+<stepresult><p>The data is now queued on the channel.</p></stepresult>
+</step>
+<step id="GUID-DA024D3E-F088-4BEC-BC20-DD467D11928F"><cmd>Close the
+channel. First check whether the channel is busy and take appropriate
+action if it is (in the following example code you cancel all pending
+transfers). Then call the <xref href="GUID-01D2AF56-21E1-3FF3-BF86-0C356A1658EF.dita"><apiname>Close()</apiname></xref> function of <xref href="GUID-83882548-FAC5-3EFF-92ED-14D1D9A85D37.dita"><apiname>TDmaChannel</apiname></xref>.</cmd>
+<stepxmp><codeblock xml:space="preserve">    if (iDMAChannelOpen &amp;&amp; iDMAChannel &amp;&amp; !iDMABusy)
+         {
+         iDMAChannel-&gt;CancelAll();
+         iDMARequestsCount = 0;      // All DMA requests have been now canceled!
+ 
+         if (iDMARequest)
+             {
+             //just call destructor explicitly and the object can reused
+             iDMARequest-&gt;~DDmaRequest();
+             }
+			...
+         iDMAChannel-&gt;Close();
+</codeblock></stepxmp>
+<stepresult><p>The channel is now closed.</p></stepresult>
+</step>
+</steps>
+<result id="GUID-7BF6DAFD-2B40-4F3F-889D-F8FDDEFF091C"><p>You have
+now conducted a data transfer by DMA.</p></result>
+</taskbody></task>

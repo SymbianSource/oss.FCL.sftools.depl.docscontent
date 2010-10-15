@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-535C66C9-8B45-4DF3-8404-8ED03ABB4799-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1" xml:lang="en"><title>TSDIOInterrupt
+Class Tutorial</title><shortdesc>Describes the TSDIOInterrupt API class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-26C82435-8FB9-422E-B6D0-302CB1E4B5F5-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-1"><title>Description</title><p>The <xref href="GUID-5A5218D4-E8AD-322F-BE5B-597137623B3F.dita"><apiname>TSDIOInterrupt</apiname></xref> class
+provides the client with the ability to enable, disable, bind and unbind to
+an SDIO interrupt. There is no Clear() method provided as it is the responsibility
+of the client device driver to clear the appropriate interrupt through its <xref href="GUID-CC5352E2-DB21-393F-A7A4-108AA3684460.dita"><apiname>DSDIORegInterface</apiname></xref> class
+documented <xref href="GUID-2607CCFA-3D24-4716-A447-74304F861C44.dita">here</xref>.</p><table id="GUID-8047BB14-2519-4421-B6BD-41B078CAC404-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-1-3">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p>Header file</p></entry>
+<entry><p><filepath>interrupt.h</filepath></p></entry>
+</row>
+<row>
+<entry><p>Source code file</p></entry>
+<entry><p><filepath>interrupt.cpp</filepath></p></entry>
+</row>
+<row>
+<entry><p>Required libraries</p></entry>
+<entry><p>epbussdio.lib</p></entry>
+</row>
+<row>
+<entry><p>Class declaration</p></entry>
+<entry><p><codeph>class TSDIOInterrupt</codeph></p></entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+<section id="GUID-ACEDEF93-FD3F-4F19-9641-36F4FAC8FE66-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-2"><title>Bind()</title><p>The
+function declaration for the <xref href="GUID-8DAB6465-BCDE-35FE-8C31-861C13A34526.dita"><apiname>Bind()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C TInt Bind(TSDIOIsr aIsr, TAny* aPtr);</codeblock><p><b>Description</b></p><p>Binds the <xref href="GUID-5E00A59F-9316-3522-B152-EA8F8BC429B3.dita"><apiname>TSDIOIsr</apiname></xref> callback to the function's interrupt.
+Once bound, the interrupt should be enabled for the function by a call to
+Enable().</p><p><b>Parameters</b></p><p><table id="GUID-8F76FE85-D8EF-4FBF-974F-CB5CD7FF76FB-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-2-7-1">
+<tgroup cols="2"><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p><codeph>TSDIOIsr aIsr</codeph></p></entry>
+<entry>The ISR used to handle the function's interrupt.</entry>
+</row>
+<row>
+<entry><p><codeph>TAny* aPtr</codeph></p></entry>
+<entry>User defined data for use within the ISR.</entry>
+</row>
+</tbody>
+</tgroup>
+</table></p><p><b>Return value</b></p><p><codeph>KErrNone</codeph> if successful, <codeph>KErrAlreadyExists</codeph> if
+an ISR already bound to the function's interrupt, or a standard Symbian platform
+error code.</p></section>
+<section id="GUID-ACEDEF93-FD3F-4F19-9641-36F4FAC8FE66-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-3"><title>Unbind()</title><p>The
+function declaration for the <xref href="GUID-EAED145E-E4BE-3A0F-BC25-78E1FC13FB55.dita"><apiname>Unbind()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C TInt Unbind();</codeblock><p><b>Description</b></p><p>Unbinds
+the callback from the interrupt controller, replacing the callback with a
+dummy handler.</p><p><b>Parameters</b></p><p>None.</p><p><b>Return value</b></p><p><codeph>KErrNone</codeph> if
+successful, otherwise a standard Symbian platform error code.</p></section>
+<section id="GUID-ACEDEF93-FD3F-4F19-9641-36F4FAC8FE66-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-4"><title>Enable()</title><p>The
+function declaration for the <xref href="GUID-1B8F9258-D611-39DC-B0A7-8BB634915752.dita"><apiname>Enable()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C TInt Enable();</codeblock><p><b>Description</b></p><p>Enables
+the function's interrupt by setting the appropriate IEN bit in the CCCR. Note
+that this only unmasks the global function interrupt. It is the responsibility
+ of the client to perform any function-specific interrupt enabling that may
+be required.</p><p><b>Parameters</b></p><p>None.</p><p><b>Return value</b></p><p><codeph>KErrNone</codeph> if
+successful, otherwise a standard Symbian platform error code.</p></section>
+<section id="GUID-ACEDEF93-FD3F-4F19-9641-36F4FAC8FE66-GENID-1-2-1-10-1-5-1-9-1-1-7-1-4-1-11-1-3-5"><title>Disable()</title><p>The
+function declaration for the <xref href="GUID-229B7E6B-EF06-3C54-8D92-F1075B04D585.dita"><apiname>Disable()</apiname></xref> method is:</p><codeblock xml:space="preserve">IMPORT_C TInt Disable();</codeblock><p><b>Description</b></p><p>Disables the function's interrupt by clearing the appropriate IEN bit in
+the CCCR.  Note that this only masks the global function interrupt. It is
+the responsibility  of the client to perform any function-specific interrupt
+disabling that may be required.</p><p><b>Parameters</b></p><p>None.</p><p><b>return
+value</b></p><p><codeph>KErrNone</codeph> if successful, otherwise a standard
+Symbian platform error code.</p></section>
+</conbody></concept>

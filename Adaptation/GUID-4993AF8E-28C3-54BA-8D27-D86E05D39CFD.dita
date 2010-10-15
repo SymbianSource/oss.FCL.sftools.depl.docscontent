@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-4993AF8E-28C3-54BA-8D27-D86E05D39CFD" xml:lang="en"><title>Crash
+Logger Technology</title><shortdesc>The Crash Logger contains a logger program that stores system state
+information when a crash occurs, and a reader application that can be used
+later to get this information</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-060E1937-9BB9-5A81-A1FA-7EAEA04B9DEF"><title>The
+crash logger</title> <p>When the kernel crashes, control is handed to the
+crash logger. It tries to read as much state information as it can reasonably
+find, and dumps it to a pre-reserved location in permanent storage flash storage). </p> <p>Support
+exists for dumping information to <i>nor</i> flash and <i>nand</i> flash.
+The crash logger must have its own drivers to do this, as it cannot be assumed
+that any specific part of the kernel is operating correctly in these circumstances.
+These drivers are essentially simplified versions of the standard drivers. </p> <p>All
+monitoring functionality, crash logging and crash debugging is placed in kernel
+extensions. Functionality can be enabled or disabled by placing the appropriate
+kernel extensions into ROM at ROM build time. </p> <p>To support both crash
+logging and debugging without duplicating code, a common module, <filepath>exmoncommon.dll</filepath>,
+has been created. This extension contains all of the generic monitoring code,
+and supports features such as dumping registers, thread stacks and object
+containers and is responsible for registering with the kernel’s crash monitor
+entry point: </p> <codeblock id="GUID-F1EF54CF-614D-5459-ABA1-07F5E9D3969E" xml:space="preserve">Epoc::SetMonitorEntryPoint()</codeblock> <p>This
+extension must be placed in ROM before either of the two monitoring extensions,
+as they both rely on its functionality. As <filepath>exmoncommon.dll</filepath> depends
+on the underlying memory model, it is built from the Variant. </p> <p>After
+the common monitoring code registers itself with the kernel, further debugging
+extensions may register with the common code. These extensions are called
+when the kernel fails, in the order that they register. The maximum number
+of extensions currently supported is nine though only two- the interactive
+debugger, and the non-interactive crash logger are provided. However, this
+is an arbitrary limit set by the macro definition <codeblock xml:space="preserve">MONITOR_MAXCOUNT</codeblock> in
+the file <filepath>E32\include\kernel\monitor.h</filepath>, and can be increased
+given sensible use cases. </p> <ul>
+<li id="GUID-75C55DE2-982C-59E2-8A93-43457B687165"><p> <filepath>exmondebug.dll</filepath> is
+the traditional interactive debugger. </p> </li>
+<li id="GUID-12933627-FEBC-5D1A-9573-81F15FEDA328"><p> <filepath>exmonlog.dll</filepath> is
+the crash logger. </p> </li>
+</ul> <p>These DLLs are also built from the Variant. In the case of the crash
+logger, two separate <filepath>.mmp</filepath> files exist: </p> <ul>
+<li id="GUID-88D7A132-143A-519A-8645-FAA11D484FC7"><p>one for NAND flash,
+building <filepath>exmonlognand.dll</filepath>  </p> </li>
+<li id="GUID-EE02A14E-9E19-516D-93F9-B6590736D71C"><p>one for NOR flash, building <filepath>exmonlognor.dll</filepath>  </p> </li>
+</ul> <p>The rombuild scripts ensure that the crash logger for only one type
+of flash is placed into the ROM, and named as <filepath>exmonlog.dll</filepath>. </p> </section>
+<section id="GUID-7CAFA8C9-597C-5F20-AB15-22FFC7EFA203"><title>The crash reader</title> <p>At
+the next system boot, the crash reader application uses the normal system
+flash drivers to read the crash log from the reserved non-filesystem (non-uservisible)
+flash area, and to write it into the user-visible file system. </p> <p>The
+output file from the crash reader is a text file, or a compressed <filepath>GZIP-compatible</filepath> file. </p> <p>The
+crash reader application is called <filepath>crashread.exe</filepath>, which
+is built from <filepath>e32utils\crashread\crashread.mmp</filepath>. </p> </section>
+</conbody></concept>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-97F97D7B-D5A3-5471-A359-77B805ED198C" xml:lang="en"><title>Design</title><shortdesc>Describes different modes of operations of the DMA Framework .</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>Some DMA controllers provide several modes of operation. For example, one
+ASSP provides both single-buffer mode and scatter-gather mode transfers. </p>
+<p>There are two options: </p>
+<ul>
+<li id="GUID-EAFDBEFC-1524-55C4-BBD3-AF4CD88ADEF1"><p>Select a single mode
+of operation. </p> </li>
+<li id="GUID-ED15AB92-3A9B-5968-A5C9-E49309F14EE1"><p>Select a multiple mode
+of operation, and split the physical DMA controller into several logical controllers,
+one for each mode to be supported. If this option is chosen, the PSL must
+include one concrete controller class per logical controller; a controller
+class is derived from <xref href="GUID-25398075-927B-36E4-B953-16785EC4086C.dita"><apiname>TDmac</apiname></xref>. </p> <p>If the DMA controller
+supports more than one mode of operation, implement the simplest one first.
+Implementing single-buffer mode first allows most of the the PSL (platform-specific
+layer) to be debugged before you start to implement the more complex scatter-gather
+functionality. </p> </li>
+</ul>
+<p>One reference implementation adopts a mixed strategy; the mode of operation
+is selectable at build-time by defining the macro <codeph>__DESFETCHMODE__</codeph> to
+exercise and demonstrate two different modes of operation. </p>
+<p>Scatter-gather support is essentially a superset of single-buffer support
+because a scatter-gather list is an ordered set of variable sized buffers,
+and means that code shown here demonstrates the implementation of a scatter-gather
+DMA controller. </p>
+<p>Almost all modern MCUs use scatter-gather capable DMA controllers. Note
+that we refer to descriptor fetch mode synonymously with scatter-gather mode,
+as scatter-gather is implemented by passing the DMA controller a linked list
+of descriptors describing the buffers to be transferred. Non–descriptor mode
+requires that the DMA controller registers are programmed by software to describe
+the buffer transfer required. Since each transfer must be handled by an interrupt
+service routine triggered when the DMA controller has completed the transfer,
+non-descriptor mode is not capable of performing transfers past buffer boundaries. </p>
+</conbody></concept>

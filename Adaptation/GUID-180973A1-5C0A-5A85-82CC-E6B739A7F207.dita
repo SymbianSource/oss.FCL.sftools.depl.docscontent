@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-180973A1-5C0A-5A85-82CC-E6B739A7F207" xml:lang="en"><title>Platform
+Specific Layer Validation</title><shortdesc>Describes the test code to validate a port of the MMC Controller.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>There are three stages involved in testing a port of the MultiMediaCard
+controller. The first stage tests the controller in isolation; subsequent
+stages test an additional area of functionality. </p>
+<p>All three stages involve text shell based test programs and test drivers,
+and therefore these tests can be run by just building a text shell ROM. You
+can also run tests on the Emulator. </p>
+<section id="GUID-AB3EBD9F-49E9-5C9C-ACFB-377997C2A838"><title>Testing the
+controller in isolation</title> <p> <filepath>MMCTEST.EXE</filepath> tests
+the MultiMediaCard controller in isolation, at the controller’s client interface
+level. Since the controller’s client API is a kernel side interface, this
+requires a test driver, <filepath>D_MMCIF.LDD</filepath>, as well as the test
+program itself. </p> <p>This is not a 'go/no-go' type test, but is a test
+utility that can perform a small variety of operations. These are selected
+a simple interactive way by pressing appropriate keys. </p> <table id="GUID-A5C02651-82A2-57DB-8BCF-D1EF5F72902A">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Building <filepath>MMCTEST.EXE</filepath> and <filepath>D_MMCIF.LDD</filepath>  </p> </entry>
+<entry><p>The source and header files needed to build <filepath>MMCTEST.EXE</filepath> can
+be found in <filepath>...\e32utils\pccd</filepath>; the mmp file is <filepath>...\e32utils\group\mmctest.mmp</filepath>. </p> <p>The
+source and header files needed to build the test driver <filepath>D_MMCIF.LDD</filepath> can
+be found in <filepath>...\e32utils\pccd</filepath>; the mmp file is <filepath>...\e32utils\group\d_mmcif.mmp</filepath>. </p> <p>You
+need to build <filepath>MMCTEST.EXE</filepath> for the appropriate CPU target
+architecture (e.g. ARMI,THUMB etc.); you need to build <filepath>D_MMCIF.LDD</filepath> for
+the appropriate platform (e.g. MINT). </p> <p>Include both of these components
+in a ROM </p> </entry>
+</row>
+<row>
+<entry><p>Running the tests </p> </entry>
+<entry><p>Run MMCTEST and perform the following suggested sequence: </p> <ul>
+<li id="GUID-3685E0AA-B3D5-5A30-B6FF-04DE7A53EBCF"><p>Without a card inserted,
+power up the stack by pressing <userinput>P</userinput>, and check that it
+reports that no card is present. </p> </li>
+<li id="GUID-BA816CD0-3FA1-54C3-8480-7F82BA338119"><p>Insert a card, power
+it up, and check that it reports that a card is present. </p> </li>
+<li id="GUID-29403BEA-814F-5F54-85B1-8E598E67BB72"><p>Now that the card is
+powered up, read the card info by pressing <userinput>C</userinput>, and check
+the data returned about the card against the expected card data, by referring
+to the datasheet for the card. </p> </li>
+<li id="GUID-7C7542B2-F46A-5183-8256-1E962094A9B7"><p>Read the first sector
+of the card by pressing <userinput>M</userinput>. </p> </li>
+<li id="GUID-B6F5D3F1-2CF9-55B3-8EAF-4672EBE9B1A9"><p>Now read a few more
+sectors by pressing the space bar. </p> </li>
+<li id="GUID-15FBBB20-8914-566B-A786-BB470312A7D0"><p>Test writing to a sector:
+while still viewing a sector, edit a part of this, by using the direction
+keys and typing in a hex number. Now save the change by pressing <userinput>ESC</userinput>,
+followed by <userinput>Y</userinput>. Now navigate to the same sector again
+and check that it displays the new contents of the sector. </p> </li>
+<li id="GUID-23809955-30D3-5B53-85B6-890C75E63957"><p>Quit the test by pressing <userinput>Q</userinput>. </p> </li>
+</ul> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-9A353066-CE24-5969-B0FD-3F1164ECF3F5"><title>Testing the
+controller with the media driver and the local media sub-system</title> <ol id="GUID-323C60B8-36B4-5975-AECC-659F68AB560D">
+<li id="GUID-97E060B0-8355-54E3-AA35-7FF9B9D59119"><p> <filepath>DRVTEST.EXE</filepath> tests
+the MultiMediaCard controller in conjunction with the media driver and the
+local media sub-system, in effect accessing the card as a local drive. This
+requires a kernel side test driver <filepath>D_DRVIF.LDD</filepath> as well
+as the test program itself. </p> <p>This is not a 'go/no-go' type test, but
+is a test utility that can perform a small variety of operations. These are
+selected a simple interactive way by pressing appropriate keys. It is used
+to test that card initialization and single block read and write requests
+are performed successfully. </p> </li>
+<li id="GUID-BCCDA1BB-7205-5C0D-A0CC-607E44196624"><p> <filepath>T_ATADRV.EXE</filepath> tests
+that card initialization and simple read and write requests succeed. It also
+tests multi-block read/write operations, format requests, accessing the device
+following a media change event, and a machine power down event. </p> <p>This
+is a 'go/no-go' type test. If this test succeeds, you can have fairly high
+confidence that the F32 test suite will run successfully. </p> </li>
+</ol> <table id="GUID-D29E7820-6241-5B6E-B242-4B7037BA7344">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p>Building <filepath>DRVTEST.EXE</filepath>, <filepath>D_DRVIF.LDD</filepath>,
+and <filepath>T_ATADRV.EXE</filepath>  </p> </entry>
+<entry><p>The source and header files needed to build <filepath>DRVTEST.EXE</filepath> can
+be found in <filepath>...\e32utils\pccd</filepath>; the mmp file is <filepath>...\e32utils\group\drvtest.mmp</filepath>. </p> <p>The
+source and header files needed to build the test driver <filepath>D_DRVIF.LDD</filepath> can
+be found in <filepath>...\e32utils\pccd</filepath>; the mmp file is <filepath>...\e32utils\group\d_drvif.mmp</filepath>. </p> <p>The
+source and header files needed to build <filepath>T_ATADRV.EXE</filepath> can
+be found in <filepath>...\e32test\pccd</filepath>; the mmp file is <filepath>...\e32test\group\t_atadrv.mmp</filepath>. </p> <p>You
+need to build <filepath>DRVTEST.EXE</filepath> for the appropriate CPU target
+architecture (e.g. ARMI,THUMB etc.) </p> <p>You need to build <filepath>D_DRVIF.LDD</filepath> for
+the appropriate platform (e.g. MINT) </p> <p>You need to build <filepath>T_ATADRV</filepath> for
+the appropriate CPU target architecture (e.g. ARMI,THUMB). </p> <p>Include
+these components in a ROM. </p> </entry>
+</row>
+<row>
+<entry><p>Running the DRVTEST test </p> </entry>
+<entry><p>Run DRVTEST and perform the following suggested sequence: </p> <ul>
+<li id="GUID-22D82528-84D3-58C8-83F1-63B9D63976D0"><p>Without a card inserted,
+power up the stack by pressing <userinput>P</userinput>, and check that it
+reports that no card is present. </p> </li>
+<li id="GUID-646F1CE2-6F6E-58D1-A097-2675CC0285D6"><p>Insert a card, power
+it up, and check that it reports that a card is present. </p> </li>
+<li id="GUID-76B81B73-0F7E-57DE-AEE2-67E03E9422A2"><p>Now that the card is
+powered up, read the card info by pressing <userinput>C</userinput>, and check
+the data returned about the card against the expected card data, by referring
+to the datasheet for the card. </p> </li>
+<li id="GUID-FD9CC21C-5818-5405-B0BA-B5E5344D715F"><p>Read the first sector
+of the card by pressing <userinput>M</userinput>. </p> </li>
+<li id="GUID-B7EF88BE-D2CB-5E8F-844B-47F1A461CC82"><p>Now read a few more
+sectors by pressing the <userinput>space                         bar</userinput>. </p> </li>
+<li id="GUID-96527F35-52E7-5400-AEB1-E7D05D4420C5"><p>Test writing to a sector:
+while still viewing a sector, edit a part of this, by using the direction
+keys and typing in a hex number. Now save the change by pressing <userinput>ESC</userinput>,
+followed by <userinput>Y</userinput>. Now navigate to the same sector again
+and check that it displays the new contents of the sector. </p> </li>
+<li id="GUID-D91CFC9A-C544-5E32-BCAE-3B2BA558AF63"><p>Quit the test by pressing <userinput>Q</userinput>. </p> </li>
+</ul> </entry>
+</row>
+<row>
+<entry><p>Running the T_ATADRV test </p> </entry>
+<entry><p>Run T_ATADRV and follow the on-screen instructions. Check that the
+test runs to the end with no errors. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-9AD20A90-0E4D-56BC-A681-833EBD632DF6"><title> Testing using
+the F32 test suite</title> <p>The final test stage is to run the entire file
+server test suite on a card drive. </p> <p>To perform these tests: </p> <ul>
+<li id="GUID-1C50C6E5-E811-5DFE-8814-F4B18648E389"><p>build a text shell ROM
+that contains the F32 test suite, i.e. build the ROM with the option: </p> <codeblock id="GUID-892CC775-89C7-5B48-AE44-5D63E7A030FD" xml:space="preserve">-t=f32tests</codeblock> </li>
+<li id="GUID-2A5BE4AA-9762-525F-9391-D839153C41F5"><p>boot the test machine
+into the text shell. </p> </li>
+<li id="GUID-C9A22A2C-58F6-59A4-BB85-6D69703520F9"><p>launch the F32 automatic
+tests and check that all of the tests run without error. Use the command option
+"-d" to set the default drive, for example: </p> <codeblock id="GUID-08A2E18B-7CA8-5124-B46E-88311D468C4E" xml:space="preserve">RUNTESTS F32TEST.AUTO.ARMI.BAT -d d</codeblock> </li>
+</ul> </section>
+<section id="GUID-57378A6B-B5FB-5EFF-9FD4-6F948B5F20D1"><title>Emulator-based
+tests</title> <p>It is possible to emulate a user opening and closing the
+MMC drive door, replacing and removing the MMC card, and assigning a password
+to an emulated MMC card. This is important so that you can test: </p> <ul>
+<li id="GUID-2B8F603F-FC12-57E2-B4A7-E86653DAD5C5"><p>how an application behaves
+when the MMC card, from which the application is running, is removed and/or
+swapped </p> </li>
+<li id="GUID-D110DBEA-7070-557E-982A-8A34FACC7256"><p>how an application behaves
+when it is reading and writing data to and from an MMC card </p> </li>
+<li id="GUID-E714BBF6-A97F-5D4A-9D45-A7B8C12238F4"><p>that data stored on
+an MMC card is not lost or corrupted during MMC drive events </p> </li>
+<li id="GUID-EC779E31-2A94-51D4-B93D-4C9C2811726A"><p>that MMC card locking
+and password notification works correctly. </p> </li>
+</ul> <p>The platform independent layer of the MuiltiMediaCard controller,
+as its name implies, is common to all platforms, including the emulator. However,
+the emulator provides its own implementation of the platform specific layer. </p> <p>The
+emulator does not provide access to any kind of MultiMediaCard hardware. Instead,
+the memory area of each emulated card is represented by a file, a <filepath>.bin</filepath> type
+file in the Windows system <filepath>temp</filepath> directory, on the host
+machine. The MultiMediaCard emulator emulates a single stack containing two
+separate cards, the first in slot 0, and the second in slot 1. Each emulated
+card has an associated <filepath>.bin</filepath> file on the host machine.
+As the emulator only supports the swapping of cards in slot 0, there are two <filepath>.bin</filepath> files,
+one for each of the two emulated MMC cards in slot 0. There is no support
+for card swapping on slot 1, and therefore this has only one <filepath>.bin</filepath> file. </p> <p>This
+means that all the test programs described can be run on the emulator, and
+they will exercise the platform independent layer code in the same way as
+on real target hardware. It also means that call entries to, and exits from
+platform specific layer code can be traced, and may be useful for debugging
+problems on real hardware, and to help understand how the controller operates. </p> <p>The
+code for the emulator specific layer code can be found in <filepath>...\wins\specific\mmc.cpp</filepath>. </p> </section>
+</conbody></concept>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-29B84A67-9DB7-5F4C-A4D1-A3BDC69015A8" xml:lang="en"><title>Additional
+System Wide Power States</title><shortdesc>A base port can add new power states to improve power management
+for phone hardware. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The Kernel defines three system wide power states. A base port can add
+new power states to improve power management for phone hardware. </p>
+<p>The generic system wide power states that are defined are <i>Active</i>, <i>Standby</i> and <i>Off</i>.
+Any additional sub-states of the <i>Active</i> power state must be wholly
+managed by the base port. These states may not need to be declared explicitly
+and may result from peripherals, or groups of peripherals, having moved to
+their low power state (see also <xref href="GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC.dita#GUID-1D3E61BD-C09D-51FD-A10B-22392FDAEFEC/GUID-DCB8EA90-9B5F-5BA1-8D22-124980AC6B34">moving
+to their low power state</xref>). The device will then “trickle“ into one
+of these sub-states instead of transitioning into them as a result of a user
+action or system policy decision. </p>
+<p>Usually, the transition of the system into one of the additional low power
+states happens when the CPU enters the idle mode. The transition may be automatic
+and wholly managed by the ASSP hardware or may result from an action taken
+by the software routine that prepares the CPU to go to idle mode. </p>
+<section id="GUID-22A20CBB-6BF2-495F-B32C-63834DD4624C"><title>Sleeping in idle mode</title> <p>An example of this is when
+the base port uses the idle mode to put the CPU and the device into hardware
+“Sleep” mode similar to that which can be achieved with a transition to <i>Standby</i> mode
+as described in the implementation issues for <xref href="GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703.dita#GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703/GUID-1F77C71C-D226-58BB-ABAE-43F958CC0C61">implementing
+DPowerController::PowerDown()</xref>  </p> <p>When called, the power controller’s <xref href="GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703.dita#GUID-34D1D0BF-20DE-5677-A067-8FF9DD72E703/GUID-E2A072D0-A67F-5E6D-81ED-CFD77B6ED4F1">DPowerController::CpuIdle() </xref> implementation
+could take the necessary steps to prepare the CPU and the platform to go to
+“Sleep”. </p> <p>There is a balance between the power savings obtained from
+moving the CPU and platform into “Sleep” mode in Idle and the performance
+hit resulting from spending time restoring the status after coming out of
+“Sleep” mode. Usually the <codeph>CpuIdle()</codeph> routine investigates
+the timer queue (using <xref href="GUID-C54D99AA-FF6E-3023-8260-8F5A88FBFBE0.dita#GUID-C54D99AA-FF6E-3023-8260-8F5A88FBFBE0/GUID-69103F26-2C21-3ECA-9DB5-C31A41F6C238"><apiname>NTimerQ::IdleTime()</apiname></xref>) for the next
+timer expiration and decides to move or not to move the CPU and platform into
+“Sleep” mode based on how much time there is before the next timer expiration.
+The threshold above which it is considered productive to move into “Sleep”
+is dependent on the base port. </p> <p>The decision to move into “Sleep” mode
+may also be based on the current level of activity, or collected metrics on
+the length of time spent in Idle, or other historical information. This can
+be implemented entirely by the base port, or it may require the services of
+an external component (such as, for example, Speed Management). </p> <p>The
+transition to a hardware “Sleep” mode may also depend on shared peripherals
+being in a particular state, for example, no pending requests from other peripherals.
+This means that the power controller may need to check with the peripheral
+driver before initiating the change. The power controller could use the ASSP/Variant
+method to access the resource manager and check the usage of a shared peripheral
+using its <codeph>GetCount()</codeph> API. </p> <p>The decision to move into
+“Sleep” mode could be dependent on a number of peripherals (shared and not
+shared) being in Standby and a number of controllable power resources being
+turned off. Therefore the power controller may also need to check with the
+resource manager (through the Variant or ASSP) for the state of a specific
+set of controllable power resources (using the <codeph>ResourceManager::GetResourceState()</codeph> API). </p> <p>On
+going to “Sleep”, an action or set of actions might need to be taken that
+would affect the whole platform. An example of this is when DRAM is put into
+self-refresh mode on entering the CPU Idle mode after all peripherals that
+might access it (including the LCD controller and DSP) are in low power state.
+Unused DRAM banks may also be powered down. </p> <p>The following diagram
+exemplifies how the evolution of system power would look like on a system
+when the most power saving “Sleep” mode can only be reached – from Idle -
+when Peripherals A, B and C are already in their low power mode. On going
+to the most power saving “Sleep” mode, additional actions can be taken to
+lower the system power level: </p> <fig id="GUID-05ED7A51-E1A1-5D2E-AF81-A11A9EC80D7F">
+<title>System power use over time</title>
+<image href="GUID-BF157EE2-B680-554A-AE32-69C652B61FA6_d0e29926_href.png" placement="inline"/>
+</fig> <ul>
+<li id="GUID-FD4E14B6-9471-5A91-B215-E42595645A94"><p>The system is active
+when a request for service is made on peripheral A; the peripheral driver
+for peripheral A requests its transition to operational state increasing the
+system power requirement (a). </p> </li>
+<li id="GUID-FB7914E6-13BC-57C7-BA02-A7DAA3A4F968"><p>After a period of activity
+related to servicing the request, the system enters the idle thread; in <codeph>CpuIdle()</codeph> the
+time for the next timer expiration is investigated and is found to be long
+enough to send the system to sleep, powering down peripherals A, B and C to
+their low power state and other system resources (b). </p> </li>
+<li id="GUID-44F96E35-4DA5-5A34-8D12-6E99D4B96856"><p>The timer expires and
+the system wakes up to the same power level as before (c). </p> </li>
+<li id="GUID-61124A91-05C6-589D-884B-F4CE5FF9A970"><p>The inactivity timer
+implemented in the peripheral driver for peripheral A expires: the peripheral
+is transitioned to the low power state (d). </p> </li>
+<li id="GUID-1A1BF422-6C3A-5F90-BB8E-E84A31478723"><p>At (e) the system enters
+the idle thread again: the timer queue is investigated and then enters sleep
+mode, waking up again when an interrupt occurs (f). </p> </li>
+<li id="GUID-14C0126F-4333-5A96-93CE-7BBA17A422EF"><p>The inactivity timer
+associated with the peripheral drive for peripheral B expires and the peripheral
+is transitioned to its low power state (g). </p> </li>
+<li id="GUID-3CC1A70B-832A-53EC-BD04-9FA58F58F97D"><p>On the next call to <codeph>CpuIdle()</codeph> the
+time for the next timer expiration is not long enough to power off peripherals
+and other system resources: only limited power savings can be made (h) until
+the system wakes up again (i). </p> </li>
+<li id="GUID-FC9FE747-CF6D-501A-B36F-4776F53E5317"><p>Finally, the inactivity
+timer for peripheral C expires and the peripheral is transitioned to low power
+state (j). On reaching another period of system idle all conditions are met
+to send the system to the deepest sleep mode available accompanied by the
+switching off other power resources (k). </p> </li>
+<li id="GUID-6E283027-9516-50AA-94A7-BEA5C1A1E115"><p>On waking up (l) the
+system resources are restored to the same power level as before. </p> </li>
+</ul> <p>Any transition to and from these low power states must be transparent
+to the rest of the system. A transparent transition is one that can be instantly
+reversed, perhaps automatically in hardware, and has no noticeable impact
+on system performance. In other words, it should be possible to wake the processor
+up and move the entire device to Active Mode as if coming from a “normal”
+Idle Mode. </p> <p>To perform a system wide power change which is not transparent,
+peripherals that may be affected by the transition would need to be examined,
+and interfaces would have to be provided so that the users of these peripherals
+could query the peripheral and allow or disallow the system transition into
+that state. </p> </section>
+</conbody></concept>

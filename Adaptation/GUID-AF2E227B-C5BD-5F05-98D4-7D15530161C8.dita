@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AF2E227B-C5BD-5F05-98D4-7D15530161C8" xml:lang="en"><title>Interrupt::Clear()</title><shortdesc>Describes the implementation of the clear function.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The function <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-DB641A23-82B2-373E-A514-E11118CB6E69"><apiname>Interrupt::Clear()</apiname></xref> is used by device drivers
+to acknowledge that they have serviced the interrupt and cleared the pending
+flag in the interrupt controller hardware. </p>
+<p>This is useful in situations where an interrupt must be cleared explicitly
+rather than as a side effect of an I/O register access, especially where the
+clearing is done from generic code such as in the PC card and MMC controllers. </p>
+<p>The implementation of this function is completely dependent on the interrupt
+hardware. </p>
+<p>In the template port, <codeph>Interrupt::Clear()</codeph> is implemented
+in <filepath>...\template_assp\interrupts.cpp</filepath>. </p>
+<codeblock id="GUID-7612CEB2-7ADA-552D-9BB9-B0B1B2D8E4BC" xml:space="preserve">EXPORT_C TInt Interrupt::Clear(TInt anId)
+    {
+     __KTRACE_OPT(KEXTENSION,Kern::Printf("Interrupt::Clear id=%d",anId));
+     TInt r=KErrNone;
+     // if ID indicates a chained interrupt, call variant...
+     if (anId&lt;0 &amp;&amp; ((((TUint)anId)&gt;&gt;16)&amp;0x7fff)&lt;(TUint)KNumTemplateInts)
+         r=TemplateAssp::Variant-&gt;InterruptClear(anId);
+     else if ((TUint)anId&gt;=(TUint)KNumTemplateInts)
+         r=KErrArgument;
+     else
+         {
+         //
+         // TO DO: (mandatory)
+         //
+         // Clear the corresponding Hardware Interrupt source
+         //
+        }
+    return r;
+    }</codeblock>
+</conbody></concept>

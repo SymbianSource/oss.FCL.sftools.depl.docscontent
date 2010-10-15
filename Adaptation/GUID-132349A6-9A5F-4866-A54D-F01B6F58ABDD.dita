@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-132349A6-9A5F-4866-A54D-F01B6F58ABDD" xml:lang="en"><title>Shared
+Chunks</title><shortdesc>This document describes the use of shared chunks to share data.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-DBFFE006-4E6C-4B4C-9E50-0A9FC9CB51FF">       <title> Shared
+chunks</title>       <p>Device drivers often need to share data between user
+space and kernel space threads. Though there are APIs for doing this, such
+as <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-904A42A8-8077-3FC6-BEF2-29619F079842"><apiname>Kern::ThreadRawRead()</apiname></xref> and <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-182C88F4-326C-376E-9FBE-889E3CB9B68A"><apiname>Kern::ThreadRawWrite()</apiname></xref>,
+these involve an overhead of a memory copy, which can be a problem when there
+is a large amount of data. </p> <p>To avoid unnecessary data transfer, Symbian
+platform provides shared chunks, which are similar to shared memory in other
+operating systems. Shared chunks can be created and used by both a driver
+and user-side code directly. An example application for shared chunks is for
+a camera driver. Without shared chunks, the image data would have to be copied
+from the camera driver to the user process, which would then copy it to the
+display driver. This would have a high memory copy overhead. Using shared
+chunks instead would improve the performance of the camera view finder. </p> <p>A
+shared chunk is created and controlled by the kernel side code, for example,
+the device driver, rather than the user code. This memory is safe to be used
+by ISRs and DMA. A shared chunk can be mapped into multiple user processes
+in sequence or at the same time. The memory object can be transferred between
+another process and another device driver. Multiple drivers and multiple user
+processes can have access to the same shared chunk. </p>     </section>
+<section id="GUID-8C27DA12-5396-4229-8723-480D5846604C"><title>Comparison
+between shared memory and shared I/O buffers</title><p>The EKA1 versions of
+Symbian platform had a mechanism called shared I/O buffers. These are now
+deprecated, and shared chunks should be used instead. The disadvantage of
+a shared I/O buffer is that only one user process can access the chunk at
+a time, and that it does not have a user handle: the user process is only
+supplied with the address and size of the buffer. Shared chunks solve these
+issues, and give more flexibility for users to do safe operations. </p></section>
+</conbody></concept>

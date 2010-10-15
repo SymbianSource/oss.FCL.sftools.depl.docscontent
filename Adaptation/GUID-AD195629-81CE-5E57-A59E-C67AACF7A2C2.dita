@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AD195629-81CE-5E57-A59E-C67AACF7A2C2" xml:lang="en"><title>USB
+Client Driver Technology</title><shortdesc>This topic describes the technology that the USB Client Driver
+provides.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-2FF7A568-3908-4AF5-ABA7-2A2F92E2D063"><title>USB</title> <p>The Universal Serial Bus (USB) is a high speed
+data transport mechanism that uses a 4 wire cable attached to a USB Host to
+transfer signals and bus power to low cost peripherals (clients). Theoretically,
+up to 127 devices (such as keyboards, video cameras etc.) can share the bus,
+although less than four devices is more typical. </p> <p>There are two versions
+of the USB standard in use: V1.1 and V2.0. The following table shows the speeds
+supported by the different versions: </p> <p><b>USB Speeds </b> </p> <table id="GUID-EEBE7ED4-EB35-5E1D-B3FA-7518F6C4D2DE">
+<tgroup cols="3"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/>
+<tbody>
+<row>
+<entry><p> <b> Name</b>  </p> </entry>
+<entry><p> <b>Rate</b>  </p> </entry>
+<entry><p> <b>USB Version</b>  </p> </entry>
+</row>
+<row>
+<entry><p>High Speed </p> </entry>
+<entry><p>480Mbit/s </p> </entry>
+<entry><p>2.0 only </p> </entry>
+</row>
+<row>
+<entry><p>Low Speed </p> </entry>
+<entry><p>12Mbits/s </p> </entry>
+<entry><p>1.1 and 2.0 </p> </entry>
+</row>
+<row>
+<entry><p>Full Speed </p> </entry>
+<entry><p>1.5Mbits/s </p> </entry>
+<entry><p>1.1 and 2.0 </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>As the table shows USB V2.0 adds support for the higher speed
+of 480Mbit/s. </p> <p>The USB system consists of single USB host controller
+(the USB Host) connected to a number of USB peripheral devices. The host is
+the bus master, initiating all transactions over the bus. </p> <p>A client
+device is a USB peripheral device. It is connected to a USB Controller and
+responds to transactions addressed to it from the Controller. The Universal
+Serial Bus Specification 1.1 describes how a USB Host sends commands to a
+peripheral and how data can be transferred from and to a Client. The main
+points are: </p> <ul>
+<li id="GUID-F247C990-BE75-52EE-8F5F-BA1726541336"><p>USB is a Host polled
+bus. This means that a peripheral cannot send a data packet unless the Host
+has requested it. The request must either be accepted, and the data packet
+sent within a given time period, or refused. </p> </li>
+<li id="GUID-F517A353-4B3F-5EE2-8432-B10718774A85"><p>Every peripheral attached
+to the USB is allocated a unique device address. The Host uses the device
+address to direct its communication to a particular device. In fact, the Host
+sees the peripheral as a collection of endpoints. Each endpoint is an address
+within the peripheral to which the Host sends packets or from which the Host
+receives packets. </p> </li>
+<li id="GUID-35285198-7F18-5ABA-B0B8-1E4437CA65A6"><p>Endpoints are grouped
+together by the peripheral into Interfaces. The Host regards each peripheral
+as a set of functions and communicates with each function via its Interface.
+Simple devices, such as mice, contain only one function, other devices may
+contain more than one function, e.g. a monitor may contain speakers and a
+microphone. </p> </li>
+<li id="GUID-1BDEBAC5-23C0-5CDD-A6BD-1CCB6D1B0EC3"><p>Each function requires
+its own driver at the Host end which communicates with the function within
+the peripheral using a USB class driver or vendor defined protocol. The function
+informs the Host what protocol it understands via its Interface. </p> </li>
+</ul> <p>The USB Client Driver supports: </p> <ul>
+<li id="GUID-B5051F6F-9E1E-5A79-B45A-D81B7A94EA23"><p>multiple USB interfaces,
+i.e. it supports licensee products that implement multiple USB interfaces
+simultaneously </p> </li>
+<li id="GUID-31AC620E-4DD3-51B9-9492-E0C3EB0C8751"><p>alternate USB interfaces </p> </li>
+<li id="GUID-D9563D5D-679E-540C-AA96-B55CB65578FC"><p>a single USB Configuration
+only; the API does not provide a mechanism for specifying more than one USB
+configuration. </p> </li>
+<li id="GUID-CD97C393-9630-5A56-934A-D2453CEAA56C"><p>extended standard endpoint
+descriptors. </p> </li>
+<li id="GUID-28F9D219-0FD8-57FD-867D-2AA2E5461914"><p>reading and modifying
+standard descriptors. </p> </li>
+<li id="GUID-8AF1738D-3321-5503-8440-2F8782658BD9"><p>setting class specific
+interface and endpoint descriptors. </p> </li>
+<li id="GUID-6665A0F8-E1DD-5CB9-98AD-79D5BE63B074"><p>remote wakeup signalling. </p> </li>
+<li id="GUID-15199F33-31AB-54E0-B427-1B68B946213E"><p>reading device directed
+Ep0 (Endpoint Zero) traffic. </p> </li>
+</ul> </section>
+<section id="GUID-1ECB4FAF-745C-52CE-92A4-9077ABB585C3"><title>Endpoint types</title> <p>There
+are four endpoint types corresponding to the four transfer types: </p> <ul>
+<li id="GUID-63D3194C-E3B0-5C76-9A11-398963275D38"><p>Control endpoints </p> </li>
+<li id="GUID-BC5DBF35-B82D-554F-AF6A-325316248464"><p>Bulk endpoints </p> </li>
+<li id="GUID-C33C7BF8-9E81-5541-ABE4-DF31CF101977"><p>Interrupt endpoints </p> </li>
+<li id="GUID-549981D7-9AC8-5D2A-BDC8-9643F8C27B9F"><p>Isochronous endpoints. </p> </li>
+</ul> <p><b>Control
+endpoints</b> </p> <p>These are serially bi-directional. This means that they
+can send and receive data, but not simultaneously. </p> <p>Every peripheral
+has at least one control endpoint. Although other control endpoints are possible,
+Symbian platform only allows Endpoint zero (Ep0) as the control endpoint.
+Ep0 is a shared resource, which must always be available. </p> <p>Ep0 is vital
+for the operation of the device. Its primary function is the control endpoint
+for the Host. When the device is first connected to the Host, a process known
+as enumeration must occur, and this takes place through Ep0. During enumeration,
+the client tells the Host what kind of device it is and what classes it supports.
+Enumeration is complete, for the purpose of writing client drivers, when the
+Host moves the client into its configured state. The Host moves the client
+into its configured state when a Host driver is available to communicate with
+the client. </p> <p>Ep0 needs handling with some sensitivity. Every request
+arriving on Ep0 must be handled either by the Controller or by a client class
+driver. Each request must be moved through the data phase, even if there is
+no associated request data, so that the status phase may begin. It is imperative
+that this happens otherwise endpoint zero will be unable to accept any further
+requests. This could result in the Host stopping communication with the device. </p> <p><b>Bulk endpoints</b> </p> <p>These are unidirectional. They can have the
+IN or the OUT direction. </p> <p>The IN direction means sending packets to
+the Host. The OUT direction means receiving packets from the Host. </p> <p>Bulk
+endpoints can supply a maximum of 64 bytes of data per packet, but such transfers
+have no guaranteed bus bandwidth. </p> <p><b>Interrupt
+endpoints</b> </p> <p>Interrupt endpoints are similar to Bulk endpoints but,
+in addition, the endpoint descriptor specifies how often the Host should poll
+the endpoint for data. The polling frequency may be anything from 1ms to 255ms. </p> <p><b>Isochronous endpoints</b> </p> <p>Isochronous endpoints can deliver up
+to 1023 bytes of data per packet, but there is no retry capability if an error
+is detected. Like Interrupt endpoints, they have an associated polling frequency,
+which is fixed at 1ms. </p> </section>
+<section id="GUID-A2A987CD-2DEA-5B40-8C42-157DD36BA2CA"><title>Endpoint numbering</title> <p>Two
+numbering schemes are used within the USB implementation. There is also the
+external USB address numbering scheme. </p> <p id="GUID-2CFB38E0-0A98-516C-B4EE-DECCD65F824A"><b>Virtual endpoint numbers</b> </p> <p>Applications
+or class drivers use virtual endpoints when communicating with the USB client
+driver. These numbers are used when exchanging data over the USB. </p> <p>Virtual
+endpoints range in value from 1 to <xref href="GUID-CB8EA082-EA6E-3A7E-81C7-E06A6F8DD9B8.dita"><apiname>KMaxEndpointsPerClient</apiname></xref>,
+and applications refer to these endpoints by number when using the user side
+handle to the USB client driver. </p> <p>For applications that implement a
+specific USB device class, and which need access to endpoint-0, virtual endpoint-0
+is available. This endpoint is special because it does not belong to any specific
+interface. It is always available and, at the interface to the USB client
+driver, is the only bi-directional endpoint. </p> <p><b>Implementation note </b> </p> <p>Within the platform independent layer,
+virtual endpoint numbers are represented by instances of the internal class <codeph>TUsbcLogicalEndpoint</codeph>.
+Note that there is no representation for virtual endpoint-0. </p> <p><b>Physical endpoints</b> </p> <p>Physical (or 'real') endpoints are used
+at the interface between the platform independent layer and the platform specific
+layer within the USB client controller. They represent endpoints physically
+present on a given device. </p> <p><b>Implementation note </b> </p> <p>Within the platform independent layer,
+physical endpoint numbers are represented by instances of the internal class <codeph>TUsbcPhysicalEndpoint</codeph>,
+in the array represented by the internal data member <codeph>DUsbClientController::iRealEndPoints</codeph>. </p> <p>To
+simplify array indexing, the numbering scheme uses "transformed" USB endpoint
+addresses. We represent each channel as a separate endpoint, RX (OUT) channel
+as <codeph>iRealEndpoints[n]</codeph> and TX (IN) channel as <codeph>iRealEndpoints[n
++ 1]</codeph>. </p> <p id="GUID-8592C90D-ECA7-59CB-A419-0C4ABDEB9229"><b>Canonical endpoint numbers</b> </p> <p>The
+two layers of the USB client controller, i.e. the Platform Independent layer
+and the Platform Specific layer, use a numbering system known as canonical
+endpoint numbers when communicating between each other. The physical endpoint
+numbers are never used explicitly. </p> <p>This system is based upon the physical
+endpoint number, but takes the direction of the endpoint into account. If <codeph>r</codeph> is
+the physical endpoint number, then the corresponding canonical endpoint number
+is a value defined as: </p> <ul>
+<li id="GUID-DFD56EC6-7B4D-58C2-96E3-E232D9D26494"><codeblock id="GUID-2A405E0A-857A-5978-9BE7-2C4193CA16D8" xml:space="preserve">2r + 1</codeblock> <p>if
+the endpoint direction is IN </p> </li>
+<li id="GUID-FD8BABD6-39E5-54E5-A4D6-EA5F809B0D28"><codeblock id="GUID-A868BFCC-6FB7-501D-8CAE-D2ECB56B78DA" xml:space="preserve">2r</codeblock> <p>if
+the endpoint direction is OUT </p> </li>
+</ul> <p>This means that canonical endpoint numbers fall into a range from
+0 to 31. </p> <p>For example, Endpoint 0 (Ep0) is represented by 2 canonical
+endpoint numbers: </p> <ul>
+<li id="GUID-9A9D6B64-C15D-554A-B34B-90521659600A"><p>0, representing Ep0(OUT) </p> </li>
+<li id="GUID-B85424E3-D704-5EDA-87E8-2216BA1878DF"><p>1, representing Ep0(IN). </p> </li>
+</ul> <p id="GUID-4037A87D-802A-5FD5-A0B5-2A002A0FD092"><b>Converting between Endpoint
+number representations</b> </p> <p>It is possible to convert between the Endpoint
+Address representation and the Canonical Endpoint. The following text explains
+how these values are stored in memory and shows the conversion process: </p> <p><b>Endpoint Address </b> </p> <fig id="GUID-0135DF6D-895B-53E0-A2EA-8E7F0EF6BBDE">
+<desc><p>where the numbers 0-7 represent bits 0-7 of the byte containing the
+endpoint address. </p> <p>D = Direction: 0 = Receive/IN, 1 = Transmit/OUT </p> <p>P3
+P2 P1 P0 represents the physical endpoint number (0-15) </p> </desc>
+<image href="GUID-59FF3BFE-21E2-554D-99EC-1A1D34AAEB7C_d0e35295_href.png" placement="inline"/>
+</fig> <p><b>Canonical Endpoint Number </b> </p> <p>The canonical endpoint number is
+just the endpoint address rotated left by 1 bit as shown below: </p> <fig id="GUID-237E227A-03E7-5BDE-B8E0-AA96FB74CA36">
+<image href="GUID-CDDD8189-D532-5179-92F6-74264C2E3D81_d0e35308_href.png" placement="inline"/>
+</fig> <p><b>Summary
+of Endpoint Number Representations</b> </p> <p>The APIs use the following
+conventions for representing endpoint numbers types: </p> <table id="GUID-E5C3C773-3D6F-521C-B012-11A13E8008C7">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <b>Name</b>  </p> </entry>
+<entry><p> <b> Endpoint number</b>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>aRealEndpoint</codeph>  </p> </entry>
+<entry><p>Canonical Endpoint Number </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>aEndpointNum</codeph>  </p> </entry>
+<entry><p>Virtual Endpoint Number </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>aAddress</codeph>  </p> </entry>
+<entry><p>Endpoint Address </p> </entry>
+</row>
+<row>
+<entry><p> <b>n/a</b>  </p> </entry>
+<entry><p>Physical Endpoint Number </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+</conbody></concept>

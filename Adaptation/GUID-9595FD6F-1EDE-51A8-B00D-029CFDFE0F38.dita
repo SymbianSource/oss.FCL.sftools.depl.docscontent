@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9595FD6F-1EDE-51A8-B00D-029CFDFE0F38" xml:lang="en"><title>Boot Table</title><shortdesc>Describes the boot table.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The boot table consists of a linear array of 4-byte entries whose index
+positions are defined by the <codeph>TBootTableEntry</codeph> enumeration
+in <filepath>os/kernelhwsrv/kernel/eka/include/arm/bootdefs.h</filepath>. </p>
+<p>The entries in the array are divided into two groups, one whose index positions
+are defined by the enumerator names <codeph>BTF_*</codeph> and the other group
+defined by the enumerator names <codeph>BTP_*</codeph>. </p>
+<p>Entries in the first group specify addresses of <xref href="GUID-B3F6FC45-3BF0-5F92-8325-44C705BA47AE.dita">Boot
+Table Functions</xref>. </p>
+<p>Entries in the second group specify <xref href="GUID-C92CC81A-35A1-5860-AA08-C8C08B39804C.dita">Boot
+Table MMU Permission and Cache Attribute Definitions</xref> to be used for
+certain standard memory and I/O areas. </p>
+<p>A boot table entry is the offset of the function from the beginning of
+the bootstrap code but, since the bootstrap is linked for a base address of
+zero and is position independent, bare function addresses can be used. </p>
+<p>Use <codeph>DCD</codeph> to place a function in the boot table, for example: </p>
+<codeblock id="GUID-F36DF0E5-E337-5B1B-B098-64D78C3B0339" xml:space="preserve">DCD function-name</codeblock>
+<p>In the Template port, available in <filepath>os/kernelhwsrv/bsptemplate/asspandvariant/template_variant/bootstrap/template.s</filepath>,
+the boot table is defined by the label <codeph>BootTable</codeph>, followed
+by <codeph>DCD</codeph> entries for every boot table function, like in the
+following example: </p>
+<codeblock id="GUID-28F3F4E0-E196-50E4-8AFF-6672BA982FB4" xml:space="preserve">BootTable
+        DCD    DoWriteC        ; output a debug character
+        DCD    GetRamBanks    ; get list of RAM banks
+        DCD    SetupRamBank    ; set up a RAM bank
+        DCD    GetRomBanks    ; get list of ROM banks
+        DCD    SetupRomBank    ; set up a ROM bank
+        ...</codeblock>
+</conbody></concept>

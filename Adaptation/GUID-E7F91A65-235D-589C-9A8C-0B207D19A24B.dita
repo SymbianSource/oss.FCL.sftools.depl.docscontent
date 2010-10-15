@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E7F91A65-235D-589C-9A8C-0B207D19A24B" xml:lang="en"><title>Port client drivers to use the PRM</title><shortdesc>This document describes how to port client drivers to use
+the PRM.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-B2FA7A9A-8BA2-4C9C-AFB0-8F2E73A5653B"><title>Purpose</title> <p>Device drivers must register as clients to access services of
+the PRM. </p> <p><b>Introduction</b> </p> <p>Kernel side components
+can access PRM services through exported kernel side APIs by including <filepath>resourceman.h</filepath> and linking against the static library provided
+by the PRM. See <xref href="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9.dita#GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9/GUID-0F328055-DBCE-5B2B-A1EB-77F73BA1FC82">setup and configuration requirements</xref>. </p> </section>
+<section id="GUID-E496B581-9C24-49BB-A7EA-7E1EE4AD7E39"><title>Porting
+client drivers </title> <p>Kernel side components register as clients
+with the PRM from their entry point during kernel boot and device
+drivers register as clients on channel opening. </p> <p>User side
+components can access PRM services through a user side proxy interface.
+See <xref href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita#GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE/GUID-5C3F684C-D4F6-5343-AFFC-009B70210F9C">user-side</xref> for more information. </p> <p>To guarantee deterministic
+behaviour during resource state change and read operations (mainly
+on a long latency resource), clients should pre-allocate ‘client level’
+objects and request objects using <xref href="GUID-975D07BD-21A8-3797-916A-AD5D63ADE33B.dita"><apiname>AllocReserve()</apiname></xref>. This needs to be done immediately after registering as clients
+of the PRM. </p> <p>Before de-registering as clients from PRM, device
+drivers must: </p> <ul>
+<li id="GUID-6469D50E-BA4B-5BD2-898D-701547B1119F"><p>Cancel any pending
+asynchronous request with <xref href="GUID-98C67010-FAD0-3D09-BFBF-EE240ADB95E7.dita"><apiname>CancelAsyncRequestCallback()</apiname></xref>. If <codeph>CancelAsyncRequestCallback</codeph> returns <codeph>KErrInUse</codeph> the client must wait for the request to complete
+before proceeding with deregistration as the asynchronous request
+has started processing and will run to completion, </p> </li>
+<li id="GUID-A9377536-9850-534D-BEFA-95493B74B938"><p>Cancel all resource
+state change notification requests issued by this client using <xref href="GUID-51CAD2A1-C978-3EBD-984F-4C5C59D68885.dita"><apiname>CancelNotification()</apiname></xref>, </p> </li>
+<li id="GUID-24C83DC4-C6F2-5AFA-916A-D405418CADDF"><p>Delete the asynchronous
+callback objects and notification objects created by this client to
+avoid memory leak. </p> </li>
+</ul> <p><b>Omissions </b> </p> <p>PRM APIs cannot be called from
+a Null thread, ISR or from DFC thread1. However it might be possible
+that ISR need to operate on a power resource, for example, a power
+supply may need to be turned on before a hardware register that an
+ISR is interested on can be read. In this case Base port developers
+need to access the power resource directly. In order for the PRM to
+provide a consistent view of power resources any resource manipulators
+in an ISR must leave them unchanged, so in the above example, the
+ISR must turn OFF the power supply after it read the registers. </p> </section>
+</conbody><related-links>
+<link href="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9.dita"><linktext>Porting
+the Power Resource Manager</linktext></link>
+<link href="GUID-B1CE51BC-B452-5FC9-9C00-35447AF40671.dita"><linktext>Implement
+the controllable power resources</linktext></link>
+<link href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita"><linktext>Implement
+the PSL for the target</linktext></link>
+<link href="GUID-C8DF0CB0-92F4-5F9E-A8F1-7DE50954C4F1.dita"><linktext>Debugging
+the PRM</linktext></link>
+<link href="GUID-66E5F769-1156-54CA-94BC-8912159A1240.dita"><linktext>Testing
+the PRM PSL</linktext></link>
+</related-links></concept>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-65F012C2-19BA-474E-8E94-D0E89DADF7B8" xml:lang="en"><title>Multiple
+Unit Support</title><shortdesc>This document describes how to support multiple units of hardware
+with a single device driver.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-F35C9966-6107-43D4-88BE-B65F820F7CBA">       <title>Supporting
+multiple units</title>       <p>An LDD can support more than one device by
+providing a separate channel to each device. </p> <p>There can be more than
+one PDD associated with a given LDD, where each PDD supports a different variation
+of a similar device. </p> <p>Alternatively, a single PDD can be designed to
+support multiple instances of an identical device by supporting more than
+one channel. For example, a platform that contains two identical UARTS could
+support these by providing a PDD that can open a channel on either (or both)
+UARTs. </p> <p>Where a driver supports multiple devices on a platform, then
+it uses a unit number to distinguish between each instance of the device.
+Clients open a channel to the driver for a particular unit. The following
+shows an example of this, and the example driver function that creates the
+channel: </p> <codeblock id="GUID-713E591A-2C4C-546B-934E-5F7C825332B5" xml:space="preserve">// User application opens the driver for unit1
+RExDriverChannel ldd;
+r = ldd.Open(KUnit1);
+test(r==KErrNone);</codeblock> <codeblock id="GUID-D0BFA95B-F3E6-579E-902A-F10664422D9F" xml:space="preserve">// User side wrapper function to driver API
+inline TInt RExDriverChannel::Open(TInt aUnit)
+    {    
+    return DoCreate(KDriverName,VersionRequired(),
+                aUnit,NULL,NULL,EOwnerThread);    
+    }</codeblock>     </section>
+<section id="GUID-A62D1C51-9974-4C82-974F-335144691DD2"><title>System information</title> <p>The
+driver must inform the framework that it supports the use of unit numbers.
+A driver can use unit numbers to ensure that it only opens on one unit. This
+is done by setting the <xref href="GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB.dita#GUID-7616AA05-83E6-3989-AB9D-11AE01245BEB/GUID-EB891156-94D9-323A-AB23-7B5994CD95E3"><apiname>DLogicalDevice::iParseMask</apiname></xref> bitmask
+with the <xref href="GUID-F7186198-62A7-3915-B29B-87AC31A7B90C.dita"><apiname>KDeviceAllowUnit</apiname></xref> flag. </p> <codeblock id="GUID-AC71E4B9-7C7F-540F-86D3-CE8D876E67DE" xml:space="preserve">// Logical Channel Second stage constructor
+DExDriverLogicalDevice:: DExDriverLogicalDevice ()
+    {
+    iParseMask = KDeviceAllowPhysicalDevice | KDeviceAllowUnit;
+    ...
+    }</codeblock></section>
+<section id="GUID-A6817059-DA9B-4CFA-B1D0-AE1DE8116C58"><title>Unit number
+validation</title> <p>The device driver framework validates if the driver
+supports unit numbers. In the following example, the PDD checks if the unit
+number passed is valid. </p> <codeblock id="GUID-32369EB3-BF09-58C1-9F9E-B17B4369BB19" xml:space="preserve">TInt DExH4PhysicalDevice::Validate(TInt aUnit, const TDesC8* 
+/*aInfo*/, const TVersion&amp; aVer)
+    {    
+    ...        
+    if (aUnit&lt;0 || aUnit&gt;=KNumUarts)
+        return KErrNotSupported;
+    }</codeblock></section>
+</conbody></concept>

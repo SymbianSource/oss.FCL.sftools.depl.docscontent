@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F8BD699A-E926-5434-9F35-3DC6DC9FFBB6" xml:lang="en"><title>Build</title><shortdesc>This topic describes how to include the ported driver in
+a ROM.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The USB client driver, <filepath>EUSBC.LDD</filepath>, and the
+USB client controller, <filepath>USBCC.DLL</filepath> (the PDD) and
+any other required component (a USB transceiver DLL) must be added
+to the ROM image by adding suitable definitions to the ROM <filepath>.oby</filepath> files. In the template port add definitions to two
+files: </p>
+<ul>
+<li id="GUID-864989F1-76E7-5F34-99E4-FB8534DB9D3C"><p>the <filepath>kernel.iby</filepath> file in <filepath>...\template_variant\rom\</filepath>, if building a text-shell ROM image; it contains the lines: </p> <codeblock id="GUID-8DE82039-4C0E-542F-8ADB-A9934F454C9B" xml:space="preserve">// USB Client
+device[VARID]=        \Epoc32\Release\##KMAIN##\##BUILD##\USBC.LDD                    \sys\bin\EUSBC.LDD
+// USB Device Driver
+extension[VARID]=    \Epoc32\Release\##KMAIN##\##BUILD##\_##VARIANT##_USBCC.DLL        \sys\bin\USBCC.DLL
+</codeblock> </li>
+<li id="GUID-D1C9E3F8-C6C1-5DF5-9865-047E7DA859B3"><p>the <filepath>base_template.iby</filepath> file in <filepath>...\template_variant\rom\</filepath>, if building a full ROM image; it contains the lines: </p> <codeblock id="GUID-C1D03A4A-919A-574F-B5FA-EA211993B9B4" xml:space="preserve">// USB Drivers
+extension[VARID]=KERNEL_DIR\DEBUG_DIR\_template_usbcc.dll                \sys\bin\usbcc.dll
+device[VARID]=    KERNEL_DIR\DEBUG_DIR\usbc.ldd                            \sys\bin\eusbc.ldd
+</codeblock> </li>
+</ul>
+<p>Add the command line test applications. This can be done in a special
+purpose <filepath>.oby</filepath> file which is used to create the
+text shell, test ROM image: </p>
+<codeblock id="GUID-4C906093-24A2-5407-BA2A-415E2646B1B7" xml:space="preserve">FILE=/EPOC32/RELEASE/ARMV5/UREL/T_USB.EXE    SYS\BIN\T_USB.EXE 
+FILE=/EPOC32/RELEASE/ARMV5/UREL/T_USBAPI.EXE    SYS\BIN\T_USBAPI.EXE 
+</codeblock>
+<note> Both these test applications are also pulled in by default
+by the standard <filepath>e32tests.oby</filepath> file.</note>
+<p>The macro <codeph>EUSBC</codeph> needs to be defined
+for the base port to pull in the user-mode components (e.g. <codeph>USBMan</codeph>) for a full ROM image. For template, this is done
+in <filepath>...\template_variant\template.oby</filepath>: </p>
+<codeblock id="GUID-42001655-A282-5804-9ACB-04520AA96231" xml:space="preserve">REM Define whether or not to include USB client support:
+#define EUSBC</codeblock>
+</conbody></concept>

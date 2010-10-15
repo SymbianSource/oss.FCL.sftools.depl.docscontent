@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-28844FE0-AE0F-531C-826E-CDA8400A0581" xml:lang="en"><title>Sessions
+and Request Management</title><shortdesc>Describes how the MultiMediaCard Controller manages the sessions
+and sets the order of requests. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>When a number of drivers have a session with the MultiMediaCard Controller,
+the MultiMediaCard Controller can have many requests to service. </p>
+<section id="GUID-9A51615A-4C00-572F-9AF4-1ED9CBC358F3"><title>Session queues</title> <p>To
+handle sessions, the MultiMediaCard controller implements a scheduler. The
+MultiMediaCard stack has three internal queues: </p> <ul>
+<li id="GUID-0EB9FF38-2B49-5897-B663-352CEDAD8EF8"><p>an entry queue - this
+is the queue onto which a session is initially added when a client submits
+the session object by calling <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-8DA6B49E-FED0-3E83-8D2F-EA7B61C28015"><apiname>DMMCSession::Engage()</apiname></xref> on
+it. This is anchored in the <codeph>DMMCStack::iEntryQueue</codeph> private
+member. </p> </li>
+<li id="GUID-21EF4132-1FA5-5FB2-9E9E-543DCD8AC8F7"><p>a ready queue - this
+is the queue into which a session is moved when it is ready to be handled;
+the scheduler moves all the sessions from the entry queue into the ready queue
+when it can. This is anchored in the <codeph>DMMCStack::iReadyQueue</codeph> private
+member. </p> </li>
+<li id="GUID-5C903A7D-0540-5F09-9F41-147A98A5B4B9"><p>a working set queue
+- this is the queue of sessions to be processed as chosen by the scheduler.
+This queue is limited to eight sessions. The scheduler moves a session from
+the ready queue to the working set queue if all current sessions in the working
+set queue are blocked and there are less than eight sessions in it. This is
+anchored in the <codeph>DMMCStack::iWorkSet</codeph> private member. </p> </li>
+</ul> <p>All three queues are circular queues as implemented using the internal
+Symbian platform class <codeph>TMMCSessionRing</codeph>. </p> <fig id="GUID-E8B1FA7F-1759-52BC-A9D8-80FF7E39FE51">
+<image href="GUID-B30D6027-EB0F-578F-9B2F-AFC2DFD27E39_d0e19057_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-FF74AAF0-D1F6-59A7-A859-B73DF946C92F"><title>The scheduler</title> <p>Every
+time one of the following events occurs, the MultiMediaCard stack invokes
+its scheduler to deal with that event: </p> <ul>
+<li id="GUID-06C336CB-581E-59A3-96BA-D9C4BD43154E"><p>a client submitting
+a session to the MultiMediaCard controller </p> </li>
+<li id="GUID-FFA95B03-F68F-5B1A-8A36-2D8F0D490AD1"><p>a client aborting a
+session </p> </li>
+<li id="GUID-00D34161-C53E-5BED-9818-F0CCEED8FDF4"><p>a card interrupt occurring. </p> </li>
+</ul> <p>The stack invokes the scheduler by calling the internal function <codeph>DMMCStack::Scheduler()</codeph>. </p> </section>
+<section id="GUID-193EAA8E-32F0-4331-A137-39DB3A47623D"><title>Blocking a
+session</title><p>Sometimes, the MultiMediaCard controller has to perform
+its processing in a DFC context. In those cases the Controller postpones operation
+by queuing a DFC; the DFC call-back function then resumes the operation by
+invoking the scheduler again. This means that the scheduler may be running
+as part of a kernel executive call, a DFC or an interrupt service routine. </p> <p>In
+general, the MultiMediaCard controller processes a session in stages, issuing
+commands, checking responses, reading or writing data etc. Each stage is usually
+done asynchronously, first setting up the activity and then setting up a means
+of being notified when that activity is complete, for whatever reason (e.g.
+issuing a command and setting up an interrupt when a response has been received). </p> <p>If
+a session is waiting on an asynchronous operation, it is blocked. When one
+session is blocked, the stack tries to process another session which isn’t
+blocked. </p> <p>The blocking of sessions is set up and implemented internally
+to Symbian platform. However, the platform specific layer can block a session
+by calling the <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita#GUID-B5193656-9819-3E00-A335-EEF1726115A5/GUID-E7B38752-F9AB-3A66-8FB6-E321717A63B5"><apiname>DMMCStack::BlockCurrentSession()</apiname></xref> function
+with the <xref href="GUID-8A9A2DD2-C630-3651-8374-17BCF2A09AC4.dita"><apiname>KMMCBlockOnASSPFunction</apiname></xref> bit set in the parameter
+passed to that function. </p> <p>Internally, the <codeph>DMMCSession::iBlockOn</codeph> private
+data member is set when a session is blocked. This is a bit-mask variable
+containing the reason that the session is blocked. </p></section>
+<section id="GUID-E0D63F8B-D4BC-48E5-8601-D1B0FCFB1644"><title>Scheduler algorithm</title><p>The
+following flow-diagram shows the algorithm used by the scheduler. </p> <fig id="GUID-78F3CD78-61F3-5DD8-8D0D-9D5251D11158">
+<image href="GUID-AA53650C-664C-53F0-8BE9-445677FC1FE2_d0e19130_href.png" placement="inline"/>
+</fig> <p>The <xref href="GUID-B5193656-9819-3E00-A335-EEF1726115A5.dita"><apiname>DMMCStack</apiname></xref> private members referenced in this
+diagram have the following meaning: </p> <table id="GUID-E1F971E8-949B-527B-B0EC-8D21BBB0EDE0">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>DMMCStack::iAbortReq</codeph> </p> </entry>
+<entry><p>Set to <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> when there are sessions on the stack
+that have been marked for abort by the client. This is set as a result of
+a call to <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-84B74DDE-4D86-3D25-BDC6-CEF580E8C0FB"><apiname>DMMCSession::Abort()</apiname></xref>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>DMMCStack::iAttention</codeph> </p> </entry>
+<entry><p>Set to <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> when there are sessions ready to
+run. This is set when a session is submitted to the stack as a result of a
+call to <xref href="GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A.dita#GUID-0186BEDE-8E28-3F8C-8CAE-A8B92F41F47A/GUID-8DA6B49E-FED0-3E83-8D2F-EA7B61C28015"><apiname>DMMCSession::Engage()</apiname></xref>, or when a session becomes
+unblocked. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>DMMCStack::iCompReq</codeph> </p> </entry>
+<entry><p>Set to <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> when there are sessions on the stack
+ready to complete. This is set internally by the controller through calls
+to the private functions <codeph>DMMCStack::MarkComplete()</codeph> or <codeph>DMMCStack::CompleteAll()</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>DMMCStack::iInitialise</codeph> </p> </entry>
+<entry><p>Set to <xref href="GUID-781E8158-805B-3784-8FED-D7A191822FC3.dita"><apiname>ETrue</apiname></xref> when stack initialization (CIM_INIT_STACK)
+has been forced. This is set when the controller needs to re-power the stack,
+and to power up a card on client requests. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table></section>
+</conbody></concept>

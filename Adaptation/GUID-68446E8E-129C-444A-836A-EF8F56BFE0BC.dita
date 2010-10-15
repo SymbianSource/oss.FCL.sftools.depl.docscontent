@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE task
+  PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="GUID-68446E8E-129C-444A-836A-EF8F56BFE0BC" xml:lang="en"><title>Handling Interrupts</title><shortdesc>Describes how a device driver can use interrupts.</shortdesc><prolog><metadata><keywords/></metadata></prolog><taskbody>
+<prereq id="GUID-FCD339E1-54B6-4F3F-9DF0-1C920667001C"><p>The clients
+of the Interrupt platform service must know the following:<ul>
+<li><p>ISR function</p></li>
+<li><p>Interrupt ID</p></li>
+</ul></p></prereq>
+<context id="GUID-3EB0898F-D1ED-47D4-B675-3B8627909384"><p>Interrupts
+are sent by hardware to indicate an event has occurred. Interrupts
+typically cause an Interrupt Service Routine (ISR) to be executed.
+The Interrupt platform service specifies the interface APIs for setting
+up the ISRs and connecting them to specific Interrupt IDs. Interrupt
+handling is a blocking high priority task and needs to take a minimal
+amount of time. While the ISR is executed the kernel will be in an
+indeterminate state and this puts restrictions on doing various operations,
+such as allocating heap storage. </p><p>The device driver provides
+an ISR to handle an interrupt and perform the required response to
+the events. Symbian platform provides an <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita"><apiname>Interrupt</apiname></xref> class (implemented by the ASSP) with an API to bind and unbind an
+Interrupt ID with an ISR. </p><p>An Interrupt ID is identified by
+number, defined as a <codeph>TInt</codeph> type. Typically, the ASSP
+layer may define this number for each interrupt in a header file and
+export it so that it can be included and used by device drivers. Alternatively,
+device drivers may be required to retrieve the appropriate Interrupt
+ID from the Hardware Configuration Repository (HCR). The scheme used
+is implementation dependent.</p></context>
+<steps id="GUID-4DD07DEC-6017-4237-BE46-1D69E5FBD744-GENID-1-2-1-10-1-5-1-7-1-1-8-1-6-1-3-3">
+<step id="GUID-0CFB6DD5-2309-40EE-84F5-4BC4449BE5BB"><cmd>Call <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-1D846CC9-843D-363B-A0F2-5719B18C0854"><apiname>Interrupt::Bind(TInt, TIsr, TAny*)</apiname></xref> with appropriate Interrupt
+ID, ISR and argument to be passed to the ISR. This function binds
+the interrupt to the ISR.</cmd>
+</step>
+<step id="GUID-94DAD86A-0721-4663-A992-8FA001864B5F"><cmd>Assign the
+priority to the Interrupt if needed using the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-975988C3-B9B0-3B82-8CE8-9691E8C54515"><apiname>Interrupt::SetPriority(TInt,
+TInt)</apiname></xref> function.</cmd>
+</step>
+<step id="GUID-E731F5A3-B31F-43A5-BE61-81AA25DCCE3F"><cmd>Enable the
+interrupt by calling the <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-23BE001A-205A-33AE-9533-8D50C494211F"><apiname>Interrupt::Enable(TInt)</apiname></xref> function. This function is called when the device driver is ready
+to  handle hardware events.</cmd>
+<info><p>An ISR is a static function that will be executed when an
+interrupt is received by the interrupt handler. The interrupt handler
+executes the ISR that is bound to the received Interrupt ID. It performs
+the actions necessary to service the event of the peripheral that
+generated the interrupt. The ISR must either remove the condition
+that caused the interrupt or call  <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-2D14E023-E6ED-39BF-8B31-6FA510957A8A"><apiname>Interrupt::Disable()</apiname></xref> otherwise the machine will hang. The device driver may queue a DFC
+within the ISR to perform deferred processing.</p></info>
+</step>
+<step id="GUID-A088A6FD-67B5-4112-894E-5CE1A2A3BAE6"><cmd>Once the
+DFC processing is completed, it is a good practice to enable the interrupt
+if it is disabled, using <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-23BE001A-205A-33AE-9533-8D50C494211F"><apiname>Interrupt::Enable(TInt)</apiname></xref> function. </cmd>
+</step>
+<step id="GUID-611D449F-C0EB-4027-8E4C-D5CC5D44A29D"><cmd>At the point
+when the PDD of the device driver gets unloaded, unbind the ISR from
+the specified Interrupt Id using <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4980B3FF-0C14-3E64-8BB3-E8431CB649F9"><apiname>Interrupt::Unbind(TInt)</apiname></xref> function by passing Interrupt ID as the parameter.</cmd>
+</step>
+</steps>
+<result id="GUID-286F666E-B037-4C0E-9A87-02A3CBAB9B8A"><p>The device
+driver is able to handle interrupts.</p></result>
+</taskbody><related-links>
+<link href="GUID-D0F5D40A-28D2-4A2E-9B40-180537E60F56.dita"><linktext>Interrupt
+Client Interface Guide</linktext></link>
+<link href="GUID-654A788A-526A-4C3F-838C-05B09F0D5445.dita"><linktext>Interrupt
+Technology Guide</linktext></link>
+</related-links></task>

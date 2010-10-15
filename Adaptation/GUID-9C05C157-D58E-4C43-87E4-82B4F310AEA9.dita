@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-9C05C157-D58E-4C43-87E4-82B4F310AEA9" xml:lang="en"><title>DmaChannelMgr Implementation</title><shortdesc>Describes how to write the hardware-specific functions
+of the <codeph>DmaChannelMgr</codeph> class.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>The <xref href="GUID-176B8E0D-0422-341B-A134-7C85432E1303.dita"><apiname>DmaChannelMgr</apiname></xref> class is already defined in
+the DMA header file but it belongs to the PSL implementation: opening
+and closing channels require hardware-specific operations. </p>
+<p>When implementing the PSL, you need to provide at least one function:<codeblock xml:space="preserve">TDmaChannel* DmaChannelMgr::Open(TUint32 aOpenId)</codeblock></p>
+<p>This function opens a DMA channel and returns the object controlling
+this channel.</p>
+<p>How the channel is allocated is hardware-dependent. The call to
+the <codeph>Open()</codeph> function specifies which channel to open
+through the <codeph>aOpenId</codeph> parameter. The format of the
+parameter is not part of the DMA platform service and depends on an
+agreement between the PSL implementation and the driver using DMA.
+The example section below shows a static method, but the allocation
+could also be completely or partially dynamic. </p>
+<p>If you want to perform a hardware-specific operation when closing
+the channel, you also need to update <xref href="GUID-176B8E0D-0422-341B-A134-7C85432E1303.dita#GUID-176B8E0D-0422-341B-A134-7C85432E1303/GUID-909D795A-7303-3A76-9C8E-3B07A97DD716"><apiname>DmaChannelMgr::Close()</apiname></xref>. It is usually not necessary: in the template source code, it is
+implemented as doing nothing.</p>
+<p/>
+<example><title>Open() example</title><p>This example illustrates
+a simple allocation scheme where <codeph>aOpenId</codeph> represents
+the index of the requested channel in the channel array (<codeph>Controller.iChannels</codeph>).<codeblock xml:space="preserve">
+TDmaChannel* DmaChannelMgr::Open(TUint32 aOpenId)
+	{
+	__DMA_ASSERTA(aOpenId &lt; static_cast&lt;TUint32&gt;(KChannelCount));
+	TDmaChannel* pC = Controller.iChannels + aOpenId;
+	if (pC-&gt;IsOpened())
+		pC = NULL;
+	else
+		{
+		pC-&gt;iController = &amp;Controller;
+		pC-&gt;iPslId = aOpenId;
+		}
+      return pC;
+}</codeblock></p></example>
+</conbody><related-links>
+<link href="GUID-D5ED62EB-744D-42EB-B8CF-D5623BDA5B38.dita"><linktext>DMA
+Client Interface Guide</linktext></link>
+</related-links></concept>

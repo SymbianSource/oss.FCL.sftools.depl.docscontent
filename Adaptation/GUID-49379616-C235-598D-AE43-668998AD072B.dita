@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-49379616-C235-598D-AE43-668998AD072B" xml:lang="en"><title>Process,
+Thread, Stack and Memory Attributes</title><shortdesc>Reference for users of the debug monitor tool to the attributes
+of Kernel objects and memory structure. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<ul>
+<li id="GUID-98737E3D-1A08-53ED-89C5-C0398E02C509"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-4D7F6A1F-3120-5547-B027-344C08A01D83">Process and thread priorities</xref>  </p> </li>
+<li id="GUID-F08BDD05-90C3-544E-8C41-788A556F799F"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-DDC45F0A-6B62-5EE6-9E42-D21F07BCF4B4">Thread state summary</xref>  </p> </li>
+<li id="GUID-5C39B7CB-D8B1-5DD4-BD62-76595A3B2EB4"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-C6296C07-220E-5EB8-9E12-F7D63AB4B181">Thread and process exit information summary</xref>  </p> </li>
+<li id="GUID-4F26D9D7-D335-5332-899D-E4DA6D8F4819"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-68CF9014-4922-56B9-9E53-AC5697F60E8E"> Critical threads and processes</xref>  </p> </li>
+<li id="GUID-528E13A3-7E35-5153-87D6-C25CD3E90B6E"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-6530D514-A6CC-5AE9-AA97-C223B2189A09">Kernel calls and thread context</xref>  </p> </li>
+<li id="GUID-4D0AC539-A105-5D26-896C-E32A2863213B"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-5A573FEB-A274-5C0F-A6B6-87D5BAD8A21C">Stacks</xref>  </p> </li>
+<li id="GUID-3A45E908-3D72-5871-9DEB-454F75A084BE"><p> <xref href="GUID-49379616-C235-598D-AE43-668998AD072B.dita#GUID-49379616-C235-598D-AE43-668998AD072B/GUID-E3F102A4-D187-5BC9-BE97-9F8447A5DB45">Virtual memory and run addresses</xref>  </p> </li>
+</ul>
+<section id="GUID-4D7F6A1F-3120-5547-B027-344C08A01D83"><title>Process and
+thread priorities</title> <p>Internally the scheduler always deals with nanokernel
+threads, <codeph>NThread</codeph> objects, and their associated priority between
+0 (lowest) and 63 (highest). In general, a thread with a higher priority that
+is ready to run will always run in preference to threads with a lower priority.
+The only exception is where a higher priority thread waits on a nanokernel
+fast mutex held by a lower priority thread. In this case, the higher priority
+thread will yield to the lower priority thread holding the mutex. </p> <p>A
+Symbian platform thread, a <codeph>DThread</codeph> object, has an embedded <codeph>NThread</codeph>,
+which enables it to be scheduled by the nanokernel. </p> <p>There are two
+ways of setting a priority for Symbian platform thread: </p> <ul>
+<li id="GUID-8568544D-49F4-5D52-8E38-28A09058FB04"><p>using the two-level
+priority scheme </p> </li>
+<li id="GUID-F3D2BAF8-9C95-59C3-A50E-150A7BDA4EE7"><p>using an absolute priority. </p> </li>
+</ul> <p><b>The
+two level priority scheme</b> </p> <p>In this scheme, a Symbian platform thread
+priority is relative to the priority of its owning process. By default, Symbian
+platform threads inherit the priority of their owning process when they are
+created. This priority can be raised or lowered relative to the process priority
+- this just sets the thread’s priority to the process priority plus or minus
+a specified priority weighting. If the priority of the process is changed,
+the priority of its threads will change relative to other threads in the system
+but will remain the same relative to each other. </p> <p>The default priority
+of a process is <codeph>EPriorityForgeround</codeph>, which is an absolute
+priority of 350. Threads by default are created with relative priority <codeph>EPriorityNormal</codeph> which
+sets them to the same priority as the owning process. The window server lowers
+the priority of background UI processes to <codeph>EPriorityBackground</codeph> (250). </p> <p>The
+NULL thread, also known as the idle thread, runs at priority 0, and means
+that it will only run when there are no other threads ready to run. </p> <p>Symbian
+platform thread priorities map onto <codeph>NThread</codeph> priorities in
+the range 1 to 31 as shown in the table below. </p> <table id="GUID-E61C3B76-B47D-5B9B-A469-A369D5AB4AFC">
+<tgroup cols="8"><colspec colname="col0"/><colspec colname="col1"/><colspec colname="col2"/><colspec colname="col3"/><colspec colname="col4"/><colspec colname="col5"/><colspec colname="col6"/><colspec colname="col7"/>
+<tbody>
+<row>
+<entry><p> <b>Thread priority</b>  </p> </entry>
+<entry><p>Idle </p> </entry>
+<entry><p>Much Less </p> </entry>
+<entry><p>Less </p> </entry>
+<entry><p>Normal </p> </entry>
+<entry><p>More </p> </entry>
+<entry><p>Much More </p> </entry>
+<entry><p>Real Time </p> </entry>
+</row>
+<row>
+<entry><p> <b>Process priority</b>  </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+<entry><p> </p> </entry>
+</row>
+<row>
+<entry><p>Low </p> </entry>
+<entry><p>1</p> </entry>
+<entry><p>1</p> </entry>
+<entry><p>2</p> </entry>
+<entry><p>3</p> </entry>
+<entry><p>4</p> </entry>
+<entry><p>5</p> </entry>
+<entry><p>22 </p> </entry>
+</row>
+<row>
+<entry><p>Background </p> </entry>
+<entry><p>3</p> </entry>
+<entry><p>5</p> </entry>
+<entry><p>6</p> </entry>
+<entry><p>7</p> </entry>
+<entry><p>8</p> </entry>
+<entry><p>9</p> </entry>
+<entry><p>22 </p> </entry>
+</row>
+<row>
+<entry><p>Foreground </p> </entry>
+<entry><p>3</p> </entry>
+<entry><p>10 </p> </entry>
+<entry><p>11 </p> </entry>
+<entry><p>12 </p> </entry>
+<entry><p>13 </p> </entry>
+<entry><p>14 </p> </entry>
+<entry><p>22 </p> </entry>
+</row>
+<row>
+<entry><p>High </p> </entry>
+<entry><p>3</p> </entry>
+<entry><p>17 </p> </entry>
+<entry><p>18 </p> </entry>
+<entry><p>19 </p> </entry>
+<entry><p>20 </p> </entry>
+<entry><p>22 </p> </entry>
+<entry><p>23 </p> </entry>
+</row>
+<row>
+<entry><p>SystemServer1 </p> </entry>
+<entry><p>9</p> </entry>
+<entry><p>15 </p> </entry>
+<entry><p>16 </p> </entry>
+<entry><p>21 </p> </entry>
+<entry><p>23 </p> </entry>
+<entry><p>25 </p> </entry>
+<entry><p>28 </p> </entry>
+</row>
+<row>
+<entry><p>SystemServer2 </p> </entry>
+<entry><p>9</p> </entry>
+<entry><p>15 </p> </entry>
+<entry><p>16 </p> </entry>
+<entry><p>21 </p> </entry>
+<entry><p>23 </p> </entry>
+<entry><p>25 </p> </entry>
+<entry><p>28 </p> </entry>
+</row>
+<row>
+<entry><p>SystemServer3 </p> </entry>
+<entry><p>9</p> </entry>
+<entry><p>15 </p> </entry>
+<entry><p>16 </p> </entry>
+<entry><p>21 </p> </entry>
+<entry><p>23 </p> </entry>
+<entry><p>25 </p> </entry>
+<entry><p>28 </p> </entry>
+</row>
+<row>
+<entry><p>RealTimeServer </p> </entry>
+<entry><p>18 </p> </entry>
+<entry><p>26 </p> </entry>
+<entry><p>27 </p> </entry>
+<entry><p>28 </p> </entry>
+<entry><p>29 </p> </entry>
+<entry><p>30 </p> </entry>
+<entry><p>31 </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> <p>where: </p> <ul>
+<li id="GUID-4315CEE2-2717-5E8F-A8F7-885C621A95B6"><p>the process priority
+values are defined by the internal Symbian platform enum <codeph>TProcPriority</codeph>,
+defined in <filepath>...\e32\include\kernel\kern_priv.h</filepath>. The symbols
+in the table correspond to the symbols in the enum. </p> </li>
+<li id="GUID-89D0D7FA-4B17-5753-898A-26C1B20EE59B"><p>the thread priority
+values are defined by the internal Symbian platform enum <codeph>TThrdPriority</codeph>,
+defined in <filepath>...\e32\include\kernel\kern_priv.h</filepath>. The symbols
+in the table correspond to the symbols in the enum. </p> </li>
+</ul> <p><b>Absolute
+priority scheme</b> </p> <p>It is possible to set an absolute priority that
+is not relative to the process priority; it is not affected by changes in
+the process priority. </p> </section>
+<section id="GUID-DDC45F0A-6B62-5EE6-9E42-D21F07BCF4B4"><title>Thread state
+summary</title> <p>This is a brief summary about nanokernel thread states
+and Symbian platform thread states. </p> <p><b>Nanokernel
+thread states</b> </p> <p>The state of a nanokernel thread is referred to
+as the NState (or N-state). This is to disambiguate it from any other state,
+such as the state of a Symbian platform thread (referred to as the MState
+or M-state). </p> <p>The states of a nanokernel thread are defined by the
+values of the <xref href="GUID-379D9320-AC3C-3206-8A5D-EE6E5983EBDC.dita#GUID-379D9320-AC3C-3206-8A5D-EE6E5983EBDC/GUID-2184305D-18EF-3322-9276-20F8A4253455"><apiname>NThreadBase::NThreadState</apiname></xref> enumeration. </p> <p><b>Symbian platform thread states</b> </p> <p>The state of a Symbian platform
+thread is referred to as the MState (or M_state). This is in addition to the
+nanokernel N-state, and tracks threads waiting on Symbian platform synchronization
+objects. The <codeph>DThread</codeph> class representing a Symbian platform
+thread is internal to Symbian, but the following table defines its possible
+states. The values in the left-hand column are the enumerators of the internal
+enumeration <codeph>DThread::TThreadState</codeph>. </p> <table id="GUID-C6ACF17D-2E18-5FCB-9383-BAE57D8F420F">
+<tgroup cols="2"><colspec colname="col0"/><colspec colname="col1"/>
+<tbody>
+<row>
+<entry><p> <codeph>ECreated</codeph>  </p> </entry>
+<entry><p>The initial state of all Symbian platform threads. It is a transient
+state; the thread starts in this state when the <codeph>DThread</codeph> object
+is created, and stays in that state until it is ready to be resumed, typically
+when DLL linkage and memory allocation is complete. At this point, the state
+will change to <codeph>EReady</codeph>. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EDead</codeph>  </p> </entry>
+<entry><p>This is the final state of a Symbian platform thread. A thread enters
+this state when it reaches the end of its exit handler, just before the nanokernel
+terminates it. In effect, the thread has exited but has not yet been deleted. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EReady</codeph>  </p> </entry>
+<entry><p>This indicates that the thread is not waiting on, or attached to
+any Symbian platform kernel wait object. It does not necessarily imply that
+the thread is actually ready to run - this is indicated by the N-state. For
+example, a thread that is explicitly suspended or waiting on a nanokernel
+wait object (generally a fast semaphore) still has a READY M-state provided
+that it is not attached to any Symbian platform wait object. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitSemaphore</codeph>  </p> </entry>
+<entry><p>This indicates that the thread is currently blocked waiting for
+a Symbian platform semaphore, and is enqueued on the semaphore’s wait queue.
+The thread’s <codeph>DThread::iWaitObj</codeph> field points to the semaphore. </p> <p>For
+example, this is the case if the thread calls <xref href="GUID-C197C9A7-EA05-3F24-9854-542E984C612D.dita#GUID-C197C9A7-EA05-3F24-9854-542E984C612D/GUID-50223158-D05D-33FE-A3DD-FFA9E2F464FF"><apiname>User::WaitForRequest()</apiname></xref> or <xref href="GUID-AED27A76-3645-3A04-B80D-10473D9C5A27.dita#GUID-AED27A76-3645-3A04-B80D-10473D9C5A27/GUID-68F18434-4758-33BA-9959-1F92A50651A2"><apiname>RSemaphore::Wait()</apiname></xref>  </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitSemaphoreSuspended</codeph>  </p> </entry>
+<entry><p>This indicates that the thread has been explicitly suspended after
+blocking on a Symbian platform semaphore, and is enqueued on the semaphore’s
+suspended queue. The thread’s <codeph>DThread::iWaitObj</codeph> field points
+to the semaphore. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitMutex</codeph>  </p> </entry>
+<entry><p>This indicates that the thread is currently blocked waiting for
+a Symbian platform mutex, and is enqueued on the mutex wait queue. The thread’s <codeph>DThread::iWaitObj</codeph> field
+points to the mutex. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitMutexSuspended</codeph>  </p> </entry>
+<entry><p>This indicates that the thread has been explicitly suspended after
+blocking on a Symbian platform mutex, and is enqueued on the mutex suspended
+queue. The thread’s <codeph>DThread::iWaitObj</codeph> field points to the
+mutex. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EHoldMutexPending</codeph>  </p> </entry>
+<entry><p>This indicates that the thread has been woken up from the EWaitMutex
+state but has not yet claimed the mutex. The thread is enqueued on the mutex
+pending queue and the thread’s <codeph>DThread::iWaitObj</codeph> field points
+to the mutex. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitCondVar</codeph>  </p> </entry>
+<entry><p>This indicates that the thread is waiting on a condition variable. </p> </entry>
+</row>
+<row>
+<entry><p> <codeph>EWaitCondVarSuspended</codeph>  </p> </entry>
+<entry><p>This indicates that the thread is suspended while waiting on a condition
+variable. </p> </entry>
+</row>
+</tbody>
+</tgroup>
+</table> </section>
+<section id="GUID-C6296C07-220E-5EB8-9E12-F7D63AB4B181"><title>Thread and
+process exit information summary</title> <p>User threads and processes have
+“exit information”. When a thread or process terminates the reason for the
+termination is found in the exit information. For example, a panic will store
+the panic category and reason in the exit information. Exit information has
+three parts: the exit type, exit reason and exit category. </p> <p>Exit type
+is defined by the <xref href="GUID-0296BFC6-7F7C-3259-AF21-7E9B5C304B24.dita"><apiname>TExitType</apiname></xref> enum. </p> <p>When a thread
+or process is created, its exit type is set to 3. An exit type of 3 indicates
+that the thread is still active, though not necessarily running. If the thread
+terminates for any reason, then the exit type is changed to reflect the cause
+of the exit. </p> <p>Once the thread or process has exited, the exit reason
+and exit type fields will contain useful information. The contents depends
+on the type of exit. </p> <p>Note that if the main thread in a process exits,
+then the process will exit with the same exit information as the thread. </p> <p><b>Exit category: Terminate</b> </p> <p>if <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-CE11A762-AF52-3122-86C8-C2F362AEF764"><apiname>RThread::Terminate()</apiname></xref> or <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-3DD41FD4-F389-340F-8E18-8FDEBC953251"><apiname>RProcess::Terminate()</apiname></xref> is
+called, then the exit category is <codeph>Terminate</codeph>, and the exit
+reason is the value of the <codeph>aReason</codeph> argument passed to these
+functions. </p> <p><b>Exit
+category: Kill</b> </p> <p>If <xref href="GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5.dita#GUID-B0E661BC-4058-3256-B9C3-5A4FD52F6DE5/GUID-1F717486-784A-32B9-A048-EE4F2450F8C8"><apiname>RThread::Kill()</apiname></xref> or <xref href="GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695.dita#GUID-9DD1EA2B-DC59-315C-8E9C-CE6D9461B695/GUID-8E87D3AE-E3F0-34DD-98C6-71B0D0D55FB8"><apiname>RProcess::Kill()</apiname></xref> is
+called, then the exit category is <codeph>Kill</codeph>, and the exit reason
+is the value of the <codeph>aReason</codeph> argument passed to these functions. </p> <p><b>Exit category: panic</b> </p> <p>If a thread panics, then the exit category
+is <codeph>panic</codeph>, and the exit reason is the panic number. For example
+a USER-19 panic would give the following exit information: </p> <codeblock id="GUID-ACC94269-E06E-5C7F-ACAF-74764FE21A0F" xml:space="preserve">exit type = 2
+exit category = “USER”
+exit reason = 19
+</codeblock> </section>
+<section id="GUID-68CF9014-4922-56B9-9E53-AC5697F60E8E"><title> Critical threads
+and processes</title> <p>Marking a thread or process as “system critical”
+means that it is an integral and essential part of the system, for example,
+the file server. In effect the thread or process is being declared necessary
+for correct functioning of the device. If a system critical thread exits or
+panics then the device will reboot; during development it will enter the debug
+monitor. A thread can be set as process critical, which means that if it panics
+the process will be panicked. </p> </section>
+<section id="GUID-6530D514-A6CC-5AE9-AA97-C223B2189A09"><title> Kernel calls
+and thread context</title> <p>When a user thread makes a call into any kernel
+code, the kernel code continues to run in the context of the user thread.
+This applies to device driver code. </p> <p>The stack is swapped to a kernel-side
+stack and the permissions of the thread are increased to kernel privilege,
+but otherwise the user thread is still running. Each thread has a small kernel
+stack used to handle kernel calls – it would be dangerous to continue using
+the normal thread stack in case it overflows. Some calls are handled in this
+state, others – typically device drivers – will post a message to a kernel
+side thread to carry out the request. </p> </section>
+<section id="GUID-5A573FEB-A274-5C0F-A6B6-87D5BAD8A21C"><title>Stacks</title> <p>When
+a process is created, a chunk is allocated to hold the process executable's <codeph>.data</codeph> section
+(initialised data) and <codeph>.bss</codeph> section (zero filled data). Sufficient
+space (default 2Mb) is also reserved as user-side stack space for threads
+that run in that process. </p> <p>By default, each thread is allocated 8k
+of user-side stack space. A guard of 8k is also allocated. </p> <p>The stack
+area follows the <codeph>.data</codeph> and <codeph>.bss</codeph> sections,
+and each thread's user side stack follows. On ARM processors the stack is
+descending, so that as items are added to the stack, the stack pointer is
+decremented. This means that if the stack overflows, the stack pointer points
+into the guard area and causes a processor exception, with the result that
+the kernel panics the thread. </p> <fig id="GUID-C87444AA-A8DC-5A5C-B2E6-B15FA69B6CE1">
+<image href="GUID-DD0DA06D-4180-54F1-8807-A7BF31D6A1F1_d0e70450_href.png" placement="inline"/>
+</fig> <p>Return addresses are stored by pushing them on to the stack so at
+any point you can trace through the stack looking at the saved return addresses
+to see the chain of function calls up to the present function. </p> <p>The
+size of the user-side stack space has an indirect effect on the number of
+threads that a process can have. There are other factors involved, but this
+is an important one. The limit is a consequence of the fact that a process
+can have a maximum of 16 chunks. This means that if threads within a process
+can share a heap (allocated from a single chunk), then it is possible to have
+a maximum of 128 threads per process [2Mb/(8K + 8K)]. More threads may be
+possible if you allow only 4K of stack per thread. </p> <p>Apart from the
+kernel stack attached to each thread, the kernel also maintains stacks that
+are used during processing of interrupts, exceptions and certain CPU states.
+Interrupts and exceptions can occur at any time, with the system in any state,
+and it would be dangerous to allow them to use the current stack which may
+not even be valid or may overflow and panic the kernel. The kernel stacks
+are guaranteed to be large enough for all interrupt and exception processing. </p> </section>
+<section id="GUID-E3F102A4-D187-5BC9-BE97-9F8447A5DB45"><title>Virtual memory
+and run addresses</title> <p>Symbian platform devices have an MMU which is
+used to map the addresses seen by running code to real addresses of memory
+and I/O. The MMU in effect creates a virtual memory map, allowing scattered
+blocks of RAM to appear contiguous, or for a section of memory to appear at
+different addresses in different processes, or not at all. </p> <p>Symbian
+platform uses the MMU to provide memory protection between processes, to allow
+sharing of memory, efficient allocation of RAM and to make all processes “see”
+the same memory layout. Three different memory models are supported by Symbian
+platform on ARM CPUs: </p> <ul>
+<li id="GUID-456A3D12-E1E0-5289-B5EB-2E3A47F07684"><p>moving model: this is
+the model familiar from EKA1 where processes are moved to a run-address in
+low memory when executing and moved back to a home-address in high memory
+when not running. </p> </li>
+<li id="GUID-3A5BCC68-7BAC-58B8-9727-54A880A7CED3"><p>direct model: this is
+used when the CPU does not have an MMU, or is emulating a system without an
+MMU. Not normally used, but occasionally useful for development boards </p> </li>
+<li id="GUID-7CB07322-B33E-5723-975C-6D2442B924F9"><p>multiple model: only
+supported in ARM architecture V6 and above, each process has its own set of
+MMU tables. A context switch changes the current MMU table to the new thread’s
+table, instead of moving memory about in a single table as with moving model. </p> </li>
+</ul> <p><b>Fixed
+processes</b> </p> <p>For ARM architectures with a virtually-tagged cache,
+fixed processes avoid the need to flush the cache on context switches by keeping
+all the code and data at a fixed address. This implies that there can only
+ever be one instance of each fixed process because the data chunk address
+cannot be changed. </p> <p>Important servers such as the file server and window
+server are fixed. </p> <p>There is no limit to the number of fixed processes
+that can be supported. The kernel will attempt to use ARM domains for fixed
+process protection, but there are a limited number of domains so when they
+are exhausted normal MMU techniques will be used. Domains are slightly faster
+in a context switch but this is negligible compared to the real purpose of
+the fixed process in avoiding the cache flush. </p> </section>
+</conbody></concept>

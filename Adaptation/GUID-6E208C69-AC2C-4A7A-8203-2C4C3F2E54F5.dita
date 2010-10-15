@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-6E208C69-AC2C-4A7A-8203-2C4C3F2E54F5" xml:lang="en"><title>Binding
+and Unbinding</title><shortdesc>This document describes how device drivers bind and unbind interrupts.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>To handle events, the interrupt source and the ISR have to be registered
+with the OS: this is called binding the interrupt. An interrupt
+has to be unbound when its use is complete.</p>
+<section id="GUID-36710685-0B8C-4D78-A453-B8772F1D6492"><title>Binding</title> <p> An
+interrupt source ID is bound with the driver's interrupt service routine.
+This is done using the function <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-4E3CB472-3525-32F8-9BC4-8ECFEE931E7B"><apiname>Interrupt::Bind()</apiname></xref> in the <i>second
+stage constructor</i> of the physical channel. Interrupt binding can fail
+if the source has been already used or bound. </p> <codeblock id="GUID-0743023B-86D7-5F76-B58F-A1A2159EFAE4" xml:space="preserve">TInt DExUartPhysicalChannelH4::DoCreate(TInt aUnit, const TDesC8* aInfo, const TVersion&amp; aVer)
+    {
+    ...
+    // Bind the interrupt service routine (ISR) to a specific 
+    // interrupt ID. When the ISR is called, the value aPtr,
+    // (here this object) is passed as the argument. The ISR 
+    // must be a static void function, taking a single TAny* 
+    // parameter: void Isr(TAny* aParam). Interrupt::Enable() 
+    // must be called to start receiving interrupts. Bind() 
+    // returns KErrInUse if the ISR is already bound.
+    //
+    TInt r = Interrupt::Bind(iIrqId,UartIsr,this);
+    if (r!=KErrNone)
+        {
+        KDBG(Kern::Printf("DExUartPhysicalChannel::Interrupt Binding 
+                for UART failed"));
+        return r;
+        }
+
+    return KErrNone;
+    }</codeblock></section>
+<section id="GUID-B68C33DD-AC9D-4211-8ADF-0A2D5F02B721"><title>Unbinding</title> <p> An
+interrupt is unbound by calling <xref href="GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3.dita#GUID-E7A7083C-97B9-39B9-A147-4A6E314EE3A3/GUID-DF98A40B-453C-3BC0-B538-D9A6943732E0"><apiname>Interrupt::UnBind()</apiname></xref>, which
+de-registers the interrupt source and routine. This must be done before or
+during physical channel destruction. Unbinding an interrupt does not disable
+its source. Interrupts have to be disabled explicitly before unbinding to
+avoid spurious interrupts. </p> <codeblock id="GUID-7F959F0F-E295-5310-8296-7BBF36D408FB" xml:space="preserve">/**
+ Physical channel destructor. Delete and free any objects created and
+ allocated by the physical channel. This is called by the    
+ framework while unloading the driver (PDD).
+ */
+DExUartPhysicalChannelH4::~DExUartPhysicalChannelH4()
+    {
+    // Unbind the UART interrupt. Interrupt::Unbind() frees the  
+    // interrupt service routine (ISR) function from the specified
+    // interrupt ID.
+    // 
+    Interrupt::Unbind (iIrqId);
+    }</codeblock></section>
+</conbody></concept>

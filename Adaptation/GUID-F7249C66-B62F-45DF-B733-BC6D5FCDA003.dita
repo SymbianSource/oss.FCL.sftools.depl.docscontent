@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-F7249C66-B62F-45DF-B733-BC6D5FCDA003" xml:lang="en"><title>Completion and Notification</title><shortdesc>This document describes how a device driver notifies completion
+of an asynchronous request.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>On completion of the request, the driver calls <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-D720BB4C-5E31-3213-BB16-859AA325FE98"><apiname>Kern::RequestComplete()</apiname></xref>,
+passing the <codeph>TRequestStatus</codeph> object and completion error code,
+to notify the request completion to the user. This API internally sets the
+passed error code in the <codeph>TRequestStatus</codeph> object. It also signals
+the client's thread semaphore. </p>
+<codeblock id="GUID-D6016CEF-C1F8-5743-97E3-E0E9E2C92547" xml:space="preserve">void DExDriverLogicalChannel::DoTxDataComplete()
+    {
+    ...
+    // Notify the client (iClient) that the request is completed. The  
+    // TRequestStatus object is updated with the status and the 
+    // completion code is provided to the client. Typically, the client 
+    // thread, waiting using User::WaitForRequest(TRequestStatus 
+    // &amp;aStatus) or the active object framework, is unblocked and 
+    // notified. Then the client may read the request status from the 
+    // TRequestStatus object.
+    // 
+    Kern::RequestComplete(iClient,iTxDataStatus,iTxResult);
+    }</codeblock>
+<p>The user retrieves the result of the request by calling <xref href="GUID-8005774C-A9AA-3335-B918-51190A125134.dita#GUID-8005774C-A9AA-3335-B918-51190A125134/GUID-BC53014D-0801-3168-9FDE-9D5897A7AA8A"><apiname>TRequestStaus::Int()</apiname></xref>. </p>
+</conbody></concept>

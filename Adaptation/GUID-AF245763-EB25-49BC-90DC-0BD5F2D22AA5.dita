@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-AF245763-EB25-49BC-90DC-0BD5F2D22AA5" xml:lang="en"><title>Specific
+Build Information</title><shortdesc>This document discusses the details of the build procedure which
+are specific to device drivers.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-093E4B03-8B84-4088-BEC9-9F6E09594E6D">       <title>Building
+device drivers</title>       <p>Building a device driver is similar to building
+any other component in Symbian platform. This section discusses the details
+that are specific to drivers, and assumes that you are familiar with the Symbian
+platform build tools. </p> <p>Device drivers can be built either by using
+console commands (<filepath>bldmake</filepath> and <filepath>abld</filepath>)
+or by using an IDE. Any project can be built for multiple platforms. Generally,
+it is either ARM for the hardware target or WINSCW for the emulator target.
+For hardware target builds, the build can be for ARMV5, ARMV6, and Thumb,
+while for emulator builds, the platform is WINSCW. The compilers used for
+ARM are the ARM RVCT compiler or, in earlier versions of the platform,
+a version of the GNU GCC compiler. For the emulator, the compiler is the Carbide.c++
+or Metrowerks CodeWarrior compiler. </p> <p>The <filepath>.mmp</filepath> file
+(project file) specifies the source files to build and the platform for which
+the target binary will be built. </p>     </section>
+<section id="GUID-E42B5D1E-5244-4A30-AA83-FB7331EE1934"><title>Variant specific target </title> <p>When a target is specified
+using the keyword <codeph>VariantTarget()</codeph>, the build tools generate
+a unique name for the binary by adding the variant name. This allows separate
+binaries to be created for each variant, and prevents the current binary being
+overwritten. </p> <p>For example, if the target to be built is <filepath>d_expio_ldd.ldd</filepath>,
+then <filepath>VariantTarget(d_expio_ldd,ldd)</filepath> would be specified
+in the <filepath>.mmp</filepath> file. If the project is then built for the <codeph>h4hrp</codeph> variant,
+the final target binary built is called <filepath>_h4hrp_d_expio_ldd.ldd</filepath>. </p></section>
+<section id="GUID-F78A81DF-5482-4D63-934D-33AB078B831C"><title>ROM image build</title> <p>To include a driver in a ROM image,
+the driver's files must be included in the corresponding obey files (<filepath>.oby</filepath>).
+In the base subsystem, the binaries are specified in <filepath>.iby</filepath> files,
+and the <filepath>.iby</filepath> files are then included in <filepath>.oby</filepath> files. </p> <p>For
+example, to include a driver in the H4 text shell ROM image, it should be
+included in <filepath>kernel.iby</filepath>. This file is located in <filepath>base\omap_hrp\h4\rom\</filepath>,
+and exported to <filepath>epoc32\rom\h4hrp</filepath>. Similarly for the TechView
+ROM build, the relevant file is <filepath>base_h4hrp.iby</filepath> file,
+which is located in <filepath>base\omap_hrp_h4\rom\</filepath>, and exported
+to <filepath>epoc32\rom\include</filepath>. An example from an <filepath>.iby</filepath> file
+is shown below: </p> <codeblock id="GUID-2A6C74C8-050F-555C-8E50-C92169A513B2" xml:space="preserve">// .iby file
+
+/**
+##KMAIN## gets the path for e32
+##BUILD## gets the build – udeb/urel according to build
+##VARIANT gets the target from corresponding variant  
+*/
+
+device[VARID]=\EPOC32\RELEASE\##KMAIN##\##BUILD##\d_expio_ldd.ldd sys\bin\d_expio_ldd.ldd 
+
+device[VARID]=\EPOC32\RELEASE\##KMAIN##\##BUILD##\_##VARIANT##_d_expio_pdd.pdd sys\bin\d_expio_pdd.pdd</codeblock> <p>On
+building the test .inf files, test <filepath>.iby</filepath> files will be
+generated. This includes the newly added binaries in the <filepath>.iby</filepath> file. </p> <p>After
+building the drivers, a ROM can be built. Device driver and base developers
+generally build text shell ROM images for development and testing. These can
+be built using the <filepath>rom</filepath> tool (from <filepath>base\e32\rombuild</filepath>).
+By default, the ROM image is generated in that directory. An alternate path
+can also be specified. </p> <p>For example, for the H4HRP variant, a text
+shell ROM image is built using: </p> <p><userinput>rom –v=h4hrp –I=armv5 udeb</userinput> </p> <p>This
+builds a ROM called <filepath>H4HRPARMV5D.IMG</filepath>, which can then be
+downloaded to target hardware and tested. </p> <p>To include base test programs
+in a ROM image, the option <codeph>–type</codeph> can be used. For example: </p> <p><userinput>rom
+–v=h4hrp –I=armv5 udeb –type=e32tests</userinput> </p> <p>This includes the
+tests from <filepath>base\e32test</filepath>. The tool uses as input a generated
+or precompiled <filepath>oby</filepath> file, which includes all the generated
+test <filepath>.iby</filepath> files. </p></section>
+</conbody></concept>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-C2114C7B-705C-4527-836A-C6E72227111A" xml:lang="en"><title>DMA Testing Guide</title><shortdesc>Describes the required and optional testing for the DMA
+framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>You can use the same set of source code to build the following
+DMA test harnesses: </p>
+<ol>
+<li id="GUID-95B78247-5B32-479A-B013-A3FD4D04477E"><p><b>Simulation
+PSL</b>: T_DMASIM.EXE, D_DMASIM.LDD, and DMASIM.DLL. This is a software-simulated
+implementation of DMA that is used mainly for debugging and validating
+the PIL (platform-independent layer), as it simulates all types of
+DMA controller. </p></li>
+<li id="GUID-4090D5D9-7D03-4E68-9870-FA035058F50B"><p><b>User-side
+harness</b>: T_DMA.EXE. </p></li>
+</ol>
+<section id="GUID-34FD4B72-0481-46A3-9EB7-50CA55D01FF9">       <title>DMA test source files</title>       <p>The following test code are
+available to test a DMA port.</p><table id="GUID-999C6533-DEEA-42DA-AAAD-5F9F2E3DB794">
+<tgroup cols="4"><colspec colname="col1"/><colspec colname="col2"/>
+<colspec colname="col3"/><colspec colname="COLSPEC0" colwidth="1.00*"/>
+<thead>
+<row>
+<entry valign="top">File</entry>
+<entry valign="top">Description</entry>
+<entry valign="top">Location</entry>
+<entry valign="top">Usage</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>t_dma.exe</entry>
+<entry>User-side test harness to test the DMA framework</entry>
+<entry><filepath>/e32test/dma/t_dma.cpp</filepath></entry>
+<entry>Mandatory</entry>
+</row>
+<row>
+<entry>d_dma.ldd</entry>
+<entry>Simulation PSL to test the DMA framework</entry>
+<entry><filepath>/e32test/dma/d_dma.cpp</filepath></entry>
+<entry>Mandatory</entry>
+</row>
+<row>
+<entry>dmasim.dll</entry>
+<entry>Software simulation of DMA controller and the SHAI implemetation</entry>
+<entry><filepath>e32test/dma/dmasim.cpp</filepath></entry>
+<entry>Optional, only used to test software simulated DMA controller.</entry>
+</row>
+<row>
+<entry>t_dmasim.exe</entry>
+<entry>User-side test harness to test the simulated DMA controller</entry>
+<entry><filepath>/e32test/dma/t_dma.cpp</filepath></entry>
+<entry>Optional, only used to test software simulated DMA controller.</entry>
+</row>
+<row>
+<entry>d_dmasim.ldd</entry>
+<entry>Kernel-side test harness to test the simulated DMA controller</entry>
+<entry><filepath>/e32test/dma/d_dma.cpp</filepath></entry>
+<entry>Optional, only used to test software simulated DMA controller.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>     <p><filepath>T_DMA.EXE</filepath> is a user-side harness,
+and is an automatic test included in the <codeph>E32TEST</codeph> suite.
+It assumes that the underlying DMA controller supports memory to memory
+transfers. This executable delegates most of the work to <filepath>D_DMA.LDD</filepath> , a logical device driver that acts as a client
+for the DMA Framework. <filepath>D_DMA.LDD</filepath> links statically
+against <filepath>DMA.DLL</filepath>, the DMA Framework kernel extension
+must be built from the variant.</p><p><filepath>T_DMA.EXE</filepath> delegates most of the work to <filepath>D_DMA.LDD</filepath>, which
+is a logical device driver that acts as a client for the DMA Framework.
+D_DMA.LDD links statically against DMA.DLL, the DMA Framework kernel
+extension must be built from the variant. In practice, this means
+that D_DMA.LDD must be specified in the test <codeph>bld.inf</codeph> for the variant being ported. For an example of this, see <filepath>...\template_variant\test\bld.inf</filepath>. </p><p><filepath>D_DMA.LDD</filepath> calls the <xref href="GUID-3D0A9A03-E210-30EE-A1A1-7DA06E668CAA.dita"><apiname>DmaTestInfo()</apiname></xref> function in the PSL to
+obtain the information on which channels are available to be used
+by T_DMA to allow it to run multiple DMA channels simultaneously.
+This is the template implementation: </p><codeblock xml:space="preserve">struct TDmaTestInfo
+     {
+     /** Maximum transfer size in bytes for all channels (ie. the minimum of all channels' maximum size)*/
+     TInt iMaxTransferSize;
+     /** 3-&gt;Memory buffers must be 4-byte aligned, 7-&gt;8-byte aligned, ... */
+     TUint iMemAlignMask;
+     /** Cookie to pass to DDmaRequest::Fragment for memory-memory transfer*/
+     TUint32 iMemMemPslInfo;
+     /** Number of test single-buffer channels */
+     TInt iMaxSbChannels;
+     /** Pointer to array containing single-buffer test channel ids */
+     TUint32* iSbChannels;
+     /** Number of test double-buffer channels */
+     TInt iMaxDbChannels;
+     /** Pointer to array containing double-buffer test channel ids */
+     TUint32* iDbChannels;
+     /** Number of test scatter-gather channels */
+     TInt iMaxSgChannels;
+     /** Pointer to array containing scatter-gather test channel ids */
+     TUint32* iSgChannels;
+     };
+
+TDmaTestInfo TestInfo = {0, 0, 0, 0, NULL, 0, NULL, 0, NULL};
+
+
+EXPORT_C const TDmaTestInfo&amp; DmaTestInfo()
+//...
+    {
+    return TestInfo;
+    }
+
+</codeblock></section>
+<section id="GUID-A4207DD8-1DE4-4F4C-8EAB-BDEBF2D2A7F0"><title>Test
+application use cases</title><p>The DMA test application is used to
+test:</p><ul>
+<li><p>one shot single buffer transfer</p></li>
+<li><p>one shot double buffer transfer</p></li>
+<li><p>one shot scatter/gather transfer</p></li>
+<li><p>streaming single buffer transfer</p></li>
+<li><p>streaming double buffer transfer</p></li>
+<li><p>streaming scatter/gather transfer</p></li>
+</ul><p>The DMA test application can be used on both reference hardware
+platform and software simulated DMA.</p></section>
+<section id="GUID-DA97B733-2449-4A74-B4A9-0682C8A4DCE0"><title>Limitations</title><p>The DMA test application has the following known limitations:</p><ul>
+<li><p> only supports one shot and streaming data transfer</p></li>
+<li><p>many parameters such as the number of buffers, the transfer
+size and the number of fragments are fixed</p></li>
+<li><p>does not support performance measurements like CPU usage, setup
+time and transfer time</p></li>
+<li><p>does not support memory to peripheral data transfer</p></li>
+<li><p>does not support SMP related testing like allocating DFC on
+same core or different core.</p></li>
+</ul></section>
+</conbody><related-links>
+<link href="GUID-95A33491-17AC-4F12-948E-A1352ADDA483.dita"><linktext>DMA
+Implementation Guide</linktext></link>
+</related-links></concept>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-DA382265-232F-40F4-92ED-C90E6DE3D709" xml:lang="en"><title>Version</title><shortdesc>This document describes how to set the interface version used by
+an LDD or a PDD and how to check version compatibility.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<p>An LDD and a PDD each have a version number which helps to identify the
+interface. In order to communicate, an LDD and a PDD must have the same version
+number.</p>
+<section id="GUID-A0AC274C-E530-44C4-A955-582E294C3986">       <title>Version
+definition</title>       <p>Each LDD and PDD has their own version number.
+LDDs and PDDs must set their version numbers in their respective factory objects,
+using a <xref href="GUID-D82DEC7A-71C2-3004-BFC2-C82C009A2715.dita"><apiname>TVersion</apiname></xref> object. <codeph>TVersion</codeph> specifies
+a major number, a minor number and a build number. </p> <p>A version number
+defines the interface version supported by the LDD or PDD. It is used to check
+that an LDD and PDD are compatible. It is also checked against the version
+requested by a client when it opens a channel. </p> <p>The following shows
+how the example device drivers set their version numbers: </p> <codeblock id="GUID-0346530F-4560-5132-BD78-625C55F69840" xml:space="preserve">inline TVersion RExDriverChannel::VersionRequired()
+    {    
+    return (TVersion(EUartMajorVersionNumber,
+            EUartMinorVersionNumber,
+            EUartBuildVersionNumber));
+    }</codeblock> <codeblock id="GUID-C89697A9-B8D3-5BAC-8020-429483C5D492" xml:space="preserve">// LDD Factory object Constructor
+DExDriverLogicalDevice::DExDriverLogicalDevice ()
+    {
+    iVersion = RExDriverChannel::VersionRequired();
+    }</codeblock> <codeblock id="GUID-728B933E-6F42-599A-8C63-9C572EB6C54E" xml:space="preserve">// PDD Factory object Constructor
+DExH4PhysicalDevice::DExH4PhysicalDevice ()
+    {        
+    iVersion= RExDriverChannel::VersionRequired();
+    }</codeblock>     </section>
+<section id="GUID-7778CFE6-EFFC-45FD-A1CD-92EE21A35C14"><title>Version compatibility</title> <p>The
+Kernel provides the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A28757CC-B89B-3F63-AD39-9955FBE7533B"><apiname>Kern::QueryVersionSupported()</apiname></xref> API to
+enforce a consistent set of rules for checking version compatibility. It returns
+true if one of the following conditions is true: </p> <ul>
+<li id="GUID-5DE6B5DA-2823-546D-BB2D-0556D3AEEC52"><p>the major version of
+the client is less than the major version of the driver. </p> </li>
+<li id="GUID-54E77028-897E-53BE-BEAB-72ECD796EF63"><p>the major version of
+the client is equal to the major version of the driver, and the minor version
+of the client is less than or equal to the minor version of the driver. </p> </li>
+</ul> <p> <xref href="GUID-A3CC1D95-4681-3349-A67C-F113A614041D.dita#GUID-A3CC1D95-4681-3349-A67C-F113A614041D/GUID-3DE558DF-16A3-39F9-87E3-F5600899A4D4"><apiname>DLogicalChannel::DoCreate()</apiname></xref> typically checks
+the client version against the driver using this API. </p> <codeblock id="GUID-2E1A3DC4-5A28-5CB7-A983-BDE461E4A861" xml:space="preserve">// Logical Channel Second stage constructor
+TInt DExDriverLogicalChannel::DoCreate(TInt /*aUnit*/, const TDesC8* 
+/*anInfo*/, const TVersion&amp; aVer)
+    {
+    ...
+    // Version check
+    if(!Kern::QueryVersionSupported(RExDriver::VersionRequired(),
+aVer))
+    return KErrNotSupported;
+    ...
+    }</codeblock> <p>When the device framework searches for a corresponding
+PDD factory object for an LDD, it calls <xref href="GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930.dita#GUID-A5484A7F-94B9-34C7-9F88-82B1BF516930/GUID-70B6293C-9000-31D9-AE9E-441C9760B92E"><apiname>DPhysicalDevice::Validate()</apiname></xref> on
+each matching PDD factory object, passing the unit number and the optional
+extra information block. The first PDD to return <codeph>KErrNone</codeph> is
+accepted as the required PDD. </p> <p>The example PDD's <codeph>Validate()</codeph> implementation
+checks the version of the LDD against the PDD, using the <xref href="GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D.dita#GUID-C6946ECB-775F-3EC2-A56F-78F25B9FBE3D/GUID-A28757CC-B89B-3F63-AD39-9955FBE7533B"><apiname>Kern::QueryVersionSupported()</apiname></xref> API: </p> <codeblock id="GUID-56F482C2-B312-58B6-8454-262A774A1B53" xml:space="preserve">// PDD: Validate
+TInt DExH4PhysicalDevice::Validate(TInt aUnit, const TDesC8* 
+/*aInfo*/, const TVersion&amp; aVer)    
+    {
+    ...
+    // Version check
+    if (!Kern::QueryVersionSupported(iVersion,aVer))    
+        return KErrNotSupported;
+    ...
+    }</codeblock></section>
+</conbody></concept>

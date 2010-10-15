@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-2ECF13A1-9D56-5740-A09F-8267E6A45DD9" xml:lang="en"><title>Porting the Power Resource Manager</title><shortdesc>This tutorial describes how to port the Platform Specific
+Layer (PSL) of the Power Resource Manager (<keyword>PRM</keyword>)
+and how to modify clients, such as device drivers, to use the PRM
+framework.</shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-97905214-40EC-44A1-95D6-7F2C1636C638"><title>Purpose</title> <p>The PRM is a framework for managing system power resources. This
+framework improves portability across different platforms and reduces
+device driver complexity. </p> <p>The PRM framework is split into
+two layers: </p> <ul>
+<li id="GUID-17F4DFA5-2848-5CA9-BE5D-F7F52BB1705F"><p>Platform Independent
+Layer - the PIL is a generic software layer that is implemented by
+Symbian. This is the base virtual class for the Power Resource Controller
+(<xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita"><apiname>DPowerResourceController</apiname></xref>), </p> </li>
+<li id="GUID-B6499506-0B33-588F-BEFC-12A4D9FDF239"><p>Platform Specific
+Layer - the PSL is developed specifically to interface with the target
+hardware by licensees. This is the class derived from <codeph>DPowerResourceController</codeph>. </p> </li>
+</ul> <p>Other acronyms used in this document set: </p> <ul>
+<li id="GUID-97B58DBF-51DA-5982-A2D2-BF3453B062F2"><p>LDD - Logical
+Device Driver. The higher layer of abstraction within the Symbian
+platform device driver framework which implements common functionality
+among differing pieces of hardware of one type, </p> </li>
+<li id="GUID-547FA744-0D75-516A-954A-E9D1DBCBAC87"><p>PDD - Physical
+Device Driver. The lower layer of abstraction within the Symbian platform
+device driver framework which implements functionality that is specific
+to a particular piece of hardware. </p> </li>
+</ul> <p><b>Intended audience</b> </p> <p>This document is intended
+to be used by Symbian platform device creators. </p> <p><b>Required
+background</b> </p> <p>The reader of this document is assumed to have
+knowledge of the Symbian platform device driver model and <keyword>base port</keyword> layering and components. </p> <ul>
+<li id="GUID-611721D2-17C4-56F4-9101-6088B062BB2C"><p> <xref href="GUID-8D80AA51-5108-5D4B-B6B9-7FA47570AB89.dita">Device Driver Concepts</xref>, </p> </li>
+</ul> <p><b>Introduction</b> </p> <p>The PRM provides a unique place
+where all the current power states for resources can be obtained at
+any time. The sum of all internal and external power states defines
+the current system-wide power state. </p> <p id="GUID-0F328055-DBCE-5B2B-A1EB-77F73BA1FC82"><b>Setup and configuration
+requirements</b> </p> <p>The PRM component is implemented as a kernel
+extension with an exported public interface that is accessible to
+kernel side components through statically linking against its export
+library. The export library is built from the resource manager and
+the resource manager libraries. </p> <p>There are two versions available: </p> <ul>
+<li id="GUID-982137EB-A7C2-5420-8279-477AC52D5350"><p>basic resource
+manager - provides essential or required functionality for static
+resources. </p> <p>The basic version of the PIL layer is compiled
+into <filepath>resmanpsl.lib</filepath>. This kernel library must
+be included by the PSL to produce the kernel extension. </p> </li>
+<li id="GUID-0F8863B3-044C-5B5A-831D-DB20B72459C8"><p>extended resource
+manager - provides additional support for dynamic resources and resource
+dependencies. </p> <p>The extended version of the PIL layer is complied
+into <filepath>resmanextenedpsl.lib</filepath>. This kernel library
+must be included by the PSL to produce the kernel extension. </p> </li>
+</ul> <p>Device drivers that require the use of the PRM should link
+against the appropriate library. <filepath>resman.lib</filepath> to
+use the basic version and <filepath>resmanextended.lib</filepath> to
+use the extended version of the PRM. </p> <p><b>Building the PRM for
+the target platform</b> </p> <p>The PRM is an early extension, so
+the <codeph>targettype</codeph> in the <keyword>mmp</keyword> file
+must be set to <codeph>kext</codeph>. If the PRM is implemented as
+a PDD the <codeph>targettype</codeph> in the mmp file should be should
+be <codeph>pdd</codeph>. </p> <p><b>Boot sequence</b> </p> <p>The
+PRM cannot be used to operate on power resources until later in the
+boot sequence when the kernel allows the scheduling of other threads.
+During this time it is not possible to read or change the state of
+resources, but <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-9D07A9C1-C0AE-36E9-8438-3BF71D3CBB0C"><apiname>DPowerResourceController::PostBootLevel()</apiname></xref> can be used to specify the state of specific resources and the PRM
+can change the state of resources to appropriate levels before the
+PRM is fully initialised. </p> <p> <codeph>PostBootLevel()</codeph> is used within the extension entry point, during this time PRM is
+not fully initialised. <b>Note</b>: This function can only be used
+for static resources and static resources with dependencies. </p> <codeblock id="GUID-F8E2125A-0DA8-5991-8FED-BF6DA48EC79D" xml:space="preserve">static TInt PostBootLevel(TUint aResId, TInt aLevel);</codeblock> <p> <codeph>PostBootLevel()</codeph> takes the resource ID and the
+post boot level that the level a resource needs to be after it is
+initialised. Typically the post boot level is only known to the PSL.
+However kernel extensions (and the variant) may request a post boot
+level. </p> <p>If a kernel extension needs to know if certain resources
+have reached the post boot state in order to complete its own initialisation
+then the kernel extension should queue resource state change notifications
+for the resource when first registering as clients with the PRM. <b>Note</b>: notification requests are accepted before the PRM is fully
+initialised. </p> <p>Variants or kernel extensions can register static
+resources before the PRM is fully initialised with <xref href="GUID-46F2174F-0206-345B-8C5D-F8B5763652E0.dita#GUID-46F2174F-0206-345B-8C5D-F8B5763652E0/GUID-6F74C10F-5055-37D2-968D-FCAB7D0F8FDF"><apiname>DPowerResourceController::RegisterStaticResource()</apiname></xref>. This API can only be used by static resources and not by static
+resource that support dependency. See <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita#GUID-66FD040B-133E-57CF-80DD-9369F62709C6/GUID-61471315-14E1-5A0F-A164-92CF928C3604">DoRegisterStaticResources()</xref>. </p> </section>
+<section id="GUID-EBBEF707-27E5-4E10-ADCA-A02C119EB075"><title>Using
+the Power Resource Manager</title> <p>Porting the PRM consists of
+implementing the PSL layer for a given hardware platform and modifying
+clients, such as device drivers, to use the PRM framework. </p> <p>The following tasks are covered in this tutorial: </p> <ul>
+<li id="GUID-21093CEB-845E-528F-81DF-BD21084E3A27"><p> <xref href="GUID-B1CE51BC-B452-5FC9-9C00-35447AF40671.dita"> Implement the controllable
+power resources</xref>, </p> </li>
+<li id="GUID-93B8B5A9-D7EE-56A0-B96B-BA2FC8DE1CE7"><p> <xref href="GUID-66FD040B-133E-57CF-80DD-9369F62709C6.dita"> Implement the PSL
+for the target</xref>, </p> </li>
+<li id="GUID-417CE38C-66CC-5186-B833-B1A6E8CE21B8"><p> <xref href="GUID-E7F91A65-235D-589C-9A8C-0B207D19A24B.dita"> Port the client
+drivers to use the PRM</xref> (to control the implemented resources), </p> </li>
+<li id="GUID-1420B749-8618-5FF3-93E3-F1A5E4579061"><p> <xref href="GUID-C8DF0CB0-92F4-5F9E-A8F1-7DE50954C4F1.dita">Debugging the PRM</xref>, </p> </li>
+<li id="GUID-4EEEC53B-C162-5E3F-B047-ABD4951F9C46"><p> <xref href="GUID-66E5F769-1156-54CA-94BC-8912159A1240.dita"> Testing the PRM
+PSL</xref>. </p> </li>
+</ul> </section>
+</conbody><related-links>
+<link href="GUID-6E1DE1E4-1B09-541C-8708-9126E69B42CE.dita"><linktext>Power
+Resource Manager (PRM)</linktext></link>
+<link href="GUID-3773A78D-F491-52EB-AA1D-201636497F28.dita"><linktext>Power
+Management Tutorials</linktext></link>
+</related-links></concept>

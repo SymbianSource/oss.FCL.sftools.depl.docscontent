@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies) All rights reserved. -->
+<!-- This component and the accompanying materials are made available under the terms of the License 
+"Eclipse Public License v1.0" which accompanies this distribution, 
+and is available at the URL "http://www.eclipse.org/legal/epl-v10.html". -->
+<!-- Initial Contributors:
+    Nokia Corporation - initial contribution.
+Contributors: 
+-->
+<!DOCTYPE concept
+  PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="GUID-E2641957-8163-5EF4-B282-FC3FD9CA75A6" xml:lang="en"><title>Sound
+Driver Technology</title><shortdesc>Describes the technology concepts that are used in the Sound Driver. </shortdesc><prolog><metadata><keywords/></metadata></prolog><conbody>
+<section id="GUID-CBC17614-34B3-52A1-9C74-F7093A175398"><title>Audio hardware
+device</title> <p>An audio hardware device is an individual hardware codec
+device together with any associated controller hardware that allows the CPU
+to communicate with it. </p> <p>A basic audio hardware device typically provides
+two communication paths: an input path for the audio recording and an output
+path for audio playback. </p> <p>Most basic audio hardware devices support
+full duplex data transfer although some are only half-duplex or maybe just
+simplex. Each input or output path may be used to transfer mono data or stereo
+data. In the case of stereo this consists of two audio channels, the left
+and the right; mono data consists of just a single audio channel. </p> <p>A
+more complex audio hardware device could be an AC 97 codec or similar, plus
+its associated controller, which can support multiple input and output paths.
+Each input or output path may be used to transfer mono data, stereo data or
+'multichannel data'. For example, left, right, centre, left and right surround
+and Low-Frequency Effects (LFE). </p> </section>
+<section id="GUID-7C8FF32F-2E84-57B1-8962-9EDB4D51FEE6"><title>Unit</title> <p>Units
+are used to provide access to the various audio hardware devices. Each unit
+supports just one communication path this is either input or output. </p> <p>Clients
+of the audio hardware system can open a separate connection to each unit.
+The mapping between the units on a given phone and the audio hardware devices
+themselves is platform specific; this is determined by the implementer of
+the Sound Driver PDD for that platform. </p> <p>A basic full-duplex audio
+hardware device is presented as two units, one input/record unit and one output/playback
+unit. A more complex audio hardware device such as an AC 97 codec may be represented
+to the rest of the OS as a number of audio input and output units. </p> </section>
+<section id="GUID-74B14664-8D9D-57D2-B090-709136FEB5E3"><title>Audio channel</title> <p>An
+audio channel is a data stream between a client and an audio unit. There are
+one or more audio channels per driver channel. </p> </section>
+<section id="GUID-4D6A01FE-47E7-5A6F-9DFE-F612B880165B"><title>Driver channel</title> <p>A
+driver channel is a session between a client and an audio unit. A client may
+have driver channels open on more than one unit. </p> <p><note> The difference
+between a driver channel and an audio channel. A driver channel is a session
+between the client and an audio device which can consist of one or more audio
+channels. An audio channel refers to the audio stream, for example, left or
+right output.</note> </p> <fig id="GUID-C3B51755-EDB0-5518-83D1-886E9148D65A">
+<title>              The relationship between audio channels and device channels.
+           </title>
+<image href="GUID-2D98DB88-BA48-5EF8-A5F9-0CB8688B0B63_d0e32099_href.png" placement="inline"/>
+</fig> </section>
+<section id="GUID-5C66667B-55C0-521D-86E3-67593DB381C9"><title>Mono to stereo
+conversion</title> <p>Many codecs that support stereo playback can only accept
+audio data that is delivered with the samples for each of the channels interleaved,
+for example, LRLRLR. For these audio hardware devices, in order to operate
+the channel in mono mode and to play audio data which contains only samples
+for a single channel it is necessary to perform mono-to-stereo conversion
+on the audio data before delivering it to the codec. So, for a section of
+mono audio data that contains three samples, lets call them S1, S2 and S3,
+each sample is duplicated, so we have S1,S1,S2,S2,S3,S3, with identical samples
+being delivered to each channel. </p> <p>Unfortunately, the only way for the
+PDD to implement this conversion is for it to allocate a conversion buffer
+and to copy each sample twice into this buffer. The PDD has to allocate a
+separate conversion buffer for each simultaneous transfer operation it supports,
+for example, for the template playback driver, a conversion buffer count equal
+to <xref href="GUID-EE69DF4F-3341-355A-837A-5DA1C8A20A67.dita"><apiname>KTemplateMaxTxDmaRequests</apiname></xref>. </p> <p>When performing conversion
+in this manner, the maximum transfer size that the PDD can accept from the
+LDD becomes half the size of each conversion buffer, and when configured in
+this mode, the value returned to the LDD in response to <xref href="GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424.dita#GUID-61CC68CB-A01D-3CA0-93D9-F3717ABD6424/GUID-A47005E5-36B4-3795-A4C0-CB67B43802B5"><apiname>DSoundScPdd::MaxTransferLen</apiname></xref> must
+equal this value. </p> <p>Likewise, the record data may be delivered by the
+audio hardware device only in stereo format with the data samples for each
+channel interleaved. If the driver channel is configured in mono record mode,
+stereo to mono conversion has to be performed in the PDD to discard each alternate
+sample. </p> </section>
+</conbody></concept>
